@@ -1,7 +1,6 @@
-package com.neo.sk.carnie.snake
+package com.neo.sk.carnie
 
 import java.awt.event.KeyEvent
-
 import scala.util.Random
 
 
@@ -64,7 +63,6 @@ trait Grid {
     grid = grid.filter { case (p, spot) =>
       spot match {
         case Body(id) if snakes.contains(id) => true
-//        case Apple(_, life) if life >= 0 => true
         //case Header(id, _) if snakes.contains(id) => true
         case Field(id)  if snakes.contains(id) => true
         case _ => false
@@ -73,19 +71,18 @@ trait Grid {
       //case (p, Header(id, life)) => (p, Body(id, life - 1))
       case (p, b@Body(_)) => (p, b)
       case (p, f@Field(_)) => (p, f)
-//      case (p, a@Apple(_, life)) =>
-//        appleCount += 1
-//        (p, a.copy(life = life - 1))
       case x => x
     }
 
   }
 
 
-  def randomEmptyPoint(): Point = {
-    var p = Point(random.nextInt(boundary.x - 2), random.nextInt(boundary.y - 2))
-    while (grid.contains(p) && grid.contains(p.copy(x = p.x + 2)) && grid.contains(p.copy(y = p.y + 2)) &&
-      grid.contains(p.copy(x = p.x + 2, y = p.y + 2))) {
+  def randomEmptyPoint(size: Int): Point = {
+    var p = Point(random.nextInt(boundary.x - size), random.nextInt(boundary.y - size))
+    while ((0 to size).flatMap { x =>
+      (0 to size).map { y =>
+        grid.contains(p.copy(x = p.x + x, y = p.y + y))
+      }}.contains(true)) {
       p = Point(random.nextInt(boundary.x - 2), random.nextInt(boundary.y - 2))
     }
     p

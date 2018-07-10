@@ -1,9 +1,8 @@
-package com.neo.sk.carnie.snake.scalajs
+package com.neo.sk.carnie.scalajs
 
-import com.neo.sk.carnie.snake.Protocol
-import com.neo.sk.carnie.snake.Protocol.GridDataSync
-import com.neo.sk.carnie.snake.Protocol.GridDataSync
-import com.neo.sk.carnie.snake._
+import com.neo.sk.carnie.Protocol
+import com.neo.sk.carnie.Protocol.GridDataSync
+import com.neo.sk.carnie._
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.{Document => _, _}
@@ -75,14 +74,14 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOn(): Unit = {
-    ctx.strokeStyle = Color.Red.toString()
-    ctx.strokeRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   def drawGameOff(): Unit = {
-    ctx.strokeStyle = Color.Red.toString()
-    ctx.strokeRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
-    ctx.fillStyle =  Color.Black.toString()
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
     if (firstCome) {
       ctx.font = "36px Helvetica"
       ctx.fillText("Welcome.", 150, 180)
@@ -120,8 +119,8 @@ object NetGameHolder extends js.JSApp {
 
   def drawGrid(uid: Long, data: GridDataSync): Unit = {
 
-    ctx.strokeStyle = Color.Red.toString()
-    ctx.strokeRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
 
     val snakes = data.snakes
     val bodies = data.bodyDetails
@@ -130,7 +129,7 @@ object NetGameHolder extends js.JSApp {
     bodies.foreach { case Bd(id, x, y) =>
       //println(s"draw body at $p body[$life]")
       val color = snakes.find(_.id == id).map(_.color).getOrElse("#000080")
-      ctx.globalAlpha = 0.7
+      ctx.globalAlpha = 0.6
       ctx.fillStyle = color
       if (id == uid) {
         ctx.save()
@@ -182,12 +181,10 @@ object NetGameHolder extends js.JSApp {
         firstCome = false
         val baseLine = 1
         ctx.font = "12px Helvetica"
-        ctx.fillStyle = Color.Black.toString()
         drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
         drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
       case None =>
-        ctx.fillStyle = Color.Black.toString()
         if(firstCome) {
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150, 180)
@@ -320,7 +317,7 @@ object NetGameHolder extends js.JSApp {
 
   def getWebSocketUri(document: Document, nameOfChatParticipant: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/hiStream/netSnake/join?name=$nameOfChatParticipant"
+    s"$wsProtocol://${dom.document.location.host}/carnie/netSnake/join?name=$nameOfChatParticipant"
   }
 
   def p(msg: String) = {

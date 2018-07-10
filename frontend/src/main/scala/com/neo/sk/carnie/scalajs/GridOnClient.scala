@@ -1,7 +1,6 @@
-package com.neo.sk.carnie.snake.scalajs
+package com.neo.sk.carnie.scalajs
 
-import com.neo.sk.carnie.snake.Grid
-import com.neo.sk.carnie.snake.{Grid, Point}
+import com.neo.sk.carnie.{Grid, Point}
 
 /**
   * User: Taoz

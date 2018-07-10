@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.snake
+package com.neo.sk.carnie
 
 /**
   * User: Taoz

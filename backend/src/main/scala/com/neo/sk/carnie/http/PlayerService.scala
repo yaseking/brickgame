@@ -8,7 +8,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.Flow
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.Timeout
-import com.neo.sk.carnie.snake.PlayGround
+import com.neo.sk.carnie.PlayGround
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContextExecutor
   * Date: 9/1/2016
   * Time: 4:13 PM
   */
-trait SnakeService {
+trait PlayerService {
 
 
   import io.circe.generic.auto._

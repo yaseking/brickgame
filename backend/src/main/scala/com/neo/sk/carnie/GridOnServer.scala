@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.snake
+package com.neo.sk.carnie
 
 import org.slf4j.LoggerFactory
 
@@ -32,14 +32,17 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   private[this] def genWaitingSnake() = {
     waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, name) =>
-      val header = randomEmptyPoint()
+      val indexSize = 2
+      val basePoint = randomEmptyPoint(indexSize)
       val bodyColor = randomColor()
-      grid += header -> Body(id)
-      grid += header -> Field(id)
-      grid += header.copy(x = header.x + 1) -> Field(id)
-      grid += header.copy(y = header.y + 1) -> Field(id)
-      grid += header.copy(x = header.x + 1, y = header.y + 1) -> Field(id)
-      snakes += id -> SkDt(id, name, bodyColor, header)
+      val newHeader = basePoint.copy(x = basePoint.x + indexSize + 1, y = basePoint.y + indexSize)
+      grid += newHeader -> Body(id)
+      (0 to indexSize).foreach { x =>
+        (0 to indexSize).foreach { y =>
+          grid += basePoint.copy(x = basePoint.x + x, y = basePoint.y + y) -> Field(id)
+        }
+      }
+      snakes += id -> SkDt(id, name, bodyColor, newHeader)
     }
     waitingJoin = Map.empty[Long, String]
   }
