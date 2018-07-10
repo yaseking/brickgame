@@ -8,15 +8,19 @@ package com.neo.sk
 package object carnie {
 
   sealed trait Spot
+
   case class Body(id: Long) extends Spot
+
   case class Header(id: Long) extends Spot
+
   //  case class Apple(score: Int, life: Int) extends Spot
   case class Field(id: Long) extends Spot
 
   case class Score(id: Long, n: String, k: Int, l: Int, t: Option[Long] = None)
-  case class Bd(id: Long, x: Int, y: Int)
-  case class Fd(id: Long, x: Int, y: Int)
 
+  case class Bd(id: Long, x: Int, y: Int)
+
+  case class Fd(id: Long, x: Int, y: Int)
 
 
   case class Point(x: Int, y: Int) {
@@ -46,14 +50,16 @@ package object carnie {
                    kill: Int = 0
                  )
 
+  case class UpdateSnakeInfo(
+                              data: SkDt,
+                              isFiled: Boolean = false
+                            )
 
-  object Boundary{
+
+  object Boundary {
     val w = 120
     val h = 60
   }
-
-
-
 
 
 }

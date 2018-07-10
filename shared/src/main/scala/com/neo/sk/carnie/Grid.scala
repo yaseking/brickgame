@@ -98,14 +98,14 @@ trait Grid {
 
   def randomHex() = {
     val h = (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString
-    String.format("%5s", h).replaceAll("\\s", "0")
+    String.format("%6s", h).replaceAll("\\s", "0")
   }
 
 
   private[this] def updateSnakes() = {
-    def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], SkDt] = {
+    def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
-      debug(s" +++ snake[${snake.id} - color ${snake.color}] feel key: $keyCode at frame=$frameCount")
+      debug(s" +++ snake[${snake.id} -- color is ${snake.color} ] feel key: $keyCode at frame=$frameCount")
       val newDirection = {
         val keyDirection = keyCode match {
           case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
@@ -129,35 +129,15 @@ trait Grid {
           Left(Some(x.id))
         case Some(Field(id)) =>
           if(id == snake.id){
-            //todo 回到了自己的领域，进行圈地
-            val trail = grid.filter(_._2 match{
-              case Body(bid) if bid == snake.id  => true
-              case Field(bid) if bid == snake.id => true
-              case _ => false
-            }).keys.toList //轨迹点
-            trail.groupBy(_.x).foreach{case(x, point) =>
-                point.length match {
-                  case 1 =>
-                    grid += Point(x, point.head.y) -> Field(id)
-
-                  case 2 =>
-                    val t = point.map(_.y).sorted
-                    (t.head to t.last).foreach{y =>
-                      grid += Point(x, y) -> Field(id)
-                    }
-
-                  case _ => //todo
-                    val pointY= point.sortBy(_.y).map(_.y)
-                    if(point.length == pointY.last - pointY.head + 1){ //一段连续的数字
-                      pointY.foreach(y => grid += Point(x, y) -> Field(id))
-                    } else {
-
-                    }
-                }
-            }
-            Right(snake.copy(header = newHeader, direction = newDirection))
+            //todo 回到了自己的领域，进行圈地并且自己的领地不会被重置为body
+            val trail = grid.map(g => g._2 match{
+              case Body(bid) if bid == snake.id  =>
+                (g._1, "b")
+              case Field(bid) if bid == snake.id =>
+                (g._1, "f")}).toList //轨迹点
+            Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
           } else { //进入到被人的领域
-            Right(snake.copy(header = newHeader, direction = newDirection))
+            Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
           }
         case _ => //判断是否进入到了边界
           if(newHeader.x == 0 || newHeader.x == boundary.x){
@@ -165,13 +145,13 @@ trait Grid {
           } else if(newHeader.y == 0 || newHeader.y == boundary.y){
             Left(None)
           } else
-            Right(snake.copy(header = newHeader, direction = newDirection))
+            Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
       }
     }
 
 
     var mapKillCounter = Map.empty[Long, Int]
-    var updatedSnakes = List.empty[SkDt]
+    var updatedSnakes = List.empty[UpdateSnakeInfo]
 
     val acts = actionMap.getOrElse(frameCount, Map.empty[Long, Int])
 
@@ -184,11 +164,11 @@ trait Grid {
 
 
     //if two (or more) headers go to the same point,
-    val snakesInDanger = updatedSnakes.groupBy(_.header).filter(_._2.size > 1).values
+    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.size > 1).values
 
     val deadSnakes =
       snakesInDanger.flatMap { hits =>
-        val sorted = hits.toSeq.sortBy(_.length)
+        val sorted = hits.map(_.data).sortBy(_.length)
         val winner = sorted.head
         val deads = sorted.tail
         mapKillCounter += winner.id -> (mapKillCounter.getOrElse(winner.id, 0) + deads.length)
@@ -196,15 +176,15 @@ trait Grid {
       }.map(_.id).toSet
 
 
-    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.id)).map { s =>
-      mapKillCounter.get(s.id) match {
-        case Some(k) => s.copy(kill = s.kill + k)
+    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id)).map { s =>
+      mapKillCounter.get(s.data.id) match {
+        case Some(k) => s.copy(data = s.data.copy(kill = k + s.data.kill))
         case None => s
       }
     }
 
-    grid ++= newSnakes.map(s => s.header -> Body(s.id))
-    snakes = newSnakes.map(s => (s.id, s)).toMap
+    newSnakes.foreach(s => if(!s.isFiled) grid += s.data.header -> Body(s.data.id))
+    snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
   }
 
