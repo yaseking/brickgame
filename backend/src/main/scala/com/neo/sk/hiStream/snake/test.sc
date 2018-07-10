@@ -1,0 +1,1 @@
+(new util.Random).nextInt(256).toHexString
