@@ -283,7 +283,7 @@ object NetGameHolder extends js.JSApp {
           historyRank = history
 
         case data: Protocol.GridDataSync =>
-          writeToArea(s"grid data got: $data")
+//          writeToArea(s"grid data got: $data")
           //TODO here should be better code.
           grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
           grid.frameCount = data.frameCount

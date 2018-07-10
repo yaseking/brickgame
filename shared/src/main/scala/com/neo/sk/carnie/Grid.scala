@@ -89,18 +89,23 @@ trait Grid {
   }
 
   def randomColor(): String = {
-    var color = "#" + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString +(new util.Random).nextInt(256).toHexString
+    var color = "#" + randomHex
     while (snakes.map(_._2.color).toList.contains(color) || color == "#000000" || color == "#000080") {
-      color = "#" + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString +(new util.Random).nextInt(256).toHexString
+      color = "#" + randomHex
     }
     color
+  }
+
+  def randomHex() = {
+    val h = (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString
+    String.format("%5s", h).replaceAll("\\s", "0")
   }
 
 
   private[this] def updateSnakes() = {
     def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], SkDt] = {
       val keyCode = actMap.get(snake.id)
-      debug(s" +++ snake[${snake.id}] feel key: $keyCode at frame=$frameCount")
+      debug(s" +++ snake[${snake.id} - color ${snake.color}] feel key: $keyCode at frame=$frameCount")
       val newDirection = {
         val keyDirection = keyCode match {
           case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
@@ -124,7 +129,32 @@ trait Grid {
           Left(Some(x.id))
         case Some(Field(id)) =>
           if(id == snake.id){
-            //todo 回到了自己的领域，完成一次封闭
+            //todo 回到了自己的领域，进行圈地
+            val trail = grid.filter(_._2 match{
+              case Body(bid) if bid == snake.id  => true
+              case Field(bid) if bid == snake.id => true
+              case _ => false
+            }).keys.toList //轨迹点
+            trail.groupBy(_.x).foreach{case(x, point) =>
+                point.length match {
+                  case 1 =>
+                    grid += Point(x, point.head.y) -> Field(id)
+
+                  case 2 =>
+                    val t = point.map(_.y).sorted
+                    (t.head to t.last).foreach{y =>
+                      grid += Point(x, y) -> Field(id)
+                    }
+
+                  case _ => //todo
+                    val pointY= point.sortBy(_.y).map(_.y)
+                    if(point.length == pointY.last - pointY.head + 1){ //一段连续的数字
+                      pointY.foreach(y => grid += Point(x, y) -> Field(id))
+                    } else {
+
+                    }
+                }
+            }
             Right(snake.copy(header = newHeader, direction = newDirection))
           } else { //进入到被人的领域
             Right(snake.copy(header = newHeader, direction = newDirection))
