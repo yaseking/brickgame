@@ -29,6 +29,7 @@ trait Grid {
   var grid = Map[Point, Spot]()
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
+  var snakeStart = Map.empty[Long, Point]
 
   def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
@@ -124,19 +125,28 @@ trait Grid {
       val newHeader = ((snake.header + newDirection) + boundary) % boundary
 
       grid.get(newHeader) match {
-        case Some(x: Body) =>
+        case Some(x: Body) => //进行碰撞检测
           debug(s"snake[${snake.id}] hit wall.")
           Left(Some(x.id))
+
         case Some(Field(id)) =>
           if(id == snake.id){
-            //todo 回到了自己的领域，进行圈地并且自己的领地不会被重置为body
-            val trail = grid.map(g => g._2 match{
-              case Body(bid) if bid == snake.id  =>
-                (g._1, "b")
-              case Field(bid) if bid == snake.id =>
-                (g._1, "f")}).toList //轨迹点
-            Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
+            //todo 回到了自己的领域，根据起点和终点最近的连线与body路径围成一个闭合的图形，进行圈地并且自己的领地不会被重置为body
+            snakeStart.get(snake.id) match {
+              case Some(startPoint) =>
+                val bodys = grid.filter(_._2 match{case Body(bid) if bid == snake.id  => true}).keys.toList
+                val field = grid.filter(_._2 match{case Field(bid) if bid == snake.id  => true}).keys.toList
+                val newFieldBoundary = bodys ++ field
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
+
+              case None =>
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
+            }
           } else { //进入到被人的领域
+            grid.get(snake.header) match { //记录出行的起点
+              case Some(Field(fid)) if fid == snake.id => snakeStart += id -> snake.header
+              case _ =>
+            }
             Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
           }
         case _ => //判断是否进入到了边界
@@ -144,8 +154,13 @@ trait Grid {
             Left(None)
           } else if(newHeader.y == 0 || newHeader.y == boundary.y){
             Left(None)
-          } else
+          } else{
+            grid.get(snake.header) match { //记录出行的起点
+              case Some(Field(fid)) if fid == snake.id => snakeStart += fid -> snake.header
+              case _ =>
+            }
             Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
+          }
       }
     }
 
@@ -208,6 +223,17 @@ trait Grid {
       bodyDetails,
       fieldDetails
     )
+  }
+
+  def findShortestPath(start:Point, end: Point, fieldBoundary: List[Point]): Unit = {
+    val baseDirection = List(Point(-1, 0), Point(1, 0), Point(0, -1),Point(0, 1))
+    val initDirection = baseDirection.map{p => if(fieldBoundary.contains(start + p)) Right(p) else Left("error")}
+    if(initDirection.count(_ match {case Right(_) => true case _ => false}) > 2){
+      val route1 = 0
+      val route2 = 0
+    }
+    val route1 = 1
+    val route2 = 0
   }
 
 
