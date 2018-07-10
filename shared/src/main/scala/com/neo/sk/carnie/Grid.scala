@@ -30,6 +30,8 @@ trait Grid {
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var snakeStart = Map.empty[Long, Point]
+  var snakePath = Map.empty[Long, List[Point]]
+  val baseDirection = List(Point(-1, 0), Point(1, 0), Point(0, -1),Point(0, 1))
 
   def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
@@ -225,15 +227,35 @@ trait Grid {
     )
   }
 
-  def findShortestPath(start:Point, end: Point, fieldBoundary: List[Point]): Unit = {
-    val baseDirection = List(Point(-1, 0), Point(1, 0), Point(0, -1),Point(0, 1))
-    val initDirection = baseDirection.map{p => if(fieldBoundary.contains(start + p)) Right(p) else Left("error")}
-    if(initDirection.count(_ match {case Right(_) => true case _ => false}) > 2){
-      val route1 = 0
-      val route2 = 0
+  def findShortestPath(start:Point, end: Point, fieldBoundary: List[Point]) = {
+    var initDirection = List.empty[Point]
+    baseDirection.foreach { p =>
+      if (fieldBoundary.contains(start + p)) initDirection = p :: initDirection
     }
-    val route1 = 1
-    val route2 = 0
+    if (initDirection.lengthCompare(2) == 0) {
+      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, Nil, initDirection.head)
+      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, Nil, initDirection.last)
+      if(route1.lengthCompare(route2.length) > 0) route1 else route2
+    } else {
+      List.empty[Point]
+    }
+  }
+
+  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point): List[Point] ={
+    var res = targetPath
+    val resetDirection = if(lastDirection.x != 0) Point(-lastDirection.x, lastDirection.y) else Point(lastDirection.x, -lastDirection.y)
+    println(start)
+    while(start != end){
+      var direction = Point(-1, -1)
+      baseDirection.filterNot(_ == resetDirection).foreach{d => if(fieldBoundary.contains(start + d)) direction = d}
+      if(direction != Point(-1,-1)){
+        println(direction)
+        res = getShortest(start + direction, end, fieldBoundary, start + direction :: targetPath, direction)
+      } else {
+        return List.empty[Point]
+      }
+    }
+    res
   }
 
 
