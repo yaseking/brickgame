@@ -1,6 +1,7 @@
-package com.neo.sk.hiStream.snake.scalajs
+package com.neo.sk.carnie.snake.scalajs
 
-import com.neo.sk.hiStream.snake.{Grid, Point}
+import com.neo.sk.carnie.snake.Grid
+import com.neo.sk.carnie.snake.{Grid, Point}
 
 /**
   * User: Taoz

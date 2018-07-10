@@ -1,4 +1,4 @@
-package com.neo.sk.hiStream.http
+package com.neo.sk.carnie.http
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -8,7 +8,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.Flow
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.Timeout
-import com.neo.sk.hiStream.snake.PlayGround
+import com.neo.sk.carnie.snake.PlayGround
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor

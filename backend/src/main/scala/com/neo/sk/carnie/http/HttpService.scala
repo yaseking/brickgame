@@ -1,11 +1,10 @@
-package com.neo.sk.hiStream.http
+package com.neo.sk.carnie.http
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.util.Timeout
-
 import scala.concurrent.ExecutionContextExecutor
 
 /**
@@ -25,17 +24,8 @@ trait HttpService extends SnakeService with ResourceService{
   implicit val timeout: Timeout
 
 
-
-  val snakeRoute = {
-    (path("snake") & get) {
-      getFromResource("html/mySnake.html")
-    }
-  }
-
-
   val routes =
-    pathPrefix("hiStream") {
-      snakeRoute ~
+    pathPrefix("carnie") {
       netSnakeRoute ~
       resourceRoutes
     }

@@ -1,11 +1,11 @@
-package com.neo.sk.hiStream
+package com.neo.sk.carnie
 
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import com.neo.sk.hiStream.http.HttpService
+import com.neo.sk.carnie.http.HttpService
 
 import scala.language.postfixOps
 
@@ -17,7 +17,7 @@ import scala.language.postfixOps
 object Boot extends HttpService {
 
   import concurrent.duration._
-  import com.neo.sk.hiStream.common.AppSettings._
+  import com.neo.sk.carnie.common.AppSettings._
 
 
   override implicit val system = ActorSystem("arges", config)

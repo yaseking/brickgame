@@ -1,7 +1,9 @@
-package com.neo.sk.hiStream.snake.scalajs
+package com.neo.sk.carnie.snake.scalajs
 
-import com.neo.sk.hiStream.snake.Protocol.GridDataSync
-import com.neo.sk.hiStream.snake._
+import com.neo.sk.carnie.snake.Protocol
+import com.neo.sk.carnie.snake.Protocol.GridDataSync
+import com.neo.sk.carnie.snake.Protocol.GridDataSync
+import com.neo.sk.carnie.snake._
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.{Document => _, _}
