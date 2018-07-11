@@ -22,7 +22,6 @@ trait Grid {
   val random = new Random(System.nanoTime())
 
 
-  val defaultLength = 5
   val appleNum = 6
   val appleLife = 50
   val historyRankLength = 5
@@ -133,29 +132,34 @@ trait Grid {
           Left(Some(x.id))
 
         case Some(Field(id)) =>
-          if(id == snake.id && (grid(snake.header) match{case Body(bid) if bid == snake.id  => true  case _ => false})){
+          if(id == snake.id){
             //todo 回到了自己的领域，根据起点和终点最近的连线与body路径围成一个闭合的图形，进行圈地并且自己的领地不会被重置为body
-            snakeStart.get(snake.id) match {
-              case Some(startPoint) =>
-                val bodys = grid.filter(_._2 match{case Body(bid) if bid == snake.id  => true  case _ => false}).keys.toList
-                val boundary = snake.boundary
-                debug("game boundary" + boundary)
-                debug("start-" + startPoint)
-                debug("end-" + newHeader)
-                debug("body-" + bodys)
-                debug("boundary-" + snake.boundary)
-                val newCalFieldBoundary  = findShortestPath(startPoint, newHeader, boundary)._1 ++ bodys
-                val newTotalFieldBoundary = findShortestPath(startPoint, newHeader, boundary)._2 ++ bodys
-                debug("findShortestPath1" + findShortestPath(startPoint, newHeader, boundary)._1)
-                debug("findShortestPath2" + findShortestPath(startPoint, newHeader, boundary)._2)
-                debug("newTotalFieldBoundary" + newTotalFieldBoundary)
-                debug("newCalFieldBoundary" + newCalFieldBoundary)
-                val findPoint = findRandomPoint(newCalFieldBoundary)
-                debug("point is" + findPoint)
-                breadthFirst(findPoint, newCalFieldBoundary, snake.id)
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, boundary = newTotalFieldBoundary), true))
+            grid(snake.header) match {
+              case Body(bid) if bid == snake.id =>
+                snakeStart.get(snake.id) match {
+                  case Some(startPoint) =>
+                    val bodys = grid.filter(_._2 match{case Body(bid) if bid == snake.id  => true  case _ => false}).keys.toList
+                    val snakeBoundary = snake.boundary
+                    info("start-" + startPoint)
+                    info("end-" + newHeader)
+                    info("body-" + bodys)
+                    info("boundary-" + snake.boundary)
+                    val newCalFieldBoundary  = findShortestPath(startPoint, newHeader, snakeBoundary)._1 ++ bodys
+                    val newTotalFieldBoundary = findShortestPath(startPoint, newHeader, snakeBoundary)._2 ++ bodys
+                    info("findShortestPath1" + findShortestPath(startPoint, newHeader, snakeBoundary)._1)
+                    info("findShortestPath2" + findShortestPath(startPoint, newHeader, snakeBoundary)._2)
+                    info("newTotalFieldBoundary" + newTotalFieldBoundary)
+                    info("newCalFieldBoundary" + newCalFieldBoundary)
+                    val findPoint = findRandomPoint(newCalFieldBoundary)
+                    debug("point is" + findPoint)
+                    breadthFirst(findPoint, newCalFieldBoundary, snake.id)
+                    Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, boundary = newTotalFieldBoundary), true))
 
-              case None =>
+                  case None =>
+                    Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
+                }
+
+              case _ =>
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
             }
           } else { //进入到别人的领域
@@ -247,8 +251,8 @@ trait Grid {
       if (fieldBoundary.contains(start + p)) initDirection = p :: initDirection
     }
     if (initDirection.lengthCompare(2) == 0) {
-      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head), initDirection.head)
-      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last), initDirection.last)
+      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head, start), initDirection.head)
+      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last, start), initDirection.last)
       if(route1.lengthCompare(route2.length) > 0) (route2, route1) else (route1, route2)
     } else {
       (Nil, Nil)

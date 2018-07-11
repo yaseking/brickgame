@@ -35,7 +35,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       val indexSize = 2
       val basePoint = randomEmptyPoint(indexSize)
       val bodyColor = randomColor()
-      val newHeader = basePoint.copy(x = basePoint.x + indexSize + 1, y = basePoint.y)
+      val newHeader = basePoint.copy(x = basePoint.x, y = basePoint.y)
       grid += newHeader -> Body(id)
       (0 to indexSize).foreach { x =>
         (0 to indexSize).foreach { y =>

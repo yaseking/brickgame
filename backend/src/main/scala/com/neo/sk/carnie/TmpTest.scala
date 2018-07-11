@@ -116,9 +116,10 @@ object TmpTest {
 //
 //        println(b.sortBy(_.x))
 
-//    val b = List(Point(57,37), Point(57,38), Point(57,39), Point(58,39), Point(59,39), Point(59,38), Point(63,37), Point(60,39), Point(67,37), Point(62,39), Point(65,39), Point(61,39), Point(61,37), Point(67,39), Point(63,39), Point(62,37), Point(66,37), Point(67,38), Point(64,39), Point(65,37), Point(60,37), Point(64,37), Point(66,39), Point(58,37))
-//     println(b.sortBy(_.x))
-//    val p = findRandomPoint(q)
+
+    val b = List(Point(90,11), Point(90,10), Point(92,11), Point(91,11), Point(92,9), Point(93,11), Point(91,9), Point(94,9), Point(94,11), Point(93,9), Point(94,10))
+
+        val p = findRandomPoint(b)
 //    println(p)
 //    breadthFirst(p, t, 0l)
   }
