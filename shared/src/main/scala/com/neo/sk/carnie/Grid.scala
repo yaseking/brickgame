@@ -1,6 +1,8 @@
 package com.neo.sk.carnie
 
 import java.awt.event.KeyEvent
+
+import scala.collection.mutable
 import scala.util.Random
 
 
@@ -31,7 +33,7 @@ trait Grid {
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var snakeStart = Map.empty[Long, Point]
   var snakePath = Map.empty[Long, List[Point]]
-  val baseDirection = List(Point(-1, 0), Point(1, 0), Point(0, -1),Point(0, 1))
+  val baseDirection = Map("left" -> Point(-1, 0), "right" -> Point(1, 0), "up" -> Point(0, -1), "down" -> Point(0, 1))
 
   def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
@@ -62,7 +64,7 @@ trait Grid {
   }
 
   private[this] def updateSpots() = {
-    debug(s"grid: ${grid.mkString(";")}")
+//    debug(s"grid: ${grid.mkString(";")}")
     grid = grid.filter { case (p, spot) =>
       spot match {
         case Body(id) if snakes.contains(id) => true
@@ -108,7 +110,7 @@ trait Grid {
   private[this] def updateSnakes() = {
     def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
-      debug(s" +++ snake[${snake.id} -- color is ${snake.color} ] feel key: $keyCode at frame=$frameCount")
+//      debug(s" +++ snake[${snake.id} -- color is ${snake.color} ] feel key: $keyCode at frame=$frameCount")
       val newDirection = {
         val keyDirection = keyCode match {
           case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
@@ -132,13 +134,21 @@ trait Grid {
           Left(Some(x.id))
 
         case Some(Field(id)) =>
-          if(id == snake.id){
+          if(id == snake.id && (grid(snake.header) match{case Body(bid) if bid == snake.id  => true  case _ => false})){
             //todo 回到了自己的领域，根据起点和终点最近的连线与body路径围成一个闭合的图形，进行圈地并且自己的领地不会被重置为body
             snakeStart.get(snake.id) match {
               case Some(startPoint) =>
-                val bodys = grid.filter(_._2 match{case Body(bid) if bid == snake.id  => true}).keys.toList
-                val field = grid.filter(_._2 match{case Field(bid) if bid == snake.id  => true}).keys.toList
-                val newFieldBoundary = bodys ++ field
+                val bodys = grid.filter(_._2 match{case Body(bid) if bid == snake.id  => true  case _ => false}).keys.toList
+                val field = grid.filter(_._2 match{case Field(fid) if fid == snake.id  => true case _ => false}).keys.toList
+                debug("body" + bodys)
+                debug("field" + field)
+                val newTotalFieldBoundary = findShortestPath(startPoint, newHeader, field)._1 ++ bodys
+                val newCalFieldBoundary = findShortestPath(startPoint, newHeader, field)._2 ++ bodys
+                debug("newTotalFieldBoundary" + newTotalFieldBoundary)
+                debug("newCalFieldBoundary" + newCalFieldBoundary)
+                snakePath += snake.id -> newTotalFieldBoundary
+                val findPoint = findRandomPoint(newCalFieldBoundary)
+                breadthFirst(findPoint, newCalFieldBoundary, snake.id)
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
 
               case None =>
@@ -147,6 +157,7 @@ trait Grid {
           } else { //进入到被人的领域
             grid.get(snake.header) match { //记录出行的起点
               case Some(Field(fid)) if fid == snake.id => snakeStart += id -> snake.header
+                debug("start...." + snake.header)
               case _ =>
             }
             Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
@@ -159,6 +170,7 @@ trait Grid {
           } else{
             grid.get(snake.header) match { //记录出行的起点
               case Some(Field(fid)) if fid == snake.id => snakeStart += fid -> snake.header
+                debug("start...." + snake.header)
               case _ =>
             }
             Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
@@ -229,34 +241,84 @@ trait Grid {
 
   def findShortestPath(start:Point, end: Point, fieldBoundary: List[Point]) = {
     var initDirection = List.empty[Point]
-    baseDirection.foreach { p =>
+    baseDirection.values.foreach { p =>
       if (fieldBoundary.contains(start + p)) initDirection = p :: initDirection
     }
     if (initDirection.lengthCompare(2) == 0) {
-      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, Nil, initDirection.head)
-      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, Nil, initDirection.last)
-      if(route1.lengthCompare(route2.length) > 0) route1 else route2
+      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head), initDirection.head)
+      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last), initDirection.last)
+      if(route1.lengthCompare(route2.length) > 0) (route2, route1) else (route1, route2)
     } else {
-      List.empty[Point]
+      (Nil, Nil)
     }
   }
 
-  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point): List[Point] ={
+  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point): List[Point] = {
     var res = targetPath
-    val resetDirection = if(lastDirection.x != 0) Point(-lastDirection.x, lastDirection.y) else Point(lastDirection.x, -lastDirection.y)
-    println(start)
-    while(start != end){
+    val resetDirection = if (lastDirection.x != 0) Point(-lastDirection.x, lastDirection.y) else Point(lastDirection.x, -lastDirection.y)
+    if (start - end != Point(0, 0)) {
       var direction = Point(-1, -1)
-      baseDirection.filterNot(_ == resetDirection).foreach{d => if(fieldBoundary.contains(start + d)) direction = d}
-      if(direction != Point(-1,-1)){
-        println(direction)
+      baseDirection.values.filterNot(_ == resetDirection).foreach { d => if (fieldBoundary.contains(start + d)) direction = d }
+      if (direction != Point(-1, -1)) {
         res = getShortest(start + direction, end, fieldBoundary, start + direction :: targetPath, direction)
       } else {
-        return List.empty[Point]
+        return Nil
       }
     }
     res
   }
 
+  def findRandomPoint(boundary: List[Point]): Point = {
+    var findPoint = boundary(random.nextInt(boundary.length))
+    if(findPoint.x != 0 && findPoint.y !=0 && findPoint.x != Boundary.w && findPoint.y != Boundary.h){ //剔除边界点
+      findPoint = findRandomPoint(boundary)
+    } else {
+      if (boundary.contains(findPoint + baseDirection("left")) && boundary.contains(findPoint + baseDirection("right")) &&
+        !boundary.contains(findPoint + baseDirection("up")) && !boundary.contains(findPoint + baseDirection("down"))) { //横线上的点
+        findPoint = findInsidePoint(Point(findPoint.x, findPoint.y + 1),Point(findPoint.x, findPoint.y - 1), boundary)
+      } else if (!boundary.contains(findPoint + baseDirection("left")) && !boundary.contains(findPoint + baseDirection("right")) &&
+        boundary.contains(findPoint + baseDirection("up")) && boundary.contains(findPoint + baseDirection("down"))) { //竖线上的点
+        findPoint = findInsidePoint(Point(findPoint.x + 1, findPoint.y),Point(findPoint.x - 1, findPoint.y), boundary)
+      } else { //转折点-重新找点
+        findPoint = findRandomPoint(boundary)
+      }
+    }
+    findPoint
+  }
 
+  def findInsidePoint(point1: Point, point2: Point, boundary: List[Point]): Point = {
+    if (boundary.count(p => p.x == point1.x && p.y > point1.y) % 2 == 1 &&
+      boundary.count(p => p.x == point1.x && p.y < point1.y) % 2 == 1 &&
+      boundary.count(p => p.y == point1.y && p.x > point1.x) % 2 == 1 &&
+      boundary.count(p => p.y == point1.y && p.x < point1.x) % 2 == 1){ //射线上相交个数均为奇数的点为内部点
+      point1
+    } else {
+      point2
+    }
+  }
+
+  def breadthFirst(startPoint: Point, boundary: List[Point], snakeId: Long) = {
+    //除了第一点的孩子是上下左右。其余的上的孩子是上，左的孩子是左+上，下的孩子是下，右的孩子是右+下
+    val colorQueue = new mutable.Queue[(String, Point)]()
+    grid += startPoint -> Field(snakeId)
+    baseDirection.foreach(d => if(!boundary.contains(startPoint + d._2)) colorQueue.enqueue((d._1, startPoint + d._2)))
+
+    while(colorQueue.nonEmpty){
+      println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+      val currentPoint = colorQueue.dequeue()
+      grid += currentPoint._2 -> Field(snakeId)
+      currentPoint._1 match {
+        case "left" =>
+          if(!boundary.contains(currentPoint._2 + baseDirection("left"))) colorQueue.enqueue(("left", currentPoint._2 + baseDirection("left")))
+          if(!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+        case "right" =>
+          if(!boundary.contains(currentPoint._2 + baseDirection("right"))) colorQueue.enqueue(("right", currentPoint._2 + baseDirection("right")))
+          if(!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
+        case "up" =>
+          if(!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+        case "down" =>
+          if(!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
+      }
+    }
+  }
 }

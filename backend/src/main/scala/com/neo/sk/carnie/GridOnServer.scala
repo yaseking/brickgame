@@ -42,7 +42,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
           grid += basePoint.copy(x = basePoint.x + x, y = basePoint.y + y) -> Field(id)
         }
       }
-      snakePath += id -> grid.filter(_._2 match { case Field(fid) if fid == id => true }).keys.toList.filterNot(_ ==
+
+      snakePath += id -> grid.filter(_._2 match { case Field(fid) if fid == id => true case _ => false}).keys.toList.filterNot(_ ==
         Point(basePoint.x + indexSize - 1, basePoint.x + indexSize - 1))
 
       snakes += id -> SkDt(id, name, bodyColor, newHeader)
