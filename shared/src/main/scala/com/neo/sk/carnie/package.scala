@@ -44,6 +44,7 @@ package object carnie {
                    id: Long,
                    name: String,
                    color: String,
+                   boundary: List[Point],
                    header: Point = Point(20, 20),
                    direction: Point = Point(1, 0),
                    length: Int = 4,

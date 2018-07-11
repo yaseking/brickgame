@@ -35,18 +35,17 @@ class GridOnServer(override val boundary: Point) extends Grid {
       val indexSize = 2
       val basePoint = randomEmptyPoint(indexSize)
       val bodyColor = randomColor()
-      val newHeader = basePoint.copy(x = basePoint.x + indexSize + 1, y = basePoint.y + indexSize)
+      val newHeader = basePoint.copy(x = basePoint.x + indexSize + 1, y = basePoint.y)
       grid += newHeader -> Body(id)
       (0 to indexSize).foreach { x =>
         (0 to indexSize).foreach { y =>
           grid += basePoint.copy(x = basePoint.x + x, y = basePoint.y + y) -> Field(id)
         }
       }
+      val boundary = grid.filter(_._2 match {case Field(fid) if fid == id => true case _ => false}).keys.toList.filterNot(_ ==
+        Point(basePoint.x + 1, basePoint.y + 1))
 
-      snakePath += id -> grid.filter(_._2 match { case Field(fid) if fid == id => true case _ => false}).keys.toList.filterNot(_ ==
-        Point(basePoint.x + indexSize - 1, basePoint.x + indexSize - 1))
-
-      snakes += id -> SkDt(id, name, bodyColor, newHeader)
+      snakes += id -> SkDt(id, name, bodyColor, boundary, newHeader)
     }
     waitingJoin = Map.empty[Long, String]
   }
