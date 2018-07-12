@@ -17,31 +17,44 @@ object TmpTest {
   import io.circe.parser._
   import io.circe.syntax._
 
-  def findShortestPath(start:Point, end: Point, fieldBoundary: List[Point]) = {
+  def findVertex(shape: List[Point]) = {
+    var vertex = List.empty[Point]
+    shape.foreach { p =>
+      if (List(baseDirection("up"), baseDirection("down")).exists { d =>
+        shape.contains(p + d) && shape.contains(p + baseDirection("left")) && !shape.contains(p + baseDirection("right")) ||
+          shape.contains(p + d) && shape.contains(p + baseDirection("right")) && !shape.contains(p + baseDirection("left"))
+      }) {
+        vertex = p :: vertex
+      }
+    }
+    vertex
+  }
+
+  def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point]) = {
     var initDirection = List.empty[Point]
     baseDirection.values.foreach { p =>
       if (fieldBoundary.contains(start + p)) initDirection = p :: initDirection
     }
-    println(initDirection.length)
+    val vertex = findVertex(fieldBoundary)
+    println("vertex" +  vertex)
     if (initDirection.lengthCompare(2) == 0) {
-      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head), initDirection.head)
-//      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last), initDirection.last)
-//      if(route1.lengthCompare(route2.length) > 0) (route2, route1) else (route1, route2)
+      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head, start), initDirection.head, vertex)
+      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last, start), initDirection.last, vertex)
+      if (route1.lengthCompare(route2.length) > 0) (route2, route1) else (route1, route2)
     } else {
       (Nil, Nil)
     }
   }
 
-  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point): List[Point] = {
+  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point, vertex: List[Point]): List[Point] = {
     var res = targetPath
     val resetDirection = if (lastDirection.x != 0) Point(-lastDirection.x, lastDirection.y) else Point(lastDirection.x, -lastDirection.y)
+    val nextDirection = if(vertex.contains(start))  baseDirection.values.filterNot(List(lastDirection, resetDirection).contains(_)) else List(lastDirection)
     if (start - end != Point(0, 0)) {
-      println(start + "00" + end)
       var direction = Point(-1, -1)
-      baseDirection.values.filterNot(_ == resetDirection).foreach { d => if (fieldBoundary.contains(start + d)) direction = d }
+      nextDirection.foreach { d => if (fieldBoundary.contains(start + d)) direction = d }
       if (direction != Point(-1, -1)) {
-        println(direction)
-        res = getShortest(start + direction, end, fieldBoundary, start + direction :: targetPath, direction)
+        res = getShortest(start + direction, end, fieldBoundary, start + direction :: targetPath, direction, vertex)
       } else {
         return Nil
       }
@@ -49,22 +62,25 @@ object TmpTest {
     res
   }
 
-  def findRandomPoint(boundary: List[Point]): Point = {
-    var findPoint = boundary(random.nextInt(boundary.length))
-    if(findPoint.x == 0 || findPoint.y ==0 || findPoint.x == Boundary.w || findPoint.y == Boundary.h){ //剔除边界点
-      findPoint = findRandomPoint(boundary)
-    } else {
-      if (boundary.contains(findPoint + baseDirection("left")) && boundary.contains(findPoint + baseDirection("right")) &&
-        !boundary.contains(findPoint + baseDirection("up")) && !boundary.contains(findPoint + baseDirection("down"))) { //横线上的点
-        findPoint = findInsidePoint(Point(findPoint.x, findPoint.y + 1),Point(findPoint.x, findPoint.y - 1), boundary)
-      } else if (!boundary.contains(findPoint + baseDirection("left")) && !boundary.contains(findPoint + baseDirection("right")) &&
-        boundary.contains(findPoint + baseDirection("up")) && boundary.contains(findPoint + baseDirection("down"))) { //竖线上的点
-        findPoint = findInsidePoint(Point(findPoint.x + 1, findPoint.y),Point(findPoint.x - 1, findPoint.y), boundary)
-      } else { //转折点-重新找点
-        findPoint = findRandomPoint(boundary)
+  def findRandomPoint(snakeBoundary: List[Point], originSnakeBoundary: List[Point]): Option[Point] = {
+    if (snakeBoundary.nonEmpty) {
+      val findPoint = snakeBoundary(random.nextInt(snakeBoundary.length))
+      if (findPoint.x == 0 || findPoint.y == 0 || findPoint.x == Boundary.w || findPoint.y == Boundary.h) { //剔除边界点
+        findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
+      } else {
+        if (originSnakeBoundary.contains(findPoint + baseDirection("left")) && originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
+          !originSnakeBoundary.contains(findPoint + baseDirection("up")) && !originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //横线上的点
+          Some(findInsidePoint(Point(findPoint.x, findPoint.y + 1), Point(findPoint.x, findPoint.y - 1), snakeBoundary))
+        } else if (!originSnakeBoundary.contains(findPoint + baseDirection("left")) && !originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
+          originSnakeBoundary.contains(findPoint + baseDirection("up")) && originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //竖线上的点
+          Some(findInsidePoint(Point(findPoint.x + 1, findPoint.y), Point(findPoint.x - 1, findPoint.y), snakeBoundary))
+        } else { //转折点-重新找点
+          findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
+        }
       }
+    } else {
+      None
     }
-    findPoint
   }
 
   def findInsidePoint(point1: Point, point2: Point, boundary: List[Point]): Point = {
@@ -78,37 +94,36 @@ object TmpTest {
     }
   }
 
-  def breadthFirst(startPoint: Point, boundary: List[Point], snakeId: Long) = {
-    //除了第一点的孩子是上下左右。其余的上的孩子是上，左的孩子是左+上，下的孩子是下，右的孩子是右+下
-    val colorQueue = new mutable.Queue[(String, Point)]()
-    println("color blue" + startPoint)
-    baseDirection.foreach(d => if(!boundary.contains(startPoint + d._2)) colorQueue.enqueue((d._1, startPoint + d._2)))
+  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long) = {
+    startPointOpt match {
+      case Some(startPoint) =>
+        val colorQueue = new mutable.Queue[Point]()
+        var alreadyColor = List.empty[Point]
+        colorQueue.enqueue(startPoint)
 
-    while(colorQueue.nonEmpty){
-      println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-      val currentPoint = colorQueue.dequeue()
-      println("color blue" + currentPoint._2)
-      currentPoint._1 match {
-        case "left" =>
-          if(!boundary.contains(currentPoint._2 + baseDirection("left"))) colorQueue.enqueue(("left", currentPoint._2 + baseDirection("left")))
-          if(!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-        case "right" =>
-          if(!boundary.contains(currentPoint._2 + baseDirection("right"))) colorQueue.enqueue(("right", currentPoint._2 + baseDirection("right")))
-          if(!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-        case "up" =>
-          if(!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-        case "down" =>
-          if(!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-      }
+        while (colorQueue.nonEmpty) {
+          val nowColor = colorQueue.dequeue()
+          alreadyColor = nowColor :: alreadyColor
+          println(nowColor)
+          baseDirection.foreach { d =>
+            val nextPoint = startPoint + d._2
+            if (!boundary.contains(nextPoint) && !alreadyColor.contains(nextPoint)){
+              colorQueue.enqueue(nextPoint)
+            }
+          }
+        }
+
+      case None =>
     }
+
+//    boundary.foreach(b => println(b))
   }
 
 
   def main(args: Array[String]): Unit = {
-//    val a = findShortestPath(Point(92,31), Point(90,31),
-//      List(Point(91,33), Point(92,32), Point(90,31), Point(92,33), Point(90,33), Point(90,32), Point(91,32), Point(92,31)))
-//
-//
+//    val a = findShortestPath(Point(48,36), Point(48,35),
+//      List(Point(50,36), Point(50,37), Point(49,37), Point(48,37), Point(48,36), Point(48,35), Point(49,35), Point(50,35), Point(53,35), Point(52,36), Point(54,35), Point(52,35), Point(55,36), Point(51,36), Point(51,35), Point(55,35), Point(54,36), Point(53,36)))
+////
 //    println(a)
 //    val t = List(Point(69,7), Point(68,7), Point(68,6), Point(68,5), Point(79,5), Point(79,6), Point(71,4), Point(78,7), Point(69,4), Point(76,7), Point(73,7), Point(77,4), Point(69,6), Point(72,7), Point(75,4), Point(73,4), Point(79,7), Point(76,4), Point(74,7), Point(74,4), Point(70,4), Point(79,4), Point(71,7), Point(78,4), Point(77,7), Point(75,7), Point(72,4))
 //    println(t.length)
@@ -117,15 +132,14 @@ object TmpTest {
 //        println(b.sortBy(_.x))
 
 
-    val b = List(Point(90,11), Point(90,10), Point(92,11), Point(91,11), Point(92,9), Point(93,11), Point(91,9), Point(94,9), Point(94,11), Point(93,9), Point(94,10))
 
-        val p = findRandomPoint(b)
-//    println(p)
-//    breadthFirst(p, t, 0l)
+    val c = List(Point(88,47), Point(88,46), Point(89,47), Point(89,46), Point(90,46), Point(92,46), Point(92,47), Point(91,46), Point(91,47), Point(90,47))
+
+    val p = findRandomPoint(c, c)
+    println(p)
+//    breadthFirst(p, c, 0l)
   }
 }
-
-
 
 
 
