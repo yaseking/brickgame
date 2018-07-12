@@ -45,6 +45,7 @@ package object carnie {
                    name: String,
                    color: String,
                    startPoint: Point,
+                   turnPoint: List[(Point, Point)],
                    boundary: List[Point],
                    header: Point = Point(20, 20),
                    direction: Point = Point(1, 0),
@@ -54,7 +55,8 @@ package object carnie {
 
   case class UpdateSnakeInfo(
                               data: SkDt,
-                              isFiled: Boolean = false
+                              isFiled: Boolean = false,
+                              killedId: Option[Long] = None
                             )
 
 

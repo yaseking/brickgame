@@ -110,7 +110,7 @@ trait Grid {
     def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
       //      debug(s" +++ snake[${snake.id} -- color is ${snake.color} ] feel key: $keyCode at frame=$frameCount")
-      val (newDirection, isTurn) = {
+      val (newDirection, turnPoint) = {
         val keyDirection = keyCode match {
           case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
           case Some(KeyEvent.VK_RIGHT) => Point(1, 0)
@@ -119,35 +119,40 @@ trait Grid {
           case _ => snake.direction
         }
         if (keyDirection + snake.direction != Point(0, 0)) {
-          (keyDirection, false)
-        } else if(keyDirection.x != snake.direction.x) {
-          (snake.direction, true)
-        } else{
-          (snake.direction, false)
+          if (keyDirection.x != snake.direction.x) (keyDirection, Some(snake.header))
+          else (keyDirection, None)
+        } else {
+          (snake.direction, None)
         }
       }
 
       val newHeader = ((snake.header + newDirection) + boundary) % boundary
 
-      grid.get(newHeader) match {
+      val value = grid.get(newHeader) match {
         case Some(x: Body) => //进行碰撞检测
           debug(s"snake[${snake.id}] hit wall.")
-          Left(Some(x.id))
+          grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
+            case Some(Field(fid)) if fid == snake.id =>
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), killedId = Some(x.id)))
+            case _ =>
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), killedId = Some(x.id)))
+          }
 
         case Some(Field(id)) =>
           if (id == snake.id) {
-            //todo 回到了自己的领域，根据起点和终点最近的连线与body路径围成一个闭合的图形，进行圈地并且自己的领地不会被重置为body
+            //回到了自己的领域，根据起点和终点最近的连线与body路径围成一个闭合的图形，进行圈地并且自己的领地不会被重置为body
             grid(snake.header) match {
               case Body(bid) if bid == snake.id =>
                 val bodys = grid.filter(_._2 match { case Body(bids) if bids == snake.id => true case _ => false }).keys.toList
                 val snakeBoundary = snake.boundary
+                println("turn!!!!!!!" + snake.turnPoint)
                 debug("***************************")
                 debug("start-" + snake.startPoint)
                 debug("end-" + newHeader)
                 debug("body-" + bodys)
                 debug("boundary-" + snake.boundary)
                 debug("time1-" + System.currentTimeMillis())
-                val findPath = findShortestPath(snake.startPoint, newHeader, snakeBoundary)
+                val findPath = findShortestPath(snake.startPoint, newHeader, snakeBoundary, snake.turnPoint)
                 val newCalFieldBoundary = findPath._1 ++ bodys
                 val newTotalFieldBoundary = findPath._2 ++ bodys
                 info("time2-" + System.currentTimeMillis())
@@ -155,13 +160,17 @@ trait Grid {
                 debug("findShortestPath2" + findPath._2)
                 debug("newTotalFieldBoundary" + newTotalFieldBoundary)
                 debug("newCalFieldBoundary" + newCalFieldBoundary)
-                val findPoint = findRandomPoint(newCalFieldBoundary, newCalFieldBoundary)
+                val findPoint = if (newCalFieldBoundary.groupBy(_.x).size == 1 || newCalFieldBoundary.groupBy(_.y).size == 1) None
+                else findRandomPoint(newCalFieldBoundary, newCalFieldBoundary)
                 info("time3-" + System.currentTimeMillis())
                 debug("point is" + findPoint)
                 breadthFirst(findPoint, newCalFieldBoundary, snake.id)
                 info("time4-" + System.currentTimeMillis())
                 colorField -= snake.id
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, boundary = newTotalFieldBoundary), true))
+                val contradict = if(baseDirection.values.toList.contains(snake.startPoint - newHeader)){
+                  List((snake.header,snake.header - newHeader), (newHeader, newHeader - snake.header))
+                } else Nil
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, boundary = newTotalFieldBoundary, turnPoint = snake.turnPoint ::: contradict), true))
 
               case _ =>
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
@@ -173,7 +182,6 @@ trait Grid {
               case _ =>
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
             }
-
           }
 
         case _ => //判断是否进入到了边界
@@ -191,36 +199,39 @@ trait Grid {
 
           }
       }
+      value match {
+        case Right(v) if turnPoint.nonEmpty =>
+          if (v.isFiled)
+            Right(v.copy(v.data.copy(turnPoint = ((turnPoint.get, newDirection) :: v.data.turnPoint).filter(i => v.data.boundary.contains(i._1)))))
+          else
+            Right(v.copy(v.data.copy(turnPoint = (turnPoint.get, newDirection) :: v.data.turnPoint)))
+        case _ => value
+      }
     }
 
 
     var mapKillCounter = Map.empty[Long, Int]
     var updatedSnakes = List.empty[UpdateSnakeInfo]
+    var killedSnaked = List.empty[Long]
 
     val acts = actionMap.getOrElse(frameCount, Map.empty[Long, Int])
 
     snakes.values.map(updateASnake(_, acts)).foreach {
-      case Right(s) => updatedSnakes ::= s
-      case Left(Some(killerId)) =>
-        mapKillCounter += killerId -> (mapKillCounter.getOrElse(killerId, 0) + 1)
-      case Left(None) =>
+      case Right(s) =>
+        if (s.killedId.nonEmpty) {
+          mapKillCounter += s.data.id -> (mapKillCounter.getOrElse(s.data.id, 0) + 1)
+          killedSnaked ::= s.killedId.get
+        }
+        updatedSnakes ::= s
+      case Left(_) =>
     }
 
 
-    //if two (or more) headers go to the same point,
+    //if two (or more) headers go to the same point,die at the same time
     val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.size > 1).values
+    val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toSet
 
-    val deadSnakes =
-      snakesInDanger.flatMap { hits =>
-        val sorted = hits.map(_.data).sortBy(_.length)
-        val winner = sorted.head
-        val deads = sorted.tail
-        mapKillCounter += winner.id -> (mapKillCounter.getOrElse(winner.id, 0) + deads.length)
-        deads
-      }.map(_.id).toSet
-
-
-    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id)).map { s =>
+    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id)).map { s =>
       mapKillCounter.get(s.data.id) match {
         case Some(k) => s.copy(data = s.data.copy(kill = k + s.data.kill))
         case None => s
@@ -254,43 +265,29 @@ trait Grid {
     )
   }
 
-  def findVertex(shape: List[Point]) = {
-    var vertex = List.empty[Point]
-    shape.foreach { p =>
-      if (List(baseDirection("up"), baseDirection("down")).exists { d =>
-        shape.contains(p + d) && shape.contains(p + baseDirection("left")) && !shape.contains(p + baseDirection("right")) ||
-          shape.contains(p + d) && shape.contains(p + baseDirection("right")) && !shape.contains(p + baseDirection("left"))
-      }) {
-        vertex = p :: vertex
-      }
-    }
-    vertex
-  }
-
-  def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point]) = {
+  def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point], turnPoint: List[(Point, Point)]) = {
     var initDirection = List.empty[Point]
     baseDirection.values.foreach { p =>
       if (fieldBoundary.contains(start + p)) initDirection = p :: initDirection
     }
-    val vertex = findVertex(fieldBoundary)
     if (initDirection.lengthCompare(2) == 0) {
-      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head, start), initDirection.head, vertex)
-      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last, start), initDirection.last, vertex)
+      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head, start), initDirection.head, turnPoint)
+      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last, start), initDirection.last, turnPoint)
       if (route1.lengthCompare(route2.length) > 0) (route2, route1) else (route1, route2)
     } else {
       (Nil, Nil)
     }
   }
 
-  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point, vertex: List[Point]): List[Point] = {
+  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point, turnPoint: List[(Point, Point)]): List[Point] = {
     var res = targetPath
     val resetDirection = if (lastDirection.x != 0) Point(-lastDirection.x, lastDirection.y) else Point(lastDirection.x, -lastDirection.y)
-    val nextDirection = if(vertex.contains(start))  baseDirection.values.filterNot(List(lastDirection, resetDirection).contains(_)) else List(lastDirection)
+    val nextDirection = if (turnPoint.map(_._1).contains(start)) List(turnPoint.filter(_._1 == start).head._2) else baseDirection.values.filterNot(_ == resetDirection)
     if (start - end != Point(0, 0)) {
       var direction = Point(-1, -1)
       nextDirection.foreach { d => if (fieldBoundary.contains(start + d)) direction = d }
       if (direction != Point(-1, -1)) {
-        res = getShortest(start + direction, end, fieldBoundary, start + direction :: targetPath, direction, vertex)
+        res = getShortest(start + direction, end, fieldBoundary, start + direction :: targetPath, direction, turnPoint)
       } else {
         return Nil
       }
@@ -330,75 +327,66 @@ trait Grid {
     }
   }
 
+  //  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long) = {
+  //    startPointOpt match {
+  //      case Some(startPoint) =>
+  //          colorField += snakeId -> (startPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
+  //          grid += startPoint -> Field(snakeId)
+  //          baseDirection.foreach { d =>
+  //            val nextPoint = startPoint + d._2
+  //            if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint)) {
+  //              goToColor(nextPoint, boundary, snakeId)
+  //            }
+  //          }
+  //
+  //      case None =>
+  //        println("point is None!!!!!!!!!!!!!")
+  //    }
+  //
+  //    boundary.foreach(b => grid += b -> Field(snakeId))
+  //  }
+  //
+  //  def goToColor(point: Point, boundary: List[Point], snakeId: Long): Unit = {
+  //    grid += point -> Field(snakeId)
+  //    colorField += snakeId -> (point :: colorField.getOrElse(snakeId, List.empty[Point]))
+  //    baseDirection.foreach { d =>
+  //      val nextPoint = point + d._2
+  //      if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint)) {
+  //        colorField += snakeId -> (nextPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
+  //        goToColor(nextPoint, boundary, snakeId)
+  //      }
+  //    }
+  //  }
+
   def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long) = {
+    //除了第一点的孩子是上下左右。其余的上的孩子是上，左的孩子是左+上+下，下的孩子是下，右的孩子是右+下+上
     startPointOpt match {
       case Some(startPoint) =>
-//        val colorQueue = new mutable.Queue[Point]()
-//        colorQueue.enqueue(startPoint)
+        val colorQueue = new mutable.Queue[(String, Point)]()
+        grid += startPoint -> Field(snakeId)
+        baseDirection.foreach(d => if (!boundary.contains(startPoint + d._2)) colorQueue.enqueue((d._1, startPoint + d._2)))
 
-//        while (colorQueue.nonEmpty) {
-//          val nowPoint = colorQueue.dequeue()
-          colorField += snakeId -> (startPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
-          grid += startPoint -> Field(snakeId)
-          baseDirection.foreach { d =>
-            val nextPoint = startPoint + d._2
-//            if (!boundary.contains(nextPoint)) {
-//              colorQueue.enqueue(nextPoint)
-//            }
-            if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint)) {
-              goToColor(nextPoint, boundary, snakeId)
-            }
+        while (colorQueue.nonEmpty) {
+          val currentPoint = colorQueue.dequeue()
+          grid += currentPoint._2 -> Field(snakeId)
+          currentPoint._1 match {
+            case "left" =>
+              if (!boundary.contains(currentPoint._2 + baseDirection("left"))) colorQueue.enqueue(("left", currentPoint._2 + baseDirection("left")))
+              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
+            case "right" =>
+              if (!boundary.contains(currentPoint._2 + baseDirection("right"))) colorQueue.enqueue(("right", currentPoint._2 + baseDirection("right")))
+              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
+              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+            case "up" =>
+              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+            case "down" =>
+              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
           }
-//        }
-
+        }
       case None =>
-        println("point is None!!!!!!!!!!!!!")
     }
-
     boundary.foreach(b => grid += b -> Field(snakeId))
   }
-
-  def goToColor(point: Point, boundary: List[Point], snakeId: Long): Unit = {
-    grid += point -> Field(snakeId)
-    colorField += snakeId -> (point :: colorField.getOrElse(snakeId, List.empty[Point]))
-    baseDirection.foreach { d =>
-      val nextPoint = point + d._2
-      if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint)) {
-        colorField += snakeId -> (nextPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
-        goToColor(nextPoint, boundary, snakeId)
-      }
-    }
-  }
-
-//  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long) = {
-//    //除了第一点的孩子是上下左右。其余的上的孩子是上，左的孩子是左+上+下，下的孩子是下，右的孩子是右+下+上
-//    startPointOpt match {
-//      case Some(startPoint) =>
-//        val colorQueue = new mutable.Queue[(String, Point)]()
-//        grid += startPoint -> Field(snakeId)
-//        baseDirection.foreach(d => if (!boundary.contains(startPoint + d._2)) colorQueue.enqueue((d._1, startPoint + d._2)))
-//
-//        while (colorQueue.nonEmpty) {
-//          val currentPoint = colorQueue.dequeue()
-//          grid += currentPoint._2 -> Field(snakeId)
-//          currentPoint._1 match {
-//            case "left" =>
-//              if (!boundary.contains(currentPoint._2 + baseDirection("left"))) colorQueue.enqueue(("left", currentPoint._2 + baseDirection("left")))
-//              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-//              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-//            case "right" =>
-//              if (!boundary.contains(currentPoint._2 + baseDirection("right"))) colorQueue.enqueue(("right", currentPoint._2 + baseDirection("right")))
-//              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-//              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-//            case "up" =>
-//              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-//            case "down" =>
-//              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-//          }
-//        }
-//      case None =>
-//    }
-//    boundary.foreach(b => grid += b -> Field(snakeId))
-//  }
 
 }
