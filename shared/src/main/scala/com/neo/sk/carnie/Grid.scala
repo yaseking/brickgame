@@ -265,29 +265,45 @@ trait Grid {
     )
   }
 
+  def findVertex(shape: List[Point]) = {
+    var vertex = List.empty[Point]
+    shape.foreach { p =>
+      if (List(baseDirection("up"), baseDirection("down")).exists { d =>
+        shape.contains(p + d) && shape.contains(p + baseDirection("left")) && !shape.contains(p + baseDirection("right")) ||
+          shape.contains(p + d) && shape.contains(p + baseDirection("right")) && !shape.contains(p + baseDirection("left"))
+      }) {
+        vertex = p :: vertex
+      }
+    }
+    vertex
+  }
+
   def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point], turnPoint: List[(Point, Point)]) = {
     var initDirection = List.empty[Point]
+    val vertex = findVertex(fieldBoundary)
     baseDirection.values.foreach { p =>
       if (fieldBoundary.contains(start + p)) initDirection = p :: initDirection
     }
     if (initDirection.lengthCompare(2) == 0) {
-      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head, start), initDirection.head, turnPoint)
-      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last, start), initDirection.last, turnPoint)
+      val route1 = getShortest(start + initDirection.head, end, fieldBoundary, List(start + initDirection.head, start), initDirection.head, turnPoint, vertex)
+      val route2 = getShortest(start + initDirection.last, end, fieldBoundary, List(start + initDirection.last, start), initDirection.last, turnPoint, vertex)
       if (route1.lengthCompare(route2.length) > 0) (route2, route1) else (route1, route2)
     } else {
       (Nil, Nil)
     }
   }
 
-  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point, turnPoint: List[(Point, Point)]): List[Point] = {
+  def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point, turnPoint: List[(Point, Point)], vertex: List[Point]): List[Point] = {
     var res = targetPath
     val resetDirection = if (lastDirection.x != 0) Point(-lastDirection.x, lastDirection.y) else Point(lastDirection.x, -lastDirection.y)
-    val nextDirection = if (turnPoint.map(_._1).contains(start)) List(turnPoint.filter(_._1 == start).head._2) else baseDirection.values.filterNot(_ == resetDirection)
+    val nextDirection = if(vertex.contains(start)) {
+      if(turnPoint.exists(_._1 == start)) List(turnPoint.filter(_._1 == start).head._2)
+      else baseDirection.values.filterNot(List(lastDirection, resetDirection).contains(_))} else List(lastDirection)
     if (start - end != Point(0, 0)) {
       var direction = Point(-1, -1)
       nextDirection.foreach { d => if (fieldBoundary.contains(start + d)) direction = d }
       if (direction != Point(-1, -1)) {
-        res = getShortest(start + direction, end, fieldBoundary, start + direction :: targetPath, direction, turnPoint)
+        res = getShortest(start + direction, end, fieldBoundary.filterNot(_ == start), start + direction :: targetPath, direction, turnPoint, vertex)
       } else {
         return Nil
       }

@@ -18,6 +18,8 @@ object TmpTest {
   import io.circe.syntax._
 
 
+
+
   def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point], turnPoint: List[(Point, Point)]) = {
     var initDirection = List.empty[Point]
     baseDirection.values.foreach { p =>
@@ -30,6 +32,28 @@ object TmpTest {
     } else {
       (Nil, Nil)
     }
+  }
+
+  def shortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point, turnPoint: List[(Point, Point)]): List[Point] = {
+    var res = targetPath
+    var nextDirection = if(turnPoint.map(_._1).contains(start)) turnPoint.filter(_._1 == start).head._2 else lastDirection
+    if (start - end != Point(0, 0)) {
+      if(fieldBoundary.contains(start + nextDirection)){
+        val nextPoint = start + nextDirection
+        res = getShortest(nextPoint, end, fieldBoundary.filterNot(_ == nextPoint), nextPoint :: targetPath, nextDirection, turnPoint)
+      }else{
+        nextDirection = if(nextDirection.x == 0) Point(nextDirection.y, nextDirection.x) else Point(-nextDirection.y, nextDirection.x)
+        val nextPoint = start + nextDirection
+        if(fieldBoundary.contains(start + nextDirection)){
+          res = getShortest(nextPoint, end, fieldBoundary.filterNot(_ == nextPoint), nextPoint :: targetPath, nextDirection, turnPoint)
+        } else {
+          return Nil
+        }
+      }
+    }else {
+      return Nil
+    }
+    res
   }
 
   def getShortest(start: Point, end: Point, fieldBoundary: List[Point], targetPath: List[Point], lastDirection: Point, turnPoint: List[(Point, Point)]): List[Point] = {
