@@ -45,9 +45,8 @@ package object carnie {
                    name: String,
                    color: String,
                    startPoint: Point,
-                   turnPoint: List[(Point, Point)],
-                   boundary: List[Point],
-                   header: Point = Point(20, 20),
+                   turnPoint: List[Point],
+                   header: Point,
                    direction: Point = Point(1, 0),
                    length: Int = 4,
                    kill: Int = 0

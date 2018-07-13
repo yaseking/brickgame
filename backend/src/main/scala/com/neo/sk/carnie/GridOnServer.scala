@@ -42,10 +42,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       }
       val startPoint = basePoint.copy(x = basePoint.x + indexSize + 1)
 
-      val boundary = grid.filter(_._2 match { case Field(fid) if fid == id => true case _ => false }).keys.toList.filterNot(_ ==
-        Point(basePoint.x + 1, basePoint.y + 1))
-
-      snakes += id -> SkDt(id, name, bodyColor, startPoint, Nil, boundary, basePoint)
+      snakes += id -> SkDt(id, name, bodyColor, startPoint, Nil, basePoint)
 
     }
     waitingJoin = Map.empty[Long, String]
