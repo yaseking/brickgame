@@ -16,7 +16,7 @@ package object carnie {
   //  case class Apple(score: Int, life: Int) extends Spot
   case class Field(id: Long) extends Spot
 
-  case class Score(id: Long, n: String, k: Int, l: Int, t: Option[Long] = None)
+  case class Score(id: Long, n: String, k: Int, l: Int, t: Option[Long] = None, area: Int = 0)
 
   case class Bd(id: Long, x: Int, y: Int)
 

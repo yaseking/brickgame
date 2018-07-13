@@ -25,7 +25,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   private[this] var historyRankMap = Map.empty[Long, Score]
   var historyRankList = historyRankMap.values.toList.sortBy(_.k).reverse
 
-  private[this] var historyRankThreshold = if (historyRankList.isEmpty) -1 else historyRankList.map(_.k).min
+  private[this] var historyRankThreshold = if (historyRankList.isEmpty) (-1, -1) else (historyRankList.map(_.area).min ,historyRankList.map(_.k).min)
 
   def addSnake(id: Long, name: String) = waitingJoin += (id -> name)
 
@@ -53,35 +53,58 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   implicit val scoreOrdering = new Ordering[Score] {
     override def compare(x: Score, y: Score): Int = {
-      var r = y.k - x.k
+      var r = y.area - x.area
       if (r == 0) {
-        r = y.l - x.l
+        r = y.k - x.k
       }
-      if (r == 0) {
-        r = (x.id - y.id).toInt
-      }
+//      if (r == 0) {
+//        r = (x.id - y.id).toInt
+//      }
       r
     }
   }
 
   private[this] def updateRanks() = {
-    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, s.length)).toList.sorted
+    val areaMap = grid.filter { case (p, spot) =>
+      spot match {
+        case Field(id) if snakes.contains(id) => true
+        case _ => false
+      }
+    }.map {
+      case (p, f@Field(_)) => (p, f)
+      case _ => (Point(-1, -1), Field(-1L))
+    }.filter(_._2.id != -1L).values.groupBy(_.id).map(p => (p._1, p._2.size))
+    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, s.length, area = areaMap.getOrElse(s.id, 0))).toList.sorted
+    println(areaMap.mkString("\n"))
+//    println(currentRank)
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
-        case Some(oldScore) if cScore.k > oldScore.k =>
-          historyRankMap += (cScore.id -> cScore)
-          historyChange = true
-        case None if cScore.k > historyRankThreshold =>
-          historyRankMap += (cScore.id -> cScore)
-          historyChange = true
+        case Some(oldScore) =>
+          if(cScore.area > oldScore.area) {
+            historyRankMap += (cScore.id -> cScore)
+            historyChange = true
+          }
+          else if(cScore.area == oldScore.area && cScore.k > oldScore.k) {
+            historyRankMap += (cScore.id -> cScore)
+            historyChange = true
+          }
+        case None =>
+          if(cScore.area > historyRankThreshold._1) {
+            historyRankMap += (cScore.id -> cScore)
+            historyChange = true
+          }
+          else if(cScore.area == historyRankThreshold._1 && cScore.k > historyRankThreshold._2) {
+            historyRankMap += (cScore.id -> cScore)
+            historyChange = true
+          }
         case _ => //do nothing.
       }
     }
 
     if (historyChange) {
       historyRankList = historyRankMap.values.toList.sorted.take(historyRankLength)
-      historyRankThreshold = historyRankList.lastOption.map(_.k).getOrElse(-1)
+      historyRankThreshold = (historyRankList.lastOption.map(_.area).getOrElse(-1), historyRankList.lastOption.map(_.k).getOrElse(-1))
       historyRankMap = historyRankList.map(s => s.id -> s).toMap
     }
 
