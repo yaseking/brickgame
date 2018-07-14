@@ -23,6 +23,8 @@ object NetGameHolder extends js.JSApp {
   val canvasBoundary = bounds * canvasUnit
   val textLineHeight = 14
 
+  val canvasSize = bounds.x * bounds.y
+
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   var myId = -1l
@@ -200,7 +202,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
     currentRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} len=${score.l}", leftBegin, index, currentRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", leftBegin, index, currentRankBaseLine)
     }
 
     val historyRankBaseLine = 1
@@ -208,7 +210,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
     historyRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} len=${score.l}", rightBegin, index, historyRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
     }
 
   }
