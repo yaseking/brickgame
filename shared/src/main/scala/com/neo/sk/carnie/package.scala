@@ -13,7 +13,6 @@ package object carnie {
 
   case class Header(id: Long) extends Spot
 
-  //  case class Apple(score: Int, life: Int) extends Spot
   case class Field(id: Long) extends Spot
 
   case class Score(id: Long, n: String, k: Int, l: Int, t: Option[Long] = None, area: Int = 0)
@@ -31,13 +30,6 @@ package object carnie {
     def *(n: Int) = Point(x * n, y * n)
 
     def %(other: Point) = Point(x % other.x, y % other.y)
-  }
-
-
-  class Snake(x: Int, y: Int, len: Int = 5, d: Point = Point(1, 0)) {
-    var length = len
-    var direction = d
-    var header = Point(x, y)
   }
 
   case class SkDt(
@@ -60,8 +52,8 @@ package object carnie {
 
 
   object Boundary {
-    val w = 360
-    val h = 180
+    val w = 120
+    val h = 60
   }
 
   object Window{

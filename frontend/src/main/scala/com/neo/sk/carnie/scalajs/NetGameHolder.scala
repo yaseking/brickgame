@@ -18,10 +18,11 @@ import scala.scalajs.js
 object NetGameHolder extends js.JSApp {
 
 
-  val bounds = Point(Boundary.w, Boundary.h)
-  val window = Point(Window.w, Window.h)
+  val bounds = Point(Window.w, Window.h)
+  //  val window = Point(Window.w, Window.h)
   val canvasUnit = 10
-  val canvasBoundary = window * canvasUnit
+  val canvasBoundary = bounds * canvasUnit
+  //  val windowBoundary = window * canvasUnit
   val textLineHeight = 14
 
   val canvasSize = bounds.x * bounds.y
@@ -55,6 +56,13 @@ object NetGameHolder extends js.JSApp {
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
+  val championHeader = dom.document.createElement("img")
+  val myHeader = dom.document.createElement("img")
+  val otherHeader = dom.document.createElement("img")
+  championHeader.asInstanceOf[Image].src = "/carnie/static/img/champion.png"
+  myHeader.asInstanceOf[Image].src = "/carnie/static/img/myHeader.png"
+  otherHeader.asInstanceOf[Image].src = "/carnie/static/img/otherHeader.png"
+
   @scala.scalajs.js.annotation.JSExport
   override def main(): Unit = {
     drawGameOff()
@@ -83,8 +91,8 @@ object NetGameHolder extends js.JSApp {
 
   def drawGameOff(): Unit = {
     ctx.fillStyle = "#F5F5F5"
-    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.fillStyle = "rgb(0, 0, 0)"
     if (firstCome) {
       ctx.font = "36px Helvetica"
       ctx.fillText("Welcome.", 150, 180)
@@ -93,7 +101,6 @@ object NetGameHolder extends js.JSApp {
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
   }
-
 
 
   def gameLoop(): Unit = {
@@ -122,8 +129,8 @@ object NetGameHolder extends js.JSApp {
 
   def drawGrid(uid: Long, data: GridDataSync): Unit = {
 
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    ctx.fillStyle = "#F5F5F5"
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
 
     val snakes = data.snakes
     val bodies = data.bodyDetails
@@ -136,10 +143,10 @@ object NetGameHolder extends js.JSApp {
       ctx.fillStyle = color
       if (id == uid) {
         ctx.save()
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
         ctx.restore()
       } else {
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
     }
 
@@ -149,30 +156,33 @@ object NetGameHolder extends js.JSApp {
       ctx.fillStyle = color
       if (id == uid) {
         ctx.save()
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
         ctx.restore()
       } else {
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
     }
 
-    ctx.fillStyle = MyColors.otherHeader
-    snakes.foreach { snake =>
+    //先画冠军的头
+    val championId=currentRank.head.id
+    snakes.filter(_.id == championId).foreach{ s =>
+      ctx.drawImage(championHeader.asInstanceOf[Image],s.header.x * canvasUnit, s.header.y * canvasUnit, canvasUnit, canvasUnit)
+    }
+
+    //画其他人的头
+    snakes.filterNot(_.id == championId).foreach { snake =>
       val id = snake.id
       val x = snake.header.x
       val y = snake.header.y
       if (id == uid) {
-        ctx.save()
-        ctx.fillStyle = MyColors.myHeader
-        ctx.fillRect(x * canvasUnit + 2, y * canvasUnit + 2, canvasUnit - 4, canvasUnit - 4)
-        ctx.restore()
+        ctx.drawImage(myHeader.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       } else {
-        ctx.fillRect(x * canvasUnit + 2, y * canvasUnit + 2, canvasUnit - 4, canvasUnit - 4)
+        ctx.drawImage(otherHeader.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
     }
 
 
-    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.fillStyle = "rgb(0, 0, 0)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
 
@@ -188,7 +198,7 @@ object NetGameHolder extends js.JSApp {
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
         drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
       case None =>
-        if(firstCome) {
+        if (firstCome) {
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150, 180)
         } else {
@@ -286,7 +296,7 @@ object NetGameHolder extends js.JSApp {
           historyRank = history
 
         case data: Protocol.GridDataSync =>
-//          writeToArea(s"grid data got: $data")
+          //          writeToArea(s"grid data got: $data")
           //TODO here should be better code.
           grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
           grid.frameCount = data.frameCount

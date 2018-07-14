@@ -85,7 +85,7 @@ trait Grid {
 
   def randomColor(): String = {
     var color = "#" + randomHex()
-    while (snakes.map(_._2.color).toList.contains(color) || color == "#000000" || color == "#000080") {
+    while (snakes.map(_._2.color).toList.contains(color) || color == "#000080" || color=="#F5F5F5") {
       color = "#" + randomHex()
     }
     color
@@ -295,67 +295,6 @@ trait Grid {
       case x => x
     }
   }
-
-
-  //  def Angle2D(x1: Int, y1: Int, x2: Int, y2: Int) : Double = {
-//
-//    var dtheta:Double = 0
-//    var theta1:Double = 0
-//    var theta2:Double = 0
-//
-//    theta1 = Math.atan2(y1.toDouble,x1.toDouble)
-//    theta2 = Math.atan2(y2.toDouble,x2.toDouble)
-//    dtheta = theta2 - theta1
-//    while (dtheta > Math.PI)
-//      dtheta -= 2 * Math.PI
-//    while (dtheta < -Math.PI)
-//      dtheta += 2 * Math.PI
-//    dtheta
-//
-//  }
-//
-//  def InsidePolygon(polygon:List[Point], p: Point) :Boolean = {
-//
-//    var angle: Double = 0
-//    val l = polygon.length
-//    var p1 = Point(0, 0)
-//    var p2 = Point(0, 0)
-//    polygon.indices.foreach { i =>
-//      p1 = Point(polygon(i).x - p.x, polygon(i).y - p.y)
-//      p2 = Point(polygon((i + 1) % l).x - p.x, polygon((i + 1) % l).y - p.y)
-//      angle += Angle2D(p1.x, p1.y, p2.x, p2.y)
-//    }
-//
-//    if (Math.abs(angle) < Math.PI) false
-//    else true
-//  }
-//
-//  def setPoly(poly: List[Point], grid: Map[Point, Spot], snakeId: Long): Map[Point, Spot] = {
-//    var new_grid = Map[Point, Spot]()
-//    new_grid = new_grid ++ grid
-//    var x_max = 0
-//    var y_max = 0
-//    var x_min = boundary.x
-//    var y_min = boundary.y
-//    for(p <- poly){
-//      if(p.x > x_max) x_max = p.x
-//      if(p.x < x_min) x_min = p.x
-//      if(p.y > y_max) y_max = p.y
-//      if(p.y < y_min) y_min = p.y
-//    }
-//    for(x <- x_min until x_max)
-//      for(y <- y_min until y_max){
-//        grid.get(Point(x, y)) match {
-//          case Some(Field(fid)) if fid == snakeId => //donothing
-//          case _ =>
-//            if(InsidePolygon(poly, Point(x,y))){
-//              new_grid += Point(x,y) -> Field(snakeId)
-//            }
-//        }
-//      }
-//
-//    new_grid
-//  }
 
   def isCorner(p: Point, grid: Map[Point, Spot], snakeId: Long, newHeader: Point): Point = {
     var blank = ArrayBuffer[Point]()
