@@ -133,34 +133,31 @@ object TmpTest {
   }
 
   def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long) = {
-    //除了第一点的孩子是上下左右。其余的上的孩子是上，左的孩子是左+上+下，下的孩子是下，右的孩子是右+下+上
     startPointOpt match {
       case Some(startPoint) =>
-        val colorQueue = new mutable.Queue[(String, Point)]()
-//        grid += startPoint -> Field(snakeId)
-        baseDirection.foreach(d => if (!boundary.contains(startPoint + d._2)) colorQueue.enqueue((d._1, startPoint + d._2)))
-
-        while (colorQueue.nonEmpty) {
-          val currentPoint = colorQueue.dequeue()
-//          grid += currentPoint._2 -> Field(snakeId)
-          currentPoint._1 match {
-            case "left" =>
-              if (!boundary.contains(currentPoint._2 + baseDirection("left"))) colorQueue.enqueue(("left", currentPoint._2 + baseDirection("left")))
-              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-            case "right" =>
-              if (!boundary.contains(currentPoint._2 + baseDirection("right"))) colorQueue.enqueue(("right", currentPoint._2 + baseDirection("right")))
-              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-            case "up" =>
-              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
-            case "down" =>
-              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
-          }
+        colorField += snakeId -> (startPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
+        println(startPoint)
+        baseDirection.foreach { d =>
+          val nextPoint = startPoint + d._2
+          if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint))
+            goToColor(nextPoint, boundary, snakeId)
         }
       case None =>
+        println("point is None!!!!!!!!!!!!!")
     }
-//    boundary.foreach(b => grid += b -> Field(snakeId))
+    //    boundary.foreach(b => grid += b -> Field(snakeId))
+  }
+
+  def goToColor(point: Point, boundary: List[Point], snakeId: Long): Unit = {
+    println(point)
+    colorField += snakeId -> (point :: colorField.getOrElse(snakeId, List.empty[Point]))
+    baseDirection.foreach { d =>
+      val nextPoint = point + d._2
+      if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint)) {
+        colorField += snakeId -> (nextPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
+        goToColor(nextPoint, boundary, snakeId)
+      }
+    }
   }
 
   def main(args: Array[String]): Unit = {

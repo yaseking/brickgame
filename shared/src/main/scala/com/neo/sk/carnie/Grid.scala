@@ -78,13 +78,13 @@ trait Grid {
 
 
   def randomEmptyPoint(size: Int): Point = {
-    var p = Point(random.nextInt(boundary.x - (size + 1)), random.nextInt(boundary.y - (size + 1)))
-    while ((0 to size).flatMap { x =>
-      (0 to size).map { y =>
+    var p = Point(random.nextInt(boundary.x - size), random.nextInt(boundary.y - size))
+    while ((0 until size).flatMap { x =>
+      (0 until size).map { y =>
         grid.contains(p.copy(x = p.x + x, y = p.y + y))
       }
     }.contains(true)) {
-      p = Point(random.nextInt(boundary.x - (size + 1)), random.nextInt(boundary.y - (size + 1)))
+      p = Point(random.nextInt(boundary.x - size), random.nextInt(boundary.y - size))
     }
     p
   }
@@ -122,7 +122,7 @@ trait Grid {
         }
       }
 
-      val newHeader = ((snake.header + newDirection) + boundary) % boundary
+      val newHeader = snake.header + newDirection
 
       val value = grid.get(newHeader) match {
         case Some(x: Body) => //进行碰撞检测
@@ -141,21 +141,20 @@ trait Grid {
                 var temp = List.empty[Point]
                 var searchDirection = (newDirection + Point(1, 1)) % Point(2, 2)
                 var searchPoint = newHeader
-                temp ++= snake.turnPoint ::: List(newHeader)
-                while(searchPoint != snake.startPoint) {
-                  val blank = isCorner(searchPoint, grid, snake.id)
+                temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
+                while (searchPoint != snake.startPoint) {
+                  val blank = isCorner(searchPoint, grid, snake.id, newHeader)
                   if (blank != Point(0, 0)) {
-                    if(searchPoint != newHeader){
-                      temp = searchPoint :: temp
+                    if (searchPoint != newHeader) {
+                      temp = temp ::: List(searchPoint)
                       searchDirection = searchDirection + blank
-                    }
-                    else{
+                    } else {
                       searchDirection = Point(blank.x, 0)
                     }
                   }
                   searchPoint = searchPoint + searchDirection
                 }
-                grid = setPoly(temp, grid, snake.id)
+                grid = setPoly(temp, grid, boundary, snake.id)
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), true))
 
               case _ =>
@@ -186,11 +185,9 @@ trait Grid {
           }
       }
       value match {
-        case Right(v) if turnPoint.nonEmpty =>
-          if (v.isFiled)
-            Right(v.copy(v.data.copy(turnPoint = turnPoint.get :: v.data.turnPoint)))
-          else
-            Right(v.copy(v.data.copy(turnPoint = turnPoint.get :: v.data.turnPoint)))
+        case Right(v) if turnPoint.nonEmpty && !v.isFiled =>
+          Right(v.copy(v.data.copy(turnPoint = v.data.turnPoint ::: List(turnPoint.get))))
+
         case _ => value
       }
     }
@@ -214,7 +211,7 @@ trait Grid {
 
 
     //if two (or more) headers go to the same point,die at the same time
-    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.size > 1).values
+    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).values
     val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toSet
 
     val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id)).map { s =>
@@ -224,7 +221,7 @@ trait Grid {
       }
     }
 
-    newSnakes.foreach(s => if (!s.isFiled) grid += s.data.header -> Body(s.data.id))
+    newSnakes.foreach(s => if (!s.isFiled) grid += s.data.header -> Body(s.data.id) else grid += s.data.header -> Field(s.data.id))
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
   }
@@ -270,58 +267,124 @@ trait Grid {
 
   def InsidePolygon(polygon:List[Point], p: Point) :Boolean = {
 
+    var i = 0
     var angle: Double = 0
     val l = polygon.length
-    var p1 = Point(0, 0)
-    var p2 = Point(0, 0)
-    for (i <- 0 until l) {
-      p1 = Point(polygon(i).x - p.x, polygon(i).y - p.y)
-      p2 = Point(polygon((i + 1) % l).x - p.x, polygon((i + 1) % l).y - p.y)
-      angle += Angle2D(p1.x, p1.y, p2.x, p2.y)
+    var p1 = Point(0,0)
+    var p2 = Point(0,0)
+    for (i <-0 until l) {
+      p1= Point(polygon(i).x - p.x, polygon(i).y - p.y)
+      p2 = Point(polygon((i+1)%l).x - p.x, polygon((i+1)%l).y - p.y)
+      angle += Angle2D(p1.x,p1.y,p2.x,p2.y)
     }
 
     if (Math.abs(angle) < Math.PI) false
     else true
+
   }
 
-  def setPoly(poly: List[Point], grid: Map[Point, Spot], snakeId: Long): Map[Point, Spot] = {
-    var newGrid = grid
+  def setPoly(poly: List[Point], grid: Map[Point, Spot], boundary: Point, snakeId: Long): Map[Point, Spot] = {
+    var new_grid = grid
     for (x <- poly.map(_.x).min until poly.map(_.x).max)
-      for (y <- poly.map(_.y).min until poly.map(_.x).max) {
+      for (y <- poly.map(_.y).min until poly.map(_.y).max) {
         grid.get(Point(x, y)) match {
           case Some(Field(fid)) if fid == snakeId => //donothing
           case _ =>
             if (InsidePolygon(poly, Point(x, y))) {
-              newGrid += Point(x, y) -> Field(snakeId)
+              new_grid += Point(x, y) -> Field(snakeId)
             }
         }
       }
-    newGrid
+
+    new_grid.map {
+      case (p, Body(bids)) if bids == snakeId => (p, Field(bids))
+      case x => x
+    }
   }
 
-  def isCorner(p: Point, grid: Map[Point, Spot], snakeId: Long): Point = {
+
+  //  def Angle2D(x1: Int, y1: Int, x2: Int, y2: Int) : Double = {
+//
+//    var dtheta:Double = 0
+//    var theta1:Double = 0
+//    var theta2:Double = 0
+//
+//    theta1 = Math.atan2(y1.toDouble,x1.toDouble)
+//    theta2 = Math.atan2(y2.toDouble,x2.toDouble)
+//    dtheta = theta2 - theta1
+//    while (dtheta > Math.PI)
+//      dtheta -= 2 * Math.PI
+//    while (dtheta < -Math.PI)
+//      dtheta += 2 * Math.PI
+//    dtheta
+//
+//  }
+//
+//  def InsidePolygon(polygon:List[Point], p: Point) :Boolean = {
+//
+//    var angle: Double = 0
+//    val l = polygon.length
+//    var p1 = Point(0, 0)
+//    var p2 = Point(0, 0)
+//    polygon.indices.foreach { i =>
+//      p1 = Point(polygon(i).x - p.x, polygon(i).y - p.y)
+//      p2 = Point(polygon((i + 1) % l).x - p.x, polygon((i + 1) % l).y - p.y)
+//      angle += Angle2D(p1.x, p1.y, p2.x, p2.y)
+//    }
+//
+//    if (Math.abs(angle) < Math.PI) false
+//    else true
+//  }
+//
+//  def setPoly(poly: List[Point], grid: Map[Point, Spot], snakeId: Long): Map[Point, Spot] = {
+//    var new_grid = Map[Point, Spot]()
+//    new_grid = new_grid ++ grid
+//    var x_max = 0
+//    var y_max = 0
+//    var x_min = boundary.x
+//    var y_min = boundary.y
+//    for(p <- poly){
+//      if(p.x > x_max) x_max = p.x
+//      if(p.x < x_min) x_min = p.x
+//      if(p.y > y_max) y_max = p.y
+//      if(p.y < y_min) y_min = p.y
+//    }
+//    for(x <- x_min until x_max)
+//      for(y <- y_min until y_max){
+//        grid.get(Point(x, y)) match {
+//          case Some(Field(fid)) if fid == snakeId => //donothing
+//          case _ =>
+//            if(InsidePolygon(poly, Point(x,y))){
+//              new_grid += Point(x,y) -> Field(snakeId)
+//            }
+//        }
+//      }
+//
+//    new_grid
+//  }
+
+  def isCorner(p: Point, grid: Map[Point, Spot], snakeId: Long, newHeader: Point): Point = {
     var blank = ArrayBuffer[Point]()
-    val arr = Array(Point(-1,-1), Point(-1, 0), Point(-1, 1), Point(0, -1), Point(0, 1), Point(1, -1), Point(1,0), Point(1, 1))
-    for(a <- arr){
+    val arr = Array(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, -1), Point(0, 1), Point(1, -1), Point(1, 0), Point(1, 1))
+    for (a <- arr) {
       grid.get(a + p) match {
         case Some(Field(fid)) if fid == snakeId => //doNothing
-        case Some(x:Header) =>
-        case x => blank += a;
+        case _ => blank += a
       }
     }
     val count = blank.length
-    if(count == 1 && (blank(0).x * blank(0).y != 0)) blank(0)
-    else{
-      if(blank.contains(Point(-1, 0)) && blank.contains(Point(-1, 1)) && blank.contains(Point(0, 1))){
+    if (count == 1 && (blank(0).x * blank(0).y != 0)) blank(0)
+    else {
+      if (blank.contains(Point(-1, 0)) && blank.contains(Point(-1, 1)) && blank.contains(Point(0, 1))) {
         Point(1, -1)
       }
-      else if(blank.contains(Point(0, 1)) && blank.contains(Point(1, 1)) && blank.contains(Point(1, 0))){
+      else if (blank.contains(Point(0, 1)) && blank.contains(Point(1, 1)) && blank.contains(Point(1, 0))) {
         Point(-1, -1)
       }
-      else if(blank.contains(Point(-1, 0)) && blank.contains(Point(-1, -1)) && blank.contains(Point(0, -1))){
+      else if (blank.contains(Point(-1, 0)) && blank.contains(Point(-1, -1)) && blank.contains(Point(0, -1))) {
         Point(1, 1)
       }
-      else if(blank.contains(Point(1, 0)) && blank.contains(Point(1, -1)) && blank.contains(Point(0, -1))){
+      else if (blank.contains(Point(1, 0)) && blank.contains(Point(1, -1)) && blank.contains(Point(0, -1))) {
         Point(-1, 1)
       }
       else
