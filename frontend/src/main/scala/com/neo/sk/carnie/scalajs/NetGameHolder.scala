@@ -19,8 +19,9 @@ object NetGameHolder extends js.JSApp {
 
 
   val bounds = Point(Boundary.w, Boundary.h)
+  val window = Point(Window.w, Window.h)
   val canvasUnit = 10
-  val canvasBoundary = bounds * canvasUnit
+  val canvasBoundary = window * canvasUnit
   val textLineHeight = 14
 
   val canvasSize = bounds.x * bounds.y
@@ -76,12 +77,12 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOn(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
+    ctx.fillStyle = "#F5F5F5"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
+    ctx.fillStyle = "#F5F5F5"
     ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
     ctx.fillStyle = "rgb(250, 250, 250)"
     if (firstCome) {

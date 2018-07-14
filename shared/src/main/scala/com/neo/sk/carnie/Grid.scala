@@ -63,15 +63,9 @@ trait Grid {
     grid = grid.filter { case (p, spot) =>
       spot match {
         case Body(id) if snakes.contains(id) => true
-        //case Header(id, _) if snakes.contains(id) => true
         case Field(id) if snakes.contains(id) => true
         case _ => false
       }
-    }.map {
-      //case (p, Header(id, life)) => (p, Body(id, life - 1))
-      case (p, b@Body(_)) => (p, b)
-      case (p, f@Field(_)) => (p, f)
-      case x => x
     }
 
   }
@@ -170,9 +164,9 @@ trait Grid {
           }
 
         case _ => //判断是否进入到了边界
-          if (newHeader.x == 0 || newHeader.x == boundary.x) {
+          if (newHeader.x == -1 || newHeader.x == boundary.x) {
             Left(None)
-          } else if (newHeader.y == 0 || newHeader.y == boundary.y) {
+          } else if (newHeader.y == -1 || newHeader.y == boundary.y) {
             Left(None)
           } else {
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
