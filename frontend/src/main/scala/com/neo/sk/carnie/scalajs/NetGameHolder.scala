@@ -18,11 +18,11 @@ import scala.scalajs.js
 object NetGameHolder extends js.JSApp {
 
 
-  val bounds = Point(Window.w, Window.h)
-  //  val window = Point(Window.w, Window.h)
+  val bounds = Point(Boundary.w, Boundary.h)
+  val window = Point(Window.w, Window.h)
   val canvasUnit = 10
   val canvasBoundary = bounds * canvasUnit
-  //  val windowBoundary = window * canvasUnit
+  val windowBoundary = window * canvasUnit
   val textLineHeight = 14
 
   val canvasSize = bounds.x * bounds.y
@@ -56,18 +56,18 @@ object NetGameHolder extends js.JSApp {
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-  val championHeader = dom.document.createElement("img")
-  val myHeader = dom.document.createElement("img")
-  val otherHeader = dom.document.createElement("img")
-  championHeader.asInstanceOf[Image].src = "/carnie/static/img/champion.png"
-  myHeader.asInstanceOf[Image].src = "/carnie/static/img/myHeader.png"
-  otherHeader.asInstanceOf[Image].src = "/carnie/static/img/otherHeader.png"
+  val championHeaderImg = dom.document.createElement("img")
+  val myHeaderImg = dom.document.createElement("img")
+  val otherHeaderImg = dom.document.createElement("img")
+  championHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/champion.png"
+  myHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/myHeader.png"
+  otherHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/otherHeader.png"
 
   @scala.scalajs.js.annotation.JSExport
   override def main(): Unit = {
     drawGameOff()
-    canvas.width = canvasBoundary.x
-    canvas.height = canvasBoundary.y
+    canvas.width = windowBoundary.x
+    canvas.height = windowBoundary.y
 
     joinButton.onclick = { (event: MouseEvent) =>
       joinGame(nameField.value)
@@ -91,7 +91,7 @@ object NetGameHolder extends js.JSApp {
 
   def drawGameOff(): Unit = {
     ctx.fillStyle = "#F5F5F5"
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
     ctx.fillStyle = "rgb(0, 0, 0)"
     if (firstCome) {
       ctx.font = "36px Helvetica"
@@ -127,14 +127,21 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def drawGrid(uid: Long, data: GridDataSync): Unit = {
-
-    ctx.fillStyle = "#F5F5F5"
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+  def drawGrid(uid: Long, data: GridDataSync): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
-    val bodies = data.bodyDetails
-    val fields = data.fieldDetails
+    val myHeader = snakes.find(_.id == uid).map(_.header).getOrElse(Point(bounds.x / 2, bounds.y / 2))
+    val offx = window.x / 2 - myHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - myHeader.y //新的框的y偏移量
+
+    ctx.fillStyle = "#F5F5F5"
+    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+
+
+
+    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+
 
     bodies.foreach { case Bd(id, x, y) =>
       //println(s"draw body at $p body[$life]")
@@ -164,21 +171,17 @@ object NetGameHolder extends js.JSApp {
     }
 
     //先画冠军的头
-    val championId=currentRank.head.id
-    snakes.filter(_.id == championId).foreach{ s =>
-      ctx.drawImage(championHeader.asInstanceOf[Image],s.header.x * canvasUnit, s.header.y * canvasUnit, canvasUnit, canvasUnit)
+    val championId = currentRank.head.id
+    snakes.filter(_.id == championId).foreach { s =>
+      ctx.drawImage(championHeaderImg.asInstanceOf[Image], (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
 
     //画其他人的头
     snakes.filterNot(_.id == championId).foreach { snake =>
-      val id = snake.id
-      val x = snake.header.x
-      val y = snake.header.y
-      if (id == uid) {
-        ctx.drawImage(myHeader.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      } else {
-        ctx.drawImage(otherHeader.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      }
+      val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
+      val x = snake.header.x + offx
+      val y = snake.header.y + offy
+      ctx.drawImage(img.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
 
 

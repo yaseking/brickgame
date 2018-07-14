@@ -52,8 +52,8 @@ package object carnie {
 
 
   object Boundary {
-    val w = 120
-    val h = 60
+    val w = 360
+    val h = 180
   }
 
   object Window{
