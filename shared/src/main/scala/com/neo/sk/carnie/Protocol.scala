@@ -13,7 +13,8 @@ object Protocol {
                            frameCount: Long,
                            snakes: List[SkDt],
                            bodyDetails: List[Bd],
-                           fieldDetails: List[Fd]
+                           fieldDetails: List[Fd],
+                           borderDetails: List[Bord]
                          ) extends GameMessage
 
   case class TextMsg(

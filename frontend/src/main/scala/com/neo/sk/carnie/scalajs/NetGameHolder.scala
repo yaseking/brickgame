@@ -19,8 +19,9 @@ object NetGameHolder extends js.JSApp {
 
 
   val bounds = Point(Boundary.w, Boundary.h)
+  val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
-  val canvasUnit = 10
+  val canvasUnit = 20
   val canvasBoundary = bounds * canvasUnit
   val windowBoundary = window * canvasUnit
   val textLineHeight = 14
@@ -31,7 +32,7 @@ object NetGameHolder extends js.JSApp {
   var historyRank = List.empty[Score]
   var myId = -1l
 
-  val grid = new GridOnClient(bounds)
+  val grid = new GridOnClient(border)
 
   var firstCome = true
   var wsSetup = false
@@ -130,7 +131,7 @@ object NetGameHolder extends js.JSApp {
   def drawGrid(uid: Long, data: GridDataSync): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
-    val myHeader = snakes.find(_.id == uid).map(_.header).getOrElse(Point(bounds.x / 2, bounds.y / 2))
+    val myHeader = snakes.find(_.id == uid).map(_.header).getOrElse(Point(border.x / 2, border.y / 2))
     val offx = window.x / 2 - myHeader.x //新的框的x偏移量
     val offy = window.y / 2 - myHeader.y //新的框的y偏移量
 
@@ -141,7 +142,7 @@ object NetGameHolder extends js.JSApp {
 
     val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-
+    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     bodies.foreach { case Bd(id, x, y) =>
       //println(s"draw body at $p body[$life]")
@@ -168,6 +169,11 @@ object NetGameHolder extends js.JSApp {
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
+    }
+
+    ctx.fillStyle = "#696969"
+    borders.foreach{ case Bord(x, y) =>
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
 
     //先画冠军的头
@@ -306,7 +312,8 @@ object NetGameHolder extends js.JSApp {
           grid.snakes = data.snakes.map(s => s.id -> s).toMap
           val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
           val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
-          val gridMap = bodyMap ++ fieldMap
+          val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
+          val gridMap = bodyMap ++ fieldMap ++ bordMap
           grid.grid = gridMap
           justSynced = true
         //drawGrid(msgData.uid, data)

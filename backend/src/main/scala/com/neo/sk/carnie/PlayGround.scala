@@ -29,7 +29,7 @@ trait PlayGround {
 
 object PlayGround {
 
-  val bounds = Point(Boundary.w, Boundary.h)
+  val border = Point(BorderSize.w, BorderSize.h)
 
   val log = LoggerFactory.getLogger(this.getClass)
 
@@ -41,7 +41,7 @@ object PlayGround {
 
       var userMap = Map.empty[Long, String]
 
-      val grid = new GridOnServer(bounds)
+      val grid = new GridOnServer(border)
 
       var tickCount = 0l
 
