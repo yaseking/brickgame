@@ -29,7 +29,7 @@ trait Grid {
   var frameCount = 0l
   var grid = Map[Point, Spot]()
   var snakes = Map.empty[Long, SkDt]
-  var actionMap = Map.empty[Long, Map[Long, Int]]
+  var actionMap = Map.empty[Long, Map[Long, Int]] //是什么？
   val baseDirection = Map("left" -> Point(-1, 0), "right" -> Point(1, 0), "up" -> Point(0, -1), "down" -> Point(0, 1))
   var colorField = Map.empty[Long, List[Point]]
 
@@ -110,8 +110,8 @@ trait Grid {
     def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
       //      debug(s" +++ snake[${snake.id} -- color is ${snake.color} ] feel key: $keyCode at frame=$frameCount")
-      val (newDirection, isTurn) = {
-        val keyDirection = keyCode match {
+      val (newDirection, isTurn) = { //isTurn？？？
+        val keyDirection = keyCode match { //这里的key是如何检测到的，snake的id是？
           case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
           case Some(KeyEvent.VK_RIGHT) => Point(1, 0)
           case Some(KeyEvent.VK_UP) => Point(0, -1)
@@ -127,12 +127,12 @@ trait Grid {
         }
       }
 
-      val newHeader = ((snake.header + newDirection) + boundary) % boundary
+      val newHeader = ((snake.header + newDirection) + boundary) % boundary //这里应该是想处理碰到边界以后如何处理的情况
 
-      grid.get(newHeader) match {
+      grid.get(newHeader) match { //match可以处理成不同类型？grid是一个MAP集合，不是option类的get！
         case Some(x: Body) => //进行碰撞检测
           debug(s"snake[${snake.id}] hit wall.")
-          Left(Some(x.id))
+          Left(Some(x.id))//这个Left是什么用法，这里发生了什么？
 
         case Some(Field(id)) =>
           if (id == snake.id) {

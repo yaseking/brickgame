@@ -39,7 +39,7 @@ object NetGameHolder extends js.JSApp {
     KeyCode.Up,
     KeyCode.Right,
     KeyCode.Down,
-    KeyCode.F2
+    KeyCode.q
   )
 
   object MyColors {
@@ -53,7 +53,7 @@ object NetGameHolder extends js.JSApp {
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   @scala.scalajs.js.annotation.JSExport
-  override def main(): Unit = {
+  override def main(): Unit = {  //什么时候会执行？
     drawGameOff()
     canvas.width = canvasBoundary.x
     canvas.height = canvasBoundary.y
@@ -62,7 +62,7 @@ object NetGameHolder extends js.JSApp {
       joinGame(nameField.value)
       event.preventDefault()
     }
-    nameField.focus()
+    nameField.focus() //获取焦点（但是自己运行好像没有这个效果）
     nameField.onkeypress = { (event: KeyboardEvent) =>
       if (event.keyCode == 13) {
         joinButton.click()
@@ -70,7 +70,7 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+    dom.window.setInterval(() => gameLoop(), Protocol.frameRate) //写法存疑？函数功能是设置一个定时延迟来执行其中的函数
   }
 
   def drawGameOn(): Unit = {
@@ -81,10 +81,10 @@ object NetGameHolder extends js.JSApp {
   def drawGameOff(): Unit = {
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.fillStyle = "rgb(250, 250, 250)"  //两个fillstyle的颜色，控制范围不同，就近原则。
     if (firstCome) {
       ctx.font = "36px Helvetica"
-      ctx.fillText("Welcome.", 150, 180)
+      ctx.fillText("Welcome.", 150, 180) //参数是指字体边距离canvas边框的距离
     } else {
       ctx.font = "36px Helvetica"
       ctx.fillText("Ops, connection lost.", 150, 180)
@@ -233,10 +233,10 @@ object NetGameHolder extends js.JSApp {
           println(s"keydown: ${e.keyCode}")
           if (watchKeys.contains(e.keyCode)) {
             println(s"key down: [${e.keyCode}]")
-            if (e.keyCode == KeyCode.F2) {
+            if (e.keyCode == KeyCode.q) {
               gameStream.send("T" + System.currentTimeMillis())
             } else {
-              gameStream.send(e.keyCode.toString)
+              gameStream.send(e.keyCode.toString) //send到哪里去？
             }
             e.preventDefault()
           }

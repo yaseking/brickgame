@@ -130,13 +130,13 @@ object PlayGround {
                 Key(id, s.toInt)
               }
             }
-            .to(playInSink(id, name))
+            .to(playInSink(id, name)) //这里不会发left消息吗?有什么特殊执行方式？
 
         val out =
           Source.actorRef[Protocol.GameMessage](3, OverflowStrategy.dropHead)
             .mapMaterializedValue(outActor => ground ! Join(id, name, outActor))
 
-        Flow.fromSinkAndSource(in, out)
+        Flow.fromSinkAndSource(in, out) //用法?
       }
 
       override def syncData(): Unit = ground ! Sync
