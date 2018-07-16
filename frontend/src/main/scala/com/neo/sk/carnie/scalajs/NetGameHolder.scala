@@ -91,7 +91,7 @@ object NetGameHolder extends js.JSApp {
 
   def drawGameOff(): Unit = {
     ctx.fillStyle = "#F5F5F5"
-    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)//这里的Unit好像重复了
     ctx.fillStyle = "rgb(0, 0, 0)"
     if (firstCome) {
       ctx.font = "36px Helvetica"
