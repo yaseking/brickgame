@@ -69,5 +69,9 @@ package object carnie {
     val h = 30
   }
 
+  object LittleMap{
+    val w=20
+    val h=10
+  }
 
 }
