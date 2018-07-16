@@ -1,8 +1,6 @@
 package com.neo.sk.carnie
 
 import java.awt.event.KeyEvent
-
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
@@ -29,6 +27,9 @@ trait Grid {
   var actionMap = Map.empty[Long, Map[Long, Int]]
   val baseDirection = Map("left" -> Point(-1, 0), "right" -> Point(1, 0), "up" -> Point(0, -1), "down" -> Point(0, 1))
   var colorField = Map.empty[Long, List[Point]]
+
+  List(0, BorderSize.w).foreach(x => (0 to BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
+  List(0, BorderSize.h).foreach(y => (0 to BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
 
   def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
@@ -64,6 +65,7 @@ trait Grid {
       spot match {
         case Body(id) if snakes.contains(id) => true
         case Field(id) if snakes.contains(id) => true
+        case Border => true
         case _ => false
       }
     }
@@ -84,16 +86,42 @@ trait Grid {
   }
 
   def randomColor(): String = {
-    var color = "#" + randomHex()
-    while (snakes.map(_._2.color).toList.contains(color) || color == "#000080" || color=="#F5F5F5") {
-      color = "#" + randomHex()
+    var color = randomHex()
+    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969")
+    val similarityDegree = 500
+    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
+      color = randomHex()
     }
-    color
+    "#" + color
   }
 
   def randomHex() = {
     val h = (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString
-    String.format("%6s", h).replaceAll("\\s", "0")
+    String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
+  }
+
+  def colorSimilarity(color1: String, color2: String) = {
+    var target = 0.0
+    var index = 0
+    if(color1.length == 6 && color2.length == 6) {
+      (0 until color1.length/2).foreach{ _ =>
+        target = target +
+          Math.pow(hexToDec(color1.substring(index, index + 2)) - hexToDec(color2.substring(index, index + 2)), 2)
+        index = index + 2
+      }
+    }
+    target.toInt
+  }
+
+  def hexToDec(hex: String): Int ={
+    val hexString: String = "0123456789ABCDEF"
+    var target = 0
+    var base = Math.pow(16, hex.length - 1).toInt
+    for(i <- 0 until hex.length){
+      target = target + hexString.indexOf(hex(i)) * base
+      base = base / 16
+    }
+    target
   }
 
   private[this] def updateSnakes() = {
@@ -148,7 +176,7 @@ trait Grid {
                   }
                   searchPoint = searchPoint + searchDirection
                 }
-                grid = setPoly(temp, grid, boundary, snake.id)
+                grid = setPoly(temp, grid, snake.id)
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), true))
 
               case _ =>
@@ -163,19 +191,15 @@ trait Grid {
             }
           }
 
-        case _ => //判断是否进入到了边界
-          if (newHeader.x == -1 || newHeader.x == boundary.x) {
-            Left(None)
-          } else if (newHeader.y == -1 || newHeader.y == boundary.y) {
-            Left(None)
-          } else {
-            grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
-              case Some(Field(fid)) if fid == snake.id =>
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
-              case _ =>
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
-            }
+        case Some(Border) =>
+          Left(None)
 
+        case _ =>
+          grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
+            case Some(Field(fid)) if fid == snake.id =>
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+            case _ =>
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
           }
       }
       value match {
@@ -185,7 +209,6 @@ trait Grid {
         case _ => value
       }
     }
-
 
     var mapKillCounter = Map.empty[Long, Int]
     var updatedSnakes = List.empty[UpdateSnakeInfo]
@@ -207,8 +230,9 @@ trait Grid {
     //if two (or more) headers go to the same point,die at the same time
     val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).values
     val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toSet
+    val haveFieldSnake = grid.map(_._2 match {case x@Field(uid) => uid case _ => 0}).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
 
-    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id)).map { s =>
+    val newSnakes = updatedSnakes.filter(s => haveFieldSnake.contains(s.data.id)).filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id)).map { s =>
       mapKillCounter.get(s.data.id) match {
         case Some(k) => s.copy(data = s.data.copy(kill = k + s.data.kill))
         case None => s
@@ -229,27 +253,29 @@ trait Grid {
   def getGridData = {
     var bodyDetails: List[Bd] = Nil
     var fieldDetails: List[Fd] = Nil
+    var bordDetails: List[Bord] = Nil
     grid.foreach {
       case (p, Body(id)) => bodyDetails ::= Bd(id, p.x, p.y)
       case (p, Field(id)) => fieldDetails ::= Fd(id, p.x, p.y)
-      case (p, Header(id)) => bodyDetails ::= Bd(id, p.x, p.y)
+      case (p, Border) => bordDetails ::= Bord(p.x, p.y)
     }
     Protocol.GridDataSync(
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      fieldDetails
+      fieldDetails,
+      bordDetails
     )
   }
 
-  def Angle2D(x1: Int, y1: Int, x2: Int, y2: Int) : Double = {
+  def Angle2D(x1: Int, y1: Int, x2: Int, y2: Int): Double = {
 
-    var dtheta:Double = 0
-    var theta1:Double = 0
-    var theta2:Double = 0
+    var dtheta: Double = 0
+    var theta1: Double = 0
+    var theta2: Double = 0
 
-    theta1 = Math.atan2(y1.toDouble,x1.toDouble)
-    theta2 = Math.atan2(y2.toDouble,x2.toDouble)
+    theta1 = Math.atan2(y1.toDouble, x1.toDouble)
+    theta2 = Math.atan2(y2.toDouble, x2.toDouble)
     dtheta = theta2 - theta1
     while (dtheta > Math.PI)
       dtheta -= 2 * Math.PI
@@ -259,17 +285,17 @@ trait Grid {
 
   }
 
-  def InsidePolygon(polygon:List[Point], p: Point) :Boolean = {
+  def InsidePolygon(polygon: List[Point], p: Point): Boolean = {
 
     var i = 0
     var angle: Double = 0
     val l = polygon.length
-    var p1 = Point(0,0)
-    var p2 = Point(0,0)
-    for (i <-0 until l) {
-      p1= Point(polygon(i).x - p.x, polygon(i).y - p.y)
-      p2 = Point(polygon((i+1)%l).x - p.x, polygon((i+1)%l).y - p.y)
-      angle += Angle2D(p1.x,p1.y,p2.x,p2.y)
+    var p1 = Point(0, 0)
+    var p2 = Point(0, 0)
+    for (i <- 0 until l) {
+      p1 = Point(polygon(i).x - p.x, polygon(i).y - p.y)
+      p2 = Point(polygon((i + 1) % l).x - p.x, polygon((i + 1) % l).y - p.y)
+      angle += Angle2D(p1.x, p1.y, p2.x, p2.y)
     }
 
     if (Math.abs(angle) < Math.PI) false
@@ -277,7 +303,7 @@ trait Grid {
 
   }
 
-  def setPoly(poly: List[Point], grid: Map[Point, Spot], boundary: Point, snakeId: Long): Map[Point, Spot] = {
+  def setPoly(poly: List[Point], grid: Map[Point, Spot], snakeId: Long): Map[Point, Spot] = {
     var new_grid = grid
     for (x <- poly.map(_.x).min until poly.map(_.x).max)
       for (y <- poly.map(_.y).min until poly.map(_.y).max) {

@@ -19,8 +19,9 @@ object NetGameHolder extends js.JSApp {
 
 
   val bounds = Point(Boundary.w, Boundary.h)
+  val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
-  val canvasUnit = 10
+  val canvasUnit = 20
   val canvasBoundary = bounds * canvasUnit
   val windowBoundary = window * canvasUnit
   val textLineHeight = 14
@@ -31,7 +32,7 @@ object NetGameHolder extends js.JSApp {
   var historyRank = List.empty[Score]
   var myId = -1l
 
-  val grid = new GridOnClient(bounds)
+  val grid = new GridOnClient(border)
 
   var firstCome = true
   var wsSetup = false
@@ -46,9 +47,11 @@ object NetGameHolder extends js.JSApp {
     KeyCode.F2
   )
 
-  object MyColors {
-    val myHeader = "#FF0000"
-    val otherHeader = Color.Blue.toString()
+  object ColorsSetting {
+    val backgroundColor = "#F5F5F5"
+    val fontColor = "#000000"
+    val defaultColor = "#000080"
+    val borderColor = "#696969"
   }
 
   private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -85,14 +88,14 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOn(): Unit = {
-    ctx.fillStyle = "#F5F5F5"
+    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = "#F5F5F5"
-    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)//这里的Unit好像重复了
-    ctx.fillStyle = "rgb(0, 0, 0)"
+    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+    ctx.fillStyle = ColorsSetting.fontColor
     if (firstCome) {
       ctx.font = "36px Helvetica"
       ctx.fillText("Welcome.", 150, 180)
@@ -130,22 +133,22 @@ object NetGameHolder extends js.JSApp {
   def drawGrid(uid: Long, data: GridDataSync): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
-    val myHeader = snakes.find(_.id == uid).map(_.header).getOrElse(Point(bounds.x / 2, bounds.y / 2))
+    val myHeader = snakes.find(_.id == uid).map(_.header).getOrElse(Point(border.x / 2, border.y / 2))
     val offx = window.x / 2 - myHeader.x //新的框的x偏移量
     val offy = window.y / 2 - myHeader.y //新的框的y偏移量
 
-    ctx.fillStyle = "#F5F5F5"
+    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
 
 
 
     val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-
+    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     bodies.foreach { case Bd(id, x, y) =>
       //println(s"draw body at $p body[$life]")
-      val color = snakes.find(_.id == id).map(_.color).getOrElse("#000080")
+      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
       if (id == uid) {
@@ -158,7 +161,7 @@ object NetGameHolder extends js.JSApp {
     }
 
     fields.foreach { case Fd(id, x, y) =>
-      val color = snakes.find(_.id == id).map(_.color).getOrElse("#000080")
+      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 1.0
       ctx.fillStyle = color
       if (id == uid) {
@@ -168,6 +171,11 @@ object NetGameHolder extends js.JSApp {
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
+    }
+
+    ctx.fillStyle = ColorsSetting.borderColor
+    borders.foreach{ case Bord(x, y) =>
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
 
     //先画冠军的头
@@ -185,7 +193,7 @@ object NetGameHolder extends js.JSApp {
     }
 
 
-    ctx.fillStyle = "rgb(0, 0, 0)"
+    ctx.fillStyle = ColorsSetting.fontColor
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
 
@@ -203,10 +211,10 @@ object NetGameHolder extends js.JSApp {
       case None =>
         if (firstCome) {
           ctx.font = "36px Helvetica"
-          ctx.fillText("Please wait.", 150, 180)
+          ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
           ctx.font = "36px Helvetica"
-          ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
+          ctx.fillText("Ops, Press Space Key To Restart!", 150 + offx, 180 + offy)
         }
     }
 
@@ -306,7 +314,8 @@ object NetGameHolder extends js.JSApp {
           grid.snakes = data.snakes.map(s => s.id -> s).toMap
           val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
           val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
-          val gridMap = bodyMap ++ fieldMap
+          val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
+          val gridMap = bodyMap ++ fieldMap ++ bordMap
           grid.grid = gridMap
           justSynced = true
         //drawGrid(msgData.uid, data)

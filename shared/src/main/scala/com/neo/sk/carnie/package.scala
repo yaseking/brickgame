@@ -11,15 +11,17 @@ package object carnie {
 
   case class Body(id: Long) extends Spot
 
-  case class Header(id: Long) extends Spot
-
   case class Field(id: Long) extends Spot
+
+  case object Border extends Spot
 
   case class Score(id: Long, n: String, k: Int, l: Int, t: Option[Long] = None, area: Int = 0)
 
   case class Bd(id: Long, x: Int, y: Int)
 
   case class Fd(id: Long, x: Int, y: Int)
+
+  case class Bord(x: Int, y: Int)
 
 
   case class Point(x: Int, y: Int) {
@@ -52,13 +54,18 @@ package object carnie {
 
 
   object Boundary {
-    val w = 360
-    val h = 180
+    val w = 210
+    val h = 75
+  }
+
+  object BorderSize{
+    val w = 180
+    val h = 60
   }
 
   object Window{
-    val w = 120
-    val h = 60
+    val w = 60
+    val h = 30
   }
 
 
