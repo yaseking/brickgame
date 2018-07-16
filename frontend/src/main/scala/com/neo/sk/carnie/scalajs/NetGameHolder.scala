@@ -21,6 +21,7 @@ object NetGameHolder extends js.JSApp {
   val bounds = Point(Boundary.w, Boundary.h)
   val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
+  val SmallMap=Point(LittleMap.w,LittleMap.h)
   val canvasUnit = 20
   val canvasBoundary = bounds * canvasUnit
   val windowBoundary = window * canvasUnit
@@ -52,6 +53,7 @@ object NetGameHolder extends js.JSApp {
     val fontColor = "#000000"
     val defaultColor = "#000080"
     val borderColor = "#696969"
+    val mapColor="#d8d8d866"
   }
 
   private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -121,6 +123,14 @@ object NetGameHolder extends js.JSApp {
     grid.update()
   }
 
+  def drawMap(myheader:Point):Unit={
+    val Offx=myheader.x.toDouble/border.x*SmallMap.x
+    val Offy=myheader.y.toDouble/border.y*SmallMap.y
+    ctx.fillStyle=ColorsSetting.mapColor
+    ctx.fillRect(30,370,LittleMap.w*canvasUnit,LittleMap.h*canvasUnit)
+    ctx.drawImage(myHeaderImg.asInstanceOf[Image],30+Offx*canvasUnit,370+Offy*canvasUnit,canvasUnit/2,canvasUnit/2)
+  }
+
   def draw(): Unit = {
     if (wsSetup) {
       val data = grid.getGridData
@@ -139,8 +149,6 @@ object NetGameHolder extends js.JSApp {
 
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
-
-
 
     val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
@@ -165,7 +173,7 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 1.0
       ctx.fillStyle = color
       if (id == uid) {
-        ctx.save()
+        ctx.save() //什么用？删了好像没什么改变？
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
         ctx.restore()
       } else {
@@ -191,7 +199,6 @@ object NetGameHolder extends js.JSApp {
       val y = snake.header.y + offy
       ctx.drawImage(img.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
-
 
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.textAlign = "left"
@@ -234,7 +241,7 @@ object NetGameHolder extends js.JSApp {
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
     }
-
+    drawMap(myHeader)
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
