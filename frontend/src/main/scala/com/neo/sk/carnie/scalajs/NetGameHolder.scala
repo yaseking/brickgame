@@ -22,21 +22,23 @@ object NetGameHolder extends js.JSApp {
   val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
   val canvasUnit = 20
-  val canvasBoundary = bounds * canvasUnit
-  val windowBoundary = window * canvasUnit
   val textLineHeight = 14
-
-  val canvasSize = bounds.x * bounds.y
+  private val canvasBoundary = bounds * canvasUnit
+  private val windowBoundary = window * canvasUnit
+  private val canvasSize = bounds.x * bounds.y
+  private val winStandard = (BorderSize.w - 2)* (BorderSize.h - 2) * 0.8
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
-  var myId = -1l
+  private var myId = -1l
 
   val grid = new GridOnClient(border)
 
   var firstCome = true
   var wsSetup = false
   var justSynced = false
+  var lastHeader = Point(border.x / 2, border.y / 2)
+  var isWin = 0 //0代表游戏中 1代表处于有人胜出后的状态 2代表胜出后在重启的过程中
 
   val watchKeys = Set(
     KeyCode.Space,
@@ -105,16 +107,28 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
+  def drawGameWin(winner: String): Unit = {
+    isWin = 1
+    grid.cleanData() //数据清零
+    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.font = "36px Helvetica"
+    ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
+  }
+
 
   def gameLoop(): Unit = {
-    if (wsSetup) {
-      if (!justSynced) {
-        update()
-      } else {
-        justSynced = false
+    if(isWin != 1) {
+      if (wsSetup) {
+        if (!justSynced) {
+          update()
+        } else {
+          justSynced = false
+        }
       }
+      draw()
     }
-    draw()
   }
 
   def update(): Unit = {
@@ -124,18 +138,26 @@ object NetGameHolder extends js.JSApp {
   def draw(): Unit = {
     if (wsSetup) {
       val data = grid.getGridData
-      drawGrid(myId, data)
+      if (data.fieldDetails.nonEmpty) {
+        val champion = data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head
+        if (champion._2.length <= winStandard) {
+          drawGrid(myId, data, champion._1)
+        } else {
+          //当占地面积大于80%时，认为取得胜利
+          drawGameWin(data.snakes.filter(_.id == champion._1).map(_.name).headOption.getOrElse("unknown"))
+        }
+      } else drawGrid(myId, data, 0)
     } else {
       drawGameOff()
     }
   }
 
-  def drawGrid(uid: Long, data: GridDataSync): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: Long, data: GridDataSync, championId: Long): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
-    val myHeader = snakes.find(_.id == uid).map(_.header).getOrElse(Point(border.x / 2, border.y / 2))
-    val offx = window.x / 2 - myHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - myHeader.y //新的框的y偏移量
+    lastHeader = snakes.find(_.id == uid) match {case Some(s) => s.header case None => lastHeader}
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
@@ -179,7 +201,6 @@ object NetGameHolder extends js.JSApp {
     }
 
     //先画冠军的头
-    val championId = currentRank.head.id
     snakes.filter(_.id == championId).foreach { s =>
       ctx.drawImage(championHeaderImg.asInstanceOf[Image], (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
@@ -203,18 +224,26 @@ object NetGameHolder extends js.JSApp {
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
         firstCome = false
+        isWin = 0
         val baseLine = 1
         ctx.font = "12px Helvetica"
         drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
-        drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
+
       case None =>
-        if (firstCome) {
+        if (firstCome || isWin == 2) {
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
           ctx.font = "36px Helvetica"
-          ctx.fillText("Ops, Press Space Key To Restart!", 150 + offx, 180 + offy)
+          val text = grid.getKiller(uid) match {
+            case Some(killer) =>
+              s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
+
+            case None =>
+              "Ops, Press Space Key To Restart!"
+          }
+          ctx.fillText(text, 150 + offx, 180 + offy)
         }
     }
 
@@ -247,13 +276,12 @@ object NetGameHolder extends js.JSApp {
     val playground = dom.document.getElementById("playground")
     playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
-    gameStream.onopen = { (event0: Event) =>
+    gameStream.onopen = { event0: Event =>
       drawGameOn()
       playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
-      canvas.onkeydown = {
-        (e: dom.KeyboardEvent) => {
+      canvas.onkeydown = { e: dom.KeyboardEvent => {
           println(s"keydown: ${e.keyCode}")
           if (watchKeys.contains(e.keyCode)) {
             println(s"key down: [${e.keyCode}]")
@@ -269,7 +297,7 @@ object NetGameHolder extends js.JSApp {
       event0
     }
 
-    gameStream.onerror = { (event: ErrorEvent) =>
+    gameStream.onerror = { event: ErrorEvent =>
       drawGameOff()
       playground.insertBefore(p(s"Failed: code: ${event.colno}"), playground.firstChild)
       joinButton.disabled = false
@@ -281,8 +309,7 @@ object NetGameHolder extends js.JSApp {
     import io.circe.generic.auto._
     import io.circe.parser._
 
-    gameStream.onmessage = { (event: MessageEvent) =>
-      //val wsMsg = read[Protocol.GameMessage](event.data.toString)
+    gameStream.onmessage = { event: MessageEvent =>
       val wsMsg = decode[Protocol.GameMessage](event.data.toString).right.get
       wsMsg match {
         case Protocol.Id(id) => myId = id
@@ -293,22 +320,15 @@ object NetGameHolder extends js.JSApp {
 
         case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
 
-        case a@Protocol.SnakeAction(id, keyCode, frame) =>
-          if (frame > grid.frameCount) {
-            //writeToArea(s"!!! got snake action=$a whem i am in frame=${grid.frameCount}")
-          } else {
-            //writeToArea(s"got snake action=$a")
-          }
-          grid.addActionWithFrame(id, keyCode, frame)
+        case Protocol.SnakeAction(id, keyCode, frame) => grid.addActionWithFrame(id, keyCode, frame)
+
+        case Protocol.NewGameAfterWin => isWin = 2
 
         case Protocol.Ranks(current, history) =>
-          //writeToArea(s"rank update. current = $current") //for debug.
           currentRank = current
           historyRank = history
 
         case data: Protocol.GridDataSync =>
-          //          writeToArea(s"grid data got: $data")
-          //TODO here should be better code.
           grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
           grid.frameCount = data.frameCount
           grid.snakes = data.snakes.map(s => s.id -> s).toMap
@@ -317,8 +337,8 @@ object NetGameHolder extends js.JSApp {
           val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
           val gridMap = bodyMap ++ fieldMap ++ bordMap
           grid.grid = gridMap
+          grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
           justSynced = true
-        //drawGrid(msgData.uid, data)
 
         case Protocol.NetDelayTest(createTime) =>
           val receiveTime = System.currentTimeMillis()
@@ -328,7 +348,7 @@ object NetGameHolder extends js.JSApp {
     }
 
 
-    gameStream.onclose = { (event: Event) =>
+    gameStream.onclose = { event: Event =>
       drawGameOff()
       playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
       joinButton.disabled = false

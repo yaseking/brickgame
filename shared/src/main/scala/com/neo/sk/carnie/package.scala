@@ -15,13 +15,15 @@ package object carnie {
 
   case object Border extends Spot
 
-  case class Score(id: Long, n: String, k: Int, l: Int, t: Option[Long] = None, area: Int = 0)
+  case class Score(id: Long, n: String, k: Int, t: Option[Long] = None, area: Int = 0)
 
   case class Bd(id: Long, x: Int, y: Int)
 
   case class Fd(id: Long, x: Int, y: Int)
 
   case class Bord(x: Int, y: Int)
+
+  case class Kill(killedId: Long, killerId: Long, killerName: String)
 
 
   case class Point(x: Int, y: Int) {
@@ -42,7 +44,6 @@ package object carnie {
                    turnPoint: List[Point],
                    header: Point,
                    direction: Point = Point(1, 0),
-                   length: Int = 4,
                    kill: Int = 0
                  )
 
@@ -55,12 +56,12 @@ package object carnie {
 
   object Boundary {
     val w = 210
-    val h = 75
+    val h = 105
   }
 
   object BorderSize{
     val w = 180
-    val h = 60
+    val h = 90
   }
 
   object Window{

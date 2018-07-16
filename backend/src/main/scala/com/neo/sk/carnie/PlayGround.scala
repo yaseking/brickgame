@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.neo.sk.carnie.Protocol.NewGameAfterWin
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
@@ -55,21 +56,25 @@ object PlayGround {
           dispatchTo(id, Protocol.Id(id))
           dispatch(Protocol.NewSnakeJoined(id, name))
           dispatch(grid.getGridData)
+
         case r@Left(id, name) =>
           log.info(s"got $r")
           subscribers.get(id).foreach(context.unwatch)
           subscribers -= id
           grid.removeSnake(id)
           dispatch(Protocol.SnakeLeft(id, name))
+
         case r@Key(id, keyCode) =>
           log.debug(s"got $r")
           dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
           if (keyCode == KeyEvent.VK_SPACE) {
+            if(subscribers.exists(_._1 == id)) subscribers.filter(_._1 == id).head._2 ! NewGameAfterWin
             grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
           } else {
             grid.addAction(id, keyCode)
             dispatch(Protocol.SnakeAction(id, keyCode, grid.frameCount))
           }
+
         case r@Terminated(actor) =>
           log.warn(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>

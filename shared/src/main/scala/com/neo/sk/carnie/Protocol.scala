@@ -14,7 +14,8 @@ object Protocol {
                            snakes: List[SkDt],
                            bodyDetails: List[Bd],
                            fieldDetails: List[Fd],
-                           borderDetails: List[Bord]
+                           borderDetails: List[Bord],
+                           killHistory: List[Kill]
                          ) extends GameMessage
 
   case class TextMsg(
@@ -32,6 +33,8 @@ object Protocol {
   case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
 
   case class NetDelayTest(createTime: Long) extends GameMessage
+
+  case object NewGameAfterWin extends GameMessage
 
   val frameRate = 150
 

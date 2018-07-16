@@ -16,10 +16,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-
-  private[this] var waitingJoin = Map.empty[Long, String]
-//  private[this] var feededApples: List[Ap] = Nil
-
+  private[this] var waitingJoin = Map.empty[Long, (String, String)]
 
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[Long, Score]
@@ -27,14 +24,15 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   private[this] var historyRankThreshold = if (historyRankList.isEmpty) (-1, -1) else (historyRankList.map(_.area).min ,historyRankList.map(_.k).min)
 
-  def addSnake(id: Long, name: String) = waitingJoin += (id -> name)
-
+  def addSnake(id: Long, name: String) = {
+    val bodyColor = randomColor()
+    waitingJoin += (id -> (name, bodyColor))
+  }
 
   private[this] def genWaitingSnake() = {
-    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, name) =>
+    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
-      val bodyColor = randomColor()
       (0 until indexSize).foreach { x =>
         (0 until indexSize).foreach { y =>
           grid += Point(basePoint.x + x, basePoint.y + y) -> Field(id)
@@ -42,9 +40,9 @@ class GridOnServer(override val boundary: Point) extends Grid {
       }
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
       snakes += id -> SkDt(id, name, bodyColor, startPoint, Nil, startPoint)
-
+      killHistory -= id
     }
-    waitingJoin = Map.empty[Long, String]
+    waitingJoin = Map.empty[Long, (String, String)]
   }
 
   implicit val scoreOrdering = new Ordering[Score] {
@@ -70,7 +68,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       case (p, f@Field(_)) => (p, f)
       case _ => (Point(-1, -1), Field(-1L))
     }.filter(_._2.id != -1L).values.groupBy(_.id).map(p => (p._1, p._2.size))
-    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, s.length, area = areaMap.getOrElse(s.id, 0))).toList.sorted
+    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, area = areaMap.getOrElse(s.id, 0))).toList.sorted
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
@@ -102,6 +100,45 @@ class GridOnServer(override val boundary: Point) extends Grid {
       historyRankMap = historyRankList.map(s => s.id -> s).toMap
     }
 
+  }
+
+  def randomColor(): String = {
+    var color = randomHex()
+    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
+    val similarityDegree = 500
+    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
+      color = randomHex()
+    }
+    "#" + color
+  }
+
+  def randomHex() = {
+    val h = (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString
+    String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
+  }
+
+  def colorSimilarity(color1: String, color2: String) = {
+    var target = 0.0
+    var index = 0
+    if(color1.length == 6 && color2.length == 6) {
+      (0 until color1.length/2).foreach{ _ =>
+        target = target +
+          Math.pow(hexToDec(color1.substring(index, index + 2)) - hexToDec(color2.substring(index, index + 2)), 2)
+        index = index + 2
+      }
+    }
+    target.toInt
+  }
+
+  def hexToDec(hex: String): Int ={
+    val hexString: String = "0123456789ABCDEF"
+    var target = 0
+    var base = Math.pow(16, hex.length - 1).toInt
+    for(i <- 0 until hex.length){
+      target = target + hexString.indexOf(hex(i)) * base
+      base = base / 16
+    }
+    target
   }
 
   override def update(): Unit = {
