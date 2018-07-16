@@ -1,8 +1,6 @@
 package com.neo.sk.carnie
 
 import java.awt.event.KeyEvent
-
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
@@ -88,16 +86,42 @@ trait Grid {
   }
 
   def randomColor(): String = {
-    var color = "#" + randomHex()
-    while (snakes.map(_._2.color).toList.contains(color) || color == "#000080" || color == "#F5F5F5") {
-      color = "#" + randomHex()
+    var color = randomHex()
+    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969")
+    val similarityDegree = 500
+    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
+      color = randomHex()
     }
-    color
+    "#" + color
   }
 
   def randomHex() = {
     val h = (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString
-    String.format("%6s", h).replaceAll("\\s", "0")
+    String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
+  }
+
+  def colorSimilarity(color1: String, color2: String) = {
+    var target = 0.0
+    var index = 0
+    if(color1.length == 6 && color2.length == 6) {
+      (0 until color1.length/2).foreach{ _ =>
+        target = target +
+          Math.pow(hexToDec(color1.substring(index, index + 2)) - hexToDec(color2.substring(index, index + 2)), 2)
+        index = index + 2
+      }
+    }
+    target.toInt
+  }
+
+  def hexToDec(hex: String): Int ={
+    val hexString: String = "0123456789ABCDEF"
+    var target = 0
+    var base = Math.pow(16, hex.length - 1).toInt
+    for(i <- 0 until hex.length){
+      target = target + hexString.indexOf(hex(i)) * base
+      base = base / 16
+    }
+    target
   }
 
   private[this] def updateSnakes() = {
@@ -186,7 +210,6 @@ trait Grid {
       }
     }
 
-
     var mapKillCounter = Map.empty[Long, Int]
     var updatedSnakes = List.empty[UpdateSnakeInfo]
     var killedSnaked = List.empty[Long]
@@ -207,8 +230,9 @@ trait Grid {
     //if two (or more) headers go to the same point,die at the same time
     val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).values
     val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toSet
+    val haveFieldSnake = grid.map(_._2 match {case x@Field(uid) => uid case _ => 0}).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
 
-    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id)).map { s =>
+    val newSnakes = updatedSnakes.filter(s => haveFieldSnake.contains(s.data.id)).filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id)).map { s =>
       mapKillCounter.get(s.data.id) match {
         case Some(k) => s.copy(data = s.data.copy(kill = k + s.data.kill))
         case None => s

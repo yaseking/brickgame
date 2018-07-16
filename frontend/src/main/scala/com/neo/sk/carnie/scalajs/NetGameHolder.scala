@@ -47,9 +47,11 @@ object NetGameHolder extends js.JSApp {
     KeyCode.F2
   )
 
-  object MyColors {
-    val myHeader = "#FF0000"
-    val otherHeader = Color.Blue.toString()
+  object ColorsSetting {
+    val backgroundColor = "#F5F5F5"
+    val fontColor = "#000000"
+    val defaultColor = "#000080"
+    val borderColor = "#696969"
   }
 
   private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -86,14 +88,14 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOn(): Unit = {
-    ctx.fillStyle = "#F5F5F5"
+    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = "#F5F5F5"
+    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(0, 0, 0)"
+    ctx.fillStyle = ColorsSetting.fontColor
     if (firstCome) {
       ctx.font = "36px Helvetica"
       ctx.fillText("Welcome.", 150, 180)
@@ -135,7 +137,7 @@ object NetGameHolder extends js.JSApp {
     val offx = window.x / 2 - myHeader.x //新的框的x偏移量
     val offy = window.y / 2 - myHeader.y //新的框的y偏移量
 
-    ctx.fillStyle = "#F5F5F5"
+    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
 
 
@@ -146,7 +148,7 @@ object NetGameHolder extends js.JSApp {
 
     bodies.foreach { case Bd(id, x, y) =>
       //println(s"draw body at $p body[$life]")
-      val color = snakes.find(_.id == id).map(_.color).getOrElse("#000080")
+      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
       if (id == uid) {
@@ -159,7 +161,7 @@ object NetGameHolder extends js.JSApp {
     }
 
     fields.foreach { case Fd(id, x, y) =>
-      val color = snakes.find(_.id == id).map(_.color).getOrElse("#000080")
+      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 1.0
       ctx.fillStyle = color
       if (id == uid) {
@@ -171,7 +173,7 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    ctx.fillStyle = "#696969"
+    ctx.fillStyle = ColorsSetting.borderColor
     borders.foreach{ case Bord(x, y) =>
       ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
@@ -191,7 +193,7 @@ object NetGameHolder extends js.JSApp {
     }
 
 
-    ctx.fillStyle = "rgb(0, 0, 0)"
+    ctx.fillStyle = ColorsSetting.fontColor
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
 
@@ -209,10 +211,10 @@ object NetGameHolder extends js.JSApp {
       case None =>
         if (firstCome) {
           ctx.font = "36px Helvetica"
-          ctx.fillText("Please wait.", 150, 180)
+          ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
           ctx.font = "36px Helvetica"
-          ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
+          ctx.fillText("Ops, Press Space Key To Restart!", 150 + offx, 180 + offy)
         }
     }
 
