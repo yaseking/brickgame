@@ -80,21 +80,16 @@ object PlayGround {
         case Sync =>
           tickCount += 1
           grid.update()
-//          val feedApples = grid.getFeededApple
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridData
             dispatch(gridData)
-          } else {
-//            if (feedApples.nonEmpty) {
-//              dispatch(Protocol.FeedApples(feedApples))
-//            }
           }
-          if (tickCount % 20 == 1) {
-            dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
-          }
+          if (tickCount % 20 == 1) dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
+
         case NetTest(id, createTime) =>
           log.info(s"Net Test: createTime=$createTime")
           dispatchTo(id, Protocol.NetDelayTest(createTime))
+
         case x =>
           log.warn(s"got unknown msg: $x")
       }

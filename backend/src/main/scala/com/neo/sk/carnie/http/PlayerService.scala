@@ -44,11 +44,11 @@ trait PlayerService {
       pathEndOrSingleSlash {
         getFromResource("html/netSnake.html")
       } ~
-      path("join") {
-        parameter('name) { name =>
-          handleWebSocketMessages(webSocketChatFlow(sender = name))
+        path("join") {
+          parameter('name) { name =>
+            handleWebSocketMessages(webSocketChatFlow(sender = name))
+          }
         }
-      }
     }
   }
 

@@ -19,9 +19,13 @@ object NetGameHolder extends js.JSApp {
 
 
   val bounds = Point(Boundary.w, Boundary.h)
+  val window = Point(Window.w, Window.h)
   val canvasUnit = 10
   val canvasBoundary = bounds * canvasUnit
+  val windowBoundary = window * canvasUnit
   val textLineHeight = 14
+
+  val canvasSize = bounds.x * bounds.y
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -39,7 +43,7 @@ object NetGameHolder extends js.JSApp {
     KeyCode.Up,
     KeyCode.Right,
     KeyCode.Down,
-    KeyCode.q
+    KeyCode.F2
   )
 
   object MyColors {
@@ -52,17 +56,24 @@ object NetGameHolder extends js.JSApp {
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
+  val championHeaderImg = dom.document.createElement("img")
+  val myHeaderImg = dom.document.createElement("img")
+  val otherHeaderImg = dom.document.createElement("img")
+  championHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/champion.png"
+  myHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/myHeader.png"
+  otherHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/otherHeader.png"
+
   @scala.scalajs.js.annotation.JSExport
-  override def main(): Unit = {  //什么时候会执行？
+  override def main(): Unit = {
     drawGameOff()
-    canvas.width = canvasBoundary.x
-    canvas.height = canvasBoundary.y
+    canvas.width = windowBoundary.x
+    canvas.height = windowBoundary.y
 
     joinButton.onclick = { (event: MouseEvent) =>
       joinGame(nameField.value)
       event.preventDefault()
     }
-    nameField.focus() //获取焦点（但是自己运行好像没有这个效果）
+    nameField.focus()
     nameField.onkeypress = { (event: KeyboardEvent) =>
       if (event.keyCode == 13) {
         joinButton.click()
@@ -70,27 +81,26 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate) //写法存疑？函数功能是设置一个定时延迟来执行其中的函数
+    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
   }
 
   def drawGameOn(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
+    ctx.fillStyle = "#F5F5F5"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"  //两个fillstyle的颜色，控制范围不同，就近原则。
+    ctx.fillStyle = "#F5F5F5"
+    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+    ctx.fillStyle = "rgb(0, 0, 0)"
     if (firstCome) {
       ctx.font = "36px Helvetica"
-      ctx.fillText("Welcome.", 150, 180) //参数是指字体边距离canvas边框的距离
+      ctx.fillText("Welcome.", 150, 180)
     } else {
       ctx.font = "36px Helvetica"
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
   }
-
 
 
   def gameLoop(): Unit = {
@@ -117,14 +127,21 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def drawGrid(uid: Long, data: GridDataSync): Unit = {
-
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+  def drawGrid(uid: Long, data: GridDataSync): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
-    val bodies = data.bodyDetails
-    val fields = data.fieldDetails
+    val myHeader = snakes.find(_.id == uid).map(_.header).getOrElse(Point(bounds.x / 2, bounds.y / 2))
+    val offx = window.x / 2 - myHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - myHeader.y //新的框的y偏移量
+
+    ctx.fillStyle = "#F5F5F5"
+    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+
+
+
+    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+
 
     bodies.foreach { case Bd(id, x, y) =>
       //println(s"draw body at $p body[$life]")
@@ -133,10 +150,10 @@ object NetGameHolder extends js.JSApp {
       ctx.fillStyle = color
       if (id == uid) {
         ctx.save()
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
         ctx.restore()
       } else {
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
     }
 
@@ -146,30 +163,29 @@ object NetGameHolder extends js.JSApp {
       ctx.fillStyle = color
       if (id == uid) {
         ctx.save()
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
         ctx.restore()
       } else {
-        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
     }
 
-    ctx.fillStyle = MyColors.otherHeader
-    snakes.foreach { snake =>
-      val id = snake.id
-      val x = snake.header.x
-      val y = snake.header.y
-      if (id == uid) {
-        ctx.save()
-        ctx.fillStyle = MyColors.myHeader
-        ctx.fillRect(x * canvasUnit + 2, y * canvasUnit + 2, canvasUnit - 4, canvasUnit - 4)
-        ctx.restore()
-      } else {
-        ctx.fillRect(x * canvasUnit + 2, y * canvasUnit + 2, canvasUnit - 4, canvasUnit - 4)
-      }
+    //先画冠军的头
+    val championId = currentRank.head.id
+    snakes.filter(_.id == championId).foreach { s =>
+      ctx.drawImage(championHeaderImg.asInstanceOf[Image], (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+    }
+
+    //画其他人的头
+    snakes.filterNot(_.id == championId).foreach { snake =>
+      val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
+      val x = snake.header.x + offx
+      val y = snake.header.y + offy
+      ctx.drawImage(img.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
 
 
-    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.fillStyle = "rgb(0, 0, 0)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
 
@@ -185,7 +201,7 @@ object NetGameHolder extends js.JSApp {
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
         drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
       case None =>
-        if(firstCome) {
+        if (firstCome) {
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150, 180)
         } else {
@@ -200,7 +216,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
     currentRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} len=${score.l}", leftBegin, index, currentRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", leftBegin, index, currentRankBaseLine)
     }
 
     val historyRankBaseLine = 1
@@ -208,7 +224,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
     historyRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} len=${score.l}", rightBegin, index, historyRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
     }
 
   }
@@ -233,10 +249,10 @@ object NetGameHolder extends js.JSApp {
           println(s"keydown: ${e.keyCode}")
           if (watchKeys.contains(e.keyCode)) {
             println(s"key down: [${e.keyCode}]")
-            if (e.keyCode == KeyCode.q) {
+            if (e.keyCode == KeyCode.F2) {
               gameStream.send("T" + System.currentTimeMillis())
             } else {
-              gameStream.send(e.keyCode.toString) //send到哪里去？
+              gameStream.send(e.keyCode.toString)
             }
             e.preventDefault()
           }
@@ -283,7 +299,7 @@ object NetGameHolder extends js.JSApp {
           historyRank = history
 
         case data: Protocol.GridDataSync =>
-//          writeToArea(s"grid data got: $data")
+          //          writeToArea(s"grid data got: $data")
           //TODO here should be better code.
           grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
           grid.frameCount = data.frameCount
