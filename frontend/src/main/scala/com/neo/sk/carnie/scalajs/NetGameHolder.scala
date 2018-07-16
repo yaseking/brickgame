@@ -270,7 +270,7 @@ object NetGameHolder extends js.JSApp {
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
     }
-    drawMap(myHeader)
+    drawMap(lastHeader)
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
