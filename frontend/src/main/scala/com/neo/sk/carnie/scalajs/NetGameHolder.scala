@@ -26,7 +26,7 @@ object NetGameHolder extends js.JSApp {
   val textLineHeight = 14
   private val canvasBoundary = bounds * canvasUnit
   private val windowBoundary = window * canvasUnit
-  private val canvasSize = bounds.x * bounds.y
+  private val canvasSize = border.x * border.y
   private val winStandard = (BorderSize.w - 2)* (BorderSize.h - 2) * 0.8
 
   var currentRank = List.empty[Score]
