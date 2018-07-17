@@ -59,19 +59,19 @@ package object carnie {
     val h = 105
   }
 
-  object BorderSize{
+  object BorderSize {
     val w = 180
     val h = 90
   }
 
-  object Window{
+  object Window {
     val w = 60
     val h = 30
   }
 
-  object LittleMap{
-    val w=20
-    val h=10
+  object LittleMap {
+    val w = 20
+    val h = 10
   }
 
 }

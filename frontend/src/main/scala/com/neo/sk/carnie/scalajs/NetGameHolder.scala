@@ -66,9 +66,11 @@ object NetGameHolder extends js.JSApp {
   val championHeaderImg = dom.document.createElement("img")
   val myHeaderImg = dom.document.createElement("img")
   val otherHeaderImg = dom.document.createElement("img")
+  val myLocation = dom.document.createElement("img")
   championHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/champion.png"
   myHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/myHeader.png"
   otherHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/otherHeader.png"
+  myLocation.asInstanceOf[Image].src = "/carnie/static/img/myLocation.png"
 
   @scala.scalajs.js.annotation.JSExport
   override def main(): Unit = {
@@ -137,12 +139,12 @@ object NetGameHolder extends js.JSApp {
     grid.update()
   }
 
-  def drawMap(myheader:Point):Unit={
-    val Offx=myheader.x.toDouble/border.x*SmallMap.x
-    val Offy=myheader.y.toDouble/border.y*SmallMap.y
-    ctx.fillStyle=ColorsSetting.mapColor
-    ctx.fillRect(30,370,LittleMap.w*canvasUnit,LittleMap.h*canvasUnit)
-    ctx.drawImage(myHeaderImg.asInstanceOf[Image],30+Offx*canvasUnit,370+Offy*canvasUnit,canvasUnit/2,canvasUnit/2)
+  def drawMap(myheader:Point):Unit= {
+    val Offx = myheader.x.toDouble / border.x * SmallMap.x
+    val Offy = myheader.y.toDouble / border.y * SmallMap.y
+    ctx.fillStyle = ColorsSetting.mapColor
+    ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
+    ctx.drawImage(myLocation.asInstanceOf[Image], 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit/2, canvasUnit/2)
   }
 
   def draw(): Unit = {
