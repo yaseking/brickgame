@@ -228,7 +228,7 @@ object NetGameHolder extends js.JSApp {
     ctx.textBaseline = "top"
 
     val leftBegin = 10
-    val rightBegin = canvasBoundary.x - 150
+    val rightBegin = windowBoundary.x - 150
 
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
