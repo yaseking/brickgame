@@ -59,13 +59,13 @@ object Polygon {
     }
   }
 
-  def isCorner(p: Point, grid: Map[Point, Spot], snakeId: Long): Point = {
+  def isCorner(p: Point, grid: Map[Point, Spot], snakeId: Long, otherBody: List[Point]): Point = {
     var blank = ArrayBuffer[Point]()
     val arr = Array(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, -1), Point(0, 1), Point(1, -1), Point(1, 0), Point(1, 1))
     for (a <- arr) {
       grid.get(a + p) match {
         case Some(Field(fid)) if fid == snakeId => //doNothing
-        case _ => blank += a
+        case _ if !otherBody.contains(a+p)=> blank += a
       }
     }
     val count = blank.length

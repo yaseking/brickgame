@@ -107,11 +107,12 @@ trait Grid {
       val value = grid.get(newHeader) match {
         case Some(x: Body) => //进行碰撞检测
           debug(s"snake[${snake.id}] hit wall.")
-          bodyField.get(snake.id) match {
+          bodyField.get(x.id) match {
             case Some(points) => //圈地还原
               points.foreach(p => grid += p._1 -> Field(p._2))
             case None =>
           }
+          bodyField -= x.id
           if(x.id != snake.id) killHistory += x.id -> (snake.id, snake.name)
           grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
             case Some(Field(fid)) if fid == snake.id =>
@@ -129,7 +130,7 @@ trait Grid {
                 var searchPoint = newHeader
                 temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
                 while (searchPoint != snake.startPoint) {
-                  val blank = Polygon.isCorner(searchPoint, grid, snake.id)
+                  val blank = Polygon.isCorner(searchPoint, grid, snake.id, bodyField.flatMap(_._2.filter(_._2 == snake.id).keys).toList)
                   if (blank != Point(0, 0)) {
                     if (searchPoint != newHeader) {
                       temp = temp ::: List(searchPoint)
@@ -164,6 +165,7 @@ trait Grid {
               points.foreach(p => grid += p._1 -> Field(p._2))
             case None =>
           }
+          bodyField -= snake.id
           Left(None)
 
         case _ =>
