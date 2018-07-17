@@ -25,6 +25,7 @@ trait Grid {
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
+  var bodyField = Map.empty[Long, Map[Point, Long]] //(body点，原归属者的id)
 
   List(0, BorderSize.w).foreach(x => (0 to BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 to BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -106,6 +107,11 @@ trait Grid {
       val value = grid.get(newHeader) match {
         case Some(x: Body) => //进行碰撞检测
           debug(s"snake[${snake.id}] hit wall.")
+          bodyField.get(snake.id) match {
+            case Some(points) => //圈地还原
+              points.foreach(p => grid += p._1 -> Field(p._2))
+            case None =>
+          }
           if(x.id != snake.id) killHistory += x.id -> (snake.id, snake.name)
           grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
             case Some(Field(fid)) if fid == snake.id =>
@@ -135,12 +141,15 @@ trait Grid {
                   searchPoint = searchPoint + searchDirection
                 }
                 grid = Polygon.setPoly(temp, grid, snake.id)
+                bodyField -= snake.id
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), true))
 
               case _ =>
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
             }
           } else { //进入到别人的领域
+            val tmp = bodyField.getOrElse(snake.id, Map.empty) + (newHeader -> id)
+            bodyField += (snake.id -> tmp)
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
               case Some(Field(fid)) if fid == snake.id =>
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
@@ -150,6 +159,11 @@ trait Grid {
           }
 
         case Some(Border) =>
+          bodyField.get(snake.id) match {
+            case Some(points) => //圈地还原
+              points.foreach(p => grid += p._1 -> Field(p._2))
+            case None =>
+          }
           Left(None)
 
         case _ =>
