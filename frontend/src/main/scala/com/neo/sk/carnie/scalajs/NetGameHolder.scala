@@ -293,7 +293,7 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
       ctx.save()
-      ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 3 * (score.area.toDouble / canvasSize), currentRankBaseLine * textLineHeight,
+      ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 3 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
         fillWidth + windowBoundary.x / 3 * (score.area.toDouble / canvasSize), textLineHeight)
       ctx.restore()
 
