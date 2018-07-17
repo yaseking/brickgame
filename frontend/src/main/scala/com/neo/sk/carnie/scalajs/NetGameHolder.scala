@@ -259,8 +259,7 @@ object NetGameHolder extends js.JSApp {
     }
 
     ctx.font = "12px Helvetica"
-    val myRankBaseLine = 5
-    var index = 0
+    val myRankBaseLine = 3
 //    drawTextLine(s" --- My Rank --- ", leftBegin, index, myRankBaseLine)
     currentRank.filter(_.id == myId).foreach { score =>
       val color = snakes.find(_.id == myId).map(_.color).getOrElse(ColorsSetting.defaultColor)
@@ -272,15 +271,14 @@ object NetGameHolder extends js.JSApp {
 
       ctx.globalAlpha = 1
       ctx.fillStyle = ColorsSetting.fontColor
-//      index += 1
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, index, myRankBaseLine)
-      drawTextLine(s"kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 6, index, myRankBaseLine)
+      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
+//      drawTextLine(s"kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 6, index, myRankBaseLine)
 //      drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 10, index, myRankBaseLine)
     }
 
 //    ctx.font = "12px Helvetica"
     val currentRankBaseLine = 1
-    index = 0
+    var index = 0
     drawTextLine(s" --- Current Rank --- ", rightBegin, index, currentRankBaseLine)
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
