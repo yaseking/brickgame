@@ -123,7 +123,7 @@ trait Grid {
                 var searchPoint = newHeader
                 temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
                 while (searchPoint != snake.startPoint) {
-                  val blank = Polygon.isCorner(searchPoint, grid, snake.id, newHeader)
+                  val blank = Polygon.isCorner(searchPoint, grid, snake.id)
                   if (blank != Point(0, 0)) {
                     if (searchPoint != newHeader) {
                       temp = temp ::: List(searchPoint)
@@ -226,6 +226,7 @@ trait Grid {
   }
 
   def cleanData() = {
+    snakes = Map.empty[Long, SkDt]
     actionMap = Map.empty[Long, Map[Long, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
     killHistory = Map.empty[Long, (Long, String)]

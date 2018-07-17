@@ -68,7 +68,7 @@ object PlayGround {
           log.debug(s"got $r")
           dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
           if (keyCode == KeyEvent.VK_SPACE) {
-            if(subscribers.exists(_._1 == id)) subscribers.filter(_._1 == id).head._2 ! NewGameAfterWin
+            dispatchTo(id, NewGameAfterWin)
             grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
           } else {
             grid.addAction(id, keyCode)
@@ -126,7 +126,7 @@ object PlayGround {
               if (s.startsWith("T")) {
                 val timestamp = s.substring(1).toLong
                 NetTest(id, timestamp)
-              } else {
+              }else {
                 Key(id, s.toInt)
               }
             }

@@ -59,7 +59,7 @@ object Polygon {
     }
   }
 
-  def isCorner(p: Point, grid: Map[Point, Spot], snakeId: Long, newHeader: Point): Point = {
+  def isCorner(p: Point, grid: Map[Point, Spot], snakeId: Long): Point = {
     var blank = ArrayBuffer[Point]()
     val arr = Array(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, -1), Point(0, 1), Point(1, -1), Point(1, 0), Point(1, 1))
     for (a <- arr) {
