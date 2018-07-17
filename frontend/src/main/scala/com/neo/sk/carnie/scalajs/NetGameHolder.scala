@@ -26,7 +26,7 @@ object NetGameHolder extends js.JSApp {
   val windowBoundary = window * canvasUnit
   val textLineHeight = 14
 
-  val canvasSize = bounds.x * bounds.y
+  val canvasSize = border.x * border.y
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -196,7 +196,7 @@ object NetGameHolder extends js.JSApp {
     ctx.textBaseline = "top"
 
     val leftBegin = 10
-    val rightBegin = canvasBoundary.x - 150
+    val rightBegin = windowBoundary.x - 150
 
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
@@ -205,7 +205,7 @@ object NetGameHolder extends js.JSApp {
         ctx.font = "12px Helvetica"
         drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
-        drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
+        drawTextLine(s"your length = ${mySnake.length}、 ", leftBegin, 2, baseLine)
       case None =>
         if (firstCome) {
           ctx.font = "36px Helvetica"

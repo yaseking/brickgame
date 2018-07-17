@@ -84,7 +84,8 @@ object PlayGround {
             val gridData = grid.getGridData
             dispatch(gridData)
           }
-          if (tickCount % 20 == 1) dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
+//          if (tickCount % 20 == 1) dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
+          dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
 
         case NetTest(id, createTime) =>
           log.info(s"Net Test: createTime=$createTime")
