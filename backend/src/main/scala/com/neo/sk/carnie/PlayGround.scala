@@ -1,6 +1,7 @@
 package com.neo.sk.carnie
 
 import java.awt.event.KeyEvent
+import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
@@ -34,6 +35,11 @@ object PlayGround {
 
   val log = LoggerFactory.getLogger(this.getClass)
 
+  val roomIdGen = new AtomicInteger(100)
+
+  private var playerNum = 0
+
+  private val limitNum = 1
 
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 
@@ -52,7 +58,14 @@ object PlayGround {
           userMap += (id -> name)
           context.watch(subscriber)
           subscribers += (id -> subscriber)
-          grid.addSnake(id, name)
+          playerNum = playerNum +1
+          val roomId = if((playerNum-1)==limitNum){
+            playerNum = 1
+            roomIdGen.get()
+          }else{
+            roomIdGen.getAndIncrement()
+          }
+          grid.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
           dispatch(Protocol.NewSnakeJoined(id, name))
           dispatch(grid.getGridData)
@@ -69,7 +82,14 @@ object PlayGround {
           dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
           if (keyCode == KeyEvent.VK_SPACE) {
             if(subscribers.exists(_._1 == id)) subscribers.filter(_._1 == id).head._2 ! NewGameAfterWin
-            grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
+            playerNum = playerNum +1
+            val roomId = if((playerNum-1)==limitNum){
+              playerNum = 1
+              roomIdGen.get()
+            }else{
+              roomIdGen.getAndIncrement()
+            }
+            grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
           } else {
             grid.addAction(id, keyCode)
             dispatch(Protocol.SnakeAction(id, keyCode, grid.frameCount))
