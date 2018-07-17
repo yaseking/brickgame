@@ -46,7 +46,9 @@ object PlayGround {
     val ground = system.actorOf(Props(new Actor {
       var subscribers = Map.empty[Long, ActorRef]
 
-      var userMap = Map.empty[Long, String]
+      var userMap = Map.empty[Long, (Int, String)] //(userId, (roomId, name))
+
+      var roomMap = Map.empty[Int, Int] //(roomId, roomNum)
 
       val grid = new GridOnServer(border)
 
@@ -55,61 +57,74 @@ object PlayGround {
       override def receive: Receive = {
         case r@Join(id, name, subscriber) =>
           log.info(s"got $r")
-          userMap += (id -> name)
+          val roomId = if (roomMap.isEmpty) {
+            roomIdGen.get()
+          } else {
+            if (roomMap.exists(_._2 < limitNum)) {
+              roomMap.filter(_._2 < limitNum).head._1
+            } else {
+              roomMap.maxBy(_._1)._1 + 1
+            }
+          }
+          userMap += (id -> (roomId, name))
+          roomMap += (roomId -> (roomMap.getOrElse(roomId, 0) + 1))
           context.watch(subscriber)
           subscribers += (id -> subscriber)
-          playerNum = playerNum +1
-          val roomId = if((playerNum-1)==limitNum){
-            playerNum = 1
-            roomIdGen.get()
-          }else{
-            roomIdGen.getAndIncrement()
-          }
           grid.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
-          dispatch(Protocol.NewSnakeJoined(id, name))
-          dispatch(grid.getGridData)
+          dispatch(Protocol.NewSnakeJoined(id, name), roomId)
+          dispatch(grid.getGridData, roomId)
 
         case r@Left(id, name) =>
           log.info(s"got $r")
+          val roomId = userMap(id)._1
+          val newUserNum = if ((roomMap.getOrElse(roomId, 0) - 1) > 0) roomMap.getOrElse(roomId, 0) - 1 else 0
+          roomMap += (roomId -> newUserNum)
+          userMap -= id
           subscribers.get(id).foreach(context.unwatch)
           subscribers -= id
           grid.removeSnake(id)
-          dispatch(Protocol.SnakeLeft(id, name))
+          dispatch(Protocol.SnakeLeft(id, name), roomId)
 
         case r@Key(id, keyCode) =>
           log.debug(s"got $r")
-          dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
+          val roomId = userMap(id)._1
+          dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
           if (keyCode == KeyEvent.VK_SPACE) {
-            if(subscribers.exists(_._1 == id)) subscribers.filter(_._1 == id).head._2 ! NewGameAfterWin
-            playerNum = playerNum +1
-            val roomId = if((playerNum-1)==limitNum){
+            if (subscribers.exists(_._1 == id)) subscribers.filter(_._1 == id).head._2 ! NewGameAfterWin
+            playerNum = playerNum + 1
+            val roomId = if ((playerNum - 1) == limitNum) {
               playerNum = 1
               roomIdGen.get()
-            }else{
+            } else {
               roomIdGen.getAndIncrement()
             }
-            grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
+            grid.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
           } else {
             grid.addAction(id, keyCode)
-            dispatch(Protocol.SnakeAction(id, keyCode, grid.frameCount))
+            dispatch(Protocol.SnakeAction(id, keyCode, grid.frameCount), roomId)
           }
 
         case r@Terminated(actor) =>
           log.warn(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>
+            val roomId = userMap(id)._1
+            userMap -= id
             log.debug(s"got Terminated id = $id")
             subscribers -= id
-            grid.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name)))
+            grid.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name), roomId))
           }
+
         case Sync =>
           tickCount += 1
-          grid.update()
-          if (tickCount % 20 == 5) {
-            val gridData = grid.getGridData
-            dispatch(gridData)
+          roomMap.foreach { r =>
+            grid.update()
+            if (tickCount % 20 == 5) {
+              val gridData = grid.getGridData
+              dispatch(gridData, r._1)
+            }
+            if (tickCount % 20 == 1) dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList), r._1)
           }
-          if (tickCount % 20 == 1) dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
 
         case NetTest(id, createTime) =>
           log.info(s"Net Test: createTime=$createTime")
@@ -123,8 +138,9 @@ object PlayGround {
         subscribers.get(id).foreach { ref => ref ! gameOutPut }
       }
 
-      def dispatch(gameOutPut: Protocol.GameMessage) = {
-        subscribers.foreach { case (_, ref) => ref ! gameOutPut }
+      def dispatch(gameOutPut: Protocol.GameMessage, roomId: Long) = {
+        val user = userMap.filter(_._2._1 == roomId).keys.toList
+        subscribers.foreach { case (id, ref) if user.contains(id) => ref ! gameOutPut }
       }
 
 
