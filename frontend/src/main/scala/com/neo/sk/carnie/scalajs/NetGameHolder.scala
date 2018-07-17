@@ -26,8 +26,10 @@ object NetGameHolder extends js.JSApp {
   val textLineHeight = 14
   private val canvasBoundary = bounds * canvasUnit
   private val windowBoundary = window * canvasUnit
-  private val canvasSize = bounds.x * bounds.y
-  private val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.8
+  private val canvasSize = border.x * border.y
+  private val winStandard = (BorderSize.w - 2)* (BorderSize.h - 2) * 0.8
+
+  private val fillWidth = 33
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -265,21 +267,49 @@ object NetGameHolder extends js.JSApp {
     }
 
     ctx.font = "12px Helvetica"
-    val currentRankBaseLine = 5
-    var index = 0
-    drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
-    currentRank.foreach { score =>
-      index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", leftBegin, index, currentRankBaseLine)
+    val myRankBaseLine = 3
+//    drawTextLine(s" --- My Rank --- ", leftBegin, index, myRankBaseLine)
+    currentRank.filter(_.id == myId).foreach { score =>
+      val color = snakes.find(_.id == myId).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      ctx.globalAlpha = 0.6
+      ctx.fillStyle = color
+      ctx.save()
+      ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 3 * (score.area.toDouble / canvasSize), textLineHeight)
+      ctx.restore()
+
+      ctx.globalAlpha = 1
+      ctx.fillStyle = ColorsSetting.fontColor
+      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
+//      drawTextLine(s"kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 6, index, myRankBaseLine)
+//      drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 10, index, myRankBaseLine)
     }
 
-    val historyRankBaseLine = 1
-    index = 0
-    drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
-    historyRank.foreach { score =>
+//    ctx.font = "12px Helvetica"
+    val currentRankBaseLine = 1
+    var index = 0
+    drawTextLine(s" --- Current Rank --- ", rightBegin, index, currentRankBaseLine)
+    currentRank.foreach { score =>
+      val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      ctx.globalAlpha = 0.6
+      ctx.fillStyle = color
+      ctx.save()
+      ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 3 * (score.area.toDouble / canvasSize), currentRankBaseLine * textLineHeight,
+        fillWidth + windowBoundary.x / 3 * (score.area.toDouble / canvasSize), textLineHeight)
+      ctx.restore()
+
+      ctx.globalAlpha = 1
+      ctx.fillStyle = ColorsSetting.fontColor
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, currentRankBaseLine)
     }
+
+//    val historyRankBaseLine = 1
+//    index = 0
+//    drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
+//    historyRank.foreach { score =>
+//      index += 1
+//      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
+//    }
     drawMap(lastHeader)
   }
 
