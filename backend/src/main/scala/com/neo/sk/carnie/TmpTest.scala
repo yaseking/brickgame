@@ -1,6 +1,7 @@
 package com.neo.sk.carnie
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 /**
@@ -19,6 +20,50 @@ object TmpTest {
   import io.circe.syntax._
 
 
+  def startPointOnBoundary(startPoint: Point, body: List[Point]) = {
+    if (body.contains(startPoint + baseDirection("up"))) { //起点为那个方向的边界
+      baseDirection("down")
+    } else if (body.contains(startPoint + baseDirection("down"))) {
+      baseDirection("up")
+    } else if (body.contains(startPoint + baseDirection("left"))) {
+      baseDirection("right")
+    } else {
+      baseDirection("left")
+    }
+  }
+
+  def nextPreferDirection(lastDirection: Point): List[Point] ={
+    baseDirection.filter(_._2 == lastDirection).head._1 match {
+      case "down" =>
+        List(baseDirection("right"), baseDirection("down"), baseDirection("left"), baseDirection("up"))
+
+      case "up" =>
+        List(baseDirection("left"), baseDirection("up"), baseDirection("right"), baseDirection("down"))
+
+      case "left" =>
+        List(baseDirection("down"), baseDirection("left"), baseDirection("up"), baseDirection("right"))
+
+      case "right" =>
+        List(baseDirection("up"), baseDirection("right"), baseDirection("down"), baseDirection("left"))
+    }
+  }
+
+  def ffindS(start: Point, end: Point, fieldBoundary: List[Point], lastDirection: Point, targetPath: List[Point]): List[Point] = {
+    var res = targetPath
+    if(start != end){
+      val direction = findDirection(start, nextPreferDirection(lastDirection), fieldBoundary)
+      res = ffindS(start + direction, end, fieldBoundary, direction, start + direction :: targetPath)
+    }
+    res
+  }
+
+  def findDirection(point: Point, direction: List[Point], fieldBoundary: List[Point]): Point = {
+    var res = direction.head
+    if(!fieldBoundary.contains(point + res) && direction.nonEmpty){
+      res = findDirection(point, direction.tail, fieldBoundary)
+    }
+    res
+  }
 
   def findVertex(shape: List[Point]) = {
     var vertex = List.empty[Point]
