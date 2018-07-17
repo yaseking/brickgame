@@ -65,7 +65,8 @@ object Polygon {
     for (a <- arr) {
       grid.get(a + p) match {
         case Some(Field(fid)) if fid == snakeId => //doNothing
-        case _ if !otherBody.contains(a+p)=> blank += a
+        case _ if otherBody.contains(a+p) => //doNothing
+        case _ => blank += a
       }
     }
     val count = blank.length
