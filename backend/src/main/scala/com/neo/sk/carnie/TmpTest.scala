@@ -125,8 +125,6 @@ object TmpTest {
   }
 }
 
-import com.neo.sk.carnie.{Point, Polygon}
-
 
 
 

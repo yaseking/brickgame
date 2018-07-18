@@ -121,9 +121,6 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.font = "36px Helvetica"
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
-    val data = grid.getGridData
-    println("######" + data.snakes)
-    println("$$$$$$" + (data.fieldDetails.size + data.borderDetails.size + data.bodyDetails.size))
   }
 
 
