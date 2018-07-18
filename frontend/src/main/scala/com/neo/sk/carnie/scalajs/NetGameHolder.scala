@@ -138,6 +138,7 @@ object NetGameHolder extends js.JSApp {
     grid.update()
   }
 
+
   def drawMap(myheader: Point,otherSnakes:List[SkDt]): Unit = {
     val Offx = myheader.x.toDouble / border.x * SmallMap.x
     val Offy = myheader.y.toDouble / border.y * SmallMap.y
