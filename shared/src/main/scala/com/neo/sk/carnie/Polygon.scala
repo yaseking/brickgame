@@ -46,6 +46,7 @@ object Polygon {
       for (y <- poly.map(_.y).min until poly.map(_.y).max) {
         grid.get(Point(x, y)) match {
           case Some(Field(fid)) if fid == snakeId => //donothing
+          case Some(Body(_)) => //donothing
           case _ =>
             if (InsidePolygon(poly, Point(x, y))) {
               new_grid += Point(x, y) -> Field(snakeId)
