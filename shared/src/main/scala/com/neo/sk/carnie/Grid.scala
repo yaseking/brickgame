@@ -129,8 +129,8 @@ trait Grid {
                 var searchDirection = (newDirection + Point(1, 1)) % Point(2, 2)
                 var searchPoint = newHeader
                 temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
-                var tryFind = if (grid(snake.startPoint) match {
-                  case Field(fid) if fid == snake.id => true
+                var tryFind = if (grid.get(snake.startPoint) match {
+                  case Some(Field(fid)) if fid == snake.id => true
                   case _ => false
                 }) true else false //起点还在的话
                 while (searchPoint != snake.startPoint && tryFind) {
