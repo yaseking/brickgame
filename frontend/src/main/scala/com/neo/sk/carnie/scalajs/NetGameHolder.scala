@@ -39,6 +39,7 @@ object NetGameHolder extends js.JSApp {
   var wsSetup = false
   var justSynced = false
   var lastHeader = Point(border.x / 2, border.y / 2)
+  var otherHeader:List[Point]=Nil
   var isWin = false
   var winnerName = "unknown"
 
@@ -137,12 +138,19 @@ object NetGameHolder extends js.JSApp {
     grid.update()
   }
 
-  def drawMap(myheader: Point): Unit = {
+  def drawMap(myheader: Point,otherSnakes:List[SkDt]): Unit = {
     val Offx = myheader.x.toDouble / border.x * SmallMap.x
     val Offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
     ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
     ctx.drawImage(myLocation.asInstanceOf[Image], 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
+    otherSnakes.foreach(i=> {
+      val x=i.header.x.toDouble/border.x*SmallMap.x
+      val y=i.header.y.toDouble/border.y*SmallMap.y
+      ctx.fillStyle=i.color
+      ctx.fillRect(990+x*canvasUnit/2,490+y*canvasUnit/2,canvasUnit/2,canvasUnit/2)
+    }
+    )
   }
 
   def draw(): Unit = {
@@ -165,6 +173,7 @@ object NetGameHolder extends js.JSApp {
   def drawGrid(uid: Long, data: GridDataSync, championId: Long): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
+    val othersnakes=snakes.filterNot(_.id==uid)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) => s.header
       case None => lastHeader
@@ -300,7 +309,7 @@ object NetGameHolder extends js.JSApp {
 //      index += 1
 //      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
 //    }
-    drawMap(lastHeader)
+    drawMap(lastHeader,othersnakes)
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
