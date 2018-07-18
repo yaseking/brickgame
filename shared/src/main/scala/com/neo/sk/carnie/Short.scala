@@ -16,7 +16,9 @@ object Short {
   def findFieldBoundary(fieldIds: Iterable[Point]) = {
     var fieldBoundary = List.empty[Point]
     fieldIds.foreach{ p =>
-      if(baseDirection.map(d => fieldIds.exists(_ == p + d._2)).exists(_ == false)){
+      val isContains = List(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, -1), Point(0, 1), Point(1, -1), Point(1, 0),
+        Point(1, 1)).map{d => fieldIds.exists(_ == p + d)}
+      if(isContains.contains(false)){
         fieldBoundary = p :: fieldBoundary
       }
     }
@@ -176,18 +178,3 @@ object Short {
 
 }
 
-//val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
-//val snakeBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys.toList
-//val snakeFieldBoundary = Short.findFieldBoundary(snakeField)
-//println("snakeFieldBoundary" + snakeFieldBoundary.length)
-//println("snakeFieldBoundary" + snakeFieldBoundary.sortBy(_.x))
-//val path = Short.findShortestPath(snake.startPoint, newHeader, snakeFieldBoundary,
-//Short.startPointOnBoundary(snake.startPoint, snakeBody), Nil) ::: List(snake.startPoint)
-//val closed = path ::: snakeBody
-//println("startPoint" + snake.startPoint)
-//println("endPoint" + newHeader)
-//println("path" + path)
-//println("closed" + closed)
-//val randomPoint = Short.findRandomPoint(closed, closed)
-//println("randomPoint" + randomPoint)
-//grid = Short.breadthFirst(randomPoint, closed, snake.id, grid)

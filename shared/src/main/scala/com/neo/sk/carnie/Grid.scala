@@ -125,37 +125,22 @@ trait Grid {
           if (id == snake.id) {
             grid(snake.header) match {
               case Body(bid) if bid == snake.id => //回到了自己的领域
-                var temp = List.empty[Point]
-                var searchDirection = (newDirection + Point(1, 1)) % Point(2, 2)
-                var searchPoint = newHeader
-                temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
-                var tryFind = if(grid.get(snake.startPoint) match {
-                  case Some(Field(fid)) if fid == snake.id => true
-                  case _ => false
-                }) true else false //起点是否被圈走
-                while (searchPoint != snake.startPoint && tryFind) {
-                  val blank = Polygon.isCorner(searchPoint, grid, snake.id, bodyField.flatMap(_._2.filter(_._2 == snake.id).keys).toList)
-                  if (blank != Point(0, 0)) {
-                    if (searchPoint != newHeader) {
-                      temp = temp ::: List(searchPoint)
-                      searchDirection = searchDirection + blank
-                    } else {
-                      searchDirection = Point(blank.x, 0)
-                    }
-                  }
-                  searchPoint = searchPoint + searchDirection
-                  if (searchPoint == newHeader) tryFind = false
-                }
-                if (tryFind) grid = Polygon.setPoly(temp, grid, snake.id)
-                else {
-                  val failBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys
-                  grid --= failBody
-                  bodyField.get(snake.id) match {
-                    case Some(points) => //圈地还原
-                      points.foreach(p => grid += p._1 -> Field(p._2))
-                    case None =>
-                  }
-                }
+                val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
+                val snakeBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys.toList
+                val snakeFieldBoundary = Short.findFieldBoundary(snakeField)
+                println("snakeFieldBoundary" + snakeFieldBoundary.length)
+                println("snakeFieldBoundary" + snakeFieldBoundary.sortBy(_.x))
+                println("startPoint" + snake.startPoint)
+                println("endPoint" + newHeader)
+                val path = Short.findShortestPath(snake.startPoint, newHeader, snakeFieldBoundary,
+                  Short.startPointOnBoundary(snake.startPoint, snakeBody), Nil) ::: List(snake.startPoint)
+                val closed = path ::: snakeBody
+                println("path" + path)
+                println("closed" + closed)
+                val randomPoint = Short.findRandomPoint(closed, closed)
+                println("randomPoint" + randomPoint)
+                grid = Short.breadthFirst(randomPoint, closed, snake.id, grid)
+                println("done..")
                 bodyField -= snake.id
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), true))
 
