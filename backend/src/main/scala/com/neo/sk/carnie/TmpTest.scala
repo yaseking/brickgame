@@ -1,7 +1,4 @@
 package com.neo.sk.carnie
-
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 /**
@@ -12,58 +9,15 @@ import scala.util.Random
 object TmpTest {
 
   val baseDirection = Map("left" -> Point(-1, 0), "right" -> Point(1, 0), "up" -> Point(0, -1), "down" -> Point(0, 1))
-  val random = new Random(System.nanoTime())
-  var colorField = Map.empty[Long, List[Point]]
 
   import io.circe.generic.auto._
   import io.circe.parser._
   import io.circe.syntax._
 
 
-  def startPointOnBoundary(startPoint: Point, body: List[Point]) = {
-    if (body.contains(startPoint + baseDirection("up"))) { //起点为那个方向的边界
-      baseDirection("down")
-    } else if (body.contains(startPoint + baseDirection("down"))) {
-      baseDirection("up")
-    } else if (body.contains(startPoint + baseDirection("left"))) {
-      baseDirection("right")
-    } else {
-      baseDirection("left")
-    }
-  }
 
-  def nextPreferDirection(lastDirection: Point): List[Point] ={
-    baseDirection.filter(_._2 == lastDirection).head._1 match {
-      case "down" =>
-        List(baseDirection("right"), baseDirection("down"), baseDirection("left"), baseDirection("up"))
 
-      case "up" =>
-        List(baseDirection("left"), baseDirection("up"), baseDirection("right"), baseDirection("down"))
 
-      case "left" =>
-        List(baseDirection("down"), baseDirection("left"), baseDirection("up"), baseDirection("right"))
-
-      case "right" =>
-        List(baseDirection("up"), baseDirection("right"), baseDirection("down"), baseDirection("left"))
-    }
-  }
-
-  def ffindS(start: Point, end: Point, fieldBoundary: List[Point], lastDirection: Point, targetPath: List[Point]): List[Point] = {
-    var res = targetPath
-    if(start != end){
-      val direction = findDirection(start, nextPreferDirection(lastDirection), fieldBoundary)
-      res = ffindS(start + direction, end, fieldBoundary, direction, start + direction :: targetPath)
-    }
-    res
-  }
-
-  def findDirection(point: Point, direction: List[Point], fieldBoundary: List[Point]): Point = {
-    var res = direction.head
-    if(!fieldBoundary.contains(point + res) && direction.nonEmpty){
-      res = findDirection(point, direction.tail, fieldBoundary)
-    }
-    res
-  }
 
   def findVertex(shape: List[Point]) = {
     var vertex = List.empty[Point]
@@ -145,68 +99,11 @@ object TmpTest {
     target
   }
 
-  def findRandomPoint(snakeBoundary: List[Point], originSnakeBoundary: List[Point]): Option[Point] = {
-    if (snakeBoundary.nonEmpty) {
-      val findPoint = snakeBoundary(random.nextInt(snakeBoundary.length))
-      if (findPoint.x == 0 || findPoint.y == 0 || findPoint.x == Boundary.w || findPoint.y == Boundary.h) { //剔除边界点
-        findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
-      } else {
-        if (originSnakeBoundary.contains(findPoint + baseDirection("left")) && originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
-          !originSnakeBoundary.contains(findPoint + baseDirection("up")) && !originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //横线上的点
-          Some(findInsidePoint(Point(findPoint.x, findPoint.y + 1), Point(findPoint.x, findPoint.y - 1), snakeBoundary))
-        } else if (!originSnakeBoundary.contains(findPoint + baseDirection("left")) && !originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
-          originSnakeBoundary.contains(findPoint + baseDirection("up")) && originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //竖线上的点
-          Some(findInsidePoint(Point(findPoint.x + 1, findPoint.y), Point(findPoint.x - 1, findPoint.y), snakeBoundary))
-        } else { //转折点-重新找点
-          findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
-        }
-      }
-    } else {
-      None
-    }
-  }
 
-  def findInsidePoint(point1: Point, point2: Point, boundary: List[Point]): Point = {
-    if (boundary.count(p => p.x == point1.x && p.y > point1.y) % 2 == 1 &&
-      boundary.count(p => p.x == point1.x && p.y < point1.y) % 2 == 1 &&
-      boundary.count(p => p.y == point1.y && p.x > point1.x) % 2 == 1 &&
-      boundary.count(p => p.y == point1.y && p.x < point1.x) % 2 == 1) { //射线上相交个数均为奇数的点为内部点
-      point1
-    } else {
-      point2
-    }
-  }
 
-  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long) = {
-    startPointOpt match {
-      case Some(startPoint) =>
-        colorField += snakeId -> (startPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
-        println(startPoint)
-        baseDirection.foreach { d =>
-          val nextPoint = startPoint + d._2
-          if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint))
-            goToColor(nextPoint, boundary, snakeId)
-        }
-      case None =>
-        println("point is None!!!!!!!!!!!!!")
-    }
-    //    boundary.foreach(b => grid += b -> Field(snakeId))
-  }
-
-  def goToColor(point: Point, boundary: List[Point], snakeId: Long): Unit = {
-    println(point)
-    colorField += snakeId -> (point :: colorField.getOrElse(snakeId, List.empty[Point]))
-    baseDirection.foreach { d =>
-      val nextPoint = point + d._2
-      if (!boundary.contains(nextPoint) && !colorField(snakeId).contains(nextPoint)) {
-        colorField += snakeId -> (nextPoint :: colorField.getOrElse(snakeId, List.empty[Point]))
-        goToColor(nextPoint, boundary, snakeId)
-      }
-    }
-  }
 
   def main(args: Array[String]): Unit = {
-    val b = List(Point(77, 54), Point(71, 55), Point(77, 55), Point(73, 55), Point(76, 54), Point(71, 54), Point(75, 55), Point(73, 56), Point(76, 55), Point(72, 56), Point(71, 56), Point(74, 55), Point(72, 54), Point(75, 54), Point(75, 53), Point(74, 51), Point(72, 52), Point(73, 51), Point(75, 52), Point(75, 51), Point(72, 51), Point(72, 53))
+    val b = List(Point(6,25), Point(6,29), Point(9,29), Point(10,27), Point(7,25), Point(6,26), Point(7,28), Point(7,27), Point(9,27), Point(6,28), Point(10,29), Point(9,28), Point(10,26), Point(8,25), Point(6,27), Point(7,29), Point(7,26), Point(8,29), Point(8,26), Point(10,28), Point(9,25), Point(10,25), Point(8,27))
     println(b.sortBy(_.x))
     val turn = List((Point(70,52),Point(1,0)), (Point(70,55),Point(0,-1)), (Point(75,55),Point(-1,0)), (Point(75,51),Point(0,1)), (Point(72,51),Point(1,0)), (Point(77,55),Point(-1,0)), (Point(77,54),Point(0,1)), (Point(74,55),Point(1,0)), (Point(73,55),Point(-1,0)))
     val s = Point(71, 55)
@@ -227,6 +124,9 @@ object TmpTest {
     //    breadthFirst(p, c, 0l)
   }
 }
+
+import com.neo.sk.carnie.{Point, Polygon}
+
 
 
 
