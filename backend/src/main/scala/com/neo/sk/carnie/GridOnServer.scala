@@ -68,7 +68,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       case (p, f@Field(_)) => (p, f)
       case _ => (Point(-1, -1), Field(-1L))
     }.filter(_._2.id != -1L).values.groupBy(_.id).map(p => (p._1, p._2.size))
-    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, area = areaMap.getOrElse(s.id, 0))).toList.sorted
+    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, area = areaMap.getOrElse(s.id, 0))).toList.sortBy(_.area).reverse
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {

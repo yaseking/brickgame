@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.neo.sk.carnie.Protocol.NewGameAfterWin
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
@@ -37,9 +36,9 @@ object PlayGround {
 
   val roomIdGen = new AtomicInteger(100)
 
-  private var playerNum = 0
-
   private val limitNum = 10
+
+  private val winStandard = (BorderSize.w - 2)* (BorderSize.h - 2) * 0.01
 
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 
@@ -95,14 +94,6 @@ object PlayGround {
           val roomId = userMap(id)._1
           dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
           if (keyCode == KeyEvent.VK_SPACE) {
-            if (subscribers.exists(_._1 == id)) subscribers.filter(_._1 == id).head._2 ! NewGameAfterWin
-            playerNum = playerNum + 1
-            val roomId = if ((playerNum - 1) == limitNum) {
-              playerNum = 1
-              roomIdGen.get()
-            } else {
-              roomIdGen.getAndIncrement()
-            }
             roomMap(roomId)._2.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
           } else {
             roomMap(roomId)._2.addAction(id, keyCode)
@@ -112,11 +103,13 @@ object PlayGround {
         case r@Terminated(actor) =>
           log.warn(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>
+            log.debug(s"got Terminated id = $id")
             val roomId = userMap(id)._1
             userMap -= id
-            log.debug(s"got Terminated id = $id")
             subscribers -= id
             roomMap(roomId)._2.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name), roomId))
+            val newUserNum = roomMap(roomId)._1 - 1
+            if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
           }
 
         case Sync =>
@@ -128,7 +121,11 @@ object PlayGround {
                 val gridData = r._2._2.getGridData
                 dispatch(gridData, r._1)
               }
-              dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
+              if(tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
+              if(r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
+                r._2._2.cleanData()
+                dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)
+              }
             }
           }
 
@@ -148,8 +145,6 @@ object PlayGround {
         val user = userMap.filter(_._2._1 == roomId).keys.toList
         subscribers.foreach { case (id, ref) if user.contains(id) => ref ! gameOutPut case _ =>}
       }
-
-
     }
     ), "ground")
 

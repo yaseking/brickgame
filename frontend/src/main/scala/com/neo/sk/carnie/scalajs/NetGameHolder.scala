@@ -27,8 +27,6 @@ object NetGameHolder extends js.JSApp {
   private val canvasBoundary = bounds * canvasUnit
   private val windowBoundary = window * canvasUnit
   private val canvasSize = border.x * border.y
-  private val winStandard = (BorderSize.w - 2)* (BorderSize.h - 2) * 0.8
-
   private val fillWidth = 33
 
   var currentRank = List.empty[Score]
@@ -41,7 +39,8 @@ object NetGameHolder extends js.JSApp {
   var wsSetup = false
   var justSynced = false
   var lastHeader = Point(border.x / 2, border.y / 2)
-  var isWin = 0 //0代表游戏中 1代表处于有人胜出后的状态 2代表胜出后在重启的过程中
+  var isWin = false
+  var winnerName = "unknown"
 
   val watchKeys = Set(
     KeyCode.Space,
@@ -114,8 +113,6 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameWin(winner: String): Unit = {
-    grid.cleanData() //数据清零
-    isWin = 1
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
     ctx.fillStyle = ColorsSetting.fontColor
@@ -125,17 +122,16 @@ object NetGameHolder extends js.JSApp {
 
 
   def gameLoop(): Unit = {
-    if (isWin != 1) {
-      if (wsSetup) {
-        if (!justSynced) {
-          update()
-        } else {
-          justSynced = false
-        }
+    if (wsSetup) {
+      if (!justSynced) {
+        update()
+      } else {
+        justSynced = false
       }
-      draw()
     }
+    draw()
   }
+
 
   def update(): Unit = {
     grid.update()
@@ -152,16 +148,14 @@ object NetGameHolder extends js.JSApp {
   def draw(): Unit = {
     if (wsSetup) {
       val data = grid.getGridData
-      if (data.fieldDetails.nonEmpty) {
-        val champion = data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head
-        if (champion._2.length <= winStandard) {
-          drawGrid(myId, data, champion._1)
-        } else {
-          //当占地面积大于80%时，认为取得胜利
-          drawGameWin(data.snakes.filter(_.id == champion._1).map(_.name).headOption.getOrElse("unknown"))
-        }
+      if (isWin) {
+        drawGameWin(winnerName)
       } else {
-        drawGrid(myId, data, 0)
+        if (data.fieldDetails.nonEmpty) {
+          drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1)
+        } else {
+          drawGrid(myId, data, 0)
+        }
       }
     } else {
       drawGameOff()
@@ -186,7 +180,6 @@ object NetGameHolder extends js.JSApp {
     val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     bodies.foreach { case Bd(id, x, y) =>
-      //println(s"draw body at $p body[$life]")
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
@@ -204,7 +197,7 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 1.0
       ctx.fillStyle = color
       if (id == uid) {
-        ctx.save() //什么用？删了好像没什么改变？
+        ctx.save()
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
         ctx.restore()
       } else {
@@ -240,14 +233,14 @@ object NetGameHolder extends js.JSApp {
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
         firstCome = false
-        isWin = 0
         val baseLine = 1
         ctx.font = "12px Helvetica"
         drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
 
       case None =>
-        if (firstCome || isWin == 2) {
+        if (firstCome) {
+          println("????????????????????????????????????")
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
@@ -331,6 +324,11 @@ object NetGameHolder extends js.JSApp {
           if (e.keyCode == KeyCode.F2) {
             gameStream.send("T" + System.currentTimeMillis())
           } else {
+            if (e.keyCode == KeyCode.Space && isWin) {
+              firstCome = true
+              isWin = false
+              winnerName = "unknown"
+            }
             gameStream.send(e.keyCode.toString)
           }
           e.preventDefault()
@@ -365,11 +363,10 @@ object NetGameHolder extends js.JSApp {
 
         case Protocol.SnakeAction(id, keyCode, frame) => grid.addActionWithFrame(id, keyCode, frame)
 
-        case Protocol.NewGameAfterWin =>
-          if (isWin == 1) {
-            isWin = 2
-            draw()
-          }
+        case Protocol.SomeOneWin(winner) =>
+          isWin = true
+          winnerName = winner
+          grid.cleanData()
 
         case Protocol.Ranks(current, history) =>
           currentRank = current
