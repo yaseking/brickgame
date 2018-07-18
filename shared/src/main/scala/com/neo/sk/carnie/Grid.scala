@@ -141,7 +141,7 @@ trait Grid {
                     }
                   }
                   searchPoint = searchPoint + searchDirection
-                  if(searchPoint == snake.startPoint) tryFind = false
+                  if(searchPoint == newHeader) tryFind = false
                 }
                 if(tryFind) grid = Polygon.setPoly(temp, grid, snake.id)
                 else{
