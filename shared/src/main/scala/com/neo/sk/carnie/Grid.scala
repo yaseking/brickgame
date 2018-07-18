@@ -113,7 +113,7 @@ trait Grid {
             case None =>
           }
           bodyField -= x.id
-          if(x.id != snake.id) killHistory += x.id -> (snake.id, snake.name)
+          if (x.id != snake.id) killHistory += x.id -> (snake.id, snake.name)
           grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
             case Some(Field(fid)) if fid == snake.id =>
               Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), killedId = Some(x.id)))
@@ -129,7 +129,10 @@ trait Grid {
                 var searchDirection = (newDirection + Point(1, 1)) % Point(2, 2)
                 var searchPoint = newHeader
                 temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
-                var tryFind = true
+                var tryFind = if (grid(snake.startPoint) match {
+                  case Field(fid) if fid == snake.id => true
+                  case _ => false
+                }) true else false //起点还在的话
                 while (searchPoint != snake.startPoint && tryFind) {
                   val blank = Polygon.isCorner(searchPoint, grid, snake.id, bodyField.flatMap(_._2.filter(_._2 == snake.id).keys).toList)
                   if (blank != Point(0, 0)) {
@@ -141,11 +144,11 @@ trait Grid {
                     }
                   }
                   searchPoint = searchPoint + searchDirection
-                  if(searchPoint == newHeader) tryFind = false
+                  if (searchPoint == newHeader) tryFind = false
                 }
-                if(tryFind) grid = Polygon.setPoly(temp, grid, snake.id)
-                else{
-                  val failBody = grid.filter(_._2 match {case Body(bodyId) if bodyId == snake.id => true case _ => false}).keys
+                if (tryFind) grid = Polygon.setPoly(temp, grid, snake.id)
+                else {
+                  val failBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys
                   grid --= failBody
                   bodyField.get(snake.id) match {
                     case Some(points) => //圈地还原
