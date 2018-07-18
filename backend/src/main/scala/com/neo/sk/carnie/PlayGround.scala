@@ -39,7 +39,7 @@ object PlayGround {
 
   private var playerNum = 0
 
-  private val limitNum = 1
+  private val limitNum = 10
 
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 
