@@ -66,7 +66,7 @@ object Polygon {
     for (a <- arr) {
       grid.get(a + p) match {
         case Some(Field(fid)) if fid == snakeId => //doNothing
-        case _ if otherBody.contains(a+p) => //doNothing
+        case Some(Body(_)) if otherBody.contains(a+p) => //doNothing
         case _ => blank += a
       }
     }

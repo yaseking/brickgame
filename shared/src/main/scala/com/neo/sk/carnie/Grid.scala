@@ -129,10 +129,10 @@ trait Grid {
                 var searchDirection = (newDirection + Point(1, 1)) % Point(2, 2)
                 var searchPoint = newHeader
                 temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
-                var tryFind = if (grid.get(snake.startPoint) match {
+                var tryFind = if(grid.get(snake.startPoint) match {
                   case Some(Field(fid)) if fid == snake.id => true
                   case _ => false
-                }) true else false //起点还在的话
+                }) true else false //起点是否被圈走
                 while (searchPoint != snake.startPoint && tryFind) {
                   val blank = Polygon.isCorner(searchPoint, grid, snake.id, bodyField.flatMap(_._2.filter(_._2 == snake.id).keys).toList)
                   if (blank != Point(0, 0)) {

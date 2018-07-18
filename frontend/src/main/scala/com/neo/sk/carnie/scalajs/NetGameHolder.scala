@@ -145,13 +145,12 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.mapColor
     ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
     ctx.drawImage(myHeaderImg.asInstanceOf[Image], 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
-    otherSnakes.foreach(i=> {
-      val x=i.header.x.toDouble/border.x*SmallMap.x
-      val y=i.header.y.toDouble/border.y*SmallMap.y
-      ctx.fillStyle=i.color
-      ctx.fillRect(990+x*canvasUnit/2,490+y*canvasUnit/2,canvasUnit/2,canvasUnit/2)
+    otherSnakes.foreach { i =>
+      val x = i.header.x.toDouble / border.x * SmallMap.x
+      val y = i.header.y.toDouble / border.y * SmallMap.y
+      ctx.fillStyle = i.color
+      ctx.fillRect(990 + x * canvasUnit / 2, 490 + y * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
     }
-    )
   }
 
   def draw(): Unit = {
