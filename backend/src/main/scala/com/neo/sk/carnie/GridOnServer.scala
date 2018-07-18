@@ -16,7 +16,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-  private[this] var waitingJoin = Map.empty[Long, (String, String)]
+  private[this] var waitingJoin = Map.empty[Long, (Int, String, String)]
 
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[Long, Score]
@@ -24,13 +24,13 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   private[this] var historyRankThreshold = if (historyRankList.isEmpty) (-1, -1) else (historyRankList.map(_.area).min ,historyRankList.map(_.k).min)
 
-  def addSnake(id: Long, name: String) = {
+  def addSnake(id: Long, roomId:Int, name: String) = {
     val bodyColor = randomColor()
-    waitingJoin += (id -> (name, bodyColor))
+    waitingJoin += (id -> (roomId, name, bodyColor))
   }
 
   private[this] def genWaitingSnake() = {
-    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
+    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (roomId, name, bodyColor)) =>
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
       (0 until indexSize).foreach { x =>
@@ -42,7 +42,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       snakes += id -> SkDt(id, name, bodyColor, startPoint, Nil, startPoint)
       killHistory -= id
     }
-    waitingJoin = Map.empty[Long, (String, String)]
+    waitingJoin = Map.empty[Long, (Int, String, String)]
   }
 
   implicit val scoreOrdering = new Ordering[Score] {
