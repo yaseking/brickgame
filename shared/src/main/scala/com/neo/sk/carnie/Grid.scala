@@ -129,7 +129,8 @@ trait Grid {
                 var searchDirection = (newDirection + Point(1, 1)) % Point(2, 2)
                 var searchPoint = newHeader
                 temp = List(snake.startPoint) ::: snake.turnPoint ::: List(newHeader)
-                while (searchPoint != snake.startPoint) {
+                var tryFind = true
+                while (searchPoint != snake.startPoint && tryFind) {
                   val blank = Polygon.isCorner(searchPoint, grid, snake.id, bodyField.flatMap(_._2.filter(_._2 == snake.id).keys).toList)
                   if (blank != Point(0, 0)) {
                     if (searchPoint != newHeader) {
@@ -140,8 +141,18 @@ trait Grid {
                     }
                   }
                   searchPoint = searchPoint + searchDirection
+                  if(searchPoint == snake.startPoint) tryFind = false
                 }
-                grid = Polygon.setPoly(temp, grid, snake.id)
+                if(tryFind) grid = Polygon.setPoly(temp, grid, snake.id)
+                else{
+                  val failBody = grid.filter(_._2 match {case Body(bodyId) if bodyId == snake.id => true case _ => false}).keys
+                  grid --= failBody
+                  bodyField.get(snake.id) match {
+                    case Some(points) => //圈地还原
+                      points.foreach(p => grid += p._1 -> Field(p._2))
+                    case None =>
+                  }
+                }
                 bodyField -= snake.id
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), true))
 
