@@ -80,14 +80,16 @@ object PlayGround {
 
         case r@Left(id, name) =>
           log.info(s"got $r")
-          val roomId = userMap(id)._1
-          val newUserNum = roomMap(roomId)._1 - 1
-          roomMap(roomId)._2.removeSnake(id)
-          if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
-          userMap -= id
-          subscribers.get(id).foreach(context.unwatch)
-          subscribers -= id
-          dispatch(Protocol.SnakeLeft(id, name), roomId)
+          if(userMap.get(id).nonEmpty) {
+            val roomId = userMap(id)._1
+            val newUserNum = roomMap(roomId)._1 - 1
+            roomMap(roomId)._2.removeSnake(id)
+            if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
+            userMap -= id
+            subscribers.get(id).foreach(context.unwatch)
+            subscribers -= id
+            dispatch(Protocol.SnakeLeft(id, name), roomId)
+          }
 
         case r@Key(id, keyCode) =>
           log.debug(s"got $r")
@@ -104,12 +106,14 @@ object PlayGround {
           log.warn(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>
             log.debug(s"got Terminated id = $id")
-            val roomId = userMap(id)._1
-            userMap -= id
-            subscribers -= id
-            roomMap(roomId)._2.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name), roomId))
-            val newUserNum = roomMap(roomId)._1 - 1
-            if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
+            if (userMap.get(id).nonEmpty) {
+              val roomId = userMap(id)._1
+              userMap -= id
+              subscribers -= id
+              roomMap(roomId)._2.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name), roomId))
+              val newUserNum = roomMap(roomId)._1 - 1
+              if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
+            }
           }
 
         case Sync =>
