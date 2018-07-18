@@ -144,7 +144,7 @@ object NetGameHolder extends js.JSApp {
     val Offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
     ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
-    ctx.drawImage(myLocation.asInstanceOf[Image], 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
+    ctx.drawImage(myHeaderImg.asInstanceOf[Image], 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
     otherSnakes.foreach(i=> {
       val x=i.header.x.toDouble/border.x*SmallMap.x
       val y=i.header.y.toDouble/border.y*SmallMap.y
