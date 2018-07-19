@@ -151,6 +151,7 @@ trait Grid {
                   bodyField.get(snake.id) match {
                     case Some(points) => //圈地还原
                       points.foreach(p => grid += p._1 -> Field(p._2))
+                    case _ =>
                   }
                 }
                 bodyField -= snake.id
