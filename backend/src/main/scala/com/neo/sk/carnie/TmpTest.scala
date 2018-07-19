@@ -100,29 +100,24 @@ object TmpTest {
   }
 
 
+  def findInsidePoint(point1: Point, point2: Point, boundary: List[Point]): Point = {
+    if (boundary.count(p => p.x == point1.x && p.y > point1.y) % 2 == 1 &&
+      boundary.count(p => p.x == point1.x && p.y < point1.y) % 2 == 1 &&
+      boundary.count(p => p.y == point1.y && p.x > point1.x) % 2 == 1 &&
+      boundary.count(p => p.y == point1.y && p.x < point1.x) % 2 == 1) { //射线上相交个数均为奇数的点为内部点
+      point1
+    } else {
+      point2
+    }
+  }
 
 
   def main(args: Array[String]): Unit = {
-    val b = List(Point(6,25), Point(6,29), Point(9,29), Point(10,27), Point(7,25), Point(6,26), Point(7,28), Point(7,27), Point(9,27), Point(6,28), Point(10,29), Point(9,28), Point(10,26), Point(8,25), Point(6,27), Point(7,29), Point(7,26), Point(8,29), Point(8,26), Point(10,28), Point(9,25), Point(10,25), Point(8,27))
-    println(b.sortBy(_.x))
-    val turn = List((Point(70,52),Point(1,0)), (Point(70,55),Point(0,-1)), (Point(75,55),Point(-1,0)), (Point(75,51),Point(0,1)), (Point(72,51),Point(1,0)), (Point(77,55),Point(-1,0)), (Point(77,54),Point(0,1)), (Point(74,55),Point(1,0)), (Point(73,55),Point(-1,0)))
-    val s = Point(71, 55)
-    val e = Point(75, 52)
-    //
-    val a = findShortestPath(s, e, b, turn)
-    println(a)
-
-    //    val t = List(Point(69,7), Point(68,7), Point(68,6), Point(68,5), Point(79,5), Point(79,6), Point(71,4), Point(78,7), Point(69,4), Point(76,7), Point(73,7), Point(77,4), Point(69,6), Point(72,7), Point(75,4), Point(73,4), Point(79,7), Point(76,4), Point(74,7), Point(74,4), Point(70,4), Point(79,4), Point(71,7), Point(78,4), Point(77,7), Point(75,7), Point(72,4))
-    //    println(t.length)
-    //val b = List(Point(24,17), Point(25,15), Point(23,17), Point(22,15), Point(20,15), Point(20,17), Point(25,17), Point(27,15), Point(26,17), Point(21,17), Point(23,15), Point(22,17), Point(21,15), Point(27,17), Point(26,15), Point(18,15), Point(24,15), Point(27,16))
-    //
-    //        println(b.sortBy(_.x))
-
-    //    val c = List(Point(35,28), Point(36,28), Point(36,27), Point(36,26), Point(36,25), Point(36,24), Point(36,23), Point(36,22), Point(36,21), Point(38,25), Point(35,33), Point(36,33), Point(35,31), Point(38,27), Point(38,24), Point(43,32), Point(35,30), Point(38,21), Point(41,21), Point(38,26), Point(35,32), Point(42,30), Point(40,33), Point(40,24), Point(43,33), Point(39,33), Point(39,24), Point(40,21), Point(35,29), Point(38,29), Point(42,33), Point(41,33), Point(41,24), Point(41,22), Point(37,21), Point(39,21), Point(40,30), Point(41,30), Point(37,33), Point(38,30), Point(38,33), Point(41,23), Point(38,28), Point(39,30), Point(43,31), Point(43,30))
-    //    val p = findRandomPoint(c, c)
-    //    println("random" + p)
-    //    breadthFirst(p, c, 0l)
-  }
+    println(findInsidePoint(Point(60,55), Point(60,57),
+      List(Point(60,69), Point(60,70), Point(60,71), Point(60,72), Point(60,73), Point(60,74), Point(60,75), Point(59,75), Point(58,75), Point(57,75), Point(56,75), Point(56,76), Point(56,77), Point(55,77), Point(54,77), Point(53,77), Point(52,77), Point(51,77), Point(50,77), Point(49,77), Point(48,77), Point(48,76), Point
+      (48,75), Point(48,74), Point(48,73), Point(48,72), Point(48,71), Point(48,70), Point(48,69), Point(48,68), Point(48,67), Point(48,66), Point(48,65), Point(49,65), Point(50,65), Point(50,64), Point(50,63), Point(49,63), Point(49,62), Point(49,61), Point(49,60), Point(49,59), Point(50,59), Point(51,59), Point(51,58), Point(51,57), Point(51,56), Point(51,55), Point(51,54), Point(51,53), Point(52,53), Point(53,53), Point(54,53), Point(55,53), Point(56,53), Point(57,53), Point(58,53), Point(59,53),
+        Point(59,54), Point(59,55), Point(59,56), Point(60,56), Point(61,56), Point(62,56), Point(62,57), Point(62,58), Point(62,59), Point(62,60), Point(62,61), Point(62,62), Point(62,63), Point(62,64), Point(61,64), Point(60,64), Point(60,68), Point(60,66), Point(60,67), Point(60,65)))
+    )}
 }
 
 
