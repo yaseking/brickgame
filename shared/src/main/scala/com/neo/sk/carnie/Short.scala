@@ -134,7 +134,6 @@ object Short {
     var colorField = ArrayBuffer[Point]()
     startPointOpt match {
       case Some(startPoint) =>
-        println("get Start!!")
         colorQueue.enqueue(startPoint)
         colorField += startPoint
         while (colorQueue.nonEmpty) {
