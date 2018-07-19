@@ -1,4 +1,7 @@
 package com.neo.sk.carnie
+import com.neo.sk.carnie.Short.{findDirection, nextPreferDirection}
+
+import scala.collection.mutable
 import scala.util.Random
 
 /**
@@ -112,12 +115,9 @@ object TmpTest {
   }
 
 
+
   def main(args: Array[String]): Unit = {
-    println(findInsidePoint(Point(60,55), Point(60,57),
-      List(Point(60,69), Point(60,70), Point(60,71), Point(60,72), Point(60,73), Point(60,74), Point(60,75), Point(59,75), Point(58,75), Point(57,75), Point(56,75), Point(56,76), Point(56,77), Point(55,77), Point(54,77), Point(53,77), Point(52,77), Point(51,77), Point(50,77), Point(49,77), Point(48,77), Point(48,76), Point
-      (48,75), Point(48,74), Point(48,73), Point(48,72), Point(48,71), Point(48,70), Point(48,69), Point(48,68), Point(48,67), Point(48,66), Point(48,65), Point(49,65), Point(50,65), Point(50,64), Point(50,63), Point(49,63), Point(49,62), Point(49,61), Point(49,60), Point(49,59), Point(50,59), Point(51,59), Point(51,58), Point(51,57), Point(51,56), Point(51,55), Point(51,54), Point(51,53), Point(52,53), Point(53,53), Point(54,53), Point(55,53), Point(56,53), Point(57,53), Point(58,53), Point(59,53),
-        Point(59,54), Point(59,55), Point(59,56), Point(60,56), Point(61,56), Point(62,56), Point(62,57), Point(62,58), Point(62,59), Point(62,60), Point(62,61), Point(62,62), Point(62,63), Point(62,64), Point(61,64), Point(60,64), Point(60,68), Point(60,66), Point(60,67), Point(60,65)))
-    )}
+  }
 }
 
 

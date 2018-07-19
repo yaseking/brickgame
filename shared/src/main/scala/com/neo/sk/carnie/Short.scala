@@ -50,23 +50,30 @@ object Short {
     }
   }
 
-  def findShortestPath(initStart: Point, end: Point, fieldBoundary: List[Point], initLastDirection: Point): List[Point] = {
-    val targetPath = mutable.Queue[Point]()
+  def findShortestPath(initStart: Point, end: Point, fieldBoundary: List[Point], initLastDirection: Point) = {
+    val targetPath = mutable.Stack[Point]()
     var start = initStart
     var lastDirection = initLastDirection
-    var flag = false //是否找不到
-    while (start != end) {
+    var flag = true //记录是否找得到闭合回路
+    var flagPoint = (Point(0,0), Point(0,0)) //(point,direction)
+    var count = 0
+    while (start != end && flag) {
+      count += 1
       val direction = findDirection(start, nextPreferDirection(lastDirection), fieldBoundary)
       val nextPoint = start + direction
-      if (targetPath.isEmpty) targetPath.enqueue(start)
+      if(count == 2) flagPoint = (start, direction) //记录第二点的位置和方向，再次同方向到达此点时找不到闭合回路
+      if (targetPath.isEmpty) targetPath.push(start)
       else {
-        if (nextPoint != targetPath.head) targetPath.enqueue(start) else targetPath.dequeue()
+        if (start == flagPoint._1 && direction == flagPoint._2 && count != 2) flag = false
+        if (nextPoint != targetPath.top) {
+          targetPath.push(start)
+        } else targetPath.pop()
       }
-      start = start + direction
+      start = nextPoint
       lastDirection = direction
     }
-    targetPath.enqueue(end)
-    targetPath.toList
+    targetPath.push(end)
+    (targetPath.reverse.toList, flag)
   }
 
 //  def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point], lastDirection: Point, targetPath: List[Point]): List[Point] = {
