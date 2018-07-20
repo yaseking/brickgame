@@ -1,5 +1,5 @@
 package com.neo.sk.carnie
-import com.neo.sk.carnie.Short.{findDirection, nextPreferDirection}
+import com.neo.sk.carnie.Short.{findDirection, nextLeftPreferDirection}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -22,15 +22,6 @@ object TmpTest {
 
 
 
-  def findVertex(shape: List[Point]) = {
-    var vertex = List.empty[Point]
-    shape.foreach { p =>
-      val countX = List(baseDirection("up"), baseDirection("down")).map{ d => shape.contains(p + d)}.count(i => i)
-      val countY = List(baseDirection("left"), baseDirection("right")).map{ d => shape.contains(p + d)}.count(i => i)
-      if(countX == 1 && countY ==1) vertex = p :: vertex
-    }
-    vertex
-  }
 
   def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point], turnPoint: List[(Point, Point)]) = {
     val startDirection = findClockwiseDirection(start, fieldBoundary)

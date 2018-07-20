@@ -44,7 +44,8 @@ package object carnie {
                    turnPoint: List[Point],
                    header: Point,
                    direction: Point = Point(1, 0),
-                   kill: Int = 0
+                   kill: Int = 0,
+                   clockwise: Point = Point(0, 0)
                  )
 
   case class UpdateSnakeInfo(
