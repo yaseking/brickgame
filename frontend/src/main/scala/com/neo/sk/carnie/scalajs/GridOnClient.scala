@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.scalajs
 
-import com.neo.sk.carnie.{Grid, Point}
+import com.neo.sk.carnie.paper.{Grid, Point}
 
 /**
   * User: Taoz

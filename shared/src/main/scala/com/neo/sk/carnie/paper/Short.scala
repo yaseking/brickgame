@@ -1,4 +1,4 @@
-package com.neo.sk.carnie
+package com.neo.sk.carnie.paper
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -144,18 +144,22 @@ object Short {
   }
 
 
-  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long, grid: Map[Point, Spot], turnPoint: List[Point]) = {
+  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long, grid: Map[Point, Spot], turnPoints: List[Point]) = {
     var newGrid = grid
     val colorQueue = new mutable.Queue[Point]()
     var colorField = ArrayBuffer[Point]()
     startPointOpt match {
       case Some(startPoint) =>
+        getBodyTurnPoint(turnPoints, boundary).foreach{p =>
+          colorQueue.enqueue(p)
+          colorField += p
+        }
         colorQueue.enqueue(startPoint)
         colorField += startPoint
-        getBodyTurnPoint(turnPoint, boundary).foreach(i => colorQueue.enqueue(i))
+
         while (colorQueue.nonEmpty) {
           val currentPoint = colorQueue.dequeue()
-          List(Point(-1, 0), Point(0, -1), Point(0, 1), Point(1, 0)).foreach { d =>
+          List(Point(-1, 0), Point(0, -1), Point(0, 1), Point(1, 0), Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)).foreach { d =>
             val newPoint = currentPoint + d
             if (!boundary.contains(newPoint) && !colorField.contains(newPoint)) {
               colorField += newPoint
@@ -178,12 +182,13 @@ object Short {
     newGrid
   }
 
-  def getBodyTurnPoint(turnPoints: List[Point], boundary: List[Point]) = {
+  def getBodyTurnPoint(turnPoints: List[Point], boundary: List[Point]): List[Point] = {
     var res = List.empty[Point]
     turnPoints.foreach { t =>
-      val exist = baseDirection.map(d => (d._1, boundary.contains(d._2 + t)))
-      if (exist.count(_._2) == 3 && isInsidePoint(baseDirection(exist.filter(!_._2).head._1) + t, boundary))
-        res = baseDirection(exist.filter(!_._2).head._1) + t :: res
+      List(Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)).foreach { d =>
+        if (isInsidePoint(d + t, boundary))
+          res = d + t :: res
+      }
     }
     res
   }

@@ -1,4 +1,4 @@
-package com.neo.sk.carnie
+package com.neo.sk.carnie.paper
 
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext

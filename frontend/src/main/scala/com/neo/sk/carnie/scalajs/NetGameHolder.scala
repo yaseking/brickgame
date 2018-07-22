@@ -1,14 +1,14 @@
 package com.neo.sk.carnie.scalajs
 
-import com.neo.sk.carnie.Protocol
-import com.neo.sk.carnie.Protocol.GridDataSync
-import com.neo.sk.carnie._
+import com.neo.sk.carnie.paper.Protocol.GridDataSync
+import com.neo.sk.carnie.paper._
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 
 import scala.scalajs.js
+import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 /**
   * User: Taoz
@@ -249,7 +249,6 @@ object NetGameHolder extends js.JSApp {
 
       case None =>
         if (firstCome) {
-          println("????????????????????????????????????")
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
@@ -347,14 +346,13 @@ object NetGameHolder extends js.JSApp {
       event0
     }
 
-    gameStream.onerror = { event: ErrorEvent =>
+    gameStream.onerror = { (event: Event) =>
       drawGameOff()
-      playground.insertBefore(p(s"Failed: code: ${event.colno}"), playground.firstChild)
+      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
     }
-
 
     import io.circe.generic.auto._
     import io.circe.parser._

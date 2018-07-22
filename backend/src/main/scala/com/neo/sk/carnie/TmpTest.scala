@@ -1,8 +1,6 @@
 package com.neo.sk.carnie
-import com.neo.sk.carnie.Short.{findDirection, nextLeftPreferDirection}
 
-import scala.collection.mutable
-import scala.util.Random
+import com.neo.sk.carnie.paper.Point
 
 /**
   * User: Taoz
@@ -12,16 +10,6 @@ import scala.util.Random
 object TmpTest {
 
   val baseDirection = Map("left" -> Point(-1, 0), "right" -> Point(1, 0), "up" -> Point(0, -1), "down" -> Point(0, 1))
-
-  import io.circe.generic.auto._
-  import io.circe.parser._
-  import io.circe.syntax._
-
-
-
-
-
-
 
   def findShortestPath(start: Point, end: Point, fieldBoundary: List[Point], turnPoint: List[(Point, Point)]) = {
     val startDirection = findClockwiseDirection(start, fieldBoundary)
@@ -110,7 +98,3 @@ object TmpTest {
   def main(args: Array[String]): Unit = {
   }
 }
-
-
-
-

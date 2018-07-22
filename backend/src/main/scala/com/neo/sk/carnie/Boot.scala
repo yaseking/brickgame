@@ -6,7 +6,6 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.carnie.http.HttpService
-
 import scala.language.postfixOps
 
 /**
@@ -20,7 +19,7 @@ object Boot extends HttpService {
   import com.neo.sk.carnie.common.AppSettings._
 
 
-  override implicit val system = ActorSystem("arges", config)
+  override implicit val system = ActorSystem("hiStream", config)
   // the executor should not be the default dispatcher.
   override implicit val executor = system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
   override implicit val materializer = ActorMaterializer()

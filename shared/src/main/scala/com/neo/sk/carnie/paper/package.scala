@@ -1,11 +1,11 @@
-package com.neo.sk
+package com.neo.sk.carnie
 
 /**
   * User: Taoz
   * Date: 8/29/2016
   * Time: 9:48 PM
   */
-package object carnie {
+package object paper {
 
   sealed trait Spot
 

@@ -1,6 +1,8 @@
 import sbt.Keys._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
+
+
 name := "carnie"
 
 val scalaV = "2.12.6"
@@ -47,16 +49,22 @@ lazy val frontend = (project in file("frontend"))
     ))
   .settings(skip in packageJSDependencies := false)
   .settings(
-    scalaJSUseMainModuleInitializer := true,
+    scalaJSUseMainModuleInitializer := false,
     //mainClass := Some("com.neo.sk.virgour.front.Main"),
-    libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core" % "0.8.0",
-      "io.circe" %%% "circe-generic" % "0.8.0",
-      "io.circe" %%% "circe-parser" % "0.8.0",
-      "org.scala-js" %%% "scalajs-dom" % "0.9.2",
-      "io.suzaku" %%% "diode" % "1.1.2",
-      //"com.lihaoyi" %%% "upickle" % "0.6.6",
-      "com.lihaoyi" %%% "scalatags" % "0.6.5"
+    libraryDependencies ++=     Seq(
+      //      "io.circe" %%% "circe-core" % "0.8.0",
+      //      "io.circe" %%% "circe-generic" % "0.8.0",
+      //      "io.circe" %%% "circe-parser" % "0.8.0",
+      "io.circe" %%% "circe-core" % Dependencies.circeVersion,
+      "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
+      "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
+      "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
+      "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV,
+      //"in.nvilla" %%% "monadic-rx-cats" % "0.4.0-RC1",
+      "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV,
+      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV
+      //"com.lihaoyi" %%% "upickle" % upickleV,
+      //"io.suzaku" %%% "diode" % "1.1.2",
       //"org.scala-js" %%% "scalajs-java-time" % scalaJsJavaTime
       //"com.lihaoyi" %%% "utest" % "0.3.0" % "test"
     )
@@ -70,14 +78,14 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     mainClass in reStart := Some(projectMainClass),
     javaOptions in reStart += "-Xmx2g"
   )
-  .settings(name := "backend")
+  .settings(name := "hiStream")
   .settings(
     //pack
     // If you need to specify main classes manually, use packSettings and packMain
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
     packMain := Map("carnie" -> projectMainClass),
-    packJvmOpts := Map("carnie" -> Seq("-Xmx64m", "-Xms32m")),
+    packJvmOpts := Map("carnie" -> Seq("-Xmx256m", "-Xms64m")),
     packExtraClasspath := Map("carnie" -> Seq("."))
   )
   .settings(
@@ -115,7 +123,8 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
   .dependsOn(sharedJvm)
 
 lazy val root = (project in file("."))
+  .settings(commonSettings: _*)
   .aggregate(frontend, backend)
-  .settings(name := projectName)
+  .settings(name := "root")
 
 

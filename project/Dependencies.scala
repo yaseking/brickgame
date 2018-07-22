@@ -1,5 +1,6 @@
 import sbt._
 
+
 /**
   * User: Taoz
   * Date: 6/13/2017
@@ -16,10 +17,10 @@ object Dependencies {
   val scalaXmlV = "1.1.0"
   val circeVersion = "0.9.3"
 
-  val scalaJsDomV = "0.9.2"
-
-
-  val scalaTagsV = "0.6.5"
+  val scalaJsDomV = "0.9.6"
+  val scalaTagsV = "0.6.7"
+  val monadicHtmlV = "0.4.0-RC1"
+  val scalaCssV = "0.5.5"
   val diodeV = "1.1.2"
 
 
@@ -58,27 +59,26 @@ object Dependencies {
 
 
 
-  val backendDependencies =
+  val backendDependencies: Seq[ModuleID] =
     Dependencies.akkaSeq ++
-    Dependencies.akkaHttpSeq ++
-    Dependencies.circeSeq ++
-    Seq(
-      Dependencies.scalaXml,
-      Dependencies.slick,
-      Dependencies.slickCodeGen,
-      Dependencies.scalikejdbc,
-      Dependencies.scalikejdbcConfig,
-      Dependencies.scalatags,
-      Dependencies.nscalaTime,
-      Dependencies.hikariCP,
-      Dependencies.logback,
-      Dependencies.codec,
-      Dependencies.postgresql,
-      Dependencies.asynchttpclient,
-      Dependencies.ehcache
-     // "com.lihaoyi" %% "upickle" % "0.6.6"
-    )
-
+      Dependencies.akkaHttpSeq ++
+      Dependencies.circeSeq ++
+      Seq(
+        Dependencies.scalaXml,
+        Dependencies.slick,
+        Dependencies.slickCodeGen,
+        Dependencies.scalikejdbc,
+        Dependencies.scalikejdbcConfig,
+        Dependencies.scalatags,
+        Dependencies.nscalaTime,
+        Dependencies.hikariCP,
+        Dependencies.logback,
+        Dependencies.codec,
+        Dependencies.postgresql,
+        Dependencies.asynchttpclient,
+        Dependencies.ehcache
+        // "com.lihaoyi" %% "upickle" % "0.6.6"
+      )
 
 
 }

@@ -1,5 +1,6 @@
-package com.neo.sk.carnie
+package com.neo.sk.carnie.paper
 
+import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory
 
 /**
@@ -113,7 +114,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   }
 
   def randomHex() = {
-    val h = (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString + (new util.Random).nextInt(256).toHexString
+    val h = random.nextInt(256).toHexString + random.nextInt(256).toHexString + random.nextInt(256).toHexString
     String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
   }
 
