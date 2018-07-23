@@ -130,11 +130,15 @@ object NetGameHolder extends js.JSApp {
 
 
   def gameLoop(): Unit = {
-    if (wsSetup) {
-      if (!justSynced) {
-        update()
-      } else {
-        justSynced = false
+    subFrame += 1
+    if (subFrame >= totalSubFrame) {
+      subFrame = 0
+      if (wsSetup) {
+        if (!justSynced) {
+          update()
+        } else {
+          justSynced = false
+        }
       }
     }
     draw()
@@ -162,10 +166,10 @@ object NetGameHolder extends js.JSApp {
 
   def draw(): Unit = {
     if (wsSetup) {
-      val data = grid.getGridData
       if (isWin) {
         drawGameWin(winnerName)
       } else {
+        val data = grid.getGridData
         if (data.fieldDetails.nonEmpty) {
           drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1)
         } else {
