@@ -3,13 +3,14 @@ package com.neo.sk.carnie.http
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
+import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
-import akka.stream.scaladsl.Flow
 import akka.stream.{ActorAttributes, Materializer, Supervision}
-import akka.util.Timeout
+import akka.util.{ByteString, Timeout}
 import com.neo.sk.carnie.paper.PlayGround
-import com.neo.sk.carnie.paper.PlayGround
+import akka.stream.scaladsl.Flow
+import com.neo.sk.carnie.paper.Protocol._
+import com.neo.sk.util.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -21,9 +22,8 @@ import scala.concurrent.ExecutionContextExecutor
   */
 trait PlayerService {
 
+  import com.neo.sk.util.byteObject.ByteObject._
 
-  import io.circe.generic.auto._
-  import io.circe.syntax._
 
   implicit val system: ActorSystem
 
@@ -53,22 +53,37 @@ trait PlayerService {
     }
   }
 
+  val sendBuffer = new MiddleBufferInJvm(409600)
 
   def webSocketChatFlow(sender: String): Flow[Message, Message, Any] =
     Flow[Message]
       .collect {
         case TextMessage.Strict(msg) =>
           log.debug(s"msg from webSocket: $msg")
+          TextInfo(msg)
+
+        case BinaryMessage.Strict(bMsg) =>
+          //decode process.
+          val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
+          val msg =
+            bytesDecode[UserAction](buffer) match {
+              case Right(v) => v
+              case Left(e) =>
+                println(s"decode error: ${e.message}")
+                TextInfo("decode error")
+            }
           msg
         // unpack incoming WS text messages...
         // This will lose (ignore) messages not received in one chunk (which is
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      //      .via(playGround.joinGame(idGenerator.getAndIncrement().toLong, sender)) // ... and route them through the chatFlow ...
       .via(playGround.joinGame(idGenerator.getAndIncrement().toLong, sender))
-      .map { msg => TextMessage.Strict(msg.asJson.noSpaces) // ... pack outgoing messages into WS JSON messages ...
-      //.map { msg => TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
+      .map { msg =>
+        BinaryMessage.Strict(ByteString(
+          //encoded process
+          msg.fillMiddleBuffer(sendBuffer).result()
+        ))
     }.withAttributes(ActorAttributes.supervisionStrategy(decider))    // ... then log any processing errors on stdin
 
 

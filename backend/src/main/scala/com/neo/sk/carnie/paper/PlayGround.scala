@@ -3,12 +3,12 @@ package com.neo.sk.carnie.paper
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
 
+import akka.NotUsed
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.carnie.paper.Protocol._
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
@@ -22,7 +22,7 @@ import scala.language.postfixOps
 trait PlayGround {
 
 
-  def joinGame(id: Long, name: String): Flow[String, Protocol.GameMessage, Any]
+  def joinGame(id: Long, name: String): Flow[Protocol.UserAction, Protocol.GameMessage, Any]
 
   def syncData()
 
@@ -92,16 +92,25 @@ object PlayGround {
             dispatch(Protocol.SnakeLeft(id, name), roomId)
           }
 
-        case r@Key(id, keyCode) =>
-          log.debug(s"got $r")
-          val roomId = userMap(id)._1
-          dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
-          if (keyCode == KeyEvent.VK_SPACE) {
-            roomMap(roomId)._2.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
-          } else {
-            roomMap(roomId)._2.addAction(id, keyCode)
-            dispatch(Protocol.SnakeAction(id, keyCode, roomMap(roomId)._2.frameCount), roomId)
-          }
+        case userAction: UserAction => userAction match {
+          case r@Key(id, keyCode) =>
+            log.debug(s"got $r")
+            val roomId = userMap(id)._1
+            dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
+            if (keyCode == KeyEvent.VK_SPACE) {
+              roomMap(roomId)._2.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
+            } else {
+              roomMap(roomId)._2.addAction(id, keyCode)
+              dispatch(Protocol.SnakeAction(id, keyCode, roomMap(roomId)._2.frameCount), roomId)
+            }
+
+          case NetTest(id, createTime) =>
+            log.info(s"Net Test: createTime=$createTime")
+            dispatchTo(id, Protocol.NetDelayTest(createTime))
+
+          case _ =>
+
+        }
 
         case r@Terminated(actor) =>
           log.warn(s"got $r")
@@ -134,10 +143,6 @@ object PlayGround {
             }
           }
 
-        case NetTest(id, createTime) =>
-          log.info(s"Net Test: createTime=$createTime")
-          dispatchTo(id, Protocol.NetDelayTest(createTime))
-
         case x =>
           log.warn(s"got unknown msg: $x")
       }
@@ -156,23 +161,14 @@ object PlayGround {
     import concurrent.duration._
     system.scheduler.schedule(3 seconds, Protocol.frameRate millis, ground, Sync) // sync tick
 
-
-    def playInSink(id: Long, name: String) = Sink.actorRef[UserAction](ground, Left(id, name))
-
+    def playInSink(id: Long, name: String): Sink[UserAction, NotUsed] = Sink.actorRef[UserAction](ground, Left(id, name))
 
     new PlayGround {
-      override def joinGame(id: Long, name: String): Flow[String, Protocol.GameMessage, Any] = {
+      override def joinGame(id: Long, name: String): Flow[UserAction, Protocol.GameMessage, Any] = {
         val in =
-          Flow[String]
-            .map { s =>
-              if (s.startsWith("T")) {
-                val timestamp = s.substring(1).toLong
-                NetTest(id, timestamp)
-              } else {
-                Key(id, s.toInt)
-              }
-            }
-            .to(playInSink(id, name)) //这里不会发left消息吗?有什么特殊执行方式？
+          Flow[UserAction]
+            .map {s => s}
+            .to(playInSink(id, name))
 
         val out =
           Source.actorRef[Protocol.GameMessage](3, OverflowStrategy.dropHead)
@@ -187,17 +183,12 @@ object PlayGround {
   }
 
 
-  private sealed trait UserAction
 
-  private case class Join(id: Long, name: String, subscriber: ActorRef) extends UserAction
+  private case class Join(id: Long, name: String, subscriber: ActorRef)
 
-  private case class Left(id: Long, name: String) extends UserAction
+  private case class Left(id: Long, name: String)
 
-  private case class Key(id: Long, keyCode: Int) extends UserAction
-
-  private case class NetTest(id: Long, createTime: Long) extends UserAction
-
-  private case object Sync extends UserAction
+  private case object Sync
 
 
 }

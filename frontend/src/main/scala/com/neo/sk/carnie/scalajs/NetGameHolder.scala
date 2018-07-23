@@ -1,20 +1,25 @@
 package com.neo.sk.carnie.scalajs
 
-import com.neo.sk.carnie.paper.Protocol.GridDataSync
+import com.neo.sk.carnie.paper.Protocol.{GridDataSync, Key, NetTest}
 import com.neo.sk.carnie.paper._
+import com.neo.sk.carnie.util.MiddleBufferInJs
 import org.scalajs.dom
-import org.scalajs.dom.ext.{Color, KeyCode}
+import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
+import com.neo.sk.carnie.util.byteObject.decoder
+import com.neo.sk.carnie.util.byteObject.ByteObject._
 
+import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.scalajs.js
-import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
+import scala.scalajs.js.annotation.JSExportTopLevel
 
 /**
   * User: Taoz
   * Date: 9/1/2016
   * Time: 12:45 PM
   */
+@JSExportTopLevel("scalajs.NetGameHolder")
 object NetGameHolder extends js.JSApp {
 
 
@@ -74,8 +79,7 @@ object NetGameHolder extends js.JSApp {
   otherHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/otherHeader.png"
   myLocation.asInstanceOf[Image].src = "/carnie/static/img/myLocation.png"
 
-  @scala.scalajs.js.annotation.JSExport
-  override def main(): Unit = {
+   def main(): Unit = {
     drawGameOff()
     canvas.width = windowBoundary.x
     canvas.height = windowBoundary.y
@@ -315,6 +319,8 @@ object NetGameHolder extends js.JSApp {
     ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
   }
 
+  val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
+
   def joinGame(name: String): Unit = {
     joinButton.disabled = true
     val playground = dom.document.getElementById("playground")
@@ -329,24 +335,27 @@ object NetGameHolder extends js.JSApp {
         println(s"keydown: ${e.keyCode}")
         if (watchKeys.contains(e.keyCode)) {
           println(s"key down: [${e.keyCode}]")
-          if (e.keyCode == KeyCode.F2) {
-            gameStream.send("T" + System.currentTimeMillis())
+
+          val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
+            NetTest(myId, System.currentTimeMillis())
           } else {
             if (e.keyCode == KeyCode.Space && isWin) {
               firstCome = true
               isWin = false
               winnerName = "unknown"
             }
-            gameStream.send(e.keyCode.toString)
+            Key(myId, e.keyCode)
           }
+          msg.fillMiddleBuffer(sendBuffer) //encode msg
+          val ab: ArrayBuffer = sendBuffer.result() //get encoded data.
+          gameStream.send(ab) // send data.
           e.preventDefault()
-        }
-      }
+        }}
       }
       event0
     }
 
-    gameStream.onerror = { (event: Event) =>
+    gameStream.onerror = { event: Event =>
       drawGameOff()
       playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
       joinButton.disabled = false
@@ -358,47 +367,63 @@ object NetGameHolder extends js.JSApp {
     import io.circe.parser._
 
     gameStream.onmessage = { event: MessageEvent =>
-      val wsMsg = decode[Protocol.GameMessage](event.data.toString).right.get
-      wsMsg match {
-        case Protocol.Id(id) => myId = id
+      event.data match {
+        case blobMsg: Blob =>
+          val fr = new FileReader()
+          fr.readAsArrayBuffer(blobMsg)
+          fr.onloadend = { _: Event =>
+            val buf = fr.result.asInstanceOf[ArrayBuffer] // read data from ws.
 
-        case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
+            val middleDataInJs = new MiddleBufferInJs(buf) //put data into MiddleBuffer
 
-        case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
+            val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] =
+            bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
+            encodedData match {
+              case Right(data) => data match {
+                case Protocol.Id(id) => myId = id
 
-        case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
+                case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
 
-        case Protocol.SnakeAction(id, keyCode, frame) => grid.addActionWithFrame(id, keyCode, frame)
+                case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
 
-        case Protocol.SomeOneWin(winner) =>
-          isWin = true
-          winnerName = winner
-          grid.cleanData()
+                case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
 
-        case Protocol.Ranks(current, history) =>
-          currentRank = current
-          historyRank = history
+                case Protocol.SnakeAction(id, keyCode, frame) => grid.addActionWithFrame(id, keyCode, frame)
 
-        case data: Protocol.GridDataSync =>
-          grid.frameCount = data.frameCount
-          val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
-          val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
-          val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
-          val gridMap = bodyMap ++ fieldMap ++ bordMap
-          grid.grid = gridMap
-          grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
-          grid.snakes = data.snakes.map(s => s.id -> s).toMap
-          grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
+                case Protocol.SomeOneWin(winner) =>
+                  isWin = true
+                  winnerName = winner
+                  grid.cleanData()
 
-          justSynced = true
+                case Protocol.Ranks(current, history) =>
+                  currentRank = current
+                  historyRank = history
 
-        case Protocol.NetDelayTest(createTime) =>
-          val receiveTime = System.currentTimeMillis()
-          val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
-          writeToArea(m)
+                case data: Protocol.GridDataSync =>
+                  grid.frameCount = data.frameCount
+                  val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
+                  val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
+                  val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
+                  val gridMap = bodyMap ++ fieldMap ++ bordMap
+                  grid.grid = gridMap
+                  grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
+                  grid.snakes = data.snakes.map(s => s.id -> s).toMap
+                  grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
+
+                  justSynced = true
+
+                case Protocol.NetDelayTest(createTime) =>
+                  val receiveTime = System.currentTimeMillis()
+                  val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
+                  writeToArea(m)
+              }
+
+              case Left(e) =>
+                println(s"got error: ${e.message}")
+            }
+          }
       }
     }
-
 
     gameStream.onclose = { event: Event =>
       drawGameOff()

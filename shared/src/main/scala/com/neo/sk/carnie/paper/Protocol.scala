@@ -36,6 +36,17 @@ object Protocol {
 
   case class SomeOneWin(winnerName: String) extends GameMessage
 
+
+  sealed trait UserAction
+
+  case class Key(id: Long, keyCode: Int) extends UserAction
+
+  case class NetTest(id: Long, createTime: Long) extends UserAction
+
+  case class TextInfo(msg: String) extends UserAction
+
+
+
   val frameRate = 150
 
 }

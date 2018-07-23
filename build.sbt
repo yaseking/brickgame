@@ -78,7 +78,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     mainClass in reStart := Some(projectMainClass),
     javaOptions in reStart += "-Xmx2g"
   )
-  .settings(name := "hiStream")
+  .settings(name := "carnie")
   .settings(
     //pack
     // If you need to specify main classes manually, use packSettings and packMain
