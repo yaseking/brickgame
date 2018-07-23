@@ -53,8 +53,6 @@ trait PlayerService {
     }
   }
 
-  val sendBuffer = new MiddleBufferInJvm(409600)
-
   def webSocketChatFlow(sender: String): Flow[Message, Message, Any] =
     Flow[Message]
       .collect {
@@ -80,6 +78,7 @@ trait PlayerService {
       }
       .via(playGround.joinGame(idGenerator.getAndIncrement().toLong, sender))
       .map { msg =>
+        val sendBuffer = new MiddleBufferInJvm(409600)
         BinaryMessage.Strict(ByteString(
           //encoded process
           msg.fillMiddleBuffer(sendBuffer).result()
