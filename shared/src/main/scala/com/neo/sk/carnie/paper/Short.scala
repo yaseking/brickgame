@@ -150,7 +150,7 @@ object Short {
     var colorField = ArrayBuffer[Point]()
     startPointOpt match {
       case Some(startPoint) =>
-        getBodyTurnPoint(turnPoints, boundary).foreach{p =>
+        getBodyTurnPoint(turnPoints, boundary, newGrid).foreach{p =>
           colorQueue.enqueue(p)
           colorField += p
         }
@@ -182,12 +182,16 @@ object Short {
     newGrid
   }
 
-  def getBodyTurnPoint(turnPoints: List[Point], boundary: List[Point]): List[Point] = {
+  def getBodyTurnPoint(turnPoints: List[Point], boundary: List[Point], grid: Map[Point, Spot]): List[Point] = {
     var res = List.empty[Point]
     turnPoints.foreach { t =>
       List(Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)).foreach { d =>
-        if (isInsidePoint(d + t, boundary))
-          res = d + t :: res
+        grid.get(d+t) match {
+          case None if isInsidePoint(d + t, boundary) =>
+            res = d + t :: res
+          case _ =>
+
+        }
       }
     }
     res
