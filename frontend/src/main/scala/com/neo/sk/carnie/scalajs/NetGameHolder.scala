@@ -34,6 +34,9 @@ object NetGameHolder extends js.JSApp {
   private val canvasSize = border.x * border.y
   private val fillWidth = 33
 
+  private var subFrame = -1
+  private val totalSubFrame = 2
+
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   private var myId = -1l
@@ -362,9 +365,6 @@ object NetGameHolder extends js.JSApp {
       wsSetup = false
       nameField.focus()
     }
-
-    import io.circe.generic.auto._
-    import io.circe.parser._
 
     gameStream.onmessage = { event: MessageEvent =>
       event.data match {
