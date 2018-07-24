@@ -154,7 +154,7 @@ object NetGameHolder extends js.JSApp {
       }
 
 
-      def drawMap(myheader: Point,otherSnakes:List[SkDt]): Unit = {
+      def drawSmallMap(myheader: Point, otherSnakes:List[SkDt]): Unit = {
         val Offx = myheader.x.toDouble / border.x * SmallMap.x
         val Offy = myheader.y.toDouble / border.y * SmallMap.y
         ctx.fillStyle = ColorsSetting.mapColor
@@ -327,7 +327,7 @@ object NetGameHolder extends js.JSApp {
         //      index += 1
         //      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
         //    }
-        drawMap(lastHeader, otherSnakes)
+        drawSmallMap(lastHeader, otherSnakes)
       }
 
       def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
