@@ -52,8 +52,7 @@ package object paper {
 
   case class UpdateSnakeInfo(
                               data: SkDt,
-                              isFiled: Boolean = false,
-                              killedId: Option[Long] = None
+                              isFiled: Boolean = false
                             )
 
 
