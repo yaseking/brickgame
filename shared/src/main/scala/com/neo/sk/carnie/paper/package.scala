@@ -33,6 +33,8 @@ package object paper {
 
     def *(n: Int) = Point(x * n, y * n)
 
+    def /(n: Int) = Point(x / n, y / n)
+
     def %(other: Point) = Point(x % other.x, y % other.y)
   }
 

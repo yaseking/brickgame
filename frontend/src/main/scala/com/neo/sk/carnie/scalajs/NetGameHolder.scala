@@ -35,7 +35,7 @@ object NetGameHolder extends js.JSApp {
   private val fillWidth = 33
 
   private var subFrame = -1
-  private val totalSubFrame = 2
+  private val totalSubFrame = 3
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -50,6 +50,8 @@ object NetGameHolder extends js.JSApp {
   var otherHeader:List[Point]=Nil
   var isWin = false
   var winnerName = "unknown"
+
+  var syncGridData : scala.Option[Protocol.GridDataSync] = None
 
   val watchKeys = Set(
     KeyCode.Space,
@@ -73,14 +75,12 @@ object NetGameHolder extends js.JSApp {
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-  val championHeaderImg = dom.document.createElement("img")
-  val myHeaderImg = dom.document.createElement("img")
-  val otherHeaderImg = dom.document.createElement("img")
-  val myLocation = dom.document.createElement("img")
-  championHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/champion.png"
-  myHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/myHeader.png"
-  otherHeaderImg.asInstanceOf[Image].src = "/carnie/static/img/otherHeader.png"
-  myLocation.asInstanceOf[Image].src = "/carnie/static/img/myLocation.png"
+  private val championHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
+  private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
+  private val otherHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
+  championHeaderImg.src = "/carnie/static/img/champion.png"
+  myHeaderImg.src = "/carnie/static/img/girl.png"
+  otherHeaderImg.src = "/carnie/static/img/boy.png"
 
    def main(): Unit = {
     drawGameOff()
@@ -99,7 +99,7 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
   }
 
   def drawGameOn(): Unit = {
@@ -132,302 +132,302 @@ object NetGameHolder extends js.JSApp {
   def gameLoop(): Unit = {
     subFrame += 1
     if (subFrame >= totalSubFrame) {
-      subFrame = 0
-      if (wsSetup) {
-        if (!justSynced) {
-          update()
-        } else {
-          justSynced = false
-        }
-      }
-    }
-    draw()
-  }
-
-
-  def update(): Unit = {
-    grid.update()
-  }
-
-
-  def drawMap(myheader: Point,otherSnakes:List[SkDt]): Unit = {
-    val Offx = myheader.x.toDouble / border.x * SmallMap.x
-    val Offy = myheader.y.toDouble / border.y * SmallMap.y
-    ctx.fillStyle = ColorsSetting.mapColor
-    ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
-    ctx.drawImage(myHeaderImg.asInstanceOf[Image], 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
-    otherSnakes.foreach { i =>
-      val x = i.header.x.toDouble / border.x * SmallMap.x
-      val y = i.header.y.toDouble / border.y * SmallMap.y
-      ctx.fillStyle = i.color
-      ctx.fillRect(990 + x * canvasUnit / 2, 490 + y * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
-    }
-  }
-
-  def draw(): Unit = {
-    if (wsSetup) {
-      if (isWin) {
-        drawGameWin(winnerName)
-      } else {
-        val data = grid.getGridData
-        if (data.fieldDetails.nonEmpty) {
-          drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1)
-        } else {
-          drawGrid(myId, data, 0)
-        }
-      }
-    } else {
-      drawGameOff()
-    }
-  }
-
-  def drawGrid(uid: Long, data: GridDataSync, championId: Long): Unit = { //头所在的点是屏幕的正中心
-
-    val snakes = data.snakes
-    val othersnakes=snakes.filterNot(_.id==uid)
-    lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) => s.header
-      case None => lastHeader
-    }
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-
-    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
-
-    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-
-    bodies.foreach { case Bd(id, x, y) =>
-      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 0.6
-      ctx.fillStyle = color
-      if (id == uid) {
-        ctx.save()
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-        ctx.restore()
-      } else {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      }
-    }
-
-    fields.foreach { case Fd(id, x, y) =>
-      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 1.0
-      ctx.fillStyle = color
-      if (id == uid) {
-        ctx.save()
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-        ctx.restore()
-      } else {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      }
-    }
-
-    ctx.fillStyle = ColorsSetting.borderColor
-    borders.foreach { case Bord(x, y) =>
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-    }
-
-    //先画冠军的头
-    snakes.filter(_.id == championId).foreach { s =>
-      ctx.drawImage(championHeaderImg.asInstanceOf[Image], (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
-    }
-
-    //画其他人的头
-    snakes.filterNot(_.id == championId).foreach { snake =>
-      val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
-      val x = snake.header.x + offx
-      val y = snake.header.y + offy
-      ctx.drawImage(img.asInstanceOf[Image], x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-    }
-
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-
-    val leftBegin = 10
-    val rightBegin = windowBoundary.x - 180
-
-    snakes.find(_.id == uid) match {
-      case Some(mySnake) =>
-        firstCome = false
-        val baseLine = 1
-        ctx.font = "12px Helvetica"
-        drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
-        drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
-
-      case None =>
-        if (firstCome) {
-          ctx.font = "36px Helvetica"
-          ctx.fillText("Please wait.", 150 + offx, 180 + offy)
-        } else {
-          ctx.font = "36px Helvetica"
-          val text = grid.getKiller(uid) match {
-            case Some(killer) =>
-              s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
-
-            case None =>
-              "Ops, Press Space Key To Restart!"
-          }
-          ctx.fillText(text, 150 + offx, 180 + offy)
-        }
-    }
-
-    ctx.font = "12px Helvetica"
-    val myRankBaseLine = 3
-//    drawTextLine(s" --- My Rank --- ", leftBegin, index, myRankBaseLine)
-    currentRank.filter(_.id == myId).foreach { score =>
-      val color = snakes.find(_.id == myId).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 0.6
-      ctx.fillStyle = color
-      ctx.save()
-      ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 3 * (score.area.toDouble / canvasSize), textLineHeight)
-      ctx.restore()
-
-      ctx.globalAlpha = 1
-      ctx.fillStyle = ColorsSetting.fontColor
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
-//      drawTextLine(s"kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 6, index, myRankBaseLine)
-//      drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 10, index, myRankBaseLine)
-    }
-
-//    ctx.font = "12px Helvetica"
-    val currentRankBaseLine = 1
-    var index = 0
-    drawTextLine(s" --- Current Rank --- ", rightBegin, index, currentRankBaseLine)
-    currentRank.foreach { score =>
-      val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 0.6
-      ctx.fillStyle = color
-      ctx.save()
-      ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 3 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
-        fillWidth + windowBoundary.x / 3 * (score.area.toDouble / canvasSize), textLineHeight)
-      ctx.restore()
-
-      ctx.globalAlpha = 1
-      ctx.fillStyle = ColorsSetting.fontColor
-      index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, currentRankBaseLine)
-    }
-
-//    val historyRankBaseLine = 1
-//    index = 0
-//    drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
-//    historyRank.foreach { score =>
-//      index += 1
-//      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
-//    }
-    drawMap(lastHeader,othersnakes)
-  }
-
-  def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
-    ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
-  }
-
-  val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
-
-  def joinGame(name: String): Unit = {
-    joinButton.disabled = true
-    val playground = dom.document.getElementById("playground")
-    playground.innerHTML = s"Trying to join game as '$name'..."
-    val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
-    gameStream.onopen = { event0: Event =>
-      drawGameOn()
-      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
-      wsSetup = true
-      canvas.focus()
-      canvas.onkeydown = { e: dom.KeyboardEvent => {
-        println(s"keydown: ${e.keyCode}")
-        if (watchKeys.contains(e.keyCode)) {
-          println(s"key down: [${e.keyCode}]")
-
-          val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
-            NetTest(myId, System.currentTimeMillis())
-          } else {
-            if (e.keyCode == KeyCode.Space && isWin) {
-              firstCome = true
-              isWin = false
-              winnerName = "unknown"
-            }
-            Key(myId, e.keyCode)
-          }
-          msg.fillMiddleBuffer(sendBuffer) //encode msg
-          val ab: ArrayBuffer = sendBuffer.result() //get encoded data.
-          gameStream.send(ab) // send data.
-          e.preventDefault()
-        }}
-      }
-      event0
-    }
-
-    gameStream.onerror = { event: Event =>
-      drawGameOff()
-      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
-      joinButton.disabled = false
-      wsSetup = false
-      nameField.focus()
-    }
-
-    gameStream.onmessage = { event: MessageEvent =>
-      event.data match {
-        case blobMsg: Blob =>
-          val fr = new FileReader()
-          fr.readAsArrayBuffer(blobMsg)
-          fr.onloadend = { _: Event =>
-            val buf = fr.result.asInstanceOf[ArrayBuffer] // read data from ws.
-
-            val middleDataInJs = new MiddleBufferInJs(buf) //put data into MiddleBuffer
-
-            val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] =
-            bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
-            encodedData match {
-              case Right(data) => data match {
-                case Protocol.Id(id) => myId = id
-
-                case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
-
-                case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
-
-                case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
-
-                case Protocol.SnakeAction(id, keyCode, frame) => grid.addActionWithFrame(id, keyCode, frame)
-
-                case Protocol.SomeOneWin(winner) =>
-                  isWin = true
-                  winnerName = winner
-                  grid.cleanData()
-
-                case Protocol.Ranks(current, history) =>
-                  currentRank = current
-                  historyRank = history
-
-                case data: Protocol.GridDataSync =>
-                  grid.frameCount = data.frameCount
-                  val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
-                  val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
-                  val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
-                  val gridMap = bodyMap ++ fieldMap ++ bordMap
-                  grid.grid = gridMap
-                  grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
-                  grid.snakes = data.snakes.map(s => s.id -> s).toMap
-                  grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
-
-                  justSynced = true
-
-                case Protocol.NetDelayTest(createTime) =>
-                  val receiveTime = System.currentTimeMillis()
-                  val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
-                  writeToArea(m)
+            subFrame = 0
+            if (wsSetup) {
+              if (!justSynced) { //前端更新
+                update()
+              } else {
+                if(syncGridData.nonEmpty) {
+                  setSyncGridData(syncGridData.get)
+                  syncGridData = None
+                }
+                justSynced = false
               }
-
-              case Left(e) =>
-                println(s"got error: ${e.message}")
             }
           }
+          draw(subFrame)
       }
-    }
+
+
+      def update(): Unit = {
+        grid.update()
+      }
+
+
+      def drawMap(myheader: Point,otherSnakes:List[SkDt]): Unit = {
+        val Offx = myheader.x.toDouble / border.x * SmallMap.x
+        val Offy = myheader.y.toDouble / border.y * SmallMap.y
+        ctx.fillStyle = ColorsSetting.mapColor
+        ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
+        ctx.drawImage(myHeaderImg, 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
+        otherSnakes.foreach { i =>
+          val x = i.header.x.toDouble / border.x * SmallMap.x
+          val y = i.header.y.toDouble / border.y * SmallMap.y
+          ctx.fillStyle = i.color
+          ctx.fillRect(990 + x * canvasUnit / 2, 490 + y * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
+        }
+      }
+
+      def draw(subFrame: Int): Unit = {
+        if (wsSetup) {
+          if (isWin) {
+            drawGameWin(winnerName)
+          } else {
+            val data = grid.getGridData
+            if (data.fieldDetails.nonEmpty) {
+              drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1, subFrame)
+            } else {
+              drawGrid(myId, data, 0, subFrame)
+            }
+          }
+        } else {
+          drawGameOff()
+        }
+      }
+
+      def drawGrid(uid: Long, data: GridDataSync, championId: Long, subFrame: Int): Unit = { //头所在的点是屏幕的正中心
+
+        val snakes = data.snakes
+        val otherSnakes = snakes.filterNot(_.id == uid)
+
+        lastHeader = snakes.find(_.id == uid) match {
+          case Some(s) =>
+            s.header + s.direction * subFrame / totalSubFrame
+          case None =>
+            lastHeader
+        }
+
+        val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+        val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+
+        ctx.fillStyle = ColorsSetting.backgroundColor
+        ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+
+        val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+        val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+        val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+
+        bodies.foreach { case Bd(id, x, y) =>
+          val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+          ctx.globalAlpha = 0.5
+          ctx.fillStyle = color
+          if (id == uid) {
+            ctx.save()
+            ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+            ctx.restore()
+          } else {
+            ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+          }
+        }
+
+        fields.foreach { case Fd(id, x, y) =>
+          val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+          ctx.globalAlpha = 1.0
+          ctx.fillStyle = color
+          if (id == uid) {
+            ctx.save()
+            ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+            ctx.restore()
+          } else {
+            ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+          }
+        }
+
+        ctx.fillStyle = ColorsSetting.borderColor
+        borders.foreach { case Bord(x, y) =>
+          ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+        }
+
+        //先画冠军的头
+        snakes.filter(_.id == championId).foreach { s =>
+          ctx.drawImage(championHeaderImg, (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+        }
+
+        //画其他人的头
+        snakes.filterNot(_.id == championId).foreach { snake =>
+          val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
+          val x = snake.header.x + offx
+          val y = snake.header.y + offy
+          ctx.drawImage(img, x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+        }
+
+        ctx.fillStyle = ColorsSetting.fontColor
+        ctx.textAlign = "left"
+        ctx.textBaseline = "top"
+
+        val leftBegin = 10
+        val rightBegin = windowBoundary.x - 180
+
+        snakes.find(_.id == uid) match {
+          case Some(mySnake) =>
+            firstCome = false
+            val baseLine = 1
+            ctx.font = "12px Helvetica"
+            drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
+            drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
+
+          case None =>
+            if (firstCome) {
+              ctx.font = "36px Helvetica"
+              ctx.fillText("Please wait.", 150 + offx, 180 + offy)
+            } else {
+              ctx.font = "36px Helvetica"
+              val text = grid.getKiller(uid) match {
+                case Some(killer) =>
+                  s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
+
+                case None =>
+                  "Ops, Press Space Key To Restart!"
+              }
+              ctx.fillText(text, 150 + offx, 180 + offy)
+            }
+        }
+
+        ctx.font = "12px Helvetica"
+        val myRankBaseLine = 3
+        //    drawTextLine(s" --- My Rank --- ", leftBegin, index, myRankBaseLine)
+        currentRank.filter(_.id == myId).foreach { score =>
+          val color = snakes.find(_.id == myId).map(_.color).getOrElse(ColorsSetting.defaultColor)
+          ctx.globalAlpha = 0.6
+          ctx.fillStyle = color
+          ctx.save()
+          ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 3 * (score.area.toDouble / canvasSize), textLineHeight)
+          ctx.restore()
+
+          ctx.globalAlpha = 1
+          ctx.fillStyle = ColorsSetting.fontColor
+          drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
+          //      drawTextLine(s"kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 6, index, myRankBaseLine)
+          //      drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", leftBegin + fillWidth + (windowBoundary.x / 3 * (score.area.toDouble / canvasSize)).toInt + 10, index, myRankBaseLine)
+        }
+
+        //    ctx.font = "12px Helvetica"
+        val currentRankBaseLine = 1
+        var index = 0
+        drawTextLine(s" --- Current Rank --- ", rightBegin, index, currentRankBaseLine)
+        currentRank.foreach { score =>
+          val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+          ctx.globalAlpha = 0.6
+          ctx.fillStyle = color
+          ctx.save()
+          ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 3 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
+            fillWidth + windowBoundary.x / 3 * (score.area.toDouble / canvasSize), textLineHeight)
+          ctx.restore()
+
+          ctx.globalAlpha = 1
+          ctx.fillStyle = ColorsSetting.fontColor
+          index += 1
+          drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, currentRankBaseLine)
+        }
+
+        //    val historyRankBaseLine = 1
+        //    index = 0
+        //    drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
+        //    historyRank.foreach { score =>
+        //      index += 1
+        //      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, historyRankBaseLine)
+        //    }
+        drawMap(lastHeader, otherSnakes)
+      }
+
+      def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
+        ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
+      }
+
+      val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
+
+      def joinGame(name: String): Unit = {
+        joinButton.disabled = true
+        val playground = dom.document.getElementById("playground")
+        playground.innerHTML = s"Trying to join game as '$name'..."
+        val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
+        gameStream.onopen = { event0: Event =>
+          drawGameOn()
+          playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
+          wsSetup = true
+          canvas.focus()
+          canvas.onkeydown = { e: dom.KeyboardEvent => {
+            println(s"keydown: ${e.keyCode}")
+            if (watchKeys.contains(e.keyCode)) {
+              println(s"key down: [${e.keyCode}]")
+
+              val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
+                NetTest(myId, System.currentTimeMillis())
+              } else {
+                if (e.keyCode == KeyCode.Space && isWin) {
+                  firstCome = true
+                  isWin = false
+                  winnerName = "unknown"
+                }
+                Key(myId, e.keyCode)
+              }
+              msg.fillMiddleBuffer(sendBuffer) //encode msg
+              val ab: ArrayBuffer = sendBuffer.result() //get encoded data.
+              gameStream.send(ab) // send data.
+              e.preventDefault()
+            }
+          }
+          }
+          event0
+        }
+
+        gameStream.onerror = { event: Event =>
+          drawGameOff()
+          playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
+          joinButton.disabled = false
+          wsSetup = false
+          nameField.focus()
+        }
+
+        gameStream.onmessage = { event: MessageEvent =>
+          event.data match {
+            case blobMsg: Blob =>
+              val fr = new FileReader()
+              fr.readAsArrayBuffer(blobMsg)
+              fr.onloadend = { _: Event =>
+                val buf = fr.result.asInstanceOf[ArrayBuffer] // read data from ws.
+
+                val middleDataInJs = new MiddleBufferInJs(buf) //put data into MiddleBuffer
+
+                val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] =
+                  bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
+                encodedData match {
+                  case Right(data) => data match {
+                    case Protocol.Id(id) => myId = id
+
+                    case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
+
+                    case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
+
+                    case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
+
+                    case Protocol.SnakeAction(id, keyCode, frame) => grid.addActionWithFrame(id, keyCode, frame)
+
+                    case Protocol.SomeOneWin(winner) =>
+                      isWin = true
+                      winnerName = winner
+                      grid.cleanData()
+
+                    case Protocol.Ranks(current, history) =>
+                      currentRank = current
+                      historyRank = history
+
+                    case data: Protocol.GridDataSync =>
+                      syncGridData = Some(data)
+                      justSynced = true
+
+                    case Protocol.NetDelayTest(createTime) =>
+                      val receiveTime = System.currentTimeMillis()
+                      val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
+                      writeToArea(m)
+                  }
+
+                  case Left(e) =>
+                    println(s"got error: ${e.message}")
+                }
+              }
+          }
+        }
 
     gameStream.onclose = { event: Event =>
       drawGameOff()
@@ -450,6 +450,18 @@ object NetGameHolder extends js.JSApp {
     val paragraph = dom.document.createElement("p")
     paragraph.innerHTML = msg
     paragraph
+  }
+
+  def setSyncGridData(data: Protocol.GridDataSync): Unit = {
+    grid.frameCount = data.frameCount
+    val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
+    val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
+    val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
+    val gridMap = bodyMap ++ fieldMap ++ bordMap
+    grid.grid = gridMap
+    grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
+    grid.snakes = data.snakes.map(s => s.id -> s).toMap
+    grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
   }
 
 
