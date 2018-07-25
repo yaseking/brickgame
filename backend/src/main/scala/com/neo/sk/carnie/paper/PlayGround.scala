@@ -39,7 +39,7 @@ object PlayGround {
 
   private val limitNum = 10
 
-  private val winStandard = (BorderSize.w - 2)* (BorderSize.h - 2) * 0.8
+  private val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.8
 
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 

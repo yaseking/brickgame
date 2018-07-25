@@ -30,7 +30,7 @@ object NetGameHolder extends js.JSApp {
   val textLineHeight = 14
   private val canvasBoundary = bounds * canvasUnit
   private val windowBoundary = window * canvasUnit
-  private val canvasSize = border.x * border.y
+  private val canvasSize = (border.x - 2) * (border.y - 2)
   private val fillWidth = 33
 
   private var subFrame = -1
@@ -49,8 +49,8 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-
   var syncGridData: scala.Option[Protocol.GridDataSync] = None
+  var scale = 1.0
 
   val watchKeys = Set(
     KeyCode.Space,
@@ -206,48 +206,62 @@ object NetGameHolder extends js.JSApp {
     val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
+    val myField = fields.count(_.id == myId)
+    scale = if(myField < 900) 1.0 else (window.x * window.y).toDouble/(myField * 2)
+
+    ctx.globalAlpha = 0.5
     bodies.foreach { case Bd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 0.5
       ctx.fillStyle = color
+      ctx.save()
+      setScale(scale, window.x / 2, window.y / 2)
       if (id == uid) {
-        ctx.save()
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-        ctx.restore()
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
+      ctx.restore()
     }
 
+    ctx.globalAlpha = 1.0
     fields.foreach { case Fd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 1.0
       ctx.fillStyle = color
+      ctx.save()
+      setScale(scale, window.x / 2, window.y / 2)
       if (id == uid) {
-        ctx.save()
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-        ctx.restore()
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
+      ctx.restore()
     }
 
     ctx.fillStyle = ColorsSetting.borderColor
     borders.foreach { case Bord(x, y) =>
+      ctx.save()
+      setScale(scale, window.x / 2, window.y / 2)
       ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+      ctx.restore()
     }
 
     //先画冠军的头
     snakes.filter(_.id == championId).foreach { s =>
+      ctx.save()
+      setScale(scale, window.x / 2, window.y / 2)
       ctx.drawImage(championHeaderImg, (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.restore()
     }
 
     //画其他人的头
     snakes.filterNot(_.id == championId).foreach { snake =>
       val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
+      ctx.save()
+      setScale(scale, window.x / 2, window.y / 2)
       val x = snake.header.x + offx
       val y = snake.header.y + offy
       ctx.drawImage(img, x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+      ctx.restore()
     }
 
     ctx.fillStyle = ColorsSetting.fontColor
@@ -442,6 +456,7 @@ object NetGameHolder extends js.JSApp {
 
   def setSyncGridData(data: Protocol.GridDataSync): Unit = {
     grid.frameCount = data.frameCount
+    println("backend----" + grid.frameCount)
     val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
     val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
     val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
@@ -450,6 +465,12 @@ object NetGameHolder extends js.JSApp {
     grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
     grid.snakes = data.snakes.map(s => s.id -> s).toMap
     grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
+  }
+
+  def setScale(scale: Double, x: Double, y: Double) = {
+    ctx.translate(x, y)
+    ctx.scale(scale, scale)
+    ctx.translate(-x, -y)
   }
 
 
