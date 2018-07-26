@@ -9,7 +9,7 @@ package object paper {
 
   sealed trait Spot
 
-  case class Body(id: Long, oldId: Option[Long] = None) extends Spot
+  case class Body(id: Long) extends Spot
 
   case class Field(id: Long) extends Spot
 
@@ -52,7 +52,7 @@ package object paper {
 
   case class UpdateSnakeInfo(
                               data: SkDt,
-                              oldFieldId: Option[Long] = None
+                              isFiled: Boolean = false
                             )
 
 
