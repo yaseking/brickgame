@@ -122,7 +122,7 @@ trait Grid {
           if (id == snake.id) {
             grid(snake.header) match {
               case Body(bid, _) if bid == snake.id => //回到了自己的领域
-                if(mayBeDieSnake.keys.exists(_ == snake.id)){ //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废
+                if (mayBeDieSnake.keys.exists(_ == snake.id)) { //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废
                   killHistory -= snake.id
                   mayBeDieSnake -= snake.id
                   returnBackField(snake.id)
@@ -133,7 +133,7 @@ trait Grid {
                   }) true else false //起点是否被圈走
                   if (stillStart) {
                     val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
-                    val snakeBody = grid.filter(_._2 match { case Body(bodyId,_) if bodyId == snake.id => true case _ => false }).keys.toList
+                    val snakeBody = grid.filter(_._2 match { case Body(bodyId, _) if bodyId == snake.id => true case _ => false }).keys.toList
                     //                  println("begin" + System.currentTimeMillis())
                     val findShortPath = Short.findShortestPath(snake.startPoint, newHeader, snakeField.toList, Short.startPointOnBoundary(snake.startPoint, snakeBody), snake.clockwise)
                     //                  println("findShortPath" + System.currentTimeMillis())
@@ -145,15 +145,15 @@ trait Grid {
                       //                println("start--" + snake.startPoint)
                       //                println("end--" + newHeader)
                       //                    println("done" + System.currentTimeMillis())
-                      mayBeSuccess += (snake.id -> newGrid.keys.filterNot(p=> grid.keys.exists(_ == p)).toSet)
+                      mayBeSuccess += (snake.id -> newGrid.keys.filterNot(p => grid.keys.exists(_ == p)).toSet)
                       grid = newGrid
                     } else returnBackField(snake.id)
                   } else returnBackField(snake.id)
                 }
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), None))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), Some(id)))
 
               case _ =>
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), None))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
             }
           } else { //进入到别人的领域
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
@@ -179,10 +179,10 @@ trait Grid {
       value match {
         case Right(v) =>
           var newData = v
-          if(v.data.clockwise + newDirection == Point(0,0) || v.data.clockwise == Point(0,0)){ //判断是顺时针还是逆时针行走
+          if (v.data.clockwise + newDirection == Point(0, 0) || v.data.clockwise == Point(0, 0)) { //判断是顺时针还是逆时针行走
             newData = newData.copy(newData.data.copy(clockwise = newDirection))
           }
-          if (turnPoint.nonEmpty && newData.oldFieldId.nonEmpty){ //记录纸袋的拐点
+          if (turnPoint.nonEmpty && newData.oldFieldId.nonEmpty) { //记录纸袋的拐点
             newData = newData.copy(newData.data.copy(turnPoint = newData.data.turnPoint ::: List(turnPoint.get)))
           }
           Right(newData)
@@ -205,8 +205,8 @@ trait Grid {
     }
 
     val interset = mayBeSuccess.keys.filter(p => mayBeDieSnake.keys.exists(_ == p))
-    if(interset.nonEmpty){
-      interset.foreach{ snakeId =>  //在即将完成圈地的时候身体被撞击则不死但此次圈地作废
+    if (interset.nonEmpty) {
+      interset.foreach { snakeId => //在即将完成圈地的时候身体被撞击则不死但此次圈地作废
         grid --= mayBeSuccess(snakeId)
         returnBackField(snakeId)
         mayBeDieSnake -= snakeId
@@ -225,7 +225,7 @@ trait Grid {
     val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).values
     val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toSet
     val noFieldSnake = snakes.keys.toSet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
-    noFieldSnake.foreach {s => returnBackField(s) }
+    noFieldSnake.foreach { s => returnBackField(s) }
 
     val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id) || noFieldSnake.contains(s.data.id)).map { s =>
       mapKillCounter.get(s.data.id) match {
@@ -234,7 +234,7 @@ trait Grid {
       }
     }
 
-    newSnakes.foreach(s => grid += s.data.header -> Body(s.data.id, s.oldFieldId))
+    newSnakes.foreach(s => if (s.oldFieldId.isEmpty || (s.oldFieldId.nonEmpty && s.oldFieldId.get != s.data.id)) grid += s.data.header -> Body(s.data.id, s.oldFieldId))
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
   }
 
@@ -271,7 +271,7 @@ trait Grid {
   def returnBackField(snakeId: Long) = {
     grid.foreach {
       case (p, Body(bodyId, Some(old))) if bodyId == snakeId && old != snakeId => grid += p -> Field(old)
-      case (p, Body(bodyId, _)) if bodyId == snakeId => grid -= p
+      case (p, Body(bodyId, Some(_))) if bodyId == snakeId => grid -= p
       case _ =>
     }
   }
