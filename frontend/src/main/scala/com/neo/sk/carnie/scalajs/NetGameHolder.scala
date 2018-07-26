@@ -108,7 +108,7 @@ object NetGameHolder extends js.JSApp {
 
   def drawGameOff(): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     if (firstCome) {
       ctx.font = "36px Helvetica"
@@ -121,7 +121,7 @@ object NetGameHolder extends js.JSApp {
 
   def drawGameWin(winner: String): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.font = "36px Helvetica"
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
@@ -200,69 +200,55 @@ object NetGameHolder extends js.JSApp {
     val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
     ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x * canvasUnit, windowBoundary.y * canvasUnit)
+    ctx.fillRect(0, 0, windowBoundary.x , windowBoundary.y )
 
     val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     val myField = fields.count(_.id == myId)
-    scale = if(myField < 900) 1.0 else (window.x * window.y).toDouble/(myField * 2)
+    scale = 1 - Math.sqrt(myField) * 0.0048
 
+    ctx.save()
+    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
     ctx.globalAlpha = 0.5
     bodies.foreach { case Bd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      ctx.save()
-      setScale(scale, window.x / 2, window.y / 2)
       if (id == uid) {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
-      ctx.restore()
     }
 
     ctx.globalAlpha = 1.0
     fields.foreach { case Fd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      ctx.save()
-      setScale(scale, window.x / 2, window.y / 2)
       if (id == uid) {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit/scale, canvasUnit/scale)
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
-      ctx.restore()
     }
 
     ctx.fillStyle = ColorsSetting.borderColor
     borders.foreach { case Bord(x, y) =>
-      ctx.save()
-      setScale(scale, window.x / 2, window.y / 2)
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      ctx.restore()
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit/scale, canvasUnit/scale)
     }
 
     //先画冠军的头
     snakes.filter(_.id == championId).foreach { s =>
-      ctx.save()
-      setScale(scale, window.x / 2, window.y / 2)
       ctx.drawImage(championHeaderImg, (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
-      ctx.restore()
     }
 
     //画其他人的头
     snakes.filterNot(_.id == championId).foreach { snake =>
       val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
-      ctx.save()
-      setScale(scale, window.x / 2, window.y / 2)
-      val x = snake.header.x + offx
-      val y = snake.header.y + offy
-      ctx.drawImage(img, x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      ctx.restore()
+      ctx.drawImage(img, (snake.header.x + offx) * canvasUnit, (snake.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
+    ctx.restore()
 
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.textAlign = "left"
