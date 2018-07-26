@@ -216,6 +216,7 @@ trait Grid {
     mayBeDieSnake.foreach { s =>
       mapKillCounter += s._2 -> (mapKillCounter.getOrElse(s._2, 0) + 1)
       killedSnaked ::= s._1
+      returnBackField(s._1)
     }
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, Set[Point]]
