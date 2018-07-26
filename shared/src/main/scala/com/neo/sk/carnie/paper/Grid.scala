@@ -1,8 +1,6 @@
 package com.neo.sk.carnie.paper
 
 import java.awt.event.KeyEvent
-
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 
@@ -27,7 +25,6 @@ trait Grid {
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
-  var bodyField = Map.empty[Long, Map[Point, Long]] //(body点，原归属者的id)
   var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇
   var mayBeSuccess = Map.empty[Long, Set[Point]] //圈地成功后的被圈点
 
@@ -65,7 +62,7 @@ trait Grid {
     //    debug(s"grid: ${grid.mkString(";")}")
     grid = grid.filter { case (p, spot) =>
       spot match {
-        case Body(id) if snakes.contains(id) => true
+        case Body(id, _) if snakes.contains(id) => true
         case Field(id) if snakes.contains(id) => true
         case Border => true
         case _ => false
@@ -124,7 +121,7 @@ trait Grid {
         case Some(Field(id)) =>
           if (id == snake.id) {
             grid(snake.header) match {
-              case Body(bid) if bid == snake.id => //回到了自己的领域
+              case Body(bid, _) if bid == snake.id => //回到了自己的领域
                 if(mayBeDieSnake.keys.exists(_ == snake.id)){ //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废
                   killHistory -= snake.id
                   mayBeDieSnake -= snake.id
@@ -136,7 +133,7 @@ trait Grid {
                   }) true else false //起点是否被圈走
                   if (stillStart) {
                     val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
-                    val snakeBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys.toList
+                    val snakeBody = grid.filter(_._2 match { case Body(bodyId,_) if bodyId == snake.id => true case _ => false }).keys.toList
                     //                  println("begin" + System.currentTimeMillis())
                     val findShortPath = Short.findShortestPath(snake.startPoint, newHeader, snakeField.toList, Short.startPointOnBoundary(snake.startPoint, snakeBody), snake.clockwise)
                     //                  println("findShortPath" + System.currentTimeMillis())
@@ -153,19 +150,17 @@ trait Grid {
                     } else returnBackField(snake.id)
                   } else returnBackField(snake.id)
                 }
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), true))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), None))
 
               case _ =>
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), true))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), None))
             }
           } else { //进入到别人的领域
-            val tmp = bodyField.getOrElse(snake.id, Map.empty) + (newHeader -> id)
-            bodyField += (snake.id -> tmp)
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
               case Some(Field(fid)) if fid == snake.id =>
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), Some(id)))
               case _ =>
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
             }
           }
 
@@ -187,7 +182,7 @@ trait Grid {
           if(v.data.clockwise + newDirection == Point(0,0) || v.data.clockwise == Point(0,0)){ //判断是顺时针还是逆时针行走
             newData = newData.copy(newData.data.copy(clockwise = newDirection))
           }
-          if (turnPoint.nonEmpty && !newData.isFiled){ //记录纸袋的拐点
+          if (turnPoint.nonEmpty && newData.oldFieldId.nonEmpty){ //记录纸袋的拐点
             newData = newData.copy(newData.data.copy(turnPoint = newData.data.turnPoint ::: List(turnPoint.get)))
           }
           Right(newData)
@@ -213,12 +208,7 @@ trait Grid {
     if(interset.nonEmpty){
       interset.foreach{ snakeId =>  //在即将完成圈地的时候身体被撞击则不死但此次圈地作废
         grid --= mayBeSuccess(snakeId)
-        bodyField.get(snakeId) match {
-          case Some(points) => //圈地还原
-            points.foreach(p => grid += p._1 -> Field(p._2))
-          case _ =>
-        }
-        bodyField -= snakeId
+        returnBackField(snakeId)
         mayBeDieSnake -= snakeId
         killHistory -= snakeId
       }
@@ -244,9 +234,8 @@ trait Grid {
       }
     }
 
-    newSnakes.foreach(s => if (!s.isFiled) grid += s.data.header -> Body(s.data.id) else grid += s.data.header -> Field(s.data.id))
+    newSnakes.foreach(s => grid += s.data.header -> Body(s.data.id, s.oldFieldId))
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
-
   }
 
   def getGridData = {
@@ -254,7 +243,7 @@ trait Grid {
     var fieldDetails: List[Fd] = Nil
     var bordDetails: List[Bord] = Nil
     grid.foreach {
-      case (p, Body(id)) => bodyDetails ::= Bd(id, p.x, p.y)
+      case (p, Body(id, _)) => bodyDetails ::= Bd(id, p.x, p.y)
       case (p, Field(id)) => fieldDetails ::= Fd(id, p.x, p.y)
       case (p, Border) => bordDetails ::= Bord(p.x, p.y)
     }
@@ -279,14 +268,12 @@ trait Grid {
     killHistory = Map.empty[Long, (Long, String)]
   }
 
-  def returnBackField(snakeId: Long) ={
-    grid --= grid.filter(_._2 match { case Body(bodyId) if bodyId == snakeId => true case _ => false }).keys
-    bodyField.get(snakeId) match {
-      case Some(points) => //圈地还原
-        points.foreach(p => grid += p._1 -> Field(p._2))
+  def returnBackField(snakeId: Long) = {
+    grid.foreach {
+      case (p, Body(bodyId, Some(old))) if bodyId == snakeId && old != snakeId => grid += p -> Field(old)
+      case (p, Body(bodyId, _)) if bodyId == snakeId => grid -= p
       case _ =>
     }
-    bodyField -= snakeId
   }
 
 

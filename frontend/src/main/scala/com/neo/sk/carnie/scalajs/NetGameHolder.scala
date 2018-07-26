@@ -202,13 +202,13 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x , windowBoundary.y )
 
-    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val bodies = data.bodyDetails.filter(p=> Math.abs(p.x - lastHeader.x) < window.x / 2 &&  Math.abs(p.y - lastHeader.y) < window.y / 2).map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val fields = data.fieldDetails.filter(p=> Math.abs(p.x - lastHeader.x) < window.x / 2 &&  Math.abs(p.y - lastHeader.y) < window.y / 2).map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val borders = data.borderDetails.filter(p=> Math.abs(p.x - lastHeader.x) < window.x / 2 &&  Math.abs(p.y - lastHeader.y) < window.y / 2).map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     val myField = fields.count(_.id == myId)
-//    scale = 1 - Math.sqrt(myField) * 0.0048
-    scale = 1
+    scale = 1 - Math.sqrt(myField) * 0.0048
+//    scale = 1
 
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
@@ -222,6 +222,7 @@ object NetGameHolder extends js.JSApp {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
     }
+    ctx.restore()
 
     ctx.globalAlpha = 1.0
     fields.foreach { case Fd(id, x, y) =>
