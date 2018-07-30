@@ -206,9 +206,9 @@ object NetGameHolder extends js.JSApp {
     val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
-    val myField = fields.count(_.id == myId)
-    scale = 1 - Math.sqrt(myField) * 0.0048
-//    scale = 1
+//    val myField = fields.count(_.id == myId)
+//    scale = 1 - Math.sqrt(myField) * 0.0048
+    scale = 1
 
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
