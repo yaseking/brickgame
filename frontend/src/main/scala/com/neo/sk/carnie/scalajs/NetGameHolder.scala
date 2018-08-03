@@ -63,6 +63,7 @@ object NetGameHolder extends js.JSApp {
 
   object ColorsSetting {
     val backgroundColor = "#F5F5F5"
+    val testColor = "#C0C0C0"
     val fontColor = "#000000"
     val defaultColor = "#000080"
     val borderColor = "#696969"
@@ -73,6 +74,8 @@ object NetGameHolder extends js.JSApp {
   private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private [this] val formField = dom.document.getElementById("form").asInstanceOf[HTMLFormElement]
+  private [this] val bodyField = dom.document.getElementById("body").asInstanceOf[HTMLBodyElement]
 
   private val championHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
   private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
@@ -85,9 +88,8 @@ object NetGameHolder extends js.JSApp {
   private var logicFrameTime = System.currentTimeMillis()
 
   def main(): Unit = {
-    drawGameOff()
-    canvas.width = windowBoundary.x
-    canvas.height = windowBoundary.y
+//    drawGameOff()
+
 
     joinButton.onclick = { event: MouseEvent =>
       joinGame(nameField.value)
@@ -101,6 +103,12 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
+  }
+
+  def startGame(): Unit = {
+    canvas.width = windowBoundary.x
+    canvas.height = windowBoundary.y
+
 //    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -111,7 +119,7 @@ object NetGameHolder extends js.JSApp {
       val offsetTime = curTime - logicFrameTime
       gameLoop(if(offsetTime > Protocol.frameRate) Protocol.frameRate else offsetTime)
 
-//      println(s"test d=${d} Time=${System.currentTimeMillis()} OffsetTime=$offsetTime")
+      //      println(s"test d=${d} Time=${System.currentTimeMillis()} OffsetTime=$offsetTime")
       nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -121,7 +129,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillStyle = ColorsSetting.testColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     if (firstCome) {
@@ -358,7 +366,9 @@ object NetGameHolder extends js.JSApp {
   val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
 
   def joinGame(name: String): Unit = {
-    joinButton.disabled = true
+    formField.innerHTML = ""
+    bodyField.style.backgroundColor = "white"
+    startGame()
     val playground = dom.document.getElementById("playground")
     playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
