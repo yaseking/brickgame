@@ -81,6 +81,9 @@ object NetGameHolder extends js.JSApp {
   myHeaderImg.src = "/carnie/static/img/girl.png"
   otherHeaderImg.src = "/carnie/static/img/boy.png"
 
+  private var nextFrame = 0
+  private var logicFrameTime = System.currentTimeMillis()
+
   def main(): Unit = {
     drawGameOff()
     canvas.width = windowBoundary.x
@@ -98,7 +101,18 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
+//    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
+    dom.window.requestAnimationFrame(gameRender())
+  }
+
+  def gameRender():Double => Unit = {
+    d =>
+      val curTime = System.currentTimeMillis()
+      val offsetTime = curTime - logicFrameTime
+      gameLoop(if(offsetTime > Protocol.frameRate) Protocol.frameRate else offsetTime)
+
+//      println(s"test d=${d} Time=${System.currentTimeMillis()} OffsetTime=$offsetTime")
+      nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
   def drawGameOn(): Unit = {
@@ -128,9 +142,25 @@ object NetGameHolder extends js.JSApp {
   }
 
 
-  def gameLoop(): Unit = {
-    subFrame += 1
+  def gameLoop(offsetTime: Long): Unit = {
+//    subFrame += 1
+//    if (subFrame >= totalSubFrame) {
+//      subFrame = 0
+//      if (wsSetup) {
+//        if (!justSynced) { //前端更新
+//          update()
+//        } else {
+//          if (syncGridData.nonEmpty) {
+//            setSyncGridData(syncGridData.get)
+//            syncGridData = None
+//          }
+//          justSynced = false
+//        }
+//      }
+//    }
+    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
     if (subFrame >= totalSubFrame) {
+      logicFrameTime = System.currentTimeMillis()
       subFrame = 0
       if (wsSetup) {
         if (!justSynced) { //前端更新
@@ -144,7 +174,7 @@ object NetGameHolder extends js.JSApp {
         }
       }
     }
-    draw(subFrame)
+    draw(offsetTime)
   }
 
 
@@ -167,16 +197,16 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def draw(subFrame: Int): Unit = {
+  def draw(offsetTime: Long): Unit = {
     if (wsSetup) {
       if (isWin) {
         drawGameWin(winnerName)
       } else {
         val data = grid.getGridData
         if (data.fieldDetails.nonEmpty) {
-          drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1, subFrame)
+          drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1, offsetTime)
         } else {
-          drawGrid(myId, data, 0, subFrame)
+          drawGrid(myId, data, 0, offsetTime)
         }
       }
     } else {
@@ -184,14 +214,15 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def drawGrid(uid: Long, data: GridDataSync, championId: Long, subFrame: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: Long, data: GridDataSync, championId: Long, offsetTime: Long): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
 
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
-        s.header + s.direction * subFrame / totalSubFrame
+        println(s.header + s.direction * offsetTime.toInt / Protocol.frameRate)
+        s.header + s.direction * offsetTime.toInt / Protocol.frameRate
       case None =>
         lastHeader
     }
@@ -271,6 +302,7 @@ object NetGameHolder extends js.JSApp {
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
+          dom.window.cancelAnimationFrame(nextFrame)
           ctx.font = "36px Helvetica"
           val text = grid.getKiller(uid) match {
             case Some(killer) =>
@@ -396,6 +428,7 @@ object NetGameHolder extends js.JSApp {
                   isWin = true
                   winnerName = winner
                   grid.cleanData()
+                  dom.window.cancelAnimationFrame(nextFrame)
 
                 case Protocol.Ranks(current, history) =>
                   currentRank = current
