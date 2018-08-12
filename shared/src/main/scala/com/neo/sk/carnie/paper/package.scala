@@ -17,21 +17,23 @@ package object paper {
 
   case class Score(id: Long, n: String, k: Int, t: Option[Long] = None, area: Int = 0)
 
-  case class Bd(id: Long, x: Int, y: Int)
+  case class Bd(id: Long, x: Float, y: Float)
 
-  case class Fd(id: Long, x: Int, y: Int)
+  case class Fd(id: Long, x: Float, y: Float)
 
-  case class Bord(x: Int, y: Int)
+  case class Bord(x: Float, y: Float)
 
   case class Kill(killedId: Long, killerId: Long, killerName: String)
 
 
-  case class Point(x: Int, y: Int) {
+  case class Point(x: Float, y: Float) {
     def +(other: Point) = Point(x + other.x, y + other.y)
 
     def -(other: Point) = Point(x - other.x, y - other.y)
 
     def *(n: Int) = Point(x * n, y * n)
+
+    def *(n: Float) = Point(x * n, y * n)
 
     def /(n: Int) = Point(x / n, y / n)
 

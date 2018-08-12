@@ -32,7 +32,7 @@ object Polygon {
     for (i <- 0 until l) {
       p1 = Point(polygon(i).x - p.x, polygon(i).y - p.y)
       p2 = Point(polygon((i + 1) % l).x - p.x, polygon((i + 1) % l).y - p.y)
-      angle += Angle2D(p1.x, p1.y, p2.x, p2.y)
+      angle += Angle2D(p1.x.toInt, p1.y.toInt, p2.x.toInt, p2.y.toInt)
     }
 
     if (Math.abs(angle) < Math.PI) false
@@ -42,8 +42,8 @@ object Polygon {
 
   def setPoly(poly: List[Point], grid: Map[Point, Spot], snakeId: Long): Map[Point, Spot] = {
     var new_grid = grid
-    for (x <- poly.map(_.x).min until poly.map(_.x).max)
-      for (y <- poly.map(_.y).min until poly.map(_.y).max) {
+    for (x <- poly.map(_.x.toInt).min until poly.map(_.x.toInt).max)
+      for (y <- poly.map(_.y.toInt).min until poly.map(_.y.toInt).max) {
         grid.get(Point(x, y)) match {
           case Some(Field(fid)) if fid == snakeId => //donothing
           case Some(Body(_)) => //donothing

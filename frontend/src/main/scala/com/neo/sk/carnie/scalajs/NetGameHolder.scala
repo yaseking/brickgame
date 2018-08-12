@@ -106,10 +106,11 @@ object NetGameHolder extends js.JSApp {
   }
 
   def startGame(): Unit = {
-    canvas.width = windowBoundary.x
-    canvas.height = windowBoundary.y
+    canvas.width = windowBoundary.x.toInt
+    canvas.height = windowBoundary.y.toInt
 
 //    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
+    logicFrameTime = System.currentTimeMillis()
     dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -117,7 +118,7 @@ object NetGameHolder extends js.JSApp {
     d =>
       val curTime = System.currentTimeMillis()
       val offsetTime = curTime - logicFrameTime
-      gameLoop(if(offsetTime > Protocol.frameRate) Protocol.frameRate else offsetTime)
+      gameLoop(offsetTime)
 
       //      println(s"test d=${d} Time=${System.currentTimeMillis()} OffsetTime=$offsetTime")
       nextFrame = dom.window.requestAnimationFrame(gameRender())
@@ -166,10 +167,11 @@ object NetGameHolder extends js.JSApp {
 //        }
 //      }
 //    }
-    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
-    if (subFrame >= totalSubFrame) {
+    draw(offsetTime)
+//    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
+    if (offsetTime >= Protocol.frameRate) {
       logicFrameTime = System.currentTimeMillis()
-      subFrame = 0
+//      subFrame = 0
       if (wsSetup) {
         if (!justSynced) { //前端更新
           update()
@@ -182,7 +184,7 @@ object NetGameHolder extends js.JSApp {
         }
       }
     }
-    draw(offsetTime)
+//    draw(offsetTime)
   }
 
 
@@ -227,16 +229,18 @@ object NetGameHolder extends js.JSApp {
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
 
+    var tempOff = Point(0, 0)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
-        println(s.header + s.direction * offsetTime.toInt / Protocol.frameRate)
-        s.header + s.direction * offsetTime.toInt / Protocol.frameRate
+//        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
+        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + s.direction * offsetTime.toFloat / Protocol.frameRate
       case None =>
         lastHeader
     }
 
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+    val offx = window.x / 2 - lastHeader.x + tempOff.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y + tempOff.y //新的框的y偏移量
 
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x , windowBoundary.y )
@@ -340,7 +344,7 @@ object NetGameHolder extends js.JSApp {
 
     val currentRankBaseLine = 1
     var index = 0
-    drawTextLine(s" --- Current Rank --- ", rightBegin, index, currentRankBaseLine)
+    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
@@ -353,7 +357,7 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 1
       ctx.fillStyle = ColorsSetting.fontColor
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, currentRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin.toInt, index, currentRankBaseLine)
     }
 
     drawSmallMap(lastHeader, otherSnakes)

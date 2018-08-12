@@ -75,13 +75,13 @@ trait Grid {
   }
 
   def randomEmptyPoint(size: Int): Point = {
-    var p = Point(random.nextInt(boundary.x - size), random.nextInt(boundary.y - size))
+    var p = Point(random.nextInt(boundary.x.toInt - size), random.nextInt(boundary.y.toInt - size))
     while ((0 until size).flatMap { x =>
       (0 until size).map { y =>
         grid.contains(p.copy(x = p.x + x, y = p.y + y))
       }
     }.contains(true)) {
-      p = Point(random.nextInt(boundary.x - size), random.nextInt(boundary.y - size))
+      p = Point(random.nextInt(boundary.x.toInt - size), random.nextInt(boundary.y.toInt - size))
     }
     p
   }
@@ -254,9 +254,9 @@ trait Grid {
     var fieldDetails: List[Fd] = Nil
     var bordDetails: List[Bord] = Nil
     grid.foreach {
-      case (p, Body(id)) => bodyDetails ::= Bd(id, p.x, p.y)
-      case (p, Field(id)) => fieldDetails ::= Fd(id, p.x, p.y)
-      case (p, Border) => bordDetails ::= Bord(p.x, p.y)
+      case (p, Body(id)) => bodyDetails ::= Bd(id, p.x.toInt, p.y.toInt)
+      case (p, Field(id)) => fieldDetails ::= Fd(id, p.x.toInt, p.y.toInt)
+      case (p, Border) => bordDetails ::= Bord(p.x.toInt, p.y.toInt)
     }
     Protocol.GridDataSync(
       frameCount,
