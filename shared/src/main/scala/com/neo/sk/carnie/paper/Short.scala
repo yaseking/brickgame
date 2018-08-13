@@ -182,6 +182,42 @@ object Short {
     newGrid
   }
 
+//  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long, grid: Map[Point, Spot], turnPoints: List[Point]) = {
+//    //除了第一点的孩子是上下左右。其余的上的孩子是上，左的孩子是左+上+下，下的孩子是下，右的孩子是右+下+上
+//    var newGrid = grid
+//    val colorQueue = new mutable.Queue[(String, Point)]()
+//    startPointOpt match {
+//      case Some(startPoint) =>
+//        newGrid += startPoint -> Field(snakeId)
+//        baseDirection.foreach(d => if (!boundary.contains(startPoint + d._2)) colorQueue.enqueue((d._1, startPoint + d._2)))
+//
+//        while (colorQueue.nonEmpty) {
+//          val currentPoint = colorQueue.dequeue()
+//          newGrid += currentPoint._2 -> Field(snakeId)
+//          currentPoint._1 match {
+//            case "left" =>
+//              if (!boundary.contains(currentPoint._2 + baseDirection("left"))) colorQueue.enqueue(("left", currentPoint._2 + baseDirection("left")))
+//              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+//              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
+//
+//            case "right" =>
+//              if (!boundary.contains(currentPoint._2 + baseDirection("right"))) colorQueue.enqueue(("right", currentPoint._2 + baseDirection("right")))
+//              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
+//              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+//
+//            case "up" =>
+//              if (!boundary.contains(currentPoint._2 + baseDirection("up"))) colorQueue.enqueue(("up", currentPoint._2 + baseDirection("up")))
+//
+//            case "down" =>
+//              if (!boundary.contains(currentPoint._2 + baseDirection("down"))) colorQueue.enqueue(("down", currentPoint._2 + baseDirection("down")))
+//          }
+//        }
+//      case None =>
+//    }
+//    boundary.foreach(b => newGrid += b -> Field(snakeId))
+//    newGrid
+//  }
+
   def getBodyTurnPoint(turnPoints: List[Point], boundary: List[Point], grid: Map[Point, Spot]): List[Point] = {
     var res = List.empty[Point]
     turnPoints.foreach { t =>

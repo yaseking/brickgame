@@ -33,9 +33,6 @@ object NetGameHolder extends js.JSApp {
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val fillWidth = 33
 
-  private var subFrame = -1
-  private val totalSubFrame = 4
-
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   private var myId = -1l
@@ -49,7 +46,7 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.GridDataSync] = None
+  var syncGridData: scala.Option[Protocol.Data4Sync] = None
   var scale = 1.0
 
   val watchKeys = Set(
@@ -74,8 +71,8 @@ object NetGameHolder extends js.JSApp {
   private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private [this] val formField = dom.document.getElementById("form").asInstanceOf[HTMLFormElement]
-  private [this] val bodyField = dom.document.getElementById("body").asInstanceOf[HTMLBodyElement]
+  private[this] val formField = dom.document.getElementById("form").asInstanceOf[HTMLFormElement]
+  private[this] val bodyField = dom.document.getElementById("body").asInstanceOf[HTMLBodyElement]
 
   private val championHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
   private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
@@ -88,7 +85,7 @@ object NetGameHolder extends js.JSApp {
   private var logicFrameTime = System.currentTimeMillis()
 
   def main(): Unit = {
-//    drawGameOff()
+    //    drawGameOff()
 
 
     joinButton.onclick = { event: MouseEvent =>
@@ -109,12 +106,12 @@ object NetGameHolder extends js.JSApp {
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
 
-//    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
+    //    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
     logicFrameTime = System.currentTimeMillis()
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  def gameRender():Double => Unit = {
+  def gameRender(): Double => Unit = {
     d =>
       val curTime = System.currentTimeMillis()
       val offsetTime = curTime - logicFrameTime
@@ -152,26 +149,26 @@ object NetGameHolder extends js.JSApp {
 
 
   def gameLoop(offsetTime: Long): Unit = {
-//    subFrame += 1
-//    if (subFrame >= totalSubFrame) {
-//      subFrame = 0
-//      if (wsSetup) {
-//        if (!justSynced) { //前端更新
-//          update()
-//        } else {
-//          if (syncGridData.nonEmpty) {
-//            setSyncGridData(syncGridData.get)
-//            syncGridData = None
-//          }
-//          justSynced = false
-//        }
-//      }
-//    }
+    //    subFrame += 1
+    //    if (subFrame >= totalSubFrame) {
+    //      subFrame = 0
+    //      if (wsSetup) {
+    //        if (!justSynced) { //前端更新
+    //          update()
+    //        } else {
+    //          if (syncGridData.nonEmpty) {
+    //            setSyncGridData(syncGridData.get)
+    //            syncGridData = None
+    //          }
+    //          justSynced = false
+    //        }
+    //      }
+    //    }
     draw(offsetTime)
-//    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
+    //    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
     if (offsetTime >= Protocol.frameRate) {
       logicFrameTime = System.currentTimeMillis()
-//      subFrame = 0
+      //      subFrame = 0
       if (wsSetup) {
         if (!justSynced) { //前端更新
           update()
@@ -184,7 +181,7 @@ object NetGameHolder extends js.JSApp {
         }
       }
     }
-//    draw(offsetTime)
+    //    draw(offsetTime)
   }
 
 
@@ -232,9 +229,10 @@ object NetGameHolder extends js.JSApp {
     var tempOff = Point(0, 0)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
-//        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
-        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
-        s.header + s.direction * offsetTime.toFloat / Protocol.frameRate
+        //        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
+        //        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + tempOff
+
       case None =>
         lastHeader
     }
@@ -243,14 +241,17 @@ object NetGameHolder extends js.JSApp {
     val offy = window.y / 2 - lastHeader.y + tempOff.y //新的框的y偏移量
 
     ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x , windowBoundary.y )
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 
-    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val criticalX = window.x / 2 + 1
+    val criticalY = window.y / 2 + 1
 
-//    val myField = fields.count(_.id == myId)
-//    scale = 1 - Math.sqrt(myField) * 0.0048
+    val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
+
+    //    val myField = fields.count(_.id == myId)
+    //    scale = 1 - Math.sqrt(myField) * 0.0048
     scale = 1
 
     ctx.save()
@@ -271,7 +272,7 @@ object NetGameHolder extends js.JSApp {
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
       if (id == uid) {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit/scale, canvasUnit/scale)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit / scale, canvasUnit / scale)
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
@@ -279,7 +280,7 @@ object NetGameHolder extends js.JSApp {
 
     ctx.fillStyle = ColorsSetting.borderColor
     borders.foreach { case Bord(x, y) =>
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit/scale, canvasUnit/scale)
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit / scale, canvasUnit / scale)
     }
 
     //先画冠军的头
@@ -449,6 +450,10 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
+                //                  syncGridData = Some(data)
+                //                  justSynced = true
+
+                case data: Protocol.Data4Sync =>
                   syncGridData = Some(data)
                   justSynced = true
 
@@ -488,14 +493,14 @@ object NetGameHolder extends js.JSApp {
     paragraph
   }
 
-  def setSyncGridData(data: Protocol.GridDataSync): Unit = {
+  def setSyncGridData(data: Protocol.Data4Sync): Unit = {
     grid.frameCount = data.frameCount
     println("backend----" + grid.frameCount)
-    val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
-    val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
-    val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
-    val gridMap = bodyMap ++ fieldMap ++ bordMap
-    grid.grid = gridMap
+    var newGrid = grid.grid
+    newGrid --= data.blankDetails
+    data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id))
+    data.fieldDetails.foreach(f => newGrid += Point(f.x, f.y) -> Field(f.id))
+    grid.grid = newGrid
     grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
     grid.snakes = data.snakes.map(s => s.id -> s).toMap
     grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
