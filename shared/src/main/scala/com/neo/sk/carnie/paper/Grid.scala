@@ -1,8 +1,6 @@
 package com.neo.sk.carnie.paper
 
 import java.awt.event.KeyEvent
-
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 
@@ -51,6 +49,18 @@ trait Grid {
     val map = actionMap.getOrElse(frame, Map.empty)
     val tmp = map + (id -> keyCode)
     actionMap += (frame -> tmp)
+  }
+
+  def checkActionWithFrame(id: Long, keyCode: Int, frame: Long) = {
+    actionMap.get(frame) match {
+      case Some(action) =>
+        action.get(id) match {
+          case Some(key) => if (key == keyCode) true else false
+
+          case None => false
+        }
+      case None => false
+    }
   }
 
 

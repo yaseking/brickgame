@@ -28,7 +28,6 @@ object NetGameHolder extends js.JSApp {
   val SmallMap = Point(LittleMap.w, LittleMap.h)
   val canvasUnit = 20
   val textLineHeight = 14
-  private val canvasBoundary = bounds * canvasUnit
   private val windowBoundary = window * canvasUnit
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val fillWidth = 33
@@ -85,9 +84,6 @@ object NetGameHolder extends js.JSApp {
   private var logicFrameTime = System.currentTimeMillis()
 
   def main(): Unit = {
-    //    drawGameOff()
-
-
     joinButton.onclick = { event: MouseEvent =>
       joinGame(nameField.value)
       event.preventDefault()
@@ -99,7 +95,6 @@ object NetGameHolder extends js.JSApp {
         event.preventDefault()
       }
     }
-
   }
 
   def startGame(): Unit = {
@@ -149,26 +144,10 @@ object NetGameHolder extends js.JSApp {
 
 
   def gameLoop(offsetTime: Long): Unit = {
-    //    subFrame += 1
-    //    if (subFrame >= totalSubFrame) {
-    //      subFrame = 0
-    //      if (wsSetup) {
-    //        if (!justSynced) { //前端更新
-    //          update()
-    //        } else {
-    //          if (syncGridData.nonEmpty) {
-    //            setSyncGridData(syncGridData.get)
-    //            syncGridData = None
-    //          }
-    //          justSynced = false
-    //        }
-    //      }
-    //    }
     draw(offsetTime)
     //    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
     if (offsetTime >= Protocol.frameRate) {
       logicFrameTime = System.currentTimeMillis()
-      //      subFrame = 0
       if (wsSetup) {
         if (!justSynced) { //前端更新
           update()
@@ -181,9 +160,7 @@ object NetGameHolder extends js.JSApp {
         }
       }
     }
-    //    draw(offsetTime)
   }
-
 
   def update(): Unit = {
     grid.update()
@@ -191,11 +168,11 @@ object NetGameHolder extends js.JSApp {
 
 
   def drawSmallMap(myheader: Point, otherSnakes: List[SkDt]): Unit = {
-    val Offx = myheader.x.toDouble / border.x * SmallMap.x
-    val Offy = myheader.y.toDouble / border.y * SmallMap.y
+    val offx = myheader.x.toDouble / border.x * SmallMap.x
+    val offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
     ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
-    ctx.drawImage(myHeaderImg, 990 + Offx * canvasUnit / 2, 490 + Offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
+    ctx.drawImage(myHeaderImg, 990 + offx * canvasUnit / 2, 490 + offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
       val y = i.header.y.toDouble / border.y * SmallMap.y
@@ -390,12 +367,15 @@ object NetGameHolder extends js.JSApp {
           val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
             NetTest(myId, System.currentTimeMillis())
           } else {
-            if (e.keyCode == KeyCode.Space && isWin) {
+            val frame = grid.frameCount
+            if (e.keyCode != KeyCode.Space)
+              grid.addActionWithFrame(myId, e.keyCode, frame)
+            if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
               firstCome = true
               isWin = false
               winnerName = "unknown"
             }
-            Key(myId, e.keyCode)
+            Key(myId, e.keyCode, frame)
           }
           msg.fillMiddleBuffer(sendBuffer) //encode msg
           val ab: ArrayBuffer = sendBuffer.result() //get encoded data.
@@ -429,7 +409,9 @@ object NetGameHolder extends js.JSApp {
               bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
             encodedData match {
               case Right(data) => data match {
-                case Protocol.Id(id) => myId = id
+                case Protocol.InitInfo(id, gridData) =>
+                  myId = id
+                  initSyncGridData(gridData)
 
                 case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
 
@@ -437,8 +419,12 @@ object NetGameHolder extends js.JSApp {
 
                 case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
 
-                case Protocol.SnakeAction(id, keyCode, frame) => grid.addActionWithFrame(id, keyCode, frame)
+                case Protocol.SnakeAction(id, keyCode, frame) =>
+                  if(id == myId){ //收到自己的进行校验
 
+                  } else { //收到别人的动作则加入action
+                    grid.addActionWithFrame(id, keyCode, frame)
+                  }
                 case Protocol.SomeOneWin(winner) =>
                   isWin = true
                   winnerName = winner
@@ -501,6 +487,19 @@ object NetGameHolder extends js.JSApp {
     data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id))
     data.fieldDetails.foreach(f => newGrid += Point(f.x, f.y) -> Field(f.id))
     grid.grid = newGrid
+    grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
+    grid.snakes = data.snakes.map(s => s.id -> s).toMap
+    grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
+  }
+
+  def initSyncGridData(data: Protocol.GridDataSync): Unit = {
+    grid.frameCount = data.frameCount
+    println("backend----" + grid.frameCount)
+    val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
+    val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
+    val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
+    val gridMap = bodyMap ++ fieldMap ++ bordMap
+    grid.grid = gridMap
     grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
     grid.snakes = data.snakes.map(s => s.id -> s).toMap
     grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap

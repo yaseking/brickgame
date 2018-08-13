@@ -77,7 +77,7 @@ object PlayGround {
           context.watch(subscriber)
           subscribers += (id -> subscriber)
           roomMap(roomId)._2.addSnake(id, roomId, name)
-          dispatchTo(id, Protocol.Id(id))
+          dispatchTo(id, Protocol.InitInfo(id, roomMap(roomId)._2.getGridData))
           dispatch(Protocol.NewSnakeJoined(id, name), roomId)
           dispatch(roomMap(roomId)._2.getGridData, roomId)
 
@@ -95,7 +95,7 @@ object PlayGround {
           }
 
         case userAction: UserAction => userAction match {
-          case r@Key(id, keyCode) =>
+          case r@Key(id, keyCode, frameCount) =>
             log.debug(s"got $r")
             val roomId = userMap(id)._1
             dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test

@@ -31,7 +31,7 @@ object Protocol {
                       msg: String
                     ) extends GameMessage
 
-  case class Id(id: Long) extends GameMessage
+  case class InitInfo(id: Long, gridData: GridDataSync) extends GameMessage
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
@@ -48,7 +48,7 @@ object Protocol {
 
   sealed trait UserAction
 
-  case class Key(id: Long, keyCode: Int) extends UserAction
+  case class Key(id: Long, keyCode: Int, frameCount: Long) extends UserAction
 
   case class NetTest(id: Long, createTime: Long) extends UserAction
 
