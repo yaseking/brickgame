@@ -265,7 +265,6 @@ object NetGameHolder extends js.JSApp {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
     }
-    ctx.restore()
 
     ctx.globalAlpha = 1.0
     fields.foreach { case Fd(id, x, y) =>

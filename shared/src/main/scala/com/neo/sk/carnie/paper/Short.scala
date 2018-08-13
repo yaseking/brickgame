@@ -170,7 +170,7 @@ object Short {
         colorField.foreach { p =>
           newGrid.get(p) match {
             case Some(Field(fid)) if fid == snakeId => //donothing
-            case Some(Body(_, _)) =>
+            case Some(Body(_)) =>
             case _ => newGrid += p -> Field(snakeId)
           }
         }
