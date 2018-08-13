@@ -18,6 +18,15 @@ object Protocol {
                            killHistory: List[Kill]
                          ) extends GameMessage
 
+  case class Data4Sync(
+                           frameCount: Long,
+                           snakes: List[SkDt],
+                           bodyDetails: List[Bd],
+                           fieldDetails: List[Fd],
+                           blankDetails: List[Point],
+                           killHistory: List[Kill]
+                         ) extends GameMessage
+
   case class TextMsg(
                       msg: String
                     ) extends GameMessage
