@@ -63,6 +63,7 @@ object NetGameHolder extends js.JSApp {
 
   object ColorsSetting {
     val backgroundColor = "#F5F5F5"
+    val testColor = "#C0C0C0"
     val fontColor = "#000000"
     val defaultColor = "#000080"
     val borderColor = "#696969"
@@ -73,6 +74,8 @@ object NetGameHolder extends js.JSApp {
   private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private [this] val formField = dom.document.getElementById("form").asInstanceOf[HTMLFormElement]
+  private [this] val bodyField = dom.document.getElementById("body").asInstanceOf[HTMLBodyElement]
 
   private val championHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
   private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
@@ -81,10 +84,12 @@ object NetGameHolder extends js.JSApp {
   myHeaderImg.src = "/carnie/static/img/girl.png"
   otherHeaderImg.src = "/carnie/static/img/boy.png"
 
+  private var nextFrame = 0
+  private var logicFrameTime = System.currentTimeMillis()
+
   def main(): Unit = {
-    drawGameOff()
-    canvas.width = windowBoundary.x
-    canvas.height = windowBoundary.y
+//    drawGameOff()
+
 
     joinButton.onclick = { event: MouseEvent =>
       joinGame(nameField.value)
@@ -98,7 +103,25 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
+  }
+
+  def startGame(): Unit = {
+    canvas.width = windowBoundary.x.toInt
+    canvas.height = windowBoundary.y.toInt
+
+//    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
+    logicFrameTime = System.currentTimeMillis()
+    dom.window.requestAnimationFrame(gameRender())
+  }
+
+  def gameRender():Double => Unit = {
+    d =>
+      val curTime = System.currentTimeMillis()
+      val offsetTime = curTime - logicFrameTime
+      gameLoop(offsetTime)
+
+      //      println(s"test d=${d} Time=${System.currentTimeMillis()} OffsetTime=$offsetTime")
+      nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
   def drawGameOn(): Unit = {
@@ -107,7 +130,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillStyle = ColorsSetting.testColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     if (firstCome) {
@@ -128,10 +151,27 @@ object NetGameHolder extends js.JSApp {
   }
 
 
-  def gameLoop(): Unit = {
-    subFrame += 1
-    if (subFrame >= totalSubFrame) {
-      subFrame = 0
+  def gameLoop(offsetTime: Long): Unit = {
+//    subFrame += 1
+//    if (subFrame >= totalSubFrame) {
+//      subFrame = 0
+//      if (wsSetup) {
+//        if (!justSynced) { //前端更新
+//          update()
+//        } else {
+//          if (syncGridData.nonEmpty) {
+//            setSyncGridData(syncGridData.get)
+//            syncGridData = None
+//          }
+//          justSynced = false
+//        }
+//      }
+//    }
+    draw(offsetTime)
+//    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
+    if (offsetTime >= Protocol.frameRate) {
+      logicFrameTime = System.currentTimeMillis()
+//      subFrame = 0
       if (wsSetup) {
         if (!justSynced) { //前端更新
           update()
@@ -144,7 +184,7 @@ object NetGameHolder extends js.JSApp {
         }
       }
     }
-    draw(subFrame)
+//    draw(offsetTime)
   }
 
 
@@ -167,16 +207,16 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def draw(subFrame: Int): Unit = {
+  def draw(offsetTime: Long): Unit = {
     if (wsSetup) {
       if (isWin) {
         drawGameWin(winnerName)
       } else {
         val data = grid.getGridData
         if (data.fieldDetails.nonEmpty) {
-          drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1, subFrame)
+          drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1, offsetTime)
         } else {
-          drawGrid(myId, data, 0, subFrame)
+          drawGrid(myId, data, 0, offsetTime)
         }
       }
     } else {
@@ -184,20 +224,23 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def drawGrid(uid: Long, data: GridDataSync, championId: Long, subFrame: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: Long, data: GridDataSync, championId: Long, offsetTime: Long): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
 
+    var tempOff = Point(0, 0)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
-        s.header + s.direction * subFrame / totalSubFrame
+//        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
+        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + s.direction * offsetTime.toFloat / Protocol.frameRate
       case None =>
         lastHeader
     }
 
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+    val offx = window.x / 2 - lastHeader.x + tempOff.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y + tempOff.y //新的框的y偏移量
 
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x , windowBoundary.y )
@@ -206,9 +249,9 @@ object NetGameHolder extends js.JSApp {
     val fields = data.fieldDetails.filter(p=> Math.abs(p.x - lastHeader.x) < window.x / 2 &&  Math.abs(p.y - lastHeader.y) < window.y / 2).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p=> Math.abs(p.x - lastHeader.x) < window.x / 2 &&  Math.abs(p.y - lastHeader.y) < window.y / 2).map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
-    val myField = fields.count(_.id == myId)
-    scale = 1 - Math.sqrt(myField) * 0.0048
-//    scale = 1
+//    val myField = fields.count(_.id == myId)
+//    scale = 1 - Math.sqrt(myField) * 0.0048
+    scale = 1
 
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
@@ -272,6 +315,7 @@ object NetGameHolder extends js.JSApp {
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
+          dom.window.cancelAnimationFrame(nextFrame)
           ctx.font = "36px Helvetica"
           val text = grid.getKiller(uid) match {
             case Some(killer) =>
@@ -301,7 +345,7 @@ object NetGameHolder extends js.JSApp {
 
     val currentRankBaseLine = 1
     var index = 0
-    drawTextLine(s" --- Current Rank --- ", rightBegin, index, currentRankBaseLine)
+    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
@@ -314,7 +358,7 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 1
       ctx.fillStyle = ColorsSetting.fontColor
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin, index, currentRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin.toInt, index, currentRankBaseLine)
     }
 
     drawSmallMap(lastHeader, otherSnakes)
@@ -327,7 +371,9 @@ object NetGameHolder extends js.JSApp {
   val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
 
   def joinGame(name: String): Unit = {
-    joinButton.disabled = true
+    formField.innerHTML = ""
+    bodyField.style.backgroundColor = "white"
+    startGame()
     val playground = dom.document.getElementById("playground")
     playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
@@ -397,6 +443,7 @@ object NetGameHolder extends js.JSApp {
                   isWin = true
                   winnerName = winner
                   grid.cleanData()
+                  dom.window.cancelAnimationFrame(nextFrame)
 
                 case Protocol.Ranks(current, history) =>
                   currentRank = current
