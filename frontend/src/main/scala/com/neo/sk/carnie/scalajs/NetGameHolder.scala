@@ -197,8 +197,8 @@ object NetGameHolder extends js.JSApp {
     val Offx = myheader.x.toDouble / border.x * SmallMap.x
     val Offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    val w = canvas.width - LittleMap.w * canvasUnit * 1.08
-    val h = canvas.height - LittleMap.h * canvasUnit * 1.10
+    val w = canvas.width - LittleMap.w * canvasUnit * 1.028
+    val h = canvas.height - LittleMap.h * canvasUnit * 1.026
     ctx.fillRect(w, h, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
     ctx.drawImage(myHeaderImg, w + Offx * canvasUnit, h + Offy * canvasUnit, canvasUnit / 2, canvasUnit / 2)
     otherSnakes.foreach { i =>
@@ -375,12 +375,12 @@ object NetGameHolder extends js.JSApp {
     formField.innerHTML = ""
     bodyField.style.backgroundColor = "white"
     startGame()
-    val playground = dom.document.getElementById("playground")
-    playground.innerHTML = s"Trying to join game as '$name'..."
+//    val playground = dom.document.getElementById("playground")
+//    playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
       drawGameOn()
-      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
+//      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
       canvas.onkeydown = { e: dom.KeyboardEvent => {
@@ -410,7 +410,7 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onerror = { event: Event =>
       drawGameOff()
-      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
+//      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
@@ -469,14 +469,14 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onclose = { event: Event =>
       drawGameOff()
-      playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
+//      playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
     }
 
-    def writeToArea(text: String): Unit =
-      playground.insertBefore(p(text), playground.firstChild)
+    def writeToArea(text: String): Unit ={}
+//      playground.insertBefore(p(text), playground.firstChild)
   }
 
   def getWebSocketUri(document: Document, nameOfChatParticipant: String): String = {
