@@ -35,7 +35,7 @@ object Protocol {
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
-  case class SnakeAction(id: Long, keyCode: Int, frame: Long) extends GameMessage
+  case class SnakeAction(id: Long, keyCode: Int, frame: Long, actionId: Int) extends GameMessage
 
   case class SnakeLeft(id: Long, name: String) extends GameMessage
 
@@ -48,7 +48,7 @@ object Protocol {
 
   sealed trait UserAction
 
-  case class Key(id: Long, keyCode: Int, frameCount: Long) extends UserAction
+  case class Key(id: Long, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
 
   case class NetTest(id: Long, createTime: Long) extends UserAction
 

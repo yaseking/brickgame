@@ -77,7 +77,8 @@ object PlayGround {
           context.watch(subscriber)
           subscribers += (id -> subscriber)
           roomMap(roomId)._2.addSnake(id, roomId, name)
-          dispatchTo(id, Protocol.InitInfo(id, roomMap(roomId)._2.getGridData))
+          val gridData = roomMap(roomId)._2.getGridData
+          dispatchTo(id, Protocol.InitInfo(id, gridData.copy(frameCount = gridData.frameCount + 2)))
           dispatch(Protocol.NewSnakeJoined(id, name), roomId)
           dispatch(roomMap(roomId)._2.getGridData, roomId)
 
@@ -95,15 +96,20 @@ object PlayGround {
           }
 
         case userAction: UserAction => userAction match {
-          case r@Key(id, keyCode, frameCount) =>
+          case r@Key(id, keyCode, frameCount, actionId) =>
             log.debug(s"got $r")
             val roomId = userMap(id)._1
             dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
             if (keyCode == KeyEvent.VK_SPACE) {
               roomMap(roomId)._2.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
             } else {
-              roomMap(roomId)._2.addAction(id, keyCode)
-              dispatch(Protocol.SnakeAction(id, keyCode, roomMap(roomId)._2.frameCount), roomId)
+              val grid = roomMap(roomId)._2
+              log.debug(s"receive frameCount:$frameCount ---  backend frame:${grid.frameCount}")
+              grid.addActionWithFrame(id, keyCode, grid.frameCount)
+//              if(frameCount <= grid.frameCount && frameCount > grid.frameCount - grid.maxDelayed){ //回溯
+//                grid.recallGrid(frameCount, grid.frameCount)
+//              }
+              dispatch(Protocol.SnakeAction(id, keyCode, grid.frameCount, actionId), roomId)
             }
 
           case NetTest(id, createTime) =>
@@ -135,20 +141,20 @@ object PlayGround {
               r._2._2.update()
               if (tickCount % 20 == 5) {
                 val newData = r._2._2.getGridData
-                val gridData = lastSyncDataMap.get(r._1) match {
-                  case Some(oldData) =>
-                    var blankPoint: Set[Point] = Set()
-                    val newBody = newData.bodyDetails.toSet &~ oldData.bodyDetails.toSet
-                    val newField = newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet
-                    blankPoint = (oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
-                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))
-                    Data4Sync(newData.frameCount, newData.snakes, newBody.toList, newField.toList, blankPoint.toList, newData.killHistory)
-
-                  case None =>
-                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
-                }
-                lastSyncDataMap += (r._1 -> newData)
-                dispatch(gridData, r._1)
+//                val gridData = lastSyncDataMap.get(r._1) match {
+//                  case Some(oldData) =>
+//                    var blankPoint: Set[Point] = Set()
+//                    val newBody = newData.bodyDetails.toSet &~ oldData.bodyDetails.toSet
+//                    val newField = newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet
+//                    blankPoint = (oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
+//                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))
+//                    Data4Sync(newData.frameCount, newData.snakes, newBody.toList, newField.toList, blankPoint.toList, newData.killHistory)
+//
+//                  case None =>
+//                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
+//                }
+//                lastSyncDataMap += (r._1 -> newData)
+                dispatch(newData, r._1)
 
               }
               if(tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)

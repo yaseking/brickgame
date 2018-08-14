@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.scalajs
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.carnie.paper.Protocol.{GridDataSync, Key, NetTest}
 import com.neo.sk.carnie.paper._
 import com.neo.sk.carnie.util.MiddleBufferInJs
@@ -45,8 +47,11 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.Data4Sync] = None
+  var syncGridData: scala.Option[Protocol.GridDataSync] = None
   var scale = 1.0
+
+  val idGenerator = new AtomicInteger(1)
+  var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
 
   val watchKeys = Set(
     KeyCode.Space,
@@ -153,7 +158,7 @@ object NetGameHolder extends js.JSApp {
           update()
         } else {
           if (syncGridData.nonEmpty) {
-            setSyncGridData(syncGridData.get)
+            initSyncGridData(syncGridData.get)
             syncGridData = None
           }
           justSynced = false
@@ -367,15 +372,18 @@ object NetGameHolder extends js.JSApp {
           val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
             NetTest(myId, System.currentTimeMillis())
           } else {
-            val frame = grid.frameCount
-            if (e.keyCode != KeyCode.Space)
+            val frame = grid.frameCount + 1
+            val actionId = idGenerator.getAndIncrement()
+            if (e.keyCode != KeyCode.Space) {
+              myActionHistory += actionId -> (e.keyCode, frame)
               grid.addActionWithFrame(myId, e.keyCode, frame)
+            }
             if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
               firstCome = true
               isWin = false
               winnerName = "unknown"
             }
-            Key(myId, e.keyCode, frame)
+            Key(myId, e.keyCode, frame, actionId)
           }
           msg.fillMiddleBuffer(sendBuffer) //encode msg
           val ab: ArrayBuffer = sendBuffer.result() //get encoded data.
@@ -419,13 +427,30 @@ object NetGameHolder extends js.JSApp {
 
                 case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
 
-                case Protocol.SnakeAction(id, keyCode, frame) =>
-                  if(id == myId){ //收到自己的进行校验
-                    val res = grid.checkActionWithFrame(id, keyCode, frame)
-                    println(res)
-                  } else { //收到别人的动作则加入action
+                case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
+                  if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+                    if(myActionHistory.get(actionId).isEmpty){ //前端没有该项，则加入
+                      grid.addActionWithFrame(id, keyCode, frame)
+                      if(frame <= grid.frameCount && grid.frameCount - frame <= grid.maxDelayed){ //回溯
+                        grid.recallGrid(frame, grid.frameCount)
+                      }
+                    } else{
+                      myActionHistory -= actionId
+                      if(myActionHistory(actionId)._1 != keyCode  || myActionHistory(actionId)._2 != frame){ //若keyCode或则frame不一致则进行回溯
+                        grid.addActionWithFrame(id, keyCode, frame)
+                        val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
+                        if(miniFrame <= grid.frameCount && grid.frameCount - miniFrame <= grid.maxDelayed){ //回溯
+                          grid.recallGrid(miniFrame, grid.frameCount)
+                        }
+                      }
+                    }
+                  } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
                     grid.addActionWithFrame(id, keyCode, frame)
+                    if(frame <= grid.frameCount && grid.frameCount - frame <= grid.maxDelayed){ //回溯
+                      grid.recallGrid(frame, grid.frameCount)
+                    }
                   }
+
                 case Protocol.SomeOneWin(winner) =>
                   isWin = true
                   winnerName = winner
@@ -437,12 +462,12 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
-                //                  syncGridData = Some(data)
-                //                  justSynced = true
-
-                case data: Protocol.Data4Sync =>
                   syncGridData = Some(data)
                   justSynced = true
+
+                case data: Protocol.Data4Sync =>
+//                  syncGridData = Some(data)
+//                  justSynced = true
 
                 case Protocol.NetDelayTest(createTime) =>
                   val receiveTime = System.currentTimeMillis()
@@ -495,7 +520,7 @@ object NetGameHolder extends js.JSApp {
 
   def initSyncGridData(data: Protocol.GridDataSync): Unit = {
     grid.frameCount = data.frameCount
-    println("backend----" + grid.frameCount)
+//    println("backend-------" + grid.frameCount)
     val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
     val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
     val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap

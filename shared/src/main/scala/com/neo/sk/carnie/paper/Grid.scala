@@ -19,6 +19,7 @@ trait Grid {
 
   val random = new Random(System.nanoTime())
 
+  val maxDelayed = 6 //最大接收5帧以内的延时
   val historyRankLength = 5
   var frameCount = 0l
   var grid = Map[Point, Spot]()
@@ -28,6 +29,7 @@ trait Grid {
   var bodyField = Map.empty[Long, Map[Point, Long]] //(body点，原归属者的id)
   var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇
   var mayBeSuccess = Map.empty[Long, Set[Point]] //圈地成功后的被圈点
+  var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
 
   List(0, BorderSize.w).foreach(x => (0 to BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 to BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -67,7 +69,8 @@ trait Grid {
   def update() = {
     updateSnakes()
     updateSpots()
-    actionMap -= frameCount
+    actionMap -= frameCount - maxDelayed
+    historyStateMap -= frameCount - (maxDelayed + 1)
     frameCount += 1
   }
 
@@ -210,6 +213,8 @@ trait Grid {
     var updatedSnakes = List.empty[UpdateSnakeInfo]
     var killedSnaked = List.empty[Long]
 
+    historyStateMap += frameCount -> (snakes, grid)
+
     val acts = actionMap.getOrElse(frameCount, Map.empty[Long, Int])
 
     snakes.values.map(updateASnake(_, acts)).foreach {
@@ -298,6 +303,21 @@ trait Grid {
       case _ =>
     }
     bodyField -= snakeId
+  }
+
+  def recallGrid(startFrame: Long, endFrame: Long) = {
+    historyStateMap.get(startFrame) match {
+      case Some(state) =>
+        snakes = state._1
+        grid = state._2
+        (startFrame to endFrame).foreach { frame =>
+          frameCount = frame
+          updateSnakes()
+        }
+
+      case None =>
+
+    }
   }
 
 
