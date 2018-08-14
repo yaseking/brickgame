@@ -421,7 +421,8 @@ object NetGameHolder extends js.JSApp {
 
                 case Protocol.SnakeAction(id, keyCode, frame) =>
                   if(id == myId){ //收到自己的进行校验
-
+                    val res = grid.checkActionWithFrame(id, keyCode, frame)
+                    println(res)
                   } else { //收到别人的动作则加入action
                     grid.addActionWithFrame(id, keyCode, frame)
                   }
