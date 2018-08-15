@@ -217,7 +217,7 @@ object NetGameHolder extends js.JSApp {
       case Some(s) =>
         //        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
         //        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
-        s.header
+        s.header + s.direction * offsetTime.toFloat / Protocol.frameRate
 
       case None =>
         lastHeader
@@ -271,13 +271,23 @@ object NetGameHolder extends js.JSApp {
 
     //先画冠军的头
     snakes.filter(_.id == championId).foreach { s =>
-      ctx.drawImage(championHeaderImg, (s.header.x + offx) * canvasUnit, (s.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.globalAlpha = 0.5
+      ctx.fillStyle = s.color
+      val off = s.direction * offsetTime.toFloat / Protocol.frameRate
+      ctx.fillRect((s.header.x + offx + off.x) * canvasUnit, (s.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.globalAlpha = 1.0
+      ctx.drawImage(championHeaderImg, (s.header.x + offx + off.x) * canvasUnit, (s.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
 
     //画其他人的头
     snakes.filterNot(_.id == championId).foreach { snake =>
+      ctx.globalAlpha = 0.5
+      ctx.fillStyle = snake.color
       val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
-      ctx.drawImage(img, (snake.header.x + offx) * canvasUnit, (snake.header.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+      val off = snake.direction * offsetTime.toFloat / Protocol.frameRate
+      ctx.fillRect((snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.globalAlpha = 1.0
+      ctx.drawImage(img, (snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
     ctx.restore()
 
