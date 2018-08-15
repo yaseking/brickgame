@@ -53,6 +53,12 @@ trait Grid {
     actionMap += (frame -> tmp)
   }
 
+  def deleteActionWithFrame(id: Long, keyCode: Int, frame: Long) = {
+    val map = actionMap.getOrElse(frame, Map.empty)
+    val tmp = map - id
+    actionMap += (frame -> tmp)
+  }
+
   def checkActionWithFrame(id: Long, keyCode: Int, frame: Long) = {
     actionMap.get(frame) match {
       case Some(action) =>
@@ -69,8 +75,8 @@ trait Grid {
   def update() = {
     updateSnakes()
     updateSpots()
-    actionMap -= frameCount - maxDelayed
-    historyStateMap -= frameCount - (maxDelayed + 1)
+    actionMap -= (frameCount - maxDelayed)
+    historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
     frameCount += 1
   }
 
@@ -310,12 +316,15 @@ trait Grid {
       case Some(state) =>
         snakes = state._1
         grid = state._2
+        println("startTime" + System.currentTimeMillis())
         (startFrame to endFrame).foreach { frame =>
           frameCount = frame
           updateSnakes()
         }
+        println("endTime" + System.currentTimeMillis())
 
       case None =>
+        println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")
 
     }
   }

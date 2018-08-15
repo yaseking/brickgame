@@ -51,7 +51,7 @@ object NetGameHolder extends js.JSApp {
   var scale = 1.0
 
   val idGenerator = new AtomicInteger(1)
-  var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
+  private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
 
   val watchKeys = Set(
     KeyCode.Space,
@@ -157,6 +157,7 @@ object NetGameHolder extends js.JSApp {
         if (!justSynced) { //前端更新
           update()
         } else {
+          println("sync....")
           if (syncGridData.nonEmpty) {
             initSyncGridData(syncGridData.get)
             syncGridData = None
@@ -208,19 +209,19 @@ object NetGameHolder extends js.JSApp {
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
 
-    var tempOff = Point(0, 0)
+//    var tempOff = Point(0, 0)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         //        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
         //        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
-        s.header + tempOff
+        s.header
 
       case None =>
         lastHeader
     }
 
-    val offx = window.x / 2 - lastHeader.x + tempOff.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y + tempOff.y //新的框的y偏移量
+    val offx = window.x / 2 - lastHeader.x  //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y  //新的框的y偏移量
 
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -431,23 +432,24 @@ object NetGameHolder extends js.JSApp {
                   if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
                     if(myActionHistory.get(actionId).isEmpty){ //前端没有该项，则加入
                       grid.addActionWithFrame(id, keyCode, frame)
-                      if(frame <= grid.frameCount && grid.frameCount - frame <= grid.maxDelayed){ //回溯
-                        grid.recallGrid(frame, grid.frameCount)
+                      if(frame <= grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                        grid.recallGrid(frame - 1, grid.frameCount)
                       }
                     } else{
-                      myActionHistory -= actionId
                       if(myActionHistory(actionId)._1 != keyCode  || myActionHistory(actionId)._2 != frame){ //若keyCode或则frame不一致则进行回溯
+                        grid.deleteActionWithFrame(id, myActionHistory(actionId)._1, myActionHistory(actionId)._2)
                         grid.addActionWithFrame(id, keyCode, frame)
                         val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                        if(miniFrame <= grid.frameCount && grid.frameCount - miniFrame <= grid.maxDelayed){ //回溯
-                          grid.recallGrid(miniFrame, grid.frameCount)
+                        if(miniFrame <= grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)){ //回溯
+                          grid.recallGrid(miniFrame - 1, grid.frameCount)
                         }
                       }
+                      myActionHistory -= actionId
                     }
                   } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
                     grid.addActionWithFrame(id, keyCode, frame)
-                    if(frame <= grid.frameCount && grid.frameCount - frame <= grid.maxDelayed){ //回溯
-                      grid.recallGrid(frame, grid.frameCount)
+                    if(frame <= grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)){ //回溯
+                      grid.recallGrid(frame - 1, grid.frameCount)
                     }
                   }
 
