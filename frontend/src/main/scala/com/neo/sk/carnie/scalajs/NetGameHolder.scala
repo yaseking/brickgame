@@ -247,7 +247,6 @@ object NetGameHolder extends js.JSApp {
     //    scale = 1 - Math.sqrt(myField) * 0.0048
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-    println(scale)
     ctx.globalAlpha = 0.5
     bodies.foreach { case Bd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
