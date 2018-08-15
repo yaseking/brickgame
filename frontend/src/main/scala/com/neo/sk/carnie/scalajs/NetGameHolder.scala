@@ -269,7 +269,11 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 0.5
       ctx.fillStyle = s.color
       val off = s.direction * offsetTime.toFloat / Protocol.frameRate
-      ctx.fillRect((s.header.x + offx + off.x) * canvasUnit, (s.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      val tempDir = Point(if(s.direction.x > 0) 1 else off.x, if(s.direction.y > 0) 1 else off.y)
+      if(s.direction.x.toInt == 1 || s.direction.x.toInt == -1)
+        ctx.fillRect((s.header.x + offx + tempDir.x) * canvasUnit, (s.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit,  canvasUnit)
+      else
+        ctx.fillRect((s.header.x + offx) * canvasUnit, (s.header.y + offy + tempDir.y) * canvasUnit, canvasUnit,  math.abs(off.y) * canvasUnit)
       ctx.globalAlpha = 1.0
       ctx.drawImage(championHeaderImg, (s.header.x + offx + off.x) * canvasUnit, (s.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
@@ -280,7 +284,11 @@ object NetGameHolder extends js.JSApp {
       ctx.fillStyle = snake.color
       val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
       val off = snake.direction * offsetTime.toFloat / Protocol.frameRate
-      ctx.fillRect((snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      val tempDir = Point(if(snake.direction.x > 0) 1 else off.x, if(snake.direction.y > 0) 1 else off.y)
+      if(snake.direction.x.toInt == 1 || snake.direction.x.toInt == -1)
+        ctx.fillRect((snake.header.x + offx + tempDir.x) * canvasUnit, (snake.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit,  canvasUnit)
+      else
+        ctx.fillRect((snake.header.x + offx) * canvasUnit, (snake.header.y + offy + tempDir.y) * canvasUnit, canvasUnit,  math.abs(off.y) * canvasUnit)
       ctx.globalAlpha = 1.0
       ctx.drawImage(img, (snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
