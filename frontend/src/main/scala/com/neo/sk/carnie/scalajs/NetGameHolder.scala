@@ -175,15 +175,13 @@ object NetGameHolder extends js.JSApp {
 
 
   def drawSmallMap(myheader: Point, otherSnakes: List[SkDt]): Unit = {
-    val offx = myheader.x.toDouble / border.x * SmallMap.x
-    val offy = myheader.y.toDouble / border.y * SmallMap.y
+    val Offx = myheader.x.toDouble / border.x * SmallMap.x
+    val Offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
-    ctx.drawImage(myHeaderImg, 990 + offx * canvasUnit / 2, 490 + offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
     val w = canvas.width - LittleMap.w * canvasUnit * 1.028
     val h = canvas.height - LittleMap.h * canvasUnit * 1.026
     ctx.fillRect(w, h, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
-    ctx.drawImage(myHeaderImg, w + offx * canvasUnit, h + offy * canvasUnit, canvasUnit / 2, canvasUnit / 2)
+    ctx.drawImage(myHeaderImg, w + Offx * canvasUnit, h + Offy * canvasUnit, canvasUnit / 2, canvasUnit / 2)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
       val y = i.header.y.toDouble / border.y * SmallMap.y
