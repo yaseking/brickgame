@@ -74,8 +74,8 @@ package object paper {
   }
 
   object LittleMap {
-    val w = 20
-    val h = 10
+    val w = 12
+    val h = 7
   }
 
 }
