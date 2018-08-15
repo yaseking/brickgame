@@ -31,7 +31,7 @@ object Protocol {
                       msg: String
                     ) extends GameMessage
 
-  case class InitInfo(id: Long, gridData: GridDataSync) extends GameMessage
+  case class Id(id: Long) extends GameMessage
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 

@@ -418,9 +418,7 @@ object NetGameHolder extends js.JSApp {
               bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
             encodedData match {
               case Right(data) => data match {
-                case Protocol.InitInfo(id, gridData) =>
-                  myId = id
-                  initSyncGridData(gridData)
+                case Protocol.Id(id) => myId = id
 
                 case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
 
