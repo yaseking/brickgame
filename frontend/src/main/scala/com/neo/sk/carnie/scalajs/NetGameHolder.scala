@@ -29,7 +29,7 @@ object NetGameHolder extends js.JSApp {
   val window = Point(Window.w, Window.h)
   val SmallMap = Point(LittleMap.w, LittleMap.h)
 //  val canvasUnit = 20
-  val canvasUnit = dom.window.innerWidth.toInt / window.x
+  val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   val textLineHeight = 14
   private val canvasBoundary = bounds * canvasUnit
 //  private val windowBoundary = window * canvasUnit
@@ -235,10 +235,6 @@ object NetGameHolder extends js.JSApp {
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
-
-//    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-//    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-//    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     //    val myField = fields.count(_.id == myId)
     //    scale = 1 - Math.sqrt(myField) * 0.0048
