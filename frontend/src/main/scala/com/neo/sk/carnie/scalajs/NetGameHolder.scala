@@ -236,10 +236,6 @@ object NetGameHolder extends js.JSApp {
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
-//    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-//    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-//    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
-
     //    val myField = fields.count(_.id == myId)
     //    scale = 1 - Math.sqrt(myField) * 0.0048
     scale = 1
