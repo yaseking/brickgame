@@ -50,7 +50,7 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.GridDataSync] = None
+  var syncGridData: scala.Option[Protocol.Data4Sync] = None
   var scale = 1.0
 
   val idGenerator = new AtomicInteger(1)
@@ -160,7 +160,7 @@ object NetGameHolder extends js.JSApp {
           update()
         } else {
           if (syncGridData.nonEmpty) {
-            initSyncGridData(syncGridData.get)
+            setSyncGridData(syncGridData.get)
             syncGridData = None
           }
           justSynced = false
@@ -363,12 +363,12 @@ object NetGameHolder extends js.JSApp {
   def joinGame(name: String): Unit = {
     formField.innerHTML = ""
     bodyField.style.backgroundColor = "white"
-    startGame()
 //    val playground = dom.document.getElementById("playground")
 //    playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
       drawGameOn()
+      startGame()
 //      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
@@ -469,12 +469,12 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
-                  syncGridData = Some(data)
-                  justSynced = true
-
-                case data: Protocol.Data4Sync =>
 //                  syncGridData = Some(data)
 //                  justSynced = true
+
+                case data: Protocol.Data4Sync =>
+                  syncGridData = Some(data)
+                  justSynced = true
 
                 case Protocol.NetDelayTest(createTime) =>
                   val receiveTime = System.currentTimeMillis()
@@ -513,8 +513,8 @@ object NetGameHolder extends js.JSApp {
   }
 
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
+    println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
     grid.frameCount = data.frameCount
-    println("backend----" + grid.frameCount)
     var newGrid = grid.grid
     newGrid --= data.blankDetails
     data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id))
