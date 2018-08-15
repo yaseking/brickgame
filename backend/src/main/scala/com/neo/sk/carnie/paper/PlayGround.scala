@@ -77,7 +77,6 @@ object PlayGround {
           context.watch(subscriber)
           subscribers += (id -> subscriber)
           roomMap(roomId)._2.addSnake(id, roomId, name)
-          val gridData = roomMap(roomId)._2.getGridData
           dispatchTo(id, Protocol.Id(id))
           dispatch(Protocol.NewSnakeJoined(id, name), roomId)
           dispatch(roomMap(roomId)._2.getGridData, roomId)
