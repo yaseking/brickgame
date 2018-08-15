@@ -50,7 +50,7 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.Data4Sync] = None
+  var syncGridData: scala.Option[Protocol.GridDataSync] = None
   var scale = 1.0
 
   val idGenerator = new AtomicInteger(1)
@@ -113,14 +113,12 @@ object NetGameHolder extends js.JSApp {
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  def gameRender(): Double => Unit = {
-    d =>
-      val curTime = System.currentTimeMillis()
-      val offsetTime = curTime - logicFrameTime
-      gameLoop(offsetTime)
+  def gameRender(): Double => Unit = { d =>
+    val curTime = System.currentTimeMillis()
+    val offsetTime = curTime - logicFrameTime
+    draw(offsetTime)
 
-      //      println(s"test d=${d} Time=${System.currentTimeMillis()} OffsetTime=$offsetTime")
-      nextFrame = dom.window.requestAnimationFrame(gameRender())
+    nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
   def drawGameOn(): Unit = {
@@ -149,22 +147,19 @@ object NetGameHolder extends js.JSApp {
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
   }
 
+  dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
 
-  def gameLoop(offsetTime: Long): Unit = {
-    draw(offsetTime)
-    //    subFrame = (offsetTime / (Protocol.frameRate / totalSubFrame)).toInt
-    if (offsetTime >= Protocol.frameRate) {
-      logicFrameTime = System.currentTimeMillis()
-      if (wsSetup) {
-        if (!justSynced) { //前端更新
-          update()
-        } else {
-          if (syncGridData.nonEmpty) {
-            setSyncGridData(syncGridData.get)
-            syncGridData = None
-          }
-          justSynced = false
+  def gameLoop(): Unit = {
+    logicFrameTime = System.currentTimeMillis()
+    if (wsSetup) {
+      if (!justSynced) { //前端更新
+        update()
+      } else {
+        if (syncGridData.nonEmpty) {
+          initSyncGridData(syncGridData.get)
+          syncGridData = None
         }
+        justSynced = false
       }
     }
   }
@@ -475,12 +470,14 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
-//                  syncGridData = Some(data)
-//                  justSynced = true
-
-                case data: Protocol.Data4Sync =>
+                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
                   syncGridData = Some(data)
                   justSynced = true
+
+                case data: Protocol.Data4Sync =>
+                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
+//                  syncGridData = Some(data)
+//                  justSynced = true
 
                 case Protocol.NetDelayTest(createTime) =>
                   val receiveTime = System.currentTimeMillis()
@@ -519,7 +516,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
-    println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
+//    println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
     grid.frameCount = data.frameCount
     var newGrid = grid.grid
     newGrid --= data.blankDetails

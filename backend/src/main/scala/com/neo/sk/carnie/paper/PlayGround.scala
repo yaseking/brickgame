@@ -136,20 +136,20 @@ object PlayGround {
               r._2._2.update()
               if (tickCount % 20 == 5) {
                 val newData = r._2._2.getGridData
-                val gridData = lastSyncDataMap.get(r._1) match {
-                  case Some(oldData) =>
-                    var blankPoint: Set[Point] = Set()
-                    val newBody = newData.bodyDetails.toSet &~ oldData.bodyDetails.toSet
-                    val newField = newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet
-                    blankPoint = (oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
-                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))
-                    Data4Sync(newData.frameCount, newData.snakes, newBody.toList, newField.toList, blankPoint.toList, newData.killHistory)
-
-                  case None =>
-                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
-                }
-                lastSyncDataMap += (r._1 -> newData)
-                dispatch(gridData, r._1)
+//                val gridData = lastSyncDataMap.get(r._1) match {
+//                  case Some(oldData) =>
+//                    var blankPoint: Set[Point] = Set()
+//                    val newBody = newData.bodyDetails.toSet &~ oldData.bodyDetails.toSet
+//                    val newField = newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet
+//                    blankPoint = (oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
+//                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))
+//                    Data4Sync(newData.frameCount, newData.snakes, newBody.toList, newField.toList, blankPoint.toList, newData.killHistory)
+//
+//                  case None =>
+//                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
+//                }
+//                lastSyncDataMap += (r._1 -> newData)
+                dispatch(newData, r._1)
               }
               if(tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if(r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
