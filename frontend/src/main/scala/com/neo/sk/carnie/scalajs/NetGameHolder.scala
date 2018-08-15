@@ -28,9 +28,12 @@ object NetGameHolder extends js.JSApp {
   val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
   val SmallMap = Point(LittleMap.w, LittleMap.h)
-  val canvasUnit = 20
+//  val canvasUnit = 20
+  val canvasUnit = dom.window.innerWidth.toInt / window.x
   val textLineHeight = 14
-  private val windowBoundary = window * canvasUnit
+  private val canvasBoundary = bounds * canvasUnit
+//  private val windowBoundary = window * canvasUnit
+  private val windowBoundary = Point(dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val fillWidth = 33
 
@@ -64,7 +67,6 @@ object NetGameHolder extends js.JSApp {
 
   object ColorsSetting {
     val backgroundColor = "#F5F5F5"
-    val testColor = "#C0C0C0"
     val fontColor = "#000000"
     val defaultColor = "#000080"
     val borderColor = "#696969"
@@ -127,7 +129,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = ColorsSetting.testColor
+    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     if (firstCome) {
@@ -157,7 +159,6 @@ object NetGameHolder extends js.JSApp {
         if (!justSynced) { //前端更新
           update()
         } else {
-          println("sync....")
           if (syncGridData.nonEmpty) {
             initSyncGridData(syncGridData.get)
             syncGridData = None
@@ -179,11 +180,15 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.mapColor
     ctx.fillRect(990, 490, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
     ctx.drawImage(myHeaderImg, 990 + offx * canvasUnit / 2, 490 + offy * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
+    val w = canvas.width - LittleMap.w * canvasUnit * 1.028
+    val h = canvas.height - LittleMap.h * canvasUnit * 1.026
+    ctx.fillRect(w, h, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
+    ctx.drawImage(myHeaderImg, w + offx * canvasUnit, h + offy * canvasUnit, canvasUnit / 2, canvasUnit / 2)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
       val y = i.header.y.toDouble / border.y * SmallMap.y
       ctx.fillStyle = i.color
-      ctx.fillRect(990 + x * canvasUnit / 2, 490 + y * canvasUnit / 2, canvasUnit / 2, canvasUnit / 2)
+      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, canvasUnit / 2, canvasUnit / 2)
     }
   }
 
@@ -227,11 +232,15 @@ object NetGameHolder extends js.JSApp {
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 
     val criticalX = window.x / 2 + 1
-    val criticalY = window.y / 2 + 1
+    val criticalY = window.y * 0.65
 
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
+
+//    val bodies = data.bodyDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+//    val fields = data.fieldDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
+//    val borders = data.borderDetails.map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     //    val myField = fields.count(_.id == myId)
     //    scale = 1 - Math.sqrt(myField) * 0.0048
@@ -357,12 +366,12 @@ object NetGameHolder extends js.JSApp {
     formField.innerHTML = ""
     bodyField.style.backgroundColor = "white"
     startGame()
-    val playground = dom.document.getElementById("playground")
-    playground.innerHTML = s"Trying to join game as '$name'..."
+//    val playground = dom.document.getElementById("playground")
+//    playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
       drawGameOn()
-      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
+//      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
       canvas.onkeydown = { e: dom.KeyboardEvent => {
@@ -398,7 +407,7 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onerror = { event: Event =>
       drawGameOff()
-      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
+//      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
@@ -484,14 +493,14 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onclose = { event: Event =>
       drawGameOff()
-      playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
+//      playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
     }
 
-    def writeToArea(text: String): Unit =
-      playground.insertBefore(p(text), playground.firstChild)
+    def writeToArea(text: String): Unit ={}
+//      playground.insertBefore(p(text), playground.firstChild)
   }
 
   def getWebSocketUri(document: Document, nameOfChatParticipant: String): String = {
