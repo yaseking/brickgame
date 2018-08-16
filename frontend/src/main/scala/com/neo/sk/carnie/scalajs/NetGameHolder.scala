@@ -542,7 +542,7 @@ object NetGameHolder extends js.JSApp {
     data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id))
     data.fieldDetails.foreach(f => newGrid += Point(f.x, f.y) -> Field(f.id))
     grid.grid = newGrid
-    grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
+    grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
     grid.snakes = data.snakes.map(s => s.id -> s).toMap
     grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
   }
@@ -555,7 +555,7 @@ object NetGameHolder extends js.JSApp {
     val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
     val gridMap = bodyMap ++ fieldMap ++ bordMap
     grid.grid = gridMap
-    grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
+    grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
     grid.snakes = data.snakes.map(s => s.id -> s).toMap
     grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
   }
