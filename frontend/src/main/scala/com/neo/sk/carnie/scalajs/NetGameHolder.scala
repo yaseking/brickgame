@@ -244,22 +244,14 @@ object NetGameHolder extends js.JSApp {
     bodies.foreach { case Bd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      if (id == uid) {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      } else {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      }
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
 
     ctx.globalAlpha = 1.0
     fields.foreach { case Fd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      if (id == uid) {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      } else {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-      }
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05)
     }
 
     //先画冠军的头
@@ -294,7 +286,7 @@ object NetGameHolder extends js.JSApp {
     }
     ctx.fillStyle = ColorsSetting.borderColor
     borders.foreach { case Bord(x, y) =>
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05)
     }
     ctx.restore()
 
