@@ -110,8 +110,7 @@ object NetGameHolder extends js.JSApp {
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
 
-    //    dom.window.setInterval(() => gameLoop(), Protocol.frameRate / totalSubFrame)
-    logicFrameTime = System.currentTimeMillis()
+    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -148,8 +147,6 @@ object NetGameHolder extends js.JSApp {
     ctx.font = "36px Helvetica"
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
   }
-
-  dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
 
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
@@ -212,9 +209,10 @@ object NetGameHolder extends js.JSApp {
     //    var tempOff = Point(0, 0)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
+        val direction = grid.nextDirection(s.id).getOrElse(s.direction)
         //        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
         //        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
-        s.header + s.direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + direction * offsetTime.toFloat / Protocol.frameRate
 
       case None =>
         lastHeader
@@ -268,9 +266,10 @@ object NetGameHolder extends js.JSApp {
     snakes.filter(_.id == championId).foreach { s =>
       ctx.globalAlpha = 0.5
       ctx.fillStyle = s.color
-      val off = s.direction * offsetTime.toFloat / Protocol.frameRate
-      val tempDir = Point(if (s.direction.x > 0) 1 else off.x, if (s.direction.y > 0) 1 else off.y)
-      if (s.direction.x.toInt == 1 || s.direction.x.toInt == -1)
+      val direction = grid.nextDirection(s.id).getOrElse(s.direction)
+      val off = direction * offsetTime.toFloat / Protocol.frameRate
+      val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
+      if (direction.x.toInt == 1 || direction.x.toInt == -1)
         ctx.fillRect((s.header.x + offx + tempDir.x) * canvasUnit, (s.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
       else
         ctx.fillRect((s.header.x + offx) * canvasUnit, (s.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
@@ -283,9 +282,10 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 0.5
       ctx.fillStyle = snake.color
       val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
-      val off = snake.direction * offsetTime.toFloat / Protocol.frameRate
-      val tempDir = Point(if (snake.direction.x > 0) 1 else off.x, if (snake.direction.y > 0) 1 else off.y)
-      if (snake.direction.x.toInt == 1 || snake.direction.x.toInt == -1)
+      val direction = grid.nextDirection(snake.id).getOrElse(snake.direction)
+      val off = direction * offsetTime.toFloat / Protocol.frameRate
+      val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
+      if (direction.x.toInt == 1 || direction.x.toInt == -1)
         ctx.fillRect((snake.header.x + offx + tempDir.x) * canvasUnit, (snake.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
       else
         ctx.fillRect((snake.header.x + offx) * canvasUnit, (snake.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
@@ -454,7 +454,7 @@ object NetGameHolder extends js.JSApp {
                 case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
 
                 case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-                  println(s"receive$actionId--back$frame font-${myActionHistory(actionId)._2} now-${grid.frameCount} isExist-${grid.isExist(id, keyCode, frame)}")
+                  println(s"receive$actionId--back$frame font-${myActionHistory(actionId)._2} now-${grid.frameCount}")
                   if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
                     if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                       grid.addActionWithFrame(id, keyCode, frame)
@@ -536,7 +536,6 @@ object NetGameHolder extends js.JSApp {
   }
 
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
-    //    println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
     grid.frameCount = data.frameCount
     var newGrid = grid.grid.filter(_._2 match { case Body(_) => false case _ => true })
     newGrid --= data.blankDetails

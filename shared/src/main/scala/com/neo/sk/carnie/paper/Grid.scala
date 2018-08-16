@@ -59,9 +59,15 @@ trait Grid {
     actionMap += (frame -> tmp)
   }
 
-  def isExist(id: Long, keyCode: Int, frame: Long) = {
-    val map = actionMap.getOrElse(frame, Map.empty)
-    map.exists(i => i._1 == id && i._2 == keyCode)
+  def nextDirection(id: Long) = {
+    val map = actionMap.getOrElse(frameCount, Map.empty)
+    map.get(id) match {
+      case Some(KeyEvent.VK_LEFT) => Some(Point(-1, 0))
+      case Some(KeyEvent.VK_RIGHT) => Some(Point(1, 0))
+      case Some(KeyEvent.VK_UP) => Some(Point(0, -1))
+      case Some(KeyEvent.VK_DOWN) => Some(Point(0, 1))
+      case _ => None
+    }
   }
 
   def checkActionWithFrame(id: Long, keyCode: Int, frame: Long) = {
