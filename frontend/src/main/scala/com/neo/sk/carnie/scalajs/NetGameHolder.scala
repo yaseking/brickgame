@@ -26,10 +26,11 @@ object NetGameHolder extends js.JSApp {
 
   val bounds = Point(Boundary.w, Boundary.h)
   val border = Point(BorderSize.w, BorderSize.h)
-  val window = Point(Window.w, Window.h)
+  var window = Point(Window.w, Window.h)
   val SmallMap = Point(LittleMap.w, LittleMap.h)
 //  val canvasUnit = 20
   val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
+  println(canvasUnit+"aaa")
   val textLineHeight = 14
   private val canvasBoundary = bounds * canvasUnit
 //  private val windowBoundary = window * canvasUnit
@@ -52,6 +53,7 @@ object NetGameHolder extends js.JSApp {
   var winnerName = "unknown"
   var syncGridData: scala.Option[Protocol.GridDataSync] = None
   var scale = 1.0
+  var base=1
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -173,15 +175,15 @@ object NetGameHolder extends js.JSApp {
     val Offx = myheader.x.toDouble / border.x * SmallMap.x
     val Offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    val w = canvas.width - LittleMap.w * canvasUnit * 1.028
+    val w = canvas.width - LittleMap.w * canvasUnit * 1.034
     val h = canvas.height - LittleMap.h * canvasUnit * 1.026
-    ctx.fillRect(w, h, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
-    ctx.drawImage(myHeaderImg, w + Offx * canvasUnit, h + Offy * canvasUnit, canvasUnit / 2, canvasUnit / 2)
+    ctx.fillRect(w.toInt, h.toInt, (LittleMap.w * canvasUnit).toInt, (LittleMap.h * canvasUnit).toInt)
+    ctx.drawImage(myHeaderImg, (w + Offx * canvasUnit).toInt, (h + Offy * canvasUnit).toInt, 10, 10)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
       val y = i.header.y.toDouble / border.y * SmallMap.y
       ctx.fillStyle = i.color
-      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, canvasUnit / 2, canvasUnit / 2)
+      ctx.fillRect((w + x * canvasUnit).toInt, (h + y * canvasUnit).toInt, 10, 10)
     }
   }
 
@@ -224,17 +226,20 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 
-    val criticalX = window.x / 2 + 1
-    val criticalY = window.y * 0.65
+    val criticalX = window.x / (2*scale) + 1
+    val criticalY = window.y /scale * 0.65
 
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
-    //    val myField = fields.count(_.id == myId)
+    val myField = fields.count(_.id == myId)
+    if(myField>50*base*base)
+      {
+        scale=scale/1.1
+        base+=1
+      }
     //    scale = 1 - Math.sqrt(myField) * 0.0048
-    scale = 1
-
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
     ctx.globalAlpha = 0.5
@@ -253,15 +258,10 @@ object NetGameHolder extends js.JSApp {
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
       if (id == uid) {
-        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit / scale, canvasUnit / scale)
+        ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       } else {
         ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
       }
-    }
-
-    ctx.fillStyle = ColorsSetting.borderColor
-    borders.foreach { case Bord(x, y) =>
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit / scale, canvasUnit / scale)
     }
 
     //先画冠军的头
@@ -292,7 +292,13 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 1.0
       ctx.drawImage(img, (snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
+    ctx.fillStyle = ColorsSetting.borderColor
+    borders.foreach { case Bord(x, y) =>
+      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
+    }
     ctx.restore()
+
+
 
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.textAlign = "left"
@@ -318,9 +324,13 @@ object NetGameHolder extends js.JSApp {
           ctx.font = "36px Helvetica"
           val text = grid.getKiller(uid) match {
             case Some(killer) =>
+              scale=1
+              ctx.scale(1,1)
               s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
 
             case None =>
+              scale=1
+              ctx.scale(1,1)
               "Ops, Press Space Key To Restart!"
           }
           ctx.fillText(text, 150 + offx, 180 + offy)
@@ -396,6 +406,8 @@ object NetGameHolder extends js.JSApp {
               grid.addActionWithFrame(myId, e.keyCode, frame)
             }
             if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
+              scale=1
+              ctx.scale(1,1)
               firstCome = true
               isWin = false
               winnerName = "unknown"
