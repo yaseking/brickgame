@@ -69,8 +69,8 @@ package object paper {
   }
 
   object Window {
-    var w = 60
-    var h = 30
+    val w = 60
+    val h = 30
   }
 
   object LittleMap {

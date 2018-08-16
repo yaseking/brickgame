@@ -26,7 +26,7 @@ object NetGameHolder extends js.JSApp {
 
   val bounds = Point(Boundary.w, Boundary.h)
   val border = Point(BorderSize.w, BorderSize.h)
-  var window = Point(Window.w, Window.h)
+  val window = Point(Window.w, Window.h)
   val SmallMap = Point(LittleMap.w, LittleMap.h)
   //  val canvasUnit = 20
   val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
