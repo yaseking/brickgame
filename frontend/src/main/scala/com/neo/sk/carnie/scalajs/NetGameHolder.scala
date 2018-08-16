@@ -28,12 +28,12 @@ object NetGameHolder extends js.JSApp {
   val border = Point(BorderSize.w, BorderSize.h)
   var window = Point(Window.w, Window.h)
   val SmallMap = Point(LittleMap.w, LittleMap.h)
-//  val canvasUnit = 20
+  //  val canvasUnit = 20
   val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
-  println(canvasUnit+"aaa")
+  println(canvasUnit + "aaa")
   val textLineHeight = 14
   private val canvasBoundary = bounds * canvasUnit
-//  private val windowBoundary = window * canvasUnit
+  //  private val windowBoundary = window * canvasUnit
   private val windowBoundary = Point(dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val fillWidth = 33
@@ -51,9 +51,9 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.GridDataSync] = None
+  var syncGridData: scala.Option[Protocol.Data4Sync] = None
   var scale = 1.0
-  var base=1
+  var base = 1
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -158,7 +158,7 @@ object NetGameHolder extends js.JSApp {
         update()
       } else {
         if (syncGridData.nonEmpty) {
-          initSyncGridData(syncGridData.get)
+          setSyncGridData(syncGridData.get)
           syncGridData = None
         }
         justSynced = false
@@ -209,7 +209,7 @@ object NetGameHolder extends js.JSApp {
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
 
-//    var tempOff = Point(0, 0)
+    //    var tempOff = Point(0, 0)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         //        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
@@ -220,26 +220,26 @@ object NetGameHolder extends js.JSApp {
         lastHeader
     }
 
-    val offx = window.x / 2 - lastHeader.x  //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y  //新的框的y偏移量
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 
-    val criticalX = window.x / (2*scale) + 1
-    val criticalY = window.y /scale * 0.65
+    val criticalX = window.x / (2 * scale) + 1
+    val criticalY = window.y / scale * 0.65
 
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     val myField = fields.count(_.id == myId)
-    if(myField>50*base*base)
-      {
-        scale=scale/1.1
-        base+=1
-      }
-    //    scale = 1 - Math.sqrt(myField) * 0.0048
+    //    if(myField>50*base*base)
+    //      {
+    //        scale=scale/1.1
+    //        base+=1
+    //      }
+    scale = 1 - Math.sqrt(myField) * 0.0048
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
     ctx.globalAlpha = 0.5
@@ -269,11 +269,11 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 0.5
       ctx.fillStyle = s.color
       val off = s.direction * offsetTime.toFloat / Protocol.frameRate
-      val tempDir = Point(if(s.direction.x > 0) 1 else off.x, if(s.direction.y > 0) 1 else off.y)
-      if(s.direction.x.toInt == 1 || s.direction.x.toInt == -1)
-        ctx.fillRect((s.header.x + offx + tempDir.x) * canvasUnit, (s.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit,  canvasUnit)
+      val tempDir = Point(if (s.direction.x > 0) 1 else off.x, if (s.direction.y > 0) 1 else off.y)
+      if (s.direction.x.toInt == 1 || s.direction.x.toInt == -1)
+        ctx.fillRect((s.header.x + offx + tempDir.x) * canvasUnit, (s.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
       else
-        ctx.fillRect((s.header.x + offx) * canvasUnit, (s.header.y + offy + tempDir.y) * canvasUnit, canvasUnit,  math.abs(off.y) * canvasUnit)
+        ctx.fillRect((s.header.x + offx) * canvasUnit, (s.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
       ctx.globalAlpha = 1.0
       ctx.drawImage(championHeaderImg, (s.header.x + offx + off.x) * canvasUnit, (s.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
@@ -284,11 +284,11 @@ object NetGameHolder extends js.JSApp {
       ctx.fillStyle = snake.color
       val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
       val off = snake.direction * offsetTime.toFloat / Protocol.frameRate
-      val tempDir = Point(if(snake.direction.x > 0) 1 else off.x, if(snake.direction.y > 0) 1 else off.y)
-      if(snake.direction.x.toInt == 1 || snake.direction.x.toInt == -1)
-        ctx.fillRect((snake.header.x + offx + tempDir.x) * canvasUnit, (snake.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit,  canvasUnit)
+      val tempDir = Point(if (snake.direction.x > 0) 1 else off.x, if (snake.direction.y > 0) 1 else off.y)
+      if (snake.direction.x.toInt == 1 || snake.direction.x.toInt == -1)
+        ctx.fillRect((snake.header.x + offx + tempDir.x) * canvasUnit, (snake.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
       else
-        ctx.fillRect((snake.header.x + offx) * canvasUnit, (snake.header.y + offy + tempDir.y) * canvasUnit, canvasUnit,  math.abs(off.y) * canvasUnit)
+        ctx.fillRect((snake.header.x + offx) * canvasUnit, (snake.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
       ctx.globalAlpha = 1.0
       ctx.drawImage(img, (snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
@@ -297,7 +297,6 @@ object NetGameHolder extends js.JSApp {
       ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
     }
     ctx.restore()
-
 
 
     ctx.fillStyle = ColorsSetting.fontColor
@@ -324,13 +323,13 @@ object NetGameHolder extends js.JSApp {
           ctx.font = "36px Helvetica"
           val text = grid.getKiller(uid) match {
             case Some(killer) =>
-              scale=1
-              ctx.scale(1,1)
+              scale = 1
+              ctx.scale(1, 1)
               s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
 
             case None =>
-              scale=1
-              ctx.scale(1,1)
+              scale = 1
+              ctx.scale(1, 1)
               "Ops, Press Space Key To Restart!"
           }
           ctx.fillText(text, 150 + offx, 180 + offy)
@@ -382,13 +381,13 @@ object NetGameHolder extends js.JSApp {
   def joinGame(name: String): Unit = {
     formField.innerHTML = ""
     bodyField.style.backgroundColor = "white"
-//    val playground = dom.document.getElementById("playground")
-//    playground.innerHTML = s"Trying to join game as '$name'..."
+    //    val playground = dom.document.getElementById("playground")
+    //    playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
       drawGameOn()
       startGame()
-//      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
+      //      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
       canvas.onkeydown = { e: dom.KeyboardEvent => {
@@ -401,13 +400,13 @@ object NetGameHolder extends js.JSApp {
           } else {
             val frame = grid.frameCount + 1
             val actionId = idGenerator.getAndIncrement()
+            grid.addActionWithFrame(myId, e.keyCode, frame)
             if (e.keyCode != KeyCode.Space) {
               myActionHistory += actionId -> (e.keyCode, frame)
-              grid.addActionWithFrame(myId, e.keyCode, frame)
             }
             if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
-              scale=1
-              ctx.scale(1,1)
+              scale = 1
+              ctx.scale(1, 1)
               firstCome = true
               isWin = false
               winnerName = "unknown"
@@ -426,7 +425,7 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onerror = { event: Event =>
       drawGameOff()
-//      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
+      //      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
@@ -455,18 +454,19 @@ object NetGameHolder extends js.JSApp {
                 case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
 
                 case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
+                  println(s"receive$actionId--back$frame font-${myActionHistory(actionId)._2} now-${grid.frameCount} isExist-${grid.isExist(id, keyCode, frame)}")
                   if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-                    if(myActionHistory.get(actionId).isEmpty){ //前端没有该项，则加入
+                    if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                       grid.addActionWithFrame(id, keyCode, frame)
-                      if(frame <= grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                      if (frame <= grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
                         grid.recallGrid(frame - 1, grid.frameCount)
                       }
-                    } else{
-                      if(myActionHistory(actionId)._1 != keyCode  || myActionHistory(actionId)._2 != frame){ //若keyCode或则frame不一致则进行回溯
-                        grid.deleteActionWithFrame(id, myActionHistory(actionId)._1, myActionHistory(actionId)._2)
+                    } else {
+                      if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
+                        grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                         grid.addActionWithFrame(id, keyCode, frame)
                         val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                        if(miniFrame <= grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)){ //回溯
+                        if (miniFrame <= grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
                           grid.recallGrid(miniFrame - 1, grid.frameCount)
                         }
                       }
@@ -474,7 +474,7 @@ object NetGameHolder extends js.JSApp {
                     }
                   } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
                     grid.addActionWithFrame(id, keyCode, frame)
-                    if(frame <= grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)){ //回溯
+                    if (frame <= grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
                       grid.recallGrid(frame - 1, grid.frameCount)
                     }
                   }
@@ -490,14 +490,14 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
-                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
-                  syncGridData = Some(data)
-                  justSynced = true
+                //                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
+                //                  syncGridData = Some(data)
+                //                  justSynced = true
 
                 case data: Protocol.Data4Sync =>
-                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
-//                  syncGridData = Some(data)
-//                  justSynced = true
+                  //                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
+                  syncGridData = Some(data)
+                  justSynced = true
 
                 case Protocol.NetDelayTest(createTime) =>
                   val receiveTime = System.currentTimeMillis()
@@ -514,14 +514,14 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onclose = { event: Event =>
       drawGameOff()
-//      playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
+      //      playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
     }
 
-    def writeToArea(text: String): Unit ={}
-//      playground.insertBefore(p(text), playground.firstChild)
+    def writeToArea(text: String): Unit = {}
+    //      playground.insertBefore(p(text), playground.firstChild)
   }
 
   def getWebSocketUri(document: Document, nameOfChatParticipant: String): String = {
@@ -536,9 +536,9 @@ object NetGameHolder extends js.JSApp {
   }
 
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
-//    println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
+    //    println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
     grid.frameCount = data.frameCount
-    var newGrid = grid.grid
+    var newGrid = grid.grid.filter(_._2 match { case Body(_) => false case _ => true })
     newGrid --= data.blankDetails
     data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id))
     data.fieldDetails.foreach(f => newGrid += Point(f.x, f.y) -> Field(f.id))
@@ -550,7 +550,7 @@ object NetGameHolder extends js.JSApp {
 
   def initSyncGridData(data: Protocol.GridDataSync): Unit = {
     grid.frameCount = data.frameCount
-//    println("backend-------" + grid.frameCount)
+    //    println("backend-------" + grid.frameCount)
     val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
     val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
     val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap

@@ -53,10 +53,15 @@ trait Grid {
     actionMap += (frame -> tmp)
   }
 
-  def deleteActionWithFrame(id: Long, keyCode: Int, frame: Long) = {
+  def deleteActionWithFrame(id: Long, frame: Long) = {
     val map = actionMap.getOrElse(frame, Map.empty)
     val tmp = map - id
     actionMap += (frame -> tmp)
+  }
+
+  def isExist(id: Long, keyCode: Int, frame: Long) = {
+    val map = actionMap.getOrElse(frame, Map.empty)
+    map.exists(i => i._1 == id && i._2 == keyCode)
   }
 
   def checkActionWithFrame(id: Long, keyCode: Int, frame: Long) = {
