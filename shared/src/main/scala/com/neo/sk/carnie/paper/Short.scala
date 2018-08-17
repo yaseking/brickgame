@@ -143,27 +143,47 @@ object Short {
     }
   }
 
+  case class InsidePoint(point: Point, direct: Point)
 
   def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long, grid: Map[Point, Spot], turnPoints: List[Point]) = {
+    println("-------------breadthFirst")
     var newGrid = grid
-    val colorQueue = new mutable.Queue[Point]()
+    val colorQueue = new mutable.Queue[InsidePoint]()
     var colorField = ArrayBuffer[Point]()
     startPointOpt match {
       case Some(startPoint) =>
         getBodyTurnPoint(turnPoints, boundary, newGrid).foreach{p =>
           colorQueue.enqueue(p)
-          colorField += p
+          colorField += p.point
         }
-        colorQueue.enqueue(startPoint)
+        println("++++++++++++++breadthFirst")
+        colorQueue.enqueue(InsidePoint(startPoint, Point(0, 0)))
         colorField += startPoint
 
         while (colorQueue.nonEmpty) {
           val currentPoint = colorQueue.dequeue()
-          List(Point(-1, 0), Point(0, -1), Point(0, 1), Point(1, 0), Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)).foreach { d =>
-            val newPoint = currentPoint + d
+          val list = currentPoint.direct match {  //按照方向遍历，提高效率
+            case Point(-1, -1) =>
+              List(Point(-1, 0), Point(-1, -1), Point(0, -1))
+
+            case Point(-1, 1) =>
+              List(Point(-1, 0), Point(-1, 1), Point(0, 1))
+
+            case Point(1, -1) =>
+              List(Point(1, 0), Point(1, -1), Point(0, -1))
+
+            case Point(1, 1) =>
+              List(Point(1, 0), Point(1, 1), Point(0, 1))
+
+            case _ => //startPointOpt这个点没有方向，全部方向遍历
+              List(Point(-1, 0), Point(0, -1), Point(0, 1), Point(1, 0), Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1))
+          }
+          println(list)
+          list.foreach { d =>
+            val newPoint = currentPoint.point + d
             if (!boundary.contains(newPoint) && !colorField.contains(newPoint)) {
               colorField += newPoint
-              colorQueue.enqueue(newPoint)
+              colorQueue.enqueue(InsidePoint(newPoint, currentPoint.direct))
             }
           }
         }
@@ -218,13 +238,13 @@ object Short {
 //    newGrid
 //  }
 
-  def getBodyTurnPoint(turnPoints: List[Point], boundary: List[Point], grid: Map[Point, Spot]): List[Point] = {
-    var res = List.empty[Point]
+  def getBodyTurnPoint(turnPoints: List[Point], boundary: List[Point], grid: Map[Point, Spot]): List[InsidePoint] = {
+    var res = List.empty[InsidePoint]
     turnPoints.foreach { t =>
       List(Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)).foreach { d =>
         grid.get(d+t) match {
           case None if isInsidePoint(d + t, boundary) =>
-            res = d + t :: res
+            res = InsidePoint(d + t, d) :: res
           case _ =>
 
         }
