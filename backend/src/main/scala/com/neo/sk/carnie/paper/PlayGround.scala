@@ -97,12 +97,12 @@ object PlayGround {
         case userAction: UserAction => userAction match {
           case r@Key(id, keyCode, frameCount, actionId) =>
             val roomId = userMap(id)._1
-            dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
+//            dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
             if (keyCode == KeyEvent.VK_SPACE) {
               roomMap(roomId)._2.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
             } else {
               val grid = roomMap(roomId)._2
-              log.debug(s"got $r - now${grid.frameCount}")
+//              log.debug(s"got $r - now${grid.frameCount}")
               val realFrame = if(frameCount >= grid.frameCount) frameCount else grid.frameCount
               grid.addActionWithFrame(id, keyCode, realFrame)
               dispatch(Protocol.SnakeAction(id, keyCode, realFrame, actionId), roomId)
