@@ -446,8 +446,8 @@ object NetGameHolder extends js.JSApp {
                 case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
 
                 case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-                  println(s"receive$actionId--back$frame font-${myActionHistory(actionId)._2} now-${grid.frameCount}")
                   if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+                    println(s"receive$actionId--back$frame font-${myActionHistory(actionId)._2} now-${grid.frameCount}")
                     if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                       grid.addActionWithFrame(id, keyCode, frame)
                       if (frame <= grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
