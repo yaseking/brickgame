@@ -51,7 +51,7 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.Data4Sync] = None
+  var syncGridData: scala.Option[Protocol.GridDataSync] = None
   var scale = 1.0
   var base = 1
 
@@ -155,7 +155,7 @@ object NetGameHolder extends js.JSApp {
         update()
       } else {
         if (syncGridData.nonEmpty) {
-          setSyncGridData(syncGridData.get)
+          initSyncGridData(syncGridData.get)
           syncGridData = None
         }
         justSynced = false
@@ -483,13 +483,13 @@ object NetGameHolder extends js.JSApp {
 
                 case data: Protocol.GridDataSync =>
                 //                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
-                //                  syncGridData = Some(data)
-                //                  justSynced = true
+                                  syncGridData = Some(data)
+                                  justSynced = true
 
                 case data: Protocol.Data4Sync =>
                   //                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
-                  syncGridData = Some(data)
-                  justSynced = true
+//                  syncGridData = Some(data)
+//                  justSynced = true
 
                 case Protocol.NetDelayTest(createTime) =>
                   val receiveTime = System.currentTimeMillis()
