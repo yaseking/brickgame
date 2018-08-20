@@ -146,7 +146,6 @@ object Short {
   case class InsidePoint(point: Point, direct: Point)
 
   def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long, grid: Map[Point, Spot], turnPoints: List[Point]) = {
-    println("-------------breadthFirst")
     var newGrid = grid
     val colorQueue = new mutable.Queue[InsidePoint]()
     var colorField = ArrayBuffer[Point]()
@@ -156,7 +155,6 @@ object Short {
           colorQueue.enqueue(p)
           colorField += p.point
         }
-        println("++++++++++++++breadthFirst")
         colorQueue.enqueue(InsidePoint(startPoint, Point(0, 0)))
         colorField += startPoint
 
@@ -178,7 +176,6 @@ object Short {
             case _ => //startPointOpt这个点没有方向，全部方向遍历
               List(Point(-1, 0), Point(0, -1), Point(0, 1), Point(1, 0), Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1))
           }
-          println(list)
           list.foreach { d =>
             val newPoint = currentPoint.point + d
             if (!boundary.contains(newPoint) && !colorField.contains(newPoint)) {
