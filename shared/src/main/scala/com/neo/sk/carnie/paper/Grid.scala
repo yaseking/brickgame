@@ -84,15 +84,15 @@ trait Grid {
 
 
   def update() = {
-    updateSnakes()
+    val isFinish = updateSnakes()
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
     historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
     frameCount += 1
+    isFinish
   }
 
   private[this] def updateSpots() = {
-    //    debug(s"grid: ${grid.mkString(";")}")
     grid = grid.filter { case (p, spot) =>
       spot match {
         case Body(id) if snakes.contains(id) => true
@@ -101,7 +101,6 @@ trait Grid {
         case _ => false
       }
     }
-
   }
 
   def randomEmptyPoint(size: Int): Point = {
@@ -117,6 +116,8 @@ trait Grid {
   }
 
   private[this] def updateSnakes() = {
+    var isFinish = false //改帧更新中是否有圈地 若圈地了则后台传输数据到前端
+
     def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
       val (newDirection, turnPoint) = {
@@ -165,6 +166,7 @@ trait Grid {
                     case _ => false
                   }) true else false //起点是否被圈走
                   if (stillStart) {
+                    isFinish = true
                     val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
                     val snakeBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys.toList
                     println("begin" + System.currentTimeMillis())
@@ -278,6 +280,7 @@ trait Grid {
     newSnakes.foreach(s => if (!s.isFiled) grid += s.data.header -> Body(s.data.id) else grid += s.data.header -> Field(s.data.id))
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
+    isFinish
   }
 
   def getGridData = {

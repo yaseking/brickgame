@@ -50,7 +50,7 @@ object NetGameHolder extends js.JSApp {
   var otherHeader: List[Point] = Nil
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.GridDataSync] = None
+  var syncGridData: scala.Option[Protocol.Data4Sync] = None
   var scale = 1.0
   var base = 1
 
@@ -110,12 +110,6 @@ object NetGameHolder extends js.JSApp {
   def startGame(): Unit = {
     println("start---")
     drawGameOn()
-    canvas.width = windowBoundary.x.toInt
-    canvas.height = windowBoundary.y.toInt
-
-    background.width = windowBoundary.x.toInt
-    background.height = windowBoundary.y.toInt
-
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -129,8 +123,16 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOn(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    canvas.width = windowBoundary.x.toInt
+    canvas.height = windowBoundary.y.toInt
+
+    background.width = windowBoundary.x.toInt
+    background.height = windowBoundary.y.toInt
+
+//    ctx.fillStyle = ColorsSetting.backgroundColor
+//    ctx.fillRect(0, 0, background.width, background.height)
+//
+//    backCtx.drawImage(canvas, 0 ,0)
   }
 
   def drawGameOff(): Unit = {
@@ -188,7 +190,7 @@ object NetGameHolder extends js.JSApp {
       } else {
         println("back")
         if (syncGridData.nonEmpty) {
-          initSyncGridData(syncGridData.get)
+          setSyncGridData(syncGridData.get)
           syncGridData = None
         }
         justSynced = false
@@ -507,12 +509,12 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
-                  syncGridData = Some(data)
-                  justSynced = true
-
-                case data: Protocol.Data4Sync =>
                 //                  syncGridData = Some(data)
                 //                  justSynced = true
+
+                case data: Protocol.Data4Sync =>
+                  syncGridData = Some(data)
+                  justSynced = true
 
                 case Protocol.NetDelayTest(createTime) =>
                   val receiveTime = System.currentTimeMillis()
