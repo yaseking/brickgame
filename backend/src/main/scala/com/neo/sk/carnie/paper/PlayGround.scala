@@ -135,7 +135,7 @@ object PlayGround {
           roomMap.foreach { r =>
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
               val isFinish = r._2._2.update()
-              if (tickCount % 20 == 5 || isFinish) {
+//              if (tickCount % 20 == 5 || isFinish) {
                 val newData = r._2._2.getGridData
                 val gridData = lastSyncDataMap.get(r._1) match {
                   case Some(oldData) =>
@@ -150,7 +150,7 @@ object PlayGround {
                 }
                 lastSyncDataMap += (r._1 -> newData)
                 dispatch(gridData, r._1)
-              }
+//              }
               if(tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if(r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
