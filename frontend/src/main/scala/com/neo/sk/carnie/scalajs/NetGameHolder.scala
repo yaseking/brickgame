@@ -242,7 +242,6 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGrid(uid: Long, data: GridDataSync, offsetTime: Long): Unit = { //头所在的点是屏幕的正中心
-
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
     val championId = if (data.fieldDetails.nonEmpty) {
@@ -264,49 +263,32 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 
-    val criticalX = window.x / (2 * scale) + 1
-    val criticalY = window.y / scale * 0.65
+    val criticalX = window.x + 1
+    val criticalY = window.y
 
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     val myField = fields.count(_.id == myId)
-    //    if(myField>50*base*base)
-    //      {
-    //        scale=scale/1.1
-    //        base+=1
-    //      }
+
     scale = 1 - Math.sqrt(myField) * 0.0048
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
+
     ctx.globalAlpha = 0.5
-    val bodiesId=bodies.groupBy(s=>s.id)
-    bodiesId.foreach{i=>
-      val color=snakes.find(_.id==i._1).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.fillStyle=color
-      i._2.foreach{i=>ctx.fillRect(i.x*canvasUnit,i.y*canvasUnit,canvasUnit,canvasUnit)}
-    }
-    /*
-    bodies.foreach { case Bd(id, x, y) =>
-      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+    bodies.groupBy(_.id).foreach { case (sid, body) =>
+      val color = snakes.find(_.id == sid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-    }*/
+      body.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit, canvasUnit) }
+    }
 
     ctx.globalAlpha = 1.0
-    val fieldsId=fields.groupBy(s=>s.id)
-    fieldsId.foreach{i=>
-      val color=snakes.find(_.id==i._1).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.fillStyle=color
-      i._2.foreach{i=>ctx.fillRect(i.x*canvasUnit,i.y*canvasUnit,canvasUnit,canvasUnit)}
-    }
-    /*
-    fields.foreach { case Fd(id, x, y) =>
-      val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+    fields.groupBy(_.id).foreach { case (sid, field) =>
+      val color = snakes.find(_.id == sid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05)
-    }*/
+      field.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05) }
+    }
 
     //先画冠军的头
     snakes.filter(_.id == championId).foreach { s =>
@@ -315,10 +297,12 @@ object NetGameHolder extends js.JSApp {
       val direction = grid.nextDirection(s.id).getOrElse(s.direction)
       val off = direction * offsetTime.toFloat / Protocol.frameRate
       val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
+
       if (direction.x.toInt == 1 || direction.x.toInt == -1)
         ctx.fillRect((s.header.x + offx + tempDir.x) * canvasUnit, (s.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
       else
         ctx.fillRect((s.header.x + offx) * canvasUnit, (s.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
+
       ctx.globalAlpha = 1.0
       ctx.drawImage(championHeaderImg, (s.header.x + offx + off.x) * canvasUnit, (s.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
@@ -336,6 +320,7 @@ object NetGameHolder extends js.JSApp {
       else
         ctx.fillRect((snake.header.x + offx) * canvasUnit, (snake.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
       ctx.globalAlpha = 1.0
+
       ctx.drawImage(img, (snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
     ctx.fillStyle = ColorsSetting.borderColor
@@ -358,8 +343,6 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
     drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
 
-
-    ctx.font = "12px Helvetica"
     val myRankBaseLine = 3
     currentRank.filter(_.id == myId).foreach { score =>
       val color = snakes.find(_.id == myId).map(_.color).getOrElse(ColorsSetting.defaultColor)

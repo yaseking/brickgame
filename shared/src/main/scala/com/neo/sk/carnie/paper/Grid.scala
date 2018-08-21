@@ -328,12 +328,10 @@ trait Grid {
       case Some(state) =>
         snakes = state._1
         grid = state._2
-//        println("startTime" + System.currentTimeMillis())
         (startFrame to endFrame).foreach { frame =>
           frameCount = frame
           updateSnakes()
         }
-//        println("endTime" + System.currentTimeMillis())
 
       case None =>
         println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")
