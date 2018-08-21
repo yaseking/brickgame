@@ -279,18 +279,32 @@ object NetGameHolder extends js.JSApp {
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
     ctx.globalAlpha = 0.5
+    val bodiesId=bodies.groupBy(s=>s.id)
+    bodiesId.foreach{i=>
+      val color=snakes.find(_.id==i._1).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      ctx.fillStyle=color
+      i._2.foreach{i=>ctx.fillRect(i.x*canvasUnit,i.y*canvasUnit,canvasUnit,canvasUnit)}
+    }
+    /*
     bodies.foreach { case Bd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
       ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit, canvasUnit)
-    }
+    }*/
 
     ctx.globalAlpha = 1.0
+    val fieldsId=fields.groupBy(s=>s.id)
+    fieldsId.foreach{i=>
+      val color=snakes.find(_.id==i._1).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      ctx.fillStyle=color
+      i._2.foreach{i=>ctx.fillRect(i.x*canvasUnit,i.y*canvasUnit,canvasUnit,canvasUnit)}
+    }
+    /*
     fields.foreach { case Fd(id, x, y) =>
       val color = snakes.find(_.id == id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
       ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05)
-    }
+    }*/
 
     //先画冠军的头
     snakes.filter(_.id == championId).foreach { s =>
