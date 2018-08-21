@@ -275,20 +275,18 @@ object Short {
 
   def detection(boundary: List[Point], snakeId: Long, grid: Map[Point, Spot]) = {
     var newGrid = grid
-    var pointMap = ArrayBuffer[Point]()
+    var pointMap = Map.empty[Float, (Float, Float)]
 
     boundary.groupBy(_.x).foreach { case (iter, point) => //纵向检测
       val y = point.map(_.y)
-      for (i <- y.max to y.min by -1) {
-        pointMap += Point(iter, i)
-      }
+      pointMap += iter -> (y.min, y.max)
     }
 
     boundary.groupBy(_.y).foreach { case (iter, point) => //横向检测
-      val x = point.map(_.x)
-      for (i <- x.max to x.min by -1) {
-        pointMap.find(_ == Point(i, iter)) match {
-          case Some(v) => newGrid += Point(i, iter) -> Field(snakeId)
+      val xs = point.map(_.x)
+      for (x <- xs.max to xs.min by -1) {
+        pointMap.get(x) match {
+          case Some(v) => if (iter <= v._2 && iter >= v._1) newGrid += Point(x, iter) -> Field(snakeId)
           case None => //
         }
       }
