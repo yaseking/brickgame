@@ -30,7 +30,6 @@ object NetGameHolder extends js.JSApp {
   val SmallMap = Point(LittleMap.w, LittleMap.h)
   //  val canvasUnit = 20
   private val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
-  println(canvasUnit + "aaa")
   val textLineHeight = 14
 //  private val canvasBoundary = bounds * canvasUnit
   //  private val windowBoundary = window * canvasUnit
@@ -81,6 +80,8 @@ object NetGameHolder extends js.JSApp {
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val formField = dom.document.getElementById("form").asInstanceOf[HTMLFormElement]
   private[this] val bodyField = dom.document.getElementById("body").asInstanceOf[HTMLBodyElement]
+  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
+  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   private val championHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
   private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
@@ -108,8 +109,12 @@ object NetGameHolder extends js.JSApp {
 
   def startGame(): Unit = {
     println("start---")
+    drawGameOn()
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
+
+    background.width = windowBoundary.x.toInt
+    background.height = windowBoundary.y.toInt
 
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.requestAnimationFrame(gameRender())
@@ -138,6 +143,31 @@ object NetGameHolder extends js.JSApp {
     } else {
       ctx.font = "36px Helvetica"
       ctx.fillText("Ops, connection lost.", 150, 180)
+    }
+  }
+
+  def drawGameDie(): Unit = {
+    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    ctx.fillStyle = ColorsSetting.fontColor
+    if (firstCome) {
+      ctx.font = "36px Helvetica"
+      ctx.fillText("Please wait.", 150, 180)
+    } else {
+      dom.window.cancelAnimationFrame(nextFrame)
+      ctx.font = "36px Helvetica"
+      val text = grid.getKiller(myId) match {
+        case Some(killer) =>
+          scale = 1
+          ctx.scale(1, 1)
+          s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
+
+        case None =>
+          scale = 1
+          ctx.scale(1, 1)
+          "Ops, Press Space Key To Restart!"
+      }
+      ctx.fillText(text, 150, 180)
     }
   }
 
@@ -186,15 +216,20 @@ object NetGameHolder extends js.JSApp {
   }
 
   def draw(offsetTime: Long): Unit = {
+    println("drawGrid start" + System.currentTimeMillis())
     if (wsSetup) {
       if (isWin) {
         drawGameWin(winnerName)
       } else {
         val data = grid.getGridData
-        if (data.fieldDetails.nonEmpty) {
-          drawGrid(myId, data, data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1, offsetTime)
-        } else {
-          drawGrid(myId, data, 0, offsetTime)
+        data.snakes.find(_.id == myId) match {
+          case Some(_) =>
+            firstCome = false
+            drawGrid(myId, data, offsetTime)
+            println("drawGrid end" + System.currentTimeMillis())
+
+          case None =>
+            drawGameDie()
         }
       }
     } else {
@@ -202,17 +237,17 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def drawGrid(uid: Long, data: GridDataSync, championId: Long, offsetTime: Long): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: Long, data: GridDataSync, offsetTime: Long): Unit = { //头所在的点是屏幕的正中心
 
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
+    val championId = if (data.fieldDetails.nonEmpty) {
+      data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1
+    } else 0
 
-    //    var tempOff = Point(0, 0)
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         val direction = grid.nextDirection(s.id).getOrElse(s.direction)
-        //        println(s"${s.header + s.direction * offsetTime.toFloat / Protocol.frameRate} ${s.direction * offsetTime.toInt / Protocol.frameRate} $offsetTime")
-        //        tempOff = s.direction * offsetTime.toFloat / Protocol.frameRate
         s.header + direction * offsetTime.toFloat / Protocol.frameRate
 
       case None =>
@@ -299,35 +334,12 @@ object NetGameHolder extends js.JSApp {
     val leftBegin = 10
     val rightBegin = windowBoundary.x - 180
 
-    snakes.find(_.id == uid) match {
-      case Some(mySnake) =>
-        firstCome = false
-        val baseLine = 1
-        ctx.font = "12px Helvetica"
-        drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
-        drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
+    val mySnake = snakes.filter(_.id == uid).head
+    val baseLine = 1
+    ctx.font = "12px Helvetica"
+    drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
+    drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
 
-      case None =>
-        if (firstCome) {
-          ctx.font = "36px Helvetica"
-          ctx.fillText("Please wait.", 150 + offx, 180 + offy)
-        } else {
-          dom.window.cancelAnimationFrame(nextFrame)
-          ctx.font = "36px Helvetica"
-          val text = grid.getKiller(uid) match {
-            case Some(killer) =>
-              scale = 1
-              ctx.scale(1, 1)
-              s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
-
-            case None =>
-              scale = 1
-              ctx.scale(1, 1)
-              "Ops, Press Space Key To Restart!"
-          }
-          ctx.fillText(text, 150 + offx, 180 + offy)
-        }
-    }
 
     ctx.font = "12px Helvetica"
     val myRankBaseLine = 3
@@ -378,16 +390,14 @@ object NetGameHolder extends js.JSApp {
     //    playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
-      drawGameOn()
       startGame()
       //      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
       canvas.onkeydown = { e: dom.KeyboardEvent => {
-        println(s"keydown: ${e.keyCode}")
+//        println(s"keydown: ${e.keyCode}")
         if (watchKeys.contains(e.keyCode)) {
-          println(s"key down: [${e.keyCode}]")
-
+//          println(s"key down: [${e.keyCode}]")
           val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
             NetTest(myId, System.currentTimeMillis())
           } else {

@@ -146,7 +146,7 @@ trait Grid {
           mayBeDieSnake += x.id -> snake.id
           grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
             case Some(Field(fid)) if fid == snake.id =>
-              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header, turnDirection = List(newDirection))))
             case _ =>
               Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
           }
@@ -167,18 +167,20 @@ trait Grid {
                   if (stillStart) {
                     val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
                     val snakeBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys.toList
-                                      println("begin" + System.currentTimeMillis())
-                    val findShortPath = Short.findShortestPath(snake.startPoint, newHeader, snakeField.toList, Short.startPointOnBoundary(snake.startPoint, snakeBody), snake.clockwise)
-                                      println("findShortPath" + System.currentTimeMillis())
+                    println("begin" + System.currentTimeMillis())
+                    val isClockwise = Short.prefectDirection(snake.turnDirection)
+                    println("isClockwise" + System.currentTimeMillis())
+                    val findShortPath = Short.findShortestPath(snake.startPoint, newHeader, snakeField.toList, Short.startPointOnBoundary(snake.startPoint, snakeBody), isClockwise)
+                    println("findShortPath" + System.currentTimeMillis())
                     if (findShortPath._2) {
                       val closed = findShortPath._1 ::: snakeBody
                       val randomPoint = Short.findRandomPoint(closed, closed)
-                                          println("randomPoint" + System.currentTimeMillis())
+                      println("randomPoint" + System.currentTimeMillis())
                       val newGrid = Short.breadthFirst(randomPoint, closed, snake.id, grid, snake.turnPoint)
                       //                println("start--" + snake.startPoint)
                       //                println("end--" + newHeader)
-                                          println("done" + System.currentTimeMillis())
-                      mayBeSuccess += (snake.id -> newGrid.keys.filterNot(p=> grid.keys.exists(_ == p)).toSet)
+                      println("done" + System.currentTimeMillis())
+                      mayBeSuccess += (snake.id -> newGrid.keys.filterNot(p => grid.keys.exists(_ == p)).toSet)
                       grid = newGrid
                     } else returnBackField(snake.id)
                   } else returnBackField(snake.id)
@@ -193,7 +195,7 @@ trait Grid {
             bodyField += (snake.id -> tmp)
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
               case Some(Field(fid)) if fid == snake.id =>
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header, turnDirection = List(newDirection))))
               case _ =>
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
             }
@@ -206,20 +208,16 @@ trait Grid {
         case _ =>
           grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
             case Some(Field(fid)) if fid == snake.id =>
-              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header, turnDirection = List(newDirection))))
             case _ =>
               Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
           }
       }
       value match {
         case Right(v) =>
-          var newData = v
-          if(v.data.clockwise + newDirection == Point(0,0) || v.data.clockwise == Point(0,0)){ //判断是顺时针还是逆时针行走
-            newData = newData.copy(newData.data.copy(clockwise = newDirection))
-          }
-          if (turnPoint.nonEmpty && !newData.isFiled){ //记录纸袋的拐点
-            newData = newData.copy(newData.data.copy(turnPoint = newData.data.turnPoint ::: List(turnPoint.get)))
-          }
+          val newData = if (turnPoint.nonEmpty && !v.isFiled) { //判断是顺时针还是逆时针行走
+            v.copy(v.data.copy(turnPoint = v.data.turnPoint ::: List(turnPoint.get), turnDirection = v.data.turnDirection ::: List(newDirection)))
+          } else v
           Right(newData)
 
         case _ => value
@@ -326,12 +324,12 @@ trait Grid {
       case Some(state) =>
         snakes = state._1
         grid = state._2
-        println("startTime" + System.currentTimeMillis())
+//        println("startTime" + System.currentTimeMillis())
         (startFrame to endFrame).foreach { frame =>
           frameCount = frame
           updateSnakes()
         }
-        println("endTime" + System.currentTimeMillis())
+//        println("endTime" + System.currentTimeMillis())
 
       case None =>
         println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")
