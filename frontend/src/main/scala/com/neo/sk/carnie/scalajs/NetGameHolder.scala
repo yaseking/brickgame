@@ -183,8 +183,10 @@ object NetGameHolder extends js.JSApp {
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
+        println("fronted")
         update()
       } else {
+        println("back")
         if (syncGridData.nonEmpty) {
           initSyncGridData(syncGridData.get)
           syncGridData = None
@@ -216,7 +218,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def draw(offsetTime: Long): Unit = {
-    println("drawGrid start" + System.currentTimeMillis())
+//    println("drawGrid start" + System.currentTimeMillis())
     if (wsSetup) {
       if (isWin) {
         drawGameWin(winnerName)
@@ -226,7 +228,7 @@ object NetGameHolder extends js.JSApp {
           case Some(_) =>
             firstCome = false
             drawGrid(myId, data, offsetTime)
-            println("drawGrid end" + System.currentTimeMillis())
+//            println("drawGrid end" + System.currentTimeMillis())
 
           case None =>
             drawGameDie()
@@ -386,8 +388,6 @@ object NetGameHolder extends js.JSApp {
   def joinGame(name: String): Unit = {
     formField.innerHTML = ""
     bodyField.style.backgroundColor = "white"
-    //    val playground = dom.document.getElementById("playground")
-    //    playground.innerHTML = s"Trying to join game as '$name'..."
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
       startGame()
@@ -458,7 +458,6 @@ object NetGameHolder extends js.JSApp {
 
                 case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
                   if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-//                    println(s"receive$actionId--back$frame font-${myActionHistory(actionId)._2} now-${grid.frameCount}")
                     if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                       grid.addActionWithFrame(id, keyCode, frame)
                       if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
@@ -494,14 +493,12 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
-                //                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
-                                  syncGridData = Some(data)
-                                  justSynced = true
+                  syncGridData = Some(data)
+                  justSynced = true
 
                 case data: Protocol.Data4Sync =>
-                  //                  println("frontend----" + grid.frameCount + "backend----" + data.frameCount)
-//                  syncGridData = Some(data)
-//                  justSynced = true
+                //                  syncGridData = Some(data)
+                //                  justSynced = true
 
                 case Protocol.NetDelayTest(createTime) =>
                   val receiveTime = System.currentTimeMillis()
@@ -553,7 +550,6 @@ object NetGameHolder extends js.JSApp {
 
   def initSyncGridData(data: Protocol.GridDataSync): Unit = {
     grid.frameCount = data.frameCount
-    //    println("backend-------" + grid.frameCount)
     val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
     val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
     val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
