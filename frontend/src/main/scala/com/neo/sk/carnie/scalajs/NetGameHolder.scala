@@ -54,6 +54,8 @@ object NetGameHolder extends js.JSApp {
   var syncGridData: scala.Option[Protocol.GridDataSync] = None
   var scale = 1.0
   var base = 1
+  var startTime = System.currentTimeMillis()
+  var endTime = System.currentTimeMillis()
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -95,6 +97,7 @@ object NetGameHolder extends js.JSApp {
   def main(): Unit = {
     joinButton.onclick = { event: MouseEvent =>
       joinGame(nameField.value)
+      startTime = System.currentTimeMillis()
       event.preventDefault()
     }
     nameField.focus()
@@ -325,7 +328,14 @@ object NetGameHolder extends js.JSApp {
               ctx.scale(1, 1)
               "Ops, Press Space Key To Restart!"
           }
+          endTime = System.currentTimeMillis()
+          val time = endTime - startTime
+          println(s"time: $time")
           ctx.fillText(text, 150 + offx, 180 + offy)
+          ctx.font = "24px Helvetica"
+          val s = historyRank.filter(_.id == uid).head
+          ctx.fillText("area = " + f"${s.area.toDouble / canvasSize * 100}%.2f" + "%", 150 + offx, 250 + offy)
+          ctx.fillText(s"kill = ${s.k}", 150 + offx, 290 + offy)
         }
     }
 
