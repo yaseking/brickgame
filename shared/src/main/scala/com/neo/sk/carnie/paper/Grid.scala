@@ -174,9 +174,10 @@ trait Grid {
                     println("findShortPath" + System.currentTimeMillis())
                     if (findShortPath._2) {
                       val closed = findShortPath._1 ::: snakeBody
-                      val randomPoint = Short.findRandomPoint(closed, closed)
-                      println("randomPoint" + System.currentTimeMillis())
-                      val newGrid = Short.breadthFirst(randomPoint, closed, snake.id, grid, snake.turnPoint)
+                      val newGrid = Short.detection(closed, snake.id, grid)
+                      //                      val randomPoint = Short.findRandomPoint(closed, closed)
+//                      println("randomPoint" + System.currentTimeMillis())
+//                      val newGrid = Short.breadthFirst(randomPoint, closed, snake.id, grid, snake.turnPoint)
                       //                println("start--" + snake.startPoint)
                       //                println("end--" + newHeader)
                       println("done" + System.currentTimeMillis())
