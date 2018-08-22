@@ -56,6 +56,7 @@ object NetGameHolder extends js.JSApp {
   var base = 1
   var startTime = System.currentTimeMillis()
   var endTime = System.currentTimeMillis()
+  var timeFlag = true
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -97,7 +98,6 @@ object NetGameHolder extends js.JSApp {
   def main(): Unit = {
     joinButton.onclick = { event: MouseEvent =>
       joinGame(nameField.value)
-      startTime = System.currentTimeMillis()
       event.preventDefault()
     }
     nameField.focus()
@@ -328,14 +328,25 @@ object NetGameHolder extends js.JSApp {
               ctx.scale(1, 1)
               "Ops, Press Space Key To Restart!"
           }
-          endTime = System.currentTimeMillis()
-          val time = endTime - startTime
-          println(s"time: $time")
+          if(timeFlag){
+            endTime = System.currentTimeMillis()
+            timeFlag = false
+          }
+          val time = {
+            val temp = (endTime - startTime) / 1000
+            val tempM = temp / 60
+            val s1 = temp % 60
+            val s = if(s1<10) "0"+s1 else s1.toString
+            val m = if(tempM<10) "0"+tempM else tempM.toString
+            m + "min " + s + "sec"
+          }
+//          println(s"time: $time")
           ctx.fillText(text, 150 + offx, 180 + offy)
           ctx.font = "24px Helvetica"
           val s = historyRank.filter(_.id == uid).head
           ctx.fillText("area = " + f"${s.area.toDouble / canvasSize * 100}%.2f" + "%", 150 + offx, 250 + offy)
           ctx.fillText(s"kill = ${s.k}", 150 + offx, 290 + offy)
+          ctx.fillText(s"time = $time" + s"   $timeFlag", 150 + offx, 350 + offy)
         }
     }
 
@@ -382,6 +393,7 @@ object NetGameHolder extends js.JSApp {
   val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
 
   def joinGame(name: String): Unit = {
+    startTime = System.currentTimeMillis()
     formField.innerHTML = ""
     bodyField.style.backgroundColor = "white"
     //    val playground = dom.document.getElementById("playground")
@@ -406,8 +418,12 @@ object NetGameHolder extends js.JSApp {
             grid.addActionWithFrame(myId, e.keyCode, frame)
             if (e.keyCode != KeyCode.Space) {
               myActionHistory += actionId -> (e.keyCode, frame)
+            } else {
+              startTime = System.currentTimeMillis()
+              timeFlag = true
             }
             if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
+//              timeFlag = true
               scale = 1
               ctx.scale(1, 1)
               firstCome = true
