@@ -131,6 +131,7 @@ object PlayGround {
           }
 
         case Sync =>
+          log.debug(s"time to Sync + ${System.currentTimeMillis()}")
           tickCount += 1
           roomMap.foreach { r =>
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {

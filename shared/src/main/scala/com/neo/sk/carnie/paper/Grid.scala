@@ -169,11 +169,11 @@ trait Grid {
                     isFinish = true
                     val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
                     val snakeBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys.toList
-                    println("begin" + System.currentTimeMillis())
+//                    println("begin" + System.currentTimeMillis())
                     val isClockwise = Short.prefectDirection(snake.turnDirection)
-                    println("isClockwise" + System.currentTimeMillis())
+//                    println("isClockwise" + System.currentTimeMillis())
                     val findShortPath = Short.findShortestPath(snake.startPoint, newHeader, snakeField.toList, Short.startPointOnBoundary(snake.startPoint, snakeBody), isClockwise)
-                    println("findShortPath" + System.currentTimeMillis())
+//                    println("findShortPath" + System.currentTimeMillis())
                     if (findShortPath._2) {
                       val closed = findShortPath._1 ::: snakeBody
                       val newGrid = Short.detection(closed, snake.id, grid)
@@ -182,7 +182,7 @@ trait Grid {
 //                      val newGrid = Short.breadthFirst(randomPoint, closed, snake.id, grid, snake.turnPoint)
                       //                println("start--" + snake.startPoint)
                       //                println("end--" + newHeader)
-                      println("done" + System.currentTimeMillis())
+//                      println("done" + System.currentTimeMillis())
                       mayBeSuccess += (snake.id -> newGrid.keys.filterNot(p => grid.keys.exists(_ == p)).toSet)
                       grid = newGrid
                     } else returnBackField(snake.id)
