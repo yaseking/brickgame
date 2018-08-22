@@ -108,7 +108,6 @@ object NetGameHolder extends js.JSApp {
   }
 
   def startGame(): Unit = {
-    println("start---")
     drawGameOn()
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.requestAnimationFrame(gameRender())
@@ -185,10 +184,9 @@ object NetGameHolder extends js.JSApp {
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
-        println("fronted")
+        println(s"fronted-${grid.frameCount}")
         update()
       } else {
-        println("back")
         if (syncGridData.nonEmpty) {
           setSyncGridData(syncGridData.get)
           syncGridData = None
@@ -496,6 +494,7 @@ object NetGameHolder extends js.JSApp {
                 //                  justSynced = true
 
                 case data: Protocol.Data4Sync =>
+                  println(s"back-${data.frameCount}***front-${grid.frameCount}**time${System.currentTimeMillis()}")
                   syncGridData = Some(data)
                   justSynced = true
 

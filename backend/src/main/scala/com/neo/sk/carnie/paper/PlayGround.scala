@@ -9,6 +9,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paper.Protocol._
+
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
@@ -41,6 +42,8 @@ object PlayGround {
 
   private val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.8
 
+  private val critical = Point(Window.w + 1, Window.h)
+
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 
     val ground = system.actorOf(Props(new Actor {
@@ -50,7 +53,7 @@ object PlayGround {
 
       var roomMap = Map.empty[Int, (Int, GridOnServer)] //(roomId, (roomNum, grid))
 
-      var lastSyncDataMap = Map.empty[Int, GridDataSync] //(roomId, (roomNum, grid))
+      var userLastSyncDataMap = Map.empty[Long, Data4Sync] //(userId, (roomNum, grid))
 
       var tickCount = 0l
 
@@ -131,26 +134,32 @@ object PlayGround {
           }
 
         case Sync =>
-          log.debug(s"time to Sync + ${System.currentTimeMillis()}")
           tickCount += 1
           roomMap.foreach { r =>
-            if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
+            val userInRoom = userMap.filter(_._2._1 == r._1).keySet
+            if (userInRoom.nonEmpty) {
               val isFinish = r._2._2.update()
               if (tickCount % 20 == 5 || isFinish) {
                 val newData = r._2._2.getGridData
-                val gridData = lastSyncDataMap.get(r._1) match {
-                  case Some(oldData) =>
-                    var blankPoint: Set[Point] = Set()
-                    val newField = newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet
-                    blankPoint = (oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
-                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))
-                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField.toList, blankPoint.toList, newData.killHistory)
+                userInRoom.foreach { uid =>
+                  val header = newData.snakes.find(_.id == uid).map(_.header).getOrElse(Point(border.x / 2, border.y / 2))
+                  val newFieldInWindow = newData.fieldDetails.filter(p => Math.abs(p.x - header.x) < critical.x && Math.abs(p.y - header.y) < critical.y)
+                  val bodyInWindow = newData.bodyDetails.filter(p => Math.abs(p.x - header.x) < critical.x && Math.abs(p.y - header.y) < critical.y)
+                  val gridData = userLastSyncDataMap.get(uid) match {
+                    case Some(oldData) =>
+                      var blankPoint: Set[Point] = Set()
+                      val newField = newFieldInWindow.toSet &~ oldData.fieldDetails.toSet
+                      blankPoint = (oldData.bodyDetails.toSet &~ bodyInWindow.toSet).map(p => Point(p.x, p.y)) ++
+                        (oldData.fieldDetails.toSet &~ newFieldInWindow.toSet).map(p => Point(p.x, p.y))
+                      Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField.toList, blankPoint.toList, newData.killHistory)
 
-                  case None =>
-                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
+                    case None =>
+                      Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newFieldInWindow, Nil, newData.killHistory)
+                  }
+                  userLastSyncDataMap += (uid -> gridData)
+                  log.debug(s"i should go to Sync....${newData.frameCount} - time${System.currentTimeMillis()}")
+                  dispatchTo(uid, gridData)
                 }
-                lastSyncDataMap += (r._1 -> newData)
-                dispatch(gridData, r._1)
               }
               if (tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
