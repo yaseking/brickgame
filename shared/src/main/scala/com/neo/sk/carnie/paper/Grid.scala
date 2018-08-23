@@ -167,9 +167,11 @@ trait Grid {
                     //                    isFinish = true
 
                     val myFieldPoint = ArrayBuffer[Point]()
+                    var tempBodyPoint = Map[Point, Body]()
                     grid = grid.map {
-                      case (p, Body(bodyId, _)) if bodyId == snake.id =>
+                      case (p, x@Body(bodyId, _)) if bodyId == snake.id =>
                         myFieldPoint += p
+                        tempBodyPoint += p -> x
                         (p, Field(id))
 
                       case x@(p, Field(fid)) if fid == snake.id =>
@@ -238,9 +240,12 @@ trait Grid {
                     if (finalFillPoll.nonEmpty) {
                       mayBeSuccess += (snake.id -> finalFillPoll)
                     } else {
-                      returnBackField(snake.id)
+                      var newGrid = grid
+                      tempBodyPoint.foreach{i =>
+                        newGrid += i._1 -> i._2
+                      }
+                      grid = newGrid
                     }
-                    //                    println(s"end -- +${System.currentTimeMillis()}")
                   } else returnBackField(snake.id)
                 }
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
