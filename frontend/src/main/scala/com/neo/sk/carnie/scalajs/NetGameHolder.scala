@@ -236,7 +236,7 @@ object NetGameHolder extends js.JSApp {
     val h = canvas.height - LittleMap.h * canvasUnit * 1.026
     ctx.save()
     ctx.globalAlpha=0.5
-    ctx.fillRect(w.toInt, h.toInt, (LittleMap.w * canvasUnit), (LittleMap.h * canvasUnit))
+    ctx.fillRect(w.toInt, h.toInt, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
     ctx.restore()
     ctx.drawImage(myHeaderImg, (w + Offx * canvasUnit).toInt, (h + Offy * canvasUnit).toInt, 10, 10)
     otherSnakes.foreach { i =>
