@@ -182,7 +182,7 @@ object NetGameHolder extends js.JSApp {
         val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
         m + ":" + s
       }
-      val bestScore = historyRank.find(_.id == myId).head.area
+      val bestScore = if(historyRank.find(_.id == myId).nonEmpty) historyRank.find(_.id == myId).head.area else area
       ctx.fillText(text, 150, 180)
       ctx.save()
       ctx.font = "bold 24px Helvetica"
