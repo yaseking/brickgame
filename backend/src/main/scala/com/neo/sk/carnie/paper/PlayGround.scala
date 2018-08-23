@@ -157,7 +157,7 @@ object PlayGround {
                       Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newFieldInWindow, Nil, newData.killHistory)
                   }
                   userLastSyncDataMap += (uid -> gridData)
-                  log.debug(s"i should go to Sync....${newData.frameCount} - time${System.currentTimeMillis()}")
+//                  log.debug(s"i should go to Sync....${newData.frameCount} - time${System.currentTimeMillis()}")
                   dispatchTo(uid, gridData)
                 }
               }

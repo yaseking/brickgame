@@ -1,6 +1,8 @@
 package com.neo.sk.carnie.paper
 
 import java.awt.event.KeyEvent
+
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 
@@ -28,7 +30,7 @@ trait Grid {
   var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
   var bodyField = Map.empty[Long, Map[Point, Long]] //(body点，原归属者的id)
   var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇
-  var mayBeSuccess = Map.empty[Long, Set[Point]] //圈地成功后的被圈点
+  var mayBeSuccess = Map.empty[Long, List[Point]] //圈地成功后的被圈点
   var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
 
   List(0, BorderSize.w).foreach(x => (0 to BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
@@ -166,26 +168,79 @@ trait Grid {
                     case _ => false
                   }) true else false //起点是否被圈走
                   if (stillStart) {
-                    isFinish = true
-                    val snakeField = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
-                    val snakeBody = grid.filter(_._2 match { case Body(bodyId) if bodyId == snake.id => true case _ => false }).keys.toList
-                    println("begin" + System.currentTimeMillis())
-                    val isClockwise = Short.prefectDirection(snake.turnDirection)
-//                    println("isClockwise" + System.currentTimeMillis())
-                    val findShortPath = Short.findShortestPath(snake.startPoint, newHeader, snakeField.toList, Short.startPointOnBoundary(snake.startPoint, snakeBody), isClockwise)
-                    println("findShortPath" + System.currentTimeMillis())
-                    if (findShortPath._2) {
-                      val closed = findShortPath._1 ::: snakeBody
-                      val newGrid = Short.detection(closed, snake.id, grid)
-                      //                      val randomPoint = Short.findRandomPoint(closed, closed)
-//                      println("randomPoint" + System.currentTimeMillis())
-//                      val newGrid = Short.breadthFirst(randomPoint, closed, snake.id, grid, snake.turnPoint)
-                      //                println("start--" + snake.startPoint)
-                      //                println("end--" + newHeader)
-                      println("done" + System.currentTimeMillis())
-                      mayBeSuccess += (snake.id -> newGrid.keys.filterNot(p => grid.keys.exists(_ == p)).toSet)
-                      grid = newGrid
-                    } else returnBackField(snake.id)
+//                    isFinish = true
+
+                    val myFieldPoint = ArrayBuffer[Point]()
+                    grid = grid.map {
+                      case (p, Body(bodyId)) if bodyId == snake.id =>
+                        myFieldPoint += p
+                        (p, Field(id))
+
+                      case x@(p, Field(fid)) if fid == snake.id =>
+                        myFieldPoint += p
+                        x
+
+                      case x => x
+                    }
+
+                    val xMin = myFieldPoint.minBy(_.x).x.toInt - 1
+                    val xMax = myFieldPoint.maxBy(_.x).x.toInt + 1
+                    val yMin = myFieldPoint.minBy(_.y).y.toInt - 1
+                    val yMax = myFieldPoint.maxBy(_.y).y.toInt + 1
+
+                    var targets = Set.empty[Point] //所有需要检查的坐标值的集
+
+                    for(x <- xMin until xMax) {
+                      for (y <- yMin until yMax) {
+                        grid.get(Point(x, y)) match {
+                          case Some(x: Field) if x.id == snake.id => //donothing
+                          case _ => targets = targets + Point(x, y)
+                        }
+                      }
+                    }
+
+                    var finalFillPoll = List.empty[Point]
+                    while (targets.nonEmpty){
+                      var iter = List.empty[Point]
+                      iter = iter :+ targets.head
+                      targets = targets.tail
+
+                      var fillPool = List.empty[Point] //该次填色需要上色的所有坐标
+                      var in_bound = true //这次上色是否为内部区域
+                      while (iter.nonEmpty){
+                        val curr = iter.head
+                        iter = iter.tail
+                        Array(Point(-1, 0),  Point(0, -1), Point(0, 1), Point(1,0)).foreach { dir =>
+                          if (targets.contains(dir + curr)) { //如果 targets 包含该坐标，则将该坐标从targets中移除并添加至iter
+                            targets = targets - (dir + curr)
+                            iter = iter :+ (dir + curr)
+                          }
+                        }
+                        if(in_bound) {
+                          //如果curr紧邻field_border(boundary)，将in_bound设为False；否则向fill_pool中加入curr
+                          val aroundPoints = List(Point(-1, 0), Point(1, 0), Point(0, -1), Point(0, 1)).map(p => p + curr)
+                          if (aroundPoints.head.x <= xMin || aroundPoints(1).x >= xMax || aroundPoints(2).y <= yMin || aroundPoints(3).y >= yMax) {
+                            in_bound = false
+                          } else {
+                            fillPool ::= curr
+                          }
+                        }
+                      }
+                      if(in_bound){ //如果 in_bound 为真则将 fill_pool中所有坐标填充为当前玩家id
+                        var newGrid = grid
+                        finalFillPoll = finalFillPoll ::: fillPool
+                        for(p <- fillPool ){
+                          grid.get(p) match {
+                            case Some(Border) => newGrid += p -> Border
+                            case Some(Body(bodyId)) => newGrid += p -> Body(bodyId)
+                            case x => newGrid += p -> Field(snake.id)
+                          }
+                        }
+                        grid = newGrid
+                      }
+                    }
+                    mayBeSuccess += (snake.id -> finalFillPoll)
+//                    println(s"end -- +${System.currentTimeMillis()}")
                   } else returnBackField(snake.id)
                 }
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, turnPoint = Nil), true))
@@ -242,7 +297,7 @@ trait Grid {
       case Left(_) =>
     }
 
-    val interset = mayBeSuccess.keys.filter(p => mayBeDieSnake.keys.exists(_ == p))
+    val interset = mayBeSuccess.keySet.filter(p => mayBeDieSnake.keys.exists(_ == p))
     if(interset.nonEmpty){
       interset.foreach{ snakeId =>  //在即将完成圈地的时候身体被撞击则不死但此次圈地作废
         grid --= mayBeSuccess(snakeId)
@@ -262,7 +317,7 @@ trait Grid {
       returnBackField(s._1)
     }
     mayBeDieSnake = Map.empty[Long, Long]
-    mayBeSuccess = Map.empty[Long, Set[Point]]
+    mayBeSuccess = Map.empty[Long, List[Point]]
 
 
     //if two (or more) headers go to the same point,die at the same time
