@@ -339,15 +339,21 @@ object NetGameHolder extends js.JSApp {
             val s1 = temp % 60
             val s = if(s1<0) "00" else if(s1<10) "0"+s1 else s1.toString
             val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
-            m + "min " + s + "sec"
+            m + ":" + s
           }
+          val bestScore = historyRank.find(_.id == uid).head.area
           ctx.fillText(text, 150 + offx, 180 + offy)
           ctx.save()
           ctx.font = "bold 24px Helvetica"
           ctx.fillStyle = ColorsSetting.gradeColor
-          ctx.fillText("area = " + f"${area / canvasSize * 100}%.2f" + "%", 150 + offx, 250 + offy)
-          ctx.fillText(s"kill = ${kill}", 150 + offx, 290 + offy)
-          ctx.fillText(s"time = $time", 150 + offx, 330 + offy)
+          ctx.fillText("YOUR SCORE:", 150 + offx, 250 + offy)
+          ctx.fillText(f"${area / canvasSize * 100}%.2f" + "%", 380 + offx, 250 + offy)
+          ctx.fillText("BEST SCORE:", 150 + offx, 290 + offy)
+          ctx.fillText(f"${bestScore.toDouble / canvasSize * 100}%.2f" + "%", 380 + offx, 290 + offy)
+          ctx.fillText(s"PLAYERS KILLED:", 150 + offx, 330 + offy)
+          ctx.fillText(s"$kill", 380 + offx, 330 + offy)
+          ctx.fillText(s"TIME PLAYED:", 150 + offx, 370 + offy)
+          ctx.fillText(s"$time", 380 + offx, 370 + offy)
           ctx.restore()
         }
     }
