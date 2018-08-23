@@ -162,7 +162,7 @@ object NetGameHolder extends js.JSApp {
       ctx.fillText("Please wait.", 150, 180)
     } else {
       dom.window.cancelAnimationFrame(nextFrame)
-      ctx.font = "36px Helvetica"
+      ctx.font = "16px Helvetica"
       val text = grid.getKiller(myId) match {
         case Some(killer) =>
           scale = 1
@@ -174,7 +174,28 @@ object NetGameHolder extends js.JSApp {
           ctx.scale(1, 1)
           "Ops, Press Space Key To Restart!"
       }
+      val time = {
+        val temp = (endTime - startTime) / 1000
+        val tempM = temp / 60
+        val s1 = temp % 60
+        val s = if(s1<0) "00" else if(s1<10) "0"+s1 else s1.toString
+        val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
+        m + ":" + s
+      }
+      val bestScore = historyRank.find(_.id == myId).head.area
       ctx.fillText(text, 150, 180)
+      ctx.save()
+      ctx.font = "bold 24px Helvetica"
+      ctx.fillStyle = ColorsSetting.gradeColor
+      ctx.fillText("YOUR SCORE:", 150, 250)
+      ctx.fillText(f"${area / canvasSize * 100}%.2f" + "%", 380, 250)
+      ctx.fillText("BEST SCORE:", 150, 290)
+      ctx.fillText(f"${bestScore.toDouble / canvasSize * 100}%.2f" + "%", 380, 290)
+      ctx.fillText(s"PLAYERS KILLED:", 150, 330)
+      ctx.fillText(s"$kill", 380, 330)
+      ctx.fillText(s"TIME PLAYED:", 150, 370)
+      ctx.fillText(s"$time", 380, 370)
+      ctx.restore()
     }
   }
 
@@ -350,6 +371,8 @@ object NetGameHolder extends js.JSApp {
     val myRankBaseLine = 3
     currentRank.filter(_.id == myId).foreach { score =>
       area = score.area
+      kill = score.k
+      endTime = System.currentTimeMillis()
       val color = snakes.find(_.id == myId).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
