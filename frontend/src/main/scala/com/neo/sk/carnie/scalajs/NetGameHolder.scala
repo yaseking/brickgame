@@ -186,7 +186,7 @@ object NetGameHolder extends js.JSApp {
         m + ":" + s
       }
       println("drawGameDie44444")
-      val bestScore = historyRank.find(_.id == myId).head.area
+      val bestScore = if(historyRank.find(_.id == myId).nonEmpty) historyRank.find(_.id == myId).head.area else area
       ctx.fillText(text, 150, 180)
       ctx.save()
       println("drawGameDie55555")
