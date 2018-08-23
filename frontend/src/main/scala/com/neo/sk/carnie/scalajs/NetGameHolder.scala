@@ -321,7 +321,7 @@ object NetGameHolder extends js.JSApp {
           ctx.fillText("Please wait.", 150 + offx, 180 + offy)
         } else {
           dom.window.cancelAnimationFrame(nextFrame)
-          ctx.font = "36px Helvetica"
+          ctx.font = "16px Helvetica"
           val text = grid.getKiller(uid) match {
             case Some(killer) =>
               scale = 1
