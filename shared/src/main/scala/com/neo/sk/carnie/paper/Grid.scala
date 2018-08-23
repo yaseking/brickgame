@@ -238,7 +238,7 @@ trait Grid {
                     if (finalFillPoll.nonEmpty) {
                       mayBeSuccess += (snake.id -> finalFillPoll)
                     } else {
-
+                      returnBackField(snake.id)
                     }
                     //                    println(s"end -- +${System.currentTimeMillis()}")
                   } else returnBackField(snake.id)
