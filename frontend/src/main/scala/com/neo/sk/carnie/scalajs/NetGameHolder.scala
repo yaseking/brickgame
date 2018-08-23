@@ -211,7 +211,7 @@ object NetGameHolder extends js.JSApp {
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
-        println(s"fronted-${grid.frameCount}")
+//        println(s"fronted-${grid.frameCount}")
         update()
       } else {
         if (syncGridData.nonEmpty) {
@@ -531,7 +531,7 @@ object NetGameHolder extends js.JSApp {
                 //                  justSynced = true
 
                 case data: Protocol.Data4Sync =>
-                  println(s"back-${data.frameCount}***front-${grid.frameCount}**time${System.currentTimeMillis()}")
+//                  println(s"back-${data.frameCount}***front-${grid.frameCount}**time${System.currentTimeMillis()}")
                   syncGridData = Some(data)
                   justSynced = true
 

@@ -165,26 +165,13 @@ trait Grid {
                   }) true else false //起点是否被圈走
                   if (stillStart) {
                     //                    isFinish = true
-
-                    val myFieldPoint = ArrayBuffer[Point]()
-                    var tempBodyPoint = Map[Point, Body]()
                     grid = grid.map {
-                      case (p, x@Body(bodyId, _)) if bodyId == snake.id =>
-                        myFieldPoint += p
-                        tempBodyPoint += p -> x
-                        (p, Field(id))
-
-                      case x@(p, Field(fid)) if fid == snake.id =>
-                        myFieldPoint += p
-                        x
-
-                      case x => x
+                      case (p, Body(bodyId, _)) if bodyId == snake.id => (p, Field(id))
+                      case x@_ => x
                     }
+                    val myFieldPoint = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
 
-                    val xMin = myFieldPoint.minBy(_.x).x.toInt - 1
-                    val xMax = myFieldPoint.maxBy(_.x).x.toInt + 1
-                    val yMin = myFieldPoint.minBy(_.y).y.toInt - 1
-                    val yMax = myFieldPoint.maxBy(_.y).y.toInt + 1
+                    val (xMin, xMax, yMin, yMax) = Short.findMyRectangle(myFieldPoint)
 
                     var targets = Set.empty[Point] //所有需要检查的坐标值的集
 
@@ -237,15 +224,8 @@ trait Grid {
                         grid = newGrid
                       }
                     }
-                    if (finalFillPoll.nonEmpty) {
-                      mayBeSuccess += (snake.id -> finalFillPoll)
-                    } else {
-                      var newGrid = grid
-                      tempBodyPoint.foreach{i =>
-                        newGrid += i._1 -> i._2
-                      }
-                      grid = newGrid
-                    }
+                    mayBeSuccess += (snake.id -> finalFillPoll)
+
                   } else returnBackField(snake.id)
                 }
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
@@ -313,7 +293,6 @@ trait Grid {
     val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).values
     val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toSet
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
-//    val nobodySnake = snakes.keySet &~ grid.map(_._2 match { case x@Body(uid, _) => uid case _ => 0 }).toSet.filter(_ != 0) //若身体全被其它玩家圈走则死亡
 
     val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id) ||
       noFieldSnake.contains(s.data.id) ).map { s =>
@@ -363,10 +342,13 @@ trait Grid {
   }
 
   def returnBackField(snakeId: Long) = {
-    grid = grid.map {
-      case (p, Body(bid, fid)) if bid == snakeId && fid.nonEmpty => (p, Field(fid.get))
-      case x@_ => x
+    val bodyGrid = grid.filter(_._2 match { case Body(bid, fid) if bid == snakeId => true case _ => false })
+    var newGrid = grid
+    bodyGrid.foreach {
+      case (p, Body(_, fid)) if fid.nonEmpty => newGrid += p -> Field(fid.get)
+      case (p, _) => newGrid -= p
     }
+    grid = newGrid
   }
 
   def recallGrid(startFrame: Long, endFrame: Long) = {

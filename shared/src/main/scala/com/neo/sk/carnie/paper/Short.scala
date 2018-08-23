@@ -296,6 +296,13 @@ object Short {
 
   }
 
+  def findMyRectangle(myFieldPoint: Iterable[Point]) = {
+    (myFieldPoint.minBy(_.x).x.toInt - 1,
+      myFieldPoint.maxBy(_.x).x.toInt + 1,
+      myFieldPoint.minBy(_.y).y.toInt - 1,
+      myFieldPoint.maxBy(_.y).y.toInt + 1)
+  }
+
 
 }
 
