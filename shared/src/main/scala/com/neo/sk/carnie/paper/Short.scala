@@ -162,7 +162,7 @@ object Short {
           val currentPoint = colorQueue.dequeue()
           val list = currentPoint.direct match {  //按照方向遍历，提高效率
             case Point(-1, -1) =>
-              List(Point(-1, 0), Point(-1, -1), Point(0, -1))
+              List(Point(-1, 0), Point(-1, -1), Point(0, -1), Point(1, 0), Point(0, 1))
 
             case Point(-1, 1) =>
               List(Point(-1, 0), Point(-1, 1), Point(0, 1))
@@ -171,7 +171,7 @@ object Short {
               List(Point(1, 0), Point(1, -1), Point(0, -1))
 
             case Point(1, 1) =>
-              List(Point(1, 0), Point(1, 1), Point(0, 1))
+              List(Point(1, 0), Point(1, 1), Point(0, 1), Point(-1, 0), Point(0, -1))
 
             case _ => //startPointOpt这个点没有方向，全部方向遍历
               List(Point(-1, 0), Point(0, -1), Point(0, 1), Point(1, 0), Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1))
