@@ -76,7 +76,7 @@ object NetGameHolder extends js.JSApp {
     val fontColor = "#000000"
     val defaultColor = "#000080"
     val borderColor = "#696969"
-    val mapColor = "#d8d8d866"
+    val mapColor = "#C0C0C0"
     val gradeColor = "#3358FF"
   }
 
@@ -234,7 +234,10 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.mapColor
     val w = canvas.width - LittleMap.w * canvasUnit * 1.034
     val h = canvas.height - LittleMap.h * canvasUnit * 1.026
-    ctx.fillRect(w.toInt, h.toInt, (LittleMap.w * canvasUnit).toInt, (LittleMap.h * canvasUnit).toInt)
+    ctx.save()
+    ctx.globalAlpha=0.5
+    ctx.fillRect(w.toInt, h.toInt, (LittleMap.w * canvasUnit), (LittleMap.h * canvasUnit))
+    ctx.restore()
     ctx.drawImage(myHeaderImg, (w + Offx * canvasUnit).toInt, (h + Offy * canvasUnit).toInt, 10, 10)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
@@ -406,7 +409,6 @@ object NetGameHolder extends js.JSApp {
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin.toInt, index, currentRankBaseLine)
     }
-
     drawSmallMap(lastHeader, otherSnakes)
   }
 
