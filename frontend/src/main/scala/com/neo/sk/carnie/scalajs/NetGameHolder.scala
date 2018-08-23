@@ -261,6 +261,7 @@ object NetGameHolder extends js.JSApp {
             drawGrid(myId, data, offsetTime)
 
           case None =>
+            println("drawGameDie000000")
             drawGameDie()
         }
       }
