@@ -9,7 +9,7 @@ package object paper {
 
   sealed trait Spot
 
-  case class Body(id: Long) extends Spot
+  case class Body(id: Long, fid: Option[Long]) extends Spot
 
   case class Field(id: Long) extends Spot
 
@@ -17,7 +17,7 @@ package object paper {
 
   case class Score(id: Long, n: String, k: Int, t: Option[Long] = None, area: Int = 0)
 
-  case class Bd(id: Long, x: Float, y: Float)
+  case class Bd(id: Long, fid: Option[Long], x: Float, y: Float)
 
   case class Fd(id: Long, x: Float, y: Float)
 
@@ -45,16 +45,14 @@ package object paper {
                    name: String,
                    color: String,
                    startPoint: Point,
-                   turnPoint: List[Point],
                    header: Point,
                    direction: Point = Point(1, 0),
-                   kill: Int = 0,
-                   turnDirection: List[Point] = List(Point(0, 1))
+                   kill: Int = 0
                  )
 
   case class UpdateSnakeInfo(
                               data: SkDt,
-                              isFiled: Boolean = false
+                              bodyInField : Option[Long] = None
                             )
 
 

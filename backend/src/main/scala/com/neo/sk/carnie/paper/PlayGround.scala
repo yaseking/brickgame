@@ -142,9 +142,11 @@ object PlayGround {
               if (tickCount % 20 == 5 || isFinish) {
                 val newData = r._2._2.getGridData
                 userInRoom.foreach { uid =>
+                  val scaleValue =  1 - Math.sqrt(newData.fieldDetails.count(_.id == uid)) * 0.0048
+                  val scale = (critical.x / scaleValue, critical.y / scaleValue)
                   val header = newData.snakes.find(_.id == uid).map(_.header).getOrElse(Point(border.x / 2, border.y / 2))
-                  val newFieldInWindow = newData.fieldDetails.filter(p => Math.abs(p.x - header.x) < critical.x && Math.abs(p.y - header.y) < critical.y)
-                  val bodyInWindow = newData.bodyDetails.filter(p => Math.abs(p.x - header.x) < critical.x && Math.abs(p.y - header.y) < critical.y)
+                  val newFieldInWindow = newData.fieldDetails.filter(p => Math.abs(p.x - header.x) < scale._1 && Math.abs(p.y - header.y) < scale._2)
+                  val bodyInWindow = newData.bodyDetails.filter(p => Math.abs(p.x - header.x) < scale._1 && Math.abs(p.y - header.y) < scale._2)
                   val gridData = userLastSyncDataMap.get(uid) match {
                     case Some(oldData) =>
                       var blankPoint: Set[Point] = Set()
@@ -157,7 +159,6 @@ object PlayGround {
                       Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newFieldInWindow, Nil, newData.killHistory)
                   }
                   userLastSyncDataMap += (uid -> gridData)
-//                  log.debug(s"i should go to Sync....${newData.frameCount} - time${System.currentTimeMillis()}")
                   dispatchTo(uid, gridData)
                 }
               }

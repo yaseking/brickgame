@@ -218,7 +218,6 @@ object NetGameHolder extends js.JSApp {
   }
 
   def draw(offsetTime: Long): Unit = {
-//    println("drawGrid start" + System.currentTimeMillis())
     if (wsSetup) {
       if (isWin) {
         drawGameWin(winnerName)
@@ -228,7 +227,6 @@ object NetGameHolder extends js.JSApp {
           case Some(_) =>
             firstCome = false
             drawGrid(myId, data, offsetTime)
-//            println("drawGrid end" + System.currentTimeMillis())
 
           case None =>
             drawGameDie()
@@ -248,7 +246,8 @@ object NetGameHolder extends js.JSApp {
 
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
-        val direction = grid.nextDirection(s.id).getOrElse(s.direction)
+        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+        val direction = if(s.direction + nextDirection != Point(0,0)) nextDirection else s.direction
         s.header + direction * offsetTime.toFloat / Protocol.frameRate
 
       case None =>
@@ -261,8 +260,8 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 
-    val criticalX = window.x + 1
-    val criticalY = window.y
+    val criticalX = (window.x + 1) /scale
+    val criticalY = window.y / scale
 
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
@@ -292,7 +291,9 @@ object NetGameHolder extends js.JSApp {
     snakes.filter(_.id == championId).foreach { s =>
       ctx.globalAlpha = 0.5
       ctx.fillStyle = s.color
-      val direction = grid.nextDirection(s.id).getOrElse(s.direction)
+      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+      val direction = if(s.direction + nextDirection != Point(0,0)) nextDirection else s.direction
+
       val off = direction * offsetTime.toFloat / Protocol.frameRate
       val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
 
@@ -310,7 +311,10 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 0.5
       ctx.fillStyle = snake.color
       val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
-      val direction = grid.nextDirection(snake.id).getOrElse(snake.direction)
+
+      val nextDirection = grid.nextDirection(snake.id).getOrElse(snake.direction)
+      val direction = if(snake.direction + nextDirection != Point(0,0)) nextDirection else snake.direction
+
       val off = direction * offsetTime.toFloat / Protocol.frameRate
       val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
       if (direction.x.toInt == 1 || direction.x.toInt == -1)
@@ -392,9 +396,7 @@ object NetGameHolder extends js.JSApp {
       wsSetup = true
       canvas.focus()
       canvas.onkeydown = { e: dom.KeyboardEvent => {
-//        println(s"keydown: ${e.keyCode}")
         if (watchKeys.contains(e.keyCode)) {
-//          println(s"key down: [${e.keyCode}]")
           val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
             NetTest(myId, System.currentTimeMillis())
           } else {
@@ -536,9 +538,9 @@ object NetGameHolder extends js.JSApp {
 
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
     grid.frameCount = data.frameCount
-    var newGrid = grid.grid.filter(_._2 match { case Body(_) => false case _ => true })
+    var newGrid = grid.grid.filter(_._2 match { case Body(_, _) => false case _ => true })
     newGrid --= data.blankDetails
-    data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id))
+    data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id, b.fid))
     data.fieldDetails.foreach(f => newGrid += Point(f.x, f.y) -> Field(f.id))
     grid.grid = newGrid
     grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
@@ -548,7 +550,7 @@ object NetGameHolder extends js.JSApp {
 
   def initSyncGridData(data: Protocol.GridDataSync): Unit = {
     grid.frameCount = data.frameCount
-    val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id)).toMap
+    val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.fid)).toMap
     val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
     val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
     val gridMap = bodyMap ++ fieldMap ++ bordMap

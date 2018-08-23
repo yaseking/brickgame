@@ -40,7 +40,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }
       }
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      snakes += id -> SkDt(id, name, bodyColor, startPoint, Nil, startPoint)
+      snakes += id -> SkDt(id, name, bodyColor, startPoint, startPoint)
       killHistory -= id
     }
     waitingJoin = Map.empty[Long, (Int, String, String)]
