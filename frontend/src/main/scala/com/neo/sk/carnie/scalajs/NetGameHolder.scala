@@ -57,6 +57,8 @@ object NetGameHolder extends js.JSApp {
   var startTime = System.currentTimeMillis()
   var endTime = System.currentTimeMillis()
   var timeFlag = true
+  var area = 0.16
+  var kill = 0
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -76,6 +78,7 @@ object NetGameHolder extends js.JSApp {
     val defaultColor = "#000080"
     val borderColor = "#696969"
     val mapColor = "#d8d8d866"
+    val gradeColor = "#3358FF"
   }
 
   private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -305,6 +308,8 @@ object NetGameHolder extends js.JSApp {
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
         firstCome = false
+        endTime = System.currentTimeMillis()
+        kill = mySnake.kill
         val baseLine = 1
         ctx.font = "12px Helvetica"
         drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
@@ -328,31 +333,29 @@ object NetGameHolder extends js.JSApp {
               ctx.scale(1, 1)
               "Ops, Press Space Key To Restart!"
           }
-          if(timeFlag){
-            endTime = System.currentTimeMillis()
-            timeFlag = false
-          }
           val time = {
             val temp = (endTime - startTime) / 1000
             val tempM = temp / 60
             val s1 = temp % 60
-            val s = if(s1<10) "0"+s1 else s1.toString
-            val m = if(tempM<10) "0"+tempM else tempM.toString
+            val s = if(s1<0) "00" else if(s1<10) "0"+s1 else s1.toString
+            val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
             m + "min " + s + "sec"
           }
-//          println(s"time: $time")
           ctx.fillText(text, 150 + offx, 180 + offy)
-          ctx.font = "24px Helvetica"
-          val s = historyRank.filter(_.id == uid).head
-          ctx.fillText("area = " + f"${s.area.toDouble / canvasSize * 100}%.2f" + "%", 150 + offx, 250 + offy)
-          ctx.fillText(s"kill = ${s.k}", 150 + offx, 290 + offy)
-          ctx.fillText(s"time = $time" + s"   $timeFlag", 150 + offx, 350 + offy)
+          ctx.save()
+          ctx.font = "bold 24px Helvetica"
+          ctx.fillStyle = ColorsSetting.gradeColor
+          ctx.fillText("area = " + f"${area / canvasSize * 100}%.2f" + "%", 150 + offx, 250 + offy)
+          ctx.fillText(s"kill = ${kill}", 150 + offx, 290 + offy)
+          ctx.fillText(s"time = $time", 150 + offx, 330 + offy)
+          ctx.restore()
         }
     }
 
     ctx.font = "12px Helvetica"
     val myRankBaseLine = 3
     currentRank.filter(_.id == myId).foreach { score =>
+      area = score.area
       val color = snakes.find(_.id == myId).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
@@ -393,7 +396,6 @@ object NetGameHolder extends js.JSApp {
   val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
 
   def joinGame(name: String): Unit = {
-    startTime = System.currentTimeMillis()
     formField.innerHTML = ""
     bodyField.style.backgroundColor = "white"
     //    val playground = dom.document.getElementById("playground")
@@ -421,6 +423,8 @@ object NetGameHolder extends js.JSApp {
             } else {
               startTime = System.currentTimeMillis()
               timeFlag = true
+              area = 0.0
+              kill = 0
             }
             if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
 //              timeFlag = true
