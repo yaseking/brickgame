@@ -142,10 +142,11 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  override def update(): Unit = {
-    super.update()
+  override def update() = {
+    val isFinish = super.update()
     genWaitingSnake()
     updateRanks()
+    isFinish
   }
 
 //  def getFeededApple = feededApples

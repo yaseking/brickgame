@@ -67,14 +67,13 @@ object Short {
   }
 
 
-  def findShortestPath(initStart: Point, end: Point, fieldBoundary: List[Point], initLastDirection: Point, clockwise: Point) = {
+  def findShortestPath(initStart: Point, end: Point, fieldBoundary: List[Point], initLastDirection: Point, isClockwise: Boolean) = {
     val targetPath = mutable.Stack[Point]()
     var start = initStart
     var lastDirection = initLastDirection
     var flag = true //记录是否找得到闭合回路
     var flagPoint = (Point(0, 0), Point(0, 0)) //(point,direction)
     var count = 0
-    val isClockwise = if (clockwise == baseDirection("right") || clockwise == baseDirection("down")) true else false //是否是顺时针行走的
     while (start != end && flag) {
       count += 1
       val direction = findDirection(start, if (isClockwise) nextLeftPreferDirection(lastDirection) else nextRightPreferDirection(lastDirection), fieldBoundary)
@@ -146,6 +145,7 @@ object Short {
   case class InsidePoint(point: Point, direct: Point)
 
   def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long, grid: Map[Point, Spot], turnPoints: List[Point]) = {
+    var count = 0
     var newGrid = grid
     val colorQueue = new mutable.Queue[InsidePoint]()
     var colorField = ArrayBuffer[Point]()
@@ -159,6 +159,7 @@ object Short {
         colorField += startPoint
 
         while (colorQueue.nonEmpty) {
+          count += 1
           val currentPoint = colorQueue.dequeue()
           val list = currentPoint.direct match {  //按照方向遍历，提高效率
             case Point(-1, -1) =>
@@ -178,7 +179,7 @@ object Short {
           }
           list.foreach { d =>
             val newPoint = currentPoint.point + d
-            if (!boundary.contains(newPoint) && !colorField.contains(newPoint)) {
+            if (!boundary.contains(newPoint) && !colorField.contains(newPoint) && (grid.get(newPoint) match {case Some(Field(fid)) if snakeId == fid => false case _ => true})) {
               colorField += newPoint
               colorQueue.enqueue(InsidePoint(newPoint, currentPoint.direct))
             }
@@ -195,6 +196,7 @@ object Short {
 
       case None =>
     }
+    println("count-" + count)
     boundary.foreach(b => newGrid += b -> Field(snakeId))
     newGrid
   }
@@ -257,6 +259,41 @@ object Short {
       boundary.count(p => p.y == point.y && p.x < point.x) % 2 == 1) {
       true
     } else false
+  }
+
+  def prefectDirection(turnDirection: List[Point]) = {
+    val startDirection = turnDirection.head
+    var directionSum = Point(0, 0)
+    turnDirection.foreach(i => directionSum = directionSum + i)
+    val clockwise = if (directionSum.x != 0 || directionSum.y != 0) turnDirection.last else directionSum
+    if (startDirection == baseDirection("up") || startDirection == baseDirection("right")) {
+      if (clockwise == baseDirection("right") || clockwise == baseDirection("down")) true else false
+    } else {
+      if (clockwise == baseDirection("right") || clockwise == baseDirection("down")) false else true
+    }
+  }
+
+  def detection(boundary: List[Point], snakeId: Long, grid: Map[Point, Spot]) = {
+    var newGrid = grid
+    var pointMap = Map.empty[Float, (Float, Float)]
+
+    boundary.groupBy(_.x).foreach { case (iter, point) => //纵向检测
+      val y = point.map(_.y)
+      pointMap += iter -> (y.min, y.max)
+    }
+
+    boundary.groupBy(_.y).foreach { case (iter, point) => //横向检测
+      val xs = point.map(_.x)
+      for (x <- xs.max to xs.min by -1) {
+        pointMap.get(x) match {
+          case Some(v) => if (iter <= v._2 && iter >= v._1) newGrid += Point(x, iter) -> Field(snakeId)
+          case None => //
+        }
+      }
+    }
+
+    newGrid
+
   }
 
 

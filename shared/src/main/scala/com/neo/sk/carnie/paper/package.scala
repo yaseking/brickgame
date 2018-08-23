@@ -49,7 +49,7 @@ package object paper {
                    header: Point,
                    direction: Point = Point(1, 0),
                    kill: Int = 0,
-                   clockwise: Point = Point(0, 0)
+                   turnDirection: List[Point] = List(Point(0, 1))
                  )
 
   case class UpdateSnakeInfo(

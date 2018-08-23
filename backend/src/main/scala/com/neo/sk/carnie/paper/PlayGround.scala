@@ -9,6 +9,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paper.Protocol._
+
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
@@ -41,6 +42,8 @@ object PlayGround {
 
   private val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.8
 
+  private val critical = Point(Window.w + 1, Window.h)
+
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 
     val ground = system.actorOf(Props(new Actor {
@@ -50,7 +53,7 @@ object PlayGround {
 
       var roomMap = Map.empty[Int, (Int, GridOnServer)] //(roomId, (roomNum, grid))
 
-      var lastSyncDataMap = Map.empty[Int, GridDataSync] //(roomId, (roomNum, grid))
+      var userLastSyncDataMap = Map.empty[Long, Data4Sync] //(userId, (roomNum, grid))
 
       var tickCount = 0l
 
@@ -83,7 +86,7 @@ object PlayGround {
 
         case r@Left(id, name) =>
           log.info(s"got $r")
-          if(userMap.get(id).nonEmpty) {
+          if (userMap.get(id).nonEmpty) {
             val roomId = userMap(id)._1
             val newUserNum = roomMap(roomId)._1 - 1
             roomMap(roomId)._2.removeSnake(id)
@@ -97,13 +100,13 @@ object PlayGround {
         case userAction: UserAction => userAction match {
           case r@Key(id, keyCode, frameCount, actionId) =>
             val roomId = userMap(id)._1
-//            dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
+            //            dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
             if (keyCode == KeyEvent.VK_SPACE) {
               roomMap(roomId)._2.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
             } else {
               val grid = roomMap(roomId)._2
-//              log.debug(s"got $r - now${grid.frameCount}")
-              val realFrame = if(frameCount >= grid.frameCount) frameCount else grid.frameCount
+              //              log.debug(s"got $r - now${grid.frameCount}")
+              val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
               grid.addActionWithFrame(id, keyCode, realFrame)
               dispatch(Protocol.SnakeAction(id, keyCode, realFrame, actionId), roomId)
             }
@@ -133,26 +136,33 @@ object PlayGround {
         case Sync =>
           tickCount += 1
           roomMap.foreach { r =>
-            if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
-              r._2._2.update()
-              if (tickCount % 20 == 5) {
+            val userInRoom = userMap.filter(_._2._1 == r._1).keySet
+            if (userInRoom.nonEmpty) {
+              val isFinish = r._2._2.update()
+              if (tickCount % 20 == 5 || isFinish) {
                 val newData = r._2._2.getGridData
-//                val gridData = lastSyncDataMap.get(r._1) match {
-//                  case Some(oldData) =>
-//                    var blankPoint: Set[Point] = Set()
-//                    val newField = newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet
-//                    blankPoint = (oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
-//                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))
-//                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField.toList, blankPoint.toList, newData.killHistory)
-//
-//                  case None =>
-//                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
-//                }
-//                lastSyncDataMap += (r._1 -> newData)
-                dispatch(newData, r._1)
+                userInRoom.foreach { uid =>
+                  val header = newData.snakes.find(_.id == uid).map(_.header).getOrElse(Point(border.x / 2, border.y / 2))
+                  val newFieldInWindow = newData.fieldDetails.filter(p => Math.abs(p.x - header.x) < critical.x && Math.abs(p.y - header.y) < critical.y)
+                  val bodyInWindow = newData.bodyDetails.filter(p => Math.abs(p.x - header.x) < critical.x && Math.abs(p.y - header.y) < critical.y)
+                  val gridData = userLastSyncDataMap.get(uid) match {
+                    case Some(oldData) =>
+                      var blankPoint: Set[Point] = Set()
+                      val newField = newFieldInWindow.toSet &~ oldData.fieldDetails.toSet
+                      blankPoint = (oldData.bodyDetails.toSet &~ bodyInWindow.toSet).map(p => Point(p.x, p.y)) ++
+                        (oldData.fieldDetails.toSet &~ newFieldInWindow.toSet).map(p => Point(p.x, p.y))
+                      Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField.toList, blankPoint.toList, newData.killHistory)
+
+                    case None =>
+                      Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newFieldInWindow, Nil, newData.killHistory)
+                  }
+                  userLastSyncDataMap += (uid -> gridData)
+//                  log.debug(s"i should go to Sync....${newData.frameCount} - time${System.currentTimeMillis()}")
+                  dispatchTo(uid, gridData)
+                }
               }
-              if(tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
-              if(r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
+              if (tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
+              if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
                 dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)
               }
@@ -169,7 +179,7 @@ object PlayGround {
 
       def dispatch(gameOutPut: Protocol.GameMessage, roomId: Long) = {
         val user = userMap.filter(_._2._1 == roomId).keys.toList
-        subscribers.foreach { case (id, ref) if user.contains(id) => ref ! gameOutPut case _ =>}
+        subscribers.foreach { case (id, ref) if user.contains(id) => ref ! gameOutPut case _ => }
       }
     }
     ), "ground")
@@ -183,7 +193,7 @@ object PlayGround {
       override def joinGame(id: Long, name: String): Flow[UserAction, Protocol.GameMessage, Any] = {
         val in =
           Flow[UserAction]
-            .map {s => s}
+            .map { s => s }
             .to(playInSink(id, name))
 
         val out =
@@ -197,7 +207,6 @@ object PlayGround {
     }
 
   }
-
 
 
   private case class Join(id: Long, name: String, subscriber: ActorRef)
