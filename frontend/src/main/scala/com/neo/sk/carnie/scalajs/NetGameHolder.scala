@@ -116,6 +116,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def gameRender(): Double => Unit = { d =>
+    println("render" + System.currentTimeMillis())
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
@@ -203,6 +204,8 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGrid(uid: Long, data: GridDataSync, championId: Long, offsetTime: Long): Unit = { //头所在的点是屏幕的正中心
+
+    println("drawstart" + System.currentTimeMillis())
 
     val snakes = data.snakes
     val otherSnakes = snakes.filterNot(_.id == uid)
@@ -363,6 +366,9 @@ object NetGameHolder extends js.JSApp {
     }
 
     drawSmallMap(lastHeader, otherSnakes)
+
+    println("drawend" + System.currentTimeMillis())
+
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
