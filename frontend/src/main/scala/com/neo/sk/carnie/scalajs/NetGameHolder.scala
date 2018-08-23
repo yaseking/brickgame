@@ -154,6 +154,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameDie(): Unit = {
+    println("drawGameDie11111")
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
@@ -165,11 +166,13 @@ object NetGameHolder extends js.JSApp {
       ctx.font = "16px Helvetica"
       val text = grid.getKiller(myId) match {
         case Some(killer) =>
+          println("drawGameDie22222")
           scale = 1
           ctx.scale(1, 1)
           s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
 
         case None =>
+          println("drawGameDie33333")
           scale = 1
           ctx.scale(1, 1)
           "Ops, Press Space Key To Restart!"
@@ -182,9 +185,11 @@ object NetGameHolder extends js.JSApp {
         val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
         m + ":" + s
       }
+      println("drawGameDie44444")
       val bestScore = historyRank.find(_.id == myId).head.area
       ctx.fillText(text, 150, 180)
       ctx.save()
+      println("drawGameDie55555")
       ctx.font = "bold 24px Helvetica"
       ctx.fillStyle = ColorsSetting.gradeColor
       ctx.fillText("YOUR SCORE:", 150, 250)
