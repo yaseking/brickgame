@@ -71,7 +71,7 @@ package object paper {
     val h = 30
   }
 
-  object LittleMap {
+  object littleMap {
     val w = 12
     val h = 7
   }

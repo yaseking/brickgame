@@ -164,7 +164,7 @@ trait Grid {
                     case _ => false
                   }) true else false //起点是否被圈走
                   if (stillStart) {
-                    //                    isFinish = true
+                    isFinish = true
                     grid = grid.map {
                       case (p, Body(bodyId, _)) if bodyId == snake.id => (p, Field(id))
                       case x@_ => x

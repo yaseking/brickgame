@@ -27,7 +27,7 @@ object NetGameHolder extends js.JSApp {
   val bounds = Point(Boundary.w, Boundary.h)
   val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
-  val SmallMap = Point(LittleMap.w, LittleMap.h)
+  val SmallMap = Point(littleMap.w, littleMap.h)
   //  val canvasUnit = 20
   private val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   val textLineHeight = 14
@@ -229,16 +229,16 @@ object NetGameHolder extends js.JSApp {
 
 
   def drawSmallMap(myheader: Point, otherSnakes: List[SkDt]): Unit = {
-    val Offx = myheader.x.toDouble / border.x * SmallMap.x
-    val Offy = myheader.y.toDouble / border.y * SmallMap.y
+    val offx = myheader.x.toDouble / border.x * SmallMap.x
+    val offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    val w = canvas.width - LittleMap.w * canvasUnit * 1.034
-    val h = canvas.height - LittleMap.h * canvasUnit * 1.026
+    val w = canvas.width - littleMap.w * canvasUnit * 1.034
+    val h = canvas.height - littleMap.h * canvasUnit * 1.026
     ctx.save()
-    ctx.globalAlpha=0.5
-    ctx.fillRect(w.toInt, h.toInt, (LittleMap.w * canvasUnit), (LittleMap.h * canvasUnit))
+    ctx.globalAlpha = 0.5
+    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit, littleMap.h * canvasUnit)
     ctx.restore()
-    ctx.drawImage(myHeaderImg, (w + Offx * canvasUnit).toInt, (h + Offy * canvasUnit).toInt, 10, 10)
+    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
       val y = i.header.y.toDouble / border.y * SmallMap.y
@@ -430,7 +430,6 @@ object NetGameHolder extends js.JSApp {
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
       startGame()
-      //      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
       canvas.onkeydown = { e: dom.KeyboardEvent => {
@@ -514,7 +513,7 @@ object NetGameHolder extends js.JSApp {
                       myActionHistory -= actionId
                     }
                   } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-                    println(s"receive--back$frame now-${grid.frameCount}")
+//                    println(s"receive--back$frame now-${grid.frameCount}")
                     grid.addActionWithFrame(id, keyCode, frame)
                     if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
                       grid.recallGrid(frame, grid.frameCount)

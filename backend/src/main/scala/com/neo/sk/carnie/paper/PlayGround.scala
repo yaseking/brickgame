@@ -81,7 +81,7 @@ object PlayGround {
           subscribers += (id -> subscriber)
           roomMap(roomId)._2.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
-          dispatch(Protocol.NewSnakeJoined(id, name), roomId)
+//          dispatch(Protocol.NewSnakeJoined(id, name), roomId)
           dispatch(roomMap(roomId)._2.getGridData, roomId)
 
         case r@Left(id, name) =>
@@ -94,7 +94,7 @@ object PlayGround {
             userMap -= id
             subscribers.get(id).foreach(context.unwatch)
             subscribers -= id
-            dispatch(Protocol.SnakeLeft(id, name), roomId)
+//            dispatch(Protocol.SnakeLeft(id, name), roomId)
           }
 
         case userAction: UserAction => userAction match {
@@ -127,7 +127,10 @@ object PlayGround {
               val roomId = userMap(id)._1
               userMap -= id
               subscribers -= id
-              roomMap(roomId)._2.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name), roomId))
+              roomMap(roomId)._2.removeSnake(id)
+//                .foreach(s =>
+//                dispatch(Protocol.SnakeLeft(id, s.name), roomId)
+//              )
               val newUserNum = roomMap(roomId)._1 - 1
               if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
             }
