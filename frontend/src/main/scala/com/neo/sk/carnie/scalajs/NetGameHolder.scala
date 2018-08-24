@@ -55,7 +55,7 @@ object NetGameHolder extends js.JSApp {
   var base = 1
   var startTime = System.currentTimeMillis()
   var endTime = System.currentTimeMillis()
-  var timeFlag = true
+  var scoreFlag = true
   var area = 0.16
   var kill = 0
 
@@ -256,6 +256,12 @@ object NetGameHolder extends js.JSApp {
         data.snakes.find(_.id == myId) match {
           case Some(_) =>
             firstCome = false
+            if(scoreFlag){
+              startTime = System.currentTimeMillis()
+              area = 0.0
+              kill = 0
+              scoreFlag = false
+            }
             drawGrid(myId, data, offsetTime)
 
           case None =>
@@ -438,10 +444,7 @@ object NetGameHolder extends js.JSApp {
             if (e.keyCode != KeyCode.Space) {
               myActionHistory += actionId -> (e.keyCode, frame)
             } else {
-              startTime = System.currentTimeMillis()
-              timeFlag = true
-              area = 0.0
-              kill = 0
+              scoreFlag = true
             }
             if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
               scale = 1
