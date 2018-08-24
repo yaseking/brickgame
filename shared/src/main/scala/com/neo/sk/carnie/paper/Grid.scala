@@ -30,8 +30,8 @@ trait Grid {
   var mayBeSuccess = Map.empty[Long, List[Point]] //圈地成功后的被圈点
   var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
 
-  List(0, BorderSize.w).foreach(x => (0 to BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
-  List(0, BorderSize.h).foreach(y => (0 to BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
+  List(0, BorderSize.w - 1).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
+  List(0, BorderSize.h - 1).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
 
   def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
@@ -164,7 +164,7 @@ trait Grid {
                     case _ => false
                   }) true else false //起点是否被圈走
                   if (stillStart) {
-                    //                    isFinish = true
+                    isFinish = true
                     grid = grid.map {
                       case (p, Body(bodyId, _)) if bodyId == snake.id => (p, Field(id))
                       case x@_ => x

@@ -27,7 +27,7 @@ object NetGameHolder extends js.JSApp {
   val bounds = Point(Boundary.w, Boundary.h)
   val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
-  val SmallMap = Point(LittleMap.w, LittleMap.h)
+  val SmallMap = Point(littleMap.w, littleMap.h)
   //  val canvasUnit = 20
   private val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   val textLineHeight = 14
@@ -55,7 +55,7 @@ object NetGameHolder extends js.JSApp {
   var base = 1
   var startTime = System.currentTimeMillis()
   var endTime = System.currentTimeMillis()
-  var timeFlag = true
+  var scoreFlag = true
   var area = 0.16
   var kill = 0
 
@@ -182,19 +182,19 @@ object NetGameHolder extends js.JSApp {
         val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
         m + ":" + s
       }
-//      val bestScore = if(historyRank.find(_.id == myId).nonEmpty) historyRank.find(_.id == myId).head.area else area
+      val bestScore = if(historyRank.find(_.id == myId).nonEmpty) historyRank.find(_.id == myId).head.area else area
       ctx.fillText(text, 150, 180)
       ctx.save()
       ctx.font = "bold 24px Helvetica"
       ctx.fillStyle = ColorsSetting.gradeColor
       ctx.fillText("YOUR SCORE:", 150, 250)
       ctx.fillText(f"${area / canvasSize * 100}%.2f" + "%", 380, 250)
-//      ctx.fillText("BEST SCORE:", 150, 290)
-//      ctx.fillText(f"${bestScore.toDouble / canvasSize * 100}%.2f" + "%", 380, 290)
-      ctx.fillText(s"PLAYERS KILLED:", 150, 290)
-      ctx.fillText(s"$kill", 380, 290)
-      ctx.fillText(s"TIME PLAYED:", 150, 330)
-      ctx.fillText(s"$time", 380, 330)
+      ctx.fillText("BEST SCORE:", 150, 290)
+      ctx.fillText(f"${bestScore.toDouble / canvasSize * 100}%.2f" + "%", 380, 290)
+      ctx.fillText(s"PLAYERS KILLED:", 150, 330)
+      ctx.fillText(s"$kill", 380, 330)
+      ctx.fillText(s"TIME PLAYED:", 150, 370)
+      ctx.fillText(s"$time", 380, 370)
       ctx.restore()
     }
   }
@@ -229,16 +229,16 @@ object NetGameHolder extends js.JSApp {
 
 
   def drawSmallMap(myheader: Point, otherSnakes: List[SkDt]): Unit = {
-    val Offx = myheader.x.toDouble / border.x * SmallMap.x
-    val Offy = myheader.y.toDouble / border.y * SmallMap.y
+    val offx = myheader.x.toDouble / border.x * SmallMap.x
+    val offy = myheader.y.toDouble / border.y * SmallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    val w = canvas.width - LittleMap.w * canvasUnit * 1.034
-    val h = canvas.height - LittleMap.h * canvasUnit * 1.026
+    val w = canvas.width - littleMap.w * canvasUnit * 1.034
+    val h = canvas.height - littleMap.h * canvasUnit * 1.026
     ctx.save()
-    ctx.globalAlpha=0.5
-    ctx.fillRect(w.toInt, h.toInt, LittleMap.w * canvasUnit, LittleMap.h * canvasUnit)
+    ctx.globalAlpha = 0.5
+    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit, littleMap.h * canvasUnit)
     ctx.restore()
-    ctx.drawImage(myHeaderImg, (w + Offx * canvasUnit).toInt, (h + Offy * canvasUnit).toInt, 10, 10)
+    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
       val y = i.header.y.toDouble / border.y * SmallMap.y
@@ -256,6 +256,12 @@ object NetGameHolder extends js.JSApp {
         data.snakes.find(_.id == myId) match {
           case Some(_) =>
             firstCome = false
+            if(scoreFlag){
+              startTime = System.currentTimeMillis()
+              area = 0.0
+              kill = 0
+              scoreFlag = false
+            }
             drawGrid(myId, data, offsetTime)
 
           case None =>
@@ -424,7 +430,6 @@ object NetGameHolder extends js.JSApp {
     val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { event0: Event =>
       startGame()
-      //      playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
       wsSetup = true
       canvas.focus()
       canvas.onkeydown = { e: dom.KeyboardEvent => {
@@ -438,10 +443,7 @@ object NetGameHolder extends js.JSApp {
             if (e.keyCode != KeyCode.Space) {
               myActionHistory += actionId -> (e.keyCode, frame)
             } else {
-              startTime = System.currentTimeMillis()
-              timeFlag = true
-              area = 0.0
-              kill = 0
+              scoreFlag = true
             }
             if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
               scale = 1
@@ -511,7 +513,7 @@ object NetGameHolder extends js.JSApp {
                       myActionHistory -= actionId
                     }
                   } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-                    println(s"receive--back$frame now-${grid.frameCount}")
+//                    println(s"receive--back$frame now-${grid.frameCount}")
                     grid.addActionWithFrame(id, keyCode, frame)
                     if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
                       grid.recallGrid(frame, grid.frameCount)
