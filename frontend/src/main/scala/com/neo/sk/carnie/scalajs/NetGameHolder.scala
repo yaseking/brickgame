@@ -135,8 +135,8 @@ object NetGameHolder extends js.JSApp {
     background.width = windowBoundary.x.toInt
     background.height = windowBoundary.y.toInt
 
-//    ctx.fillStyle = ColorsSetting.backgroundColor
-//    ctx.fillRect(0, 0, background.width, background.height)
+    backCtx.fillStyle = ColorsSetting.backgroundColor
+    backCtx.fillRect(0, 0, background.width, background.height)
 //
 //    backCtx.drawImage(canvas, 0 ,0)
   }
@@ -219,10 +219,10 @@ object NetGameHolder extends js.JSApp {
     if (wsSetup) {
       if (!justSynced) { //前端更新
 //        println(s"fronted-${grid.frameCount}")
-        if(off > 160) println("!!!!!!!")
+//        if(off > 160) println("!!!!!!!")
         update()
       } else {
-        if(off > 160) println("???????")
+//        if(off > 160) println("???????")
         if (syncGridData.nonEmpty) {
           setSyncGridData(syncGridData.get)
           syncGridData = None
@@ -305,8 +305,7 @@ object NetGameHolder extends js.JSApp {
     val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
     val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
-    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
     val criticalX = (window.x + 1) /scale
     val criticalY = window.y / scale

@@ -1,0 +1,9 @@
+#Background{
+    z-index: 1;
+    position: absolute;
+}
+
+#GameView{
+    z-index: 2;
+    position: absolute;
+}
