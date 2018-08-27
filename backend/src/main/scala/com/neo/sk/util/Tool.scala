@@ -9,7 +9,7 @@ object Tool {
 
   def findContinuous(points: Array[Int]) = {
     var target = List.empty[(Int, Int)]
-    if (points.max - points.min == (points.length + 1)) { //仅存在一段
+    if (points.max - points.min == (points.length - 1)) { //仅存在一段
       target = List((points.min, points.max))
     } else { //分段寻找
       var start = points(0)
@@ -27,11 +27,12 @@ object Tool {
         }
       }
     }
+    println(target)
     target
   }
 
   def main(args: Array[String]): Unit = {
-    val points = Array(8, 9, 10)
+    val points = Array(1, 2, 3, 4, 5, 8, 9, 10).sorted
     findContinuous(points)
   }
 

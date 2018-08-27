@@ -116,7 +116,7 @@ object NetGameHolder extends js.JSApp {
 
   def startGame(): Unit = {
     drawGameOn()
-    dom.window.setTimeout(() => gameLoop(), Protocol.frameRate)
+    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -210,11 +210,6 @@ object NetGameHolder extends js.JSApp {
 
   var lastTime = 0l
   def gameLoop(): Unit = {
-    val thisTime = System.currentTimeMillis()
-    val off = thisTime - lastTime
-    if(off > 160) println("*****" + off)
-    lastTime = thisTime
-    dom.window.setTimeout(() => gameLoop(), Protocol.frameRate)
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
@@ -588,12 +583,12 @@ object NetGameHolder extends js.JSApp {
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
     grid.frameCount = data.frameCount
     var newGrid = grid.grid.filter(_._2 match { case Body(_, _) => false case _ => true })
-    data.blankDetails.foreach{ blank =>
-      blank._2.foreach{l =>(l._1 to l._2 by 1).foreach(y => newGrid -= Point(blank._1, y))}
+    data.blankDetails.foreach { blank =>
+      blank._2.foreach { l => (l._1 to l._2 by 1).foreach(y => newGrid -= Point(blank._1, y)) }
     }
-    data.fieldDetails.foreach{ users =>
-      users._2.foreach{x =>
-        x._2.foreach{l =>(l._1 to l._2 by 1).foreach(y => newGrid += Point(x._1, y) -> Field(users._1))}
+    data.fieldDetails.foreach { users =>
+      users._2.foreach { x =>
+        x._2.foreach { l => (l._1 to l._2 by 1).foreach(y => newGrid += Point(x._1, y) -> Field(users._1)) }
       }
     }
     data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id, b.fid))

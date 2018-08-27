@@ -146,6 +146,8 @@ object PlayGround {
                       }.toList)
                     }.toList
 
+                    println("newField***" + newField)
+
                     val blankPoint = ((oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
                       (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))).groupBy(_.x).map{ case (x, target) =>
                       (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
