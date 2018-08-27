@@ -115,7 +115,7 @@ object NetGameHolder extends js.JSApp {
 
   def startGame(): Unit = {
     drawGameOn()
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+    dom.window.setTimeout(() => gameLoop(), Protocol.frameRate)
     dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -182,7 +182,7 @@ object NetGameHolder extends js.JSApp {
         val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
         m + ":" + s
       }
-      val bestScore = if(historyRank.find(_.id == myId).nonEmpty) historyRank.find(_.id == myId).head.area else area
+      val bestScore = if(historyRank.exists(_.id == myId)) historyRank.find(_.id == myId).head.area else area
       ctx.fillText(text, 150, 180)
       ctx.save()
       ctx.font = "bold 24px Helvetica"
@@ -207,13 +207,21 @@ object NetGameHolder extends js.JSApp {
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
   }
 
+  var lastTime = 0l
   def gameLoop(): Unit = {
+    val thisTime = System.currentTimeMillis()
+    val off = thisTime - lastTime
+    if(off > 160) println("*****" + off)
+    lastTime = thisTime
+    dom.window.setTimeout(() => gameLoop(), Protocol.frameRate)
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
 //        println(s"fronted-${grid.frameCount}")
+        if(off > 160) println("!!!!!!!")
         update()
       } else {
+        if(off > 160) println("???????")
         if (syncGridData.nonEmpty) {
           setSyncGridData(syncGridData.get)
           syncGridData = None

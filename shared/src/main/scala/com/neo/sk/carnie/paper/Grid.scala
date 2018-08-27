@@ -342,7 +342,7 @@ trait Grid {
   }
 
   def returnBackField(snakeId: Long) = {
-    val bodyGrid = grid.filter(_._2 match { case Body(bid, fid) if bid == snakeId => true case _ => false })
+    val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
     var newGrid = grid
     bodyGrid.foreach {
       case (p, Body(_, fid)) if fid.nonEmpty => newGrid += p -> Field(fid.get)

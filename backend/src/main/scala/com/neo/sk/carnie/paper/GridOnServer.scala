@@ -17,7 +17,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-  private[this] var waitingJoin = Map.empty[Long, (Int, String, String)]
+  private[this] var waitingJoin = Map.empty[Long, (String, String)]
 
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[Long, Score]
@@ -27,11 +27,11 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   def addSnake(id: Long, roomId:Int, name: String) = {
     val bodyColor = randomColor()
-    waitingJoin += (id -> (roomId, name, bodyColor))
+    waitingJoin += (id -> (name, bodyColor))
   }
 
   private[this] def genWaitingSnake() = {
-    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (roomId, name, bodyColor)) =>
+    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
       (0 until indexSize).foreach { x =>
@@ -43,7 +43,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       snakes += id -> SkDt(id, name, bodyColor, startPoint, startPoint)
       killHistory -= id
     }
-    waitingJoin = Map.empty[Long, (Int, String, String)]
+    waitingJoin = Map.empty[Long, (String, String)]
   }
 
   implicit val scoreOrdering = new Ordering[Score] {
@@ -105,7 +105,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   def randomColor(): String = {
     var color = randomHex()
-    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._3).toList
+    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
     val similarityDegree = 800
     while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
       color = randomHex()
