@@ -9,9 +9,9 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paper.Protocol._
-
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
+import com.neo.sk.util.Tool
 
 /**
   * User: Taoz
@@ -42,8 +42,6 @@ object PlayGround {
 
   private val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.8
 
-  private val critical = Point(Window.w + 1, Window.h)
-
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 
     val ground = system.actorOf(Props(new Actor {
@@ -53,7 +51,7 @@ object PlayGround {
 
       var roomMap = Map.empty[Int, (Int, GridOnServer)] //(roomId, (roomNum, grid))
 
-      var userLastSyncDataMap = Map.empty[Long, Data4Sync] //(userId, (roomNum, grid))
+      var lastSyncDataMap = Map.empty[Int, GridDataSync] //(roomId, (roomNum, grid))
 
       var tickCount = 0l
 
@@ -127,10 +125,7 @@ object PlayGround {
               val roomId = userMap(id)._1
               userMap -= id
               subscribers -= id
-              roomMap(roomId)._2.removeSnake(id)
-//                .foreach(s =>
-//                dispatch(Protocol.SnakeLeft(id, s.name), roomId)
-//              )
+              roomMap(roomId)._2.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name), roomId))
               val newUserNum = roomMap(roomId)._1 - 1
               if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
             }
@@ -139,31 +134,31 @@ object PlayGround {
         case Sync =>
           tickCount += 1
           roomMap.foreach { r =>
-            val userInRoom = userMap.filter(_._2._1 == r._1).keySet
-            if (userInRoom.nonEmpty) {
+            if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
               val isFinish = r._2._2.update()
               if (tickCount % 20 == 5 || isFinish) {
                 val newData = r._2._2.getGridData
-                userInRoom.foreach { uid =>
-                  val scaleValue =  1 - Math.sqrt(newData.fieldDetails.count(_.id == uid)) * 0.0048
-                  val scale = (critical.x / scaleValue, critical.y / scaleValue)
-                  val header = newData.snakes.find(_.id == uid).map(_.header).getOrElse(Point(border.x / 2, border.y / 2))
-                  val newFieldInWindow = newData.fieldDetails.filter(p => Math.abs(p.x - header.x) < scale._1 && Math.abs(p.y - header.y) < scale._2)
-                  val bodyInWindow = newData.bodyDetails.filter(p => Math.abs(p.x - header.x) < scale._1 && Math.abs(p.y - header.y) < scale._2)
-                  val gridData = userLastSyncDataMap.get(uid) match {
-                    case Some(oldData) =>
-                      var blankPoint: Set[Point] = Set()
-                      val newField = newFieldInWindow.toSet &~ oldData.fieldDetails.toSet
-                      blankPoint = (oldData.bodyDetails.toSet &~ bodyInWindow.toSet).map(p => Point(p.x, p.y)) ++
-                        (oldData.fieldDetails.toSet &~ newFieldInWindow.toSet).map(p => Point(p.x, p.y))
-                      Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField.toList, blankPoint.toList, newData.killHistory)
+                val gridData = lastSyncDataMap.get(r._1) match {
+                  case Some(oldData) =>
+                    println("startTime--" + System.currentTimeMillis())
+                    val newField = (newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet).groupBy(_.id).map { case (userId, fieldDetails) =>
+                      (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
+                        (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
+                      }.toList)
+                    }.toList
 
-                    case None =>
-                      Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newFieldInWindow, Nil, newData.killHistory)
-                  }
-                  userLastSyncDataMap += (uid -> gridData)
-                  dispatchTo(uid, gridData)
+                    val blankPoint = ((oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
+                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))).groupBy(_.x).map{ case (x, target) =>
+                      (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
+                    }.toList
+                    println("send--" + System.currentTimeMillis())
+                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField, blankPoint, newData.killHistory)
+
+                  case None =>
+                    GridDataSync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
                 }
+                lastSyncDataMap += (r._1 -> newData)
+                dispatch(gridData, r._1)
               }
               if (tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {

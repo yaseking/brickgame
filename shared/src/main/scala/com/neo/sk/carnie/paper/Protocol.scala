@@ -22,8 +22,8 @@ object Protocol {
                            frameCount: Long,
                            snakes: List[SkDt],
                            bodyDetails: List[Bd],
-                           fieldDetails: List[Fd],
-                           blankDetails: List[Point],
+                           fieldDetails: List[(Long, List[(Int, List[(Int, Int)])])],
+                           blankDetails: List[(Int, List[(Int, Int)])],
                            killHistory: List[Kill]
                          ) extends GameMessage
 

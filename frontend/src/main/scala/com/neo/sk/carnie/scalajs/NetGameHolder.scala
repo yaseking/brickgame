@@ -51,6 +51,7 @@ object NetGameHolder extends js.JSApp {
   var isWin = false
   var winnerName = "unknown"
   var syncGridData: scala.Option[Protocol.Data4Sync] = None
+  var firstSyncGridData: scala.Option[Protocol.GridDataSync] = None
   var scale = 1.0
   var base = 1
   var startTime = System.currentTimeMillis()
@@ -225,6 +226,9 @@ object NetGameHolder extends js.JSApp {
         if (syncGridData.nonEmpty) {
           setSyncGridData(syncGridData.get)
           syncGridData = None
+        } else if(firstSyncGridData.nonEmpty){
+          initSyncGridData(firstSyncGridData.get)
+          firstSyncGridData = None
         }
         justSynced = false
       }
@@ -521,7 +525,7 @@ object NetGameHolder extends js.JSApp {
                       myActionHistory -= actionId
                     }
                   } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-//                    println(s"receive--back$frame now-${grid.frameCount}")
+                    //                    println(s"receive--back$frame now-${grid.frameCount}")
                     grid.addActionWithFrame(id, keyCode, frame)
                     if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
                       grid.recallGrid(frame, grid.frameCount)
@@ -539,11 +543,12 @@ object NetGameHolder extends js.JSApp {
                   historyRank = history
 
                 case data: Protocol.GridDataSync =>
-                //                  syncGridData = Some(data)
-                //                  justSynced = true
+                  firstSyncGridData = Some(data)
+                  justSynced = true
 
                 case data: Protocol.Data4Sync =>
-//                  println(s"back-${data.frameCount}***front-${grid.frameCount}**time${System.currentTimeMillis()}")
+                  //                  println(s"back-${data.frameCount}***front-${grid.frameCount}**time${System.currentTimeMillis()}")
+                  println("receive--" + System.currentTimeMillis())
                   syncGridData = Some(data)
                   justSynced = true
 
@@ -586,9 +591,15 @@ object NetGameHolder extends js.JSApp {
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
     grid.frameCount = data.frameCount
     var newGrid = grid.grid.filter(_._2 match { case Body(_, _) => false case _ => true })
-    newGrid --= data.blankDetails
+    data.blankDetails.foreach{ blank =>
+      blank._2.foreach{l =>(l._1 to l._2 by 1).foreach(y => newGrid -= Point(blank._1, y))}
+    }
+    data.fieldDetails.foreach{ users =>
+      users._2.foreach{x =>
+        x._2.foreach{l =>(l._1 to l._2 by 1).foreach(y => newGrid += Point(x._1, y) -> Field(users._1))}
+      }
+    }
     data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id, b.fid))
-    data.fieldDetails.foreach(f => newGrid += Point(f.x, f.y) -> Field(f.id))
     grid.grid = newGrid
     grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
     grid.snakes = data.snakes.map(s => s.id -> s).toMap
@@ -599,7 +610,7 @@ object NetGameHolder extends js.JSApp {
     grid.frameCount = data.frameCount
     val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.fid)).toMap
     val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
-    val bordMap = data.borderDetails.map(b => Point(b.x, b.y) -> Border).toMap
+    val bordMap = grid.grid.filter(_._2 match {case Border => true case _ => false})
     val gridMap = bodyMap ++ fieldMap ++ bordMap
     grid.grid = gridMap
     grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
