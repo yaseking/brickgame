@@ -140,7 +140,6 @@ object PlayGround {
                 val newData = r._2._2.getGridData
                 val gridData = lastSyncDataMap.get(r._1) match {
                   case Some(oldData) =>
-                    println("startTime--" + System.currentTimeMillis())
                     val newField = (newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet).groupBy(_.id).map { case (userId, fieldDetails) =>
                       (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
                         (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
@@ -151,7 +150,6 @@ object PlayGround {
                       (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))).groupBy(_.x).map{ case (x, target) =>
                       (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
                     }.toList
-                    println("send--" + System.currentTimeMillis())
                     Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField, blankPoint, newData.killHistory)
 
                   case None =>

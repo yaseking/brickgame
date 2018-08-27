@@ -547,8 +547,6 @@ object NetGameHolder extends js.JSApp {
                   justSynced = true
 
                 case data: Protocol.Data4Sync =>
-                  //                  println(s"back-${data.frameCount}***front-${grid.frameCount}**time${System.currentTimeMillis()}")
-                  println("receive--" + System.currentTimeMillis())
                   syncGridData = Some(data)
                   justSynced = true
 
