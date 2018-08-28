@@ -354,6 +354,7 @@ trait Grid {
   def recallGrid(startFrame: Long, endFrame: Long) = {
     historyStateMap.get(startFrame) match {
       case Some(state) =>
+        println(s"recallGrid-start$startFrame-end-$endFrame")
         snakes = state._1
         grid = state._2
         (startFrame to endFrame).foreach { frame =>
