@@ -305,12 +305,19 @@ object NetGameHolder extends js.JSApp {
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
+    val snakeInWindow = data.snakes.filter(s => Math.abs(s.header.x - lastHeader.x) < criticalX && Math.abs(s.header.y - lastHeader.y) < criticalY).map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 
     val myField = fields.count(_.id == myId)
     scale = 1 - Math.sqrt(myField) * 0.0048
 
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
+
+    fields.groupBy(_.id).foreach { case (sid, field) =>
+      val color = snakes.find(_.id == sid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      ctx.fillStyle = color
+      field.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05) }
+    }
 
     ctx.globalAlpha = 0.5
     bodies.groupBy(_.id).foreach { case (sid, body) =>
@@ -319,55 +326,29 @@ object NetGameHolder extends js.JSApp {
       body.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit, canvasUnit) }
     }
 
-    ctx.globalAlpha = 1.0
-    fields.groupBy(_.id).foreach { case (sid, field) =>
-      val color = snakes.find(_.id == sid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.fillStyle = color
-      field.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05) }
-    }
-
-    //先画冠军的头
-    snakes.filter(_.id == championId).foreach { s =>
+    snakeInWindow.foreach{ s =>
       ctx.globalAlpha = 0.5
       ctx.fillStyle = s.color
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if(s.direction + nextDirection != Point(0,0)) nextDirection else s.direction
-
-      val off = direction * offsetTime.toFloat / Protocol.frameRate
-      val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
-
-      if (direction.x.toInt == 1 || direction.x.toInt == -1)
-        ctx.fillRect((s.header.x + offx + tempDir.x) * canvasUnit, (s.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
-      else
-        ctx.fillRect((s.header.x + offx) * canvasUnit, (s.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
-
-      ctx.globalAlpha = 1.0
-      ctx.drawImage(championHeaderImg, (s.header.x + offx + off.x) * canvasUnit, (s.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
-    }
-
-    //画其他人的头
-    snakes.filterNot(_.id == championId).foreach { snake =>
-      ctx.globalAlpha = 0.5
-      ctx.fillStyle = snake.color
-      val img = if (snake.id == uid) myHeaderImg else otherHeaderImg
-
-      val nextDirection = grid.nextDirection(snake.id).getOrElse(snake.direction)
-      val direction = if(snake.direction + nextDirection != Point(0,0)) nextDirection else snake.direction
+      val img = if(s.id == championId) championHeaderImg else {if (s.id == uid) myHeaderImg else otherHeaderImg}
 
       val off = direction * offsetTime.toFloat / Protocol.frameRate
       val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
       if (direction.x.toInt == 1 || direction.x.toInt == -1)
-        ctx.fillRect((snake.header.x + offx + tempDir.x) * canvasUnit, (snake.header.y + offy) * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
+        ctx.fillRect((s.header.x + tempDir.x) * canvasUnit, s.header.y * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
       else
-        ctx.fillRect((snake.header.x + offx) * canvasUnit, (snake.header.y + offy + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
-      ctx.globalAlpha = 1.0
+        ctx.fillRect(s.header.x * canvasUnit, (s.header.y + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
 
-      ctx.drawImage(img, (snake.header.x + offx + off.x) * canvasUnit, (snake.header.y + offy + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.globalAlpha = 1.0
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
+
     ctx.fillStyle = ColorsSetting.borderColor
     borders.foreach { case Bord(x, y) =>
       ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05)
     }
+
     ctx.restore()
 
     drawSmallMap(lastHeader, otherSnakes)
