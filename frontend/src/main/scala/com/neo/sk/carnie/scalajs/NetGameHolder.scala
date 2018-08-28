@@ -206,6 +206,7 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.font = "36px Helvetica"
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
+    dom.window.cancelAnimationFrame(nextFrame)
   }
 
   def gameLoop(): Unit = {
@@ -526,7 +527,6 @@ object NetGameHolder extends js.JSApp {
                   isWin = true
                   winnerName = winner
                   grid.cleanData()
-                  dom.window.cancelAnimationFrame(nextFrame)
 
                 case Protocol.Ranks(current, history) =>
                   currentRank = current
