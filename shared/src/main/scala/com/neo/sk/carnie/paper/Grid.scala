@@ -26,7 +26,7 @@ trait Grid {
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
-  var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇
+  var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[Long, List[Point]] //圈地成功后的被圈点
   var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
 
@@ -244,6 +244,9 @@ trait Grid {
 
         case Some(Border) =>
           returnBackField(snake.id)
+          grid ++= grid.filter(_._2 match {case Body(_, fid) if fid.nonEmpty && fid.get == snake.id => true case _ => false}).map{ g =>
+            Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+          }
           Left(None)
 
         case _ =>
@@ -284,6 +287,9 @@ trait Grid {
       mapKillCounter += s._2 -> (mapKillCounter.getOrElse(s._2, 0) + 1)
       killedSnaked ::= s._1
       returnBackField(s._1)
+      grid ++= grid.filter(_._2 match {case Body(_, fid) if fid.nonEmpty && fid.get == s._1 => true case _ => false}).map{ g =>
+        Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+      }
     }
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, List[Point]]

@@ -313,6 +313,7 @@ object NetGameHolder extends js.JSApp {
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
+    ctx.globalAlpha = 1.0
     fields.groupBy(_.id).foreach { case (sid, field) =>
       val color = snakes.find(_.id == sid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
@@ -326,23 +327,31 @@ object NetGameHolder extends js.JSApp {
       body.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit, canvasUnit) }
     }
 
-    snakeInWindow.foreach{ s =>
-      ctx.globalAlpha = 0.5
+    snakeInWindow.foreach { s =>
       ctx.fillStyle = s.color
+      ctx.globalAlpha = 0.5
+
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-      val direction = if(s.direction + nextDirection != Point(0,0)) nextDirection else s.direction
-      val img = if(s.id == championId) championHeaderImg else {if (s.id == uid) myHeaderImg else otherHeaderImg}
+      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+      val img = if (s.id == championId) championHeaderImg else {
+        if (s.id == uid) myHeaderImg else otherHeaderImg
+      }
 
       val off = direction * offsetTime.toFloat / Protocol.frameRate
       val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
-      if (direction.x.toInt == 1 || direction.x.toInt == -1)
+      val inOtherField = fields.exists(f => f.id != s.id && f.x == s.header.x + direction.x && f.y == s.header.y + direction.y)
+      if (direction.x.toInt != 0){
+        if(inOtherField) ctx.clearRect((s.header.x + tempDir.x) * canvasUnit, s.header.y * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
         ctx.fillRect((s.header.x + tempDir.x) * canvasUnit, s.header.y * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
-      else
+      } else {
+        if (inOtherField) ctx.clearRect(s.header.x * canvasUnit, (s.header.y + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
         ctx.fillRect(s.header.x * canvasUnit, (s.header.y + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
+      }
 
       ctx.globalAlpha = 1.0
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
     }
+
 
     ctx.fillStyle = ColorsSetting.borderColor
     borders.foreach { case Bord(x, y) =>
