@@ -208,16 +208,12 @@ object NetGameHolder extends js.JSApp {
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
   }
 
-  var lastTime = 0l
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
-//        println(s"fronted-${grid.frameCount}")
-//        if(off > 160) println("!!!!!!!")
         update()
       } else {
-//        if(off > 160) println("???????")
         if (syncGridData.nonEmpty) {
           setSyncGridData(syncGridData.get)
           syncGridData = None
@@ -310,8 +306,8 @@ object NetGameHolder extends js.JSApp {
     val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
 
     val myField = fields.count(_.id == myId)
-
     scale = 1 - Math.sqrt(myField) * 0.0048
+
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 

@@ -146,8 +146,6 @@ object PlayGround {
                       }.toList)
                     }.toList
 
-                    println("newField***" + newField)
-
                     val blankPoint = ((oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
                       (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))).groupBy(_.x).map{ case (x, target) =>
                       (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
@@ -199,7 +197,7 @@ object PlayGround {
           Source.actorRef[Protocol.GameMessage](3, OverflowStrategy.dropHead)
             .mapMaterializedValue(outActor => ground ! Join(id, name, outActor))
 
-        Flow.fromSinkAndSource(in, out) //用法?
+        Flow.fromSinkAndSource(in, out)
       }
 
       override def syncData(): Unit = ground ! Sync
