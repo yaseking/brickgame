@@ -15,6 +15,8 @@ package object paper {
 
   case object Border extends Spot
 
+  case object Blank extends Spot
+
   case class Score(id: Long, n: String, k: Int, t: Option[Long] = None, area: Int = 0)
 
   case class Bd(id: Long, fid: Option[Long], x: Float, y: Float)

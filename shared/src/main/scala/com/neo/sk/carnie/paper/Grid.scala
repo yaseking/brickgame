@@ -27,7 +27,7 @@ trait Grid {
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
   var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
-  var mayBeSuccess = Map.empty[Long, List[Point]] //圈地成功后的被圈点
+  var mayBeSuccess = Map.empty[Long, Map[Point, Spot]] //圈地成功后的被圈点
   var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
 
   List(0, BorderSize.w - 1).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
@@ -165,10 +165,10 @@ trait Grid {
                   }) true else false //起点是否被圈走
                   if (stillStart) {
                     isFinish = true
-                    grid = grid.map {
-                      case (p, Body(bodyId, _)) if bodyId == snake.id => (p, Field(id))
-                      case x@_ => x
-                    }
+                    var finalFillPoll = grid.filter(_._2 match {case Body(bodyId, _) if bodyId == snake.id => true case _ => false})
+
+                    grid ++= finalFillPoll.keys.map(p => p -> Field(snake.id))
+
                     val myFieldPoint = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
 
                     val (xMin, xMax, yMin, yMax) = Short.findMyRectangle(myFieldPoint)
@@ -184,7 +184,6 @@ trait Grid {
                       }
                     }
 
-                    var finalFillPoll = List.empty[Point]
                     while (targets.nonEmpty) {
                       var iter = List.empty[Point]
                       iter = iter :+ targets.head
@@ -213,12 +212,15 @@ trait Grid {
                       }
                       if (in_bound) { //如果 in_bound 为真则将 fill_pool中所有坐标填充为当前玩家id
                         var newGrid = grid
-                        finalFillPoll = finalFillPoll ::: fillPool
                         for (p <- fillPool) {
                           grid.get(p) match {
-                            case Some(Border) => newGrid += p -> Border
                             case Some(Body(bodyId, _)) => newGrid += p -> Body(bodyId, Some(snake.id))
+                            case Some(Border) => //doNothing
                             case x => newGrid += p -> Field(snake.id)
+                              x match {
+                                case Some(Field(fid)) => finalFillPoll += p -> Field(fid)
+                                case _ => finalFillPoll += p -> Blank
+                              }
                           }
                         }
                         grid = newGrid
@@ -274,15 +276,21 @@ trait Grid {
       case Left(_) =>
     }
 
-    val interset = mayBeSuccess.keySet.filter(p => mayBeDieSnake.keys.exists(_ == p))
-    if(interset.nonEmpty){
-      interset.foreach{ snakeId =>  //在即将完成圈地的时候身体被撞击则不死但此次圈地作废
-        grid --= mayBeSuccess(snakeId)
-        returnBackField(snakeId)
+    val intersection = mayBeSuccess.keySet.filter(p => mayBeDieSnake.keys.exists(_ == p))
+    if(intersection.nonEmpty){
+      intersection.foreach{ snakeId =>  // 在即将完成圈地的时候身体被撞击则不死但此次圈地作废
+        mayBeSuccess(snakeId).foreach{i =>
+          i._2 match {
+            case Body(_, fid) if fid.nonEmpty => grid += i._1 -> Field(fid.get)
+            case Field(fid) => grid += i._1 -> Field(fid)
+            case _ => grid -= i._1
+          }
+        }
         mayBeDieSnake -= snakeId
         killHistory -= snakeId
       }
     }
+
     mayBeDieSnake.foreach { s =>
       mapKillCounter += s._2 -> (mapKillCounter.getOrElse(s._2, 0) + 1)
       killedSnaked ::= s._1
@@ -291,8 +299,9 @@ trait Grid {
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
     }
+
     mayBeDieSnake = Map.empty[Long, Long]
-    mayBeSuccess = Map.empty[Long, List[Point]]
+    mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
 
 
     //if two (or more) headers go to the same point,die at the same time
@@ -325,6 +334,7 @@ trait Grid {
       case (p, Body(id, fid)) => bodyDetails ::= Bd(id, fid, p.x.toInt, p.y.toInt)
       case (p, Field(id)) => fieldDetails ::= Fd(id, p.x.toInt, p.y.toInt)
       case (p, Border) => bordDetails ::= Bord(p.x.toInt, p.y.toInt)
+      case _ => //doNothing
     }
     Protocol.GridDataSync(
       frameCount,
@@ -348,7 +358,7 @@ trait Grid {
   }
 
   def returnBackField(snakeId: Long) = {
-    val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
+    val bodyGrid = grid.filter(_._2 match{ case Body(bid, _) if bid == snakeId => true case _ => false })
     var newGrid = grid
     bodyGrid.foreach {
       case (p, Body(_, fid)) if fid.nonEmpty => newGrid += p -> Field(fid.get)
