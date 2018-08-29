@@ -438,12 +438,14 @@ object NetGameHolder extends js.JSApp {
             } else {
               scoreFlag = true
             }
-            if (e.keyCode == KeyCode.Space && isWin) { //重新开始游戏
+            if (e.keyCode == KeyCode.Space) { //重新开始游戏
               scale = 1
               ctx.scale(1, 1)
               firstCome = true
-              isWin = false
-              winnerName = "unknown"
+              if (isWin) {
+                isWin = false
+                winnerName = "unknown"
+              }
             }
             Key(myId, e.keyCode, frame, actionId)
           }

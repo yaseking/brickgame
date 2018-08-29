@@ -48,7 +48,7 @@ package object paper {
                    color: String,
                    startPoint: Point,
                    header: Point,
-                   direction: Point = Point(1, 0),
+                   direction: Point = Point(0, 0),
                    kill: Int = 0
                  )
 
