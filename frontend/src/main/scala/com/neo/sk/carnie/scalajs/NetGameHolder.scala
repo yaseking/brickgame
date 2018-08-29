@@ -384,7 +384,7 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
       ctx.save()
-      ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 6 * (score.area.toDouble / canvasSize), textLineHeight)
+      ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
       ctx.restore()
 
       ctx.globalAlpha = 1
@@ -400,8 +400,8 @@ object NetGameHolder extends js.JSApp {
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
       ctx.save()
-      ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 6 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
-        fillWidth + windowBoundary.x / 6 * (score.area.toDouble / canvasSize), textLineHeight)
+      ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
+        fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
       ctx.restore()
 
       ctx.globalAlpha = 1
