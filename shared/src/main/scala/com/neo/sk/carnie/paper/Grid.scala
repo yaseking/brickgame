@@ -145,9 +145,9 @@ trait Grid {
           mayBeDieSnake += x.id -> snake.id
           grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
             case Some(Field(fid)) if fid == snake.id =>
-              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid))
             case _ =>
-              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
+              Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), x.fid))
           }
 
         case Some(Field(id)) =>
@@ -245,10 +245,6 @@ trait Grid {
           }
 
         case Some(Border) =>
-          returnBackField(snake.id)
-          grid ++= grid.filter(_._2 match {case Body(_, fid) if fid.nonEmpty && fid.get == snake.id => true case _ => false}).map{ g =>
-            Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
-          }
           Left(None)
 
         case _ =>
@@ -294,33 +290,37 @@ trait Grid {
     mayBeDieSnake.foreach { s =>
       mapKillCounter += s._2 -> (mapKillCounter.getOrElse(s._2, 0) + 1)
       killedSnaked ::= s._1
-      returnBackField(s._1)
-      grid ++= grid.filter(_._2 match {case Body(_, fid) if fid.nonEmpty && fid.get == s._1 => true case _ => false}).map{ g =>
-        Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
-      }
     }
 
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
 
-
     //if two (or more) headers go to the same point,die at the same time
     val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).values
-    val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toSet
+    val deadSnakes = snakesInDanger.flatMap{ hits => hits.map(_.data.id)}.toList
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
 
-    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.data.id) || killedSnaked.contains(s.data.id) ||
-      noFieldSnake.contains(s.data.id) ).map { s =>
+    val finalDie = deadSnakes ::: killedSnaked ::: noFieldSnake.toList
+
+    finalDie.foreach { sid =>
+      returnBackField(sid)
+      grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
+        Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+      }
+    }
+
+    val newSnakes = updatedSnakes.filterNot(s => finalDie.contains(s.data.id)).map { s =>
       mapKillCounter.get(s.data.id) match {
         case Some(k) => s.copy(data = s.data.copy(kill = k + s.data.kill))
         case None => s
       }
     }
 
-    newSnakes.foreach(s =>
+    newSnakes.foreach { s =>
       if (s.bodyInField.nonEmpty && s.bodyInField.get == s.data.id) grid += s.data.header -> Field(s.data.id)
       else grid += s.data.header -> Body(s.data.id, s.bodyInField)
-    )
+    }
+
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
     isFinish
@@ -357,7 +357,7 @@ trait Grid {
     killHistory = Map.empty[Long, (Long, String)]
   }
 
-  def returnBackField(snakeId: Long) = {
+  def returnBackField(snakeId: Long) = { //归还身体部分所占有的领地
     val bodyGrid = grid.filter(_._2 match{ case Body(bid, _) if bid == snakeId => true case _ => false })
     var newGrid = grid
     bodyGrid.foreach {
