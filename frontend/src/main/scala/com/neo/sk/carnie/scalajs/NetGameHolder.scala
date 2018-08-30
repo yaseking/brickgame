@@ -38,7 +38,7 @@ object NetGameHolder extends js.JSApp {
   var historyRank = List.empty[Score]
   private var myId = -1l
 
-  val grid = new GridOnClient(border)
+  var grid = new GridOnClient(border)
 
   var firstCome = true
   var wsSetup = false
@@ -479,7 +479,9 @@ object NetGameHolder extends js.JSApp {
                     if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                       grid.addActionWithFrame(id, keyCode, frame)
                       if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                        grid.recallGrid(frame, grid.frameCount)
+                        val oldGrid = grid
+                        oldGrid.recallGrid(frame, grid.frameCount)
+                        grid = oldGrid
                       }
                     } else {
                       if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
@@ -487,7 +489,9 @@ object NetGameHolder extends js.JSApp {
                         grid.addActionWithFrame(id, keyCode, frame)
                         val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
                         if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                          grid.recallGrid(miniFrame, grid.frameCount)
+                          val oldGrid = grid
+                          oldGrid.recallGrid(frame, grid.frameCount)
+                          grid = oldGrid
                         }
                       }
                       myActionHistory -= actionId
@@ -496,7 +500,9 @@ object NetGameHolder extends js.JSApp {
                     //                    println(s"receive--back$frame now-${grid.frameCount}")
                     grid.addActionWithFrame(id, keyCode, frame)
                     if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                      grid.recallGrid(frame, grid.frameCount)
+                      val oldGrid = grid
+                      oldGrid.recallGrid(frame, grid.frameCount)
+                      grid = oldGrid
                     }
                   }
 
