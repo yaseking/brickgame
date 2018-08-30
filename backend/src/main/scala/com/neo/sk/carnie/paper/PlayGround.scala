@@ -134,10 +134,8 @@ object PlayGround {
           roomMap.foreach { r =>
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
               val isFinish = r._2._2.update()
-              if (tickCount % 20 == 5 || isFinish) {
-                val newData = r._2._2.getGridData
-                //                val gridData = GridDataSync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
-
+              val newData = r._2._2.getGridData
+              if (isFinish) {
                 val gridData = lastSyncDataMap.get(r._1) match {
                   case Some(oldData) =>
                     val newField = (newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet).groupBy(_.id).map { case (userId, fieldDetails) =>
@@ -154,9 +152,13 @@ object PlayGround {
                   case None =>
                     GridDataSync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
                 }
-                lastSyncDataMap += (r._1 -> newData)
+                dispatch(gridData, r._1)
+              } else if (tickCount % 20 == 5) {
+                val gridData = GridDataSync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
                 dispatch(gridData, r._1)
               }
+              lastSyncDataMap += (r._1 -> newData)
+
               if (tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
