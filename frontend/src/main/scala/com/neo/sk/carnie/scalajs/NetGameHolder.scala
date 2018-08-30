@@ -205,7 +205,7 @@ object NetGameHolder extends js.JSApp {
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
-        grid.update()
+        grid.updateInClient()
       } else {
         if (firstSyncGridData.nonEmpty) {
           initSyncGridData(firstSyncGridData.get)

@@ -77,10 +77,10 @@ trait Grid {
     isFinish
   }
 
-  private[this] def updateSpots() = {
+  def updateSpots() = {
     grid = grid.filter { case (p, spot) =>
       spot match {
-        case Body(id,_) if snakes.contains(id) => true
+        case Body(id, _) if snakes.contains(id) => true
         case Field(id) if snakes.contains(id) => true
         case Border => true
         case _ => false
