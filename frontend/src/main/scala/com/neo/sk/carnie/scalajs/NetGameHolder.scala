@@ -28,11 +28,8 @@ object NetGameHolder extends js.JSApp {
   val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
   val SmallMap = Point(littleMap.w, littleMap.h)
-  //  val canvasUnit = 20
   private val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   val textLineHeight = 14
-//  private val canvasBoundary = bounds * canvasUnit
-  //  private val windowBoundary = window * canvasUnit
   private val windowBoundary = Point(dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val fillWidth = 33
@@ -54,8 +51,8 @@ object NetGameHolder extends js.JSApp {
   var firstSyncGridData: scala.Option[Protocol.GridDataSync] = None
   var scale = 1.0
   var base = 1
-  var startTime = System.currentTimeMillis()
-  var endTime = System.currentTimeMillis()
+  private var startTime = System.currentTimeMillis()
+  private var endTime = System.currentTimeMillis()
   var scoreFlag = true
   var area = 0.16
   var kill = 0
@@ -90,12 +87,9 @@ object NetGameHolder extends js.JSApp {
   private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
   private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-  private val championHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
-  private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
-  private val otherHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
-  championHeaderImg.src = "/carnie/static/img/champion.png"
-  myHeaderImg.src = "/carnie/static/img/girl.png"
-  otherHeaderImg.src = "/carnie/static/img/boy.png"
+  private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
+  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
+  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
 
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
@@ -137,8 +131,6 @@ object NetGameHolder extends js.JSApp {
 
     backCtx.fillStyle = ColorsSetting.backgroundColor
     backCtx.fillRect(0, 0, background.width, background.height)
-//
-//    backCtx.drawImage(canvas, 0 ,0)
   }
 
   def drawGameOff(): Unit = {
@@ -213,7 +205,7 @@ object NetGameHolder extends js.JSApp {
     logicFrameTime = System.currentTimeMillis()
     if (wsSetup) {
       if (!justSynced) { //前端更新
-        update()
+        grid.update()
       } else {
         if (firstSyncGridData.nonEmpty) {
           initSyncGridData(firstSyncGridData.get)
@@ -226,11 +218,6 @@ object NetGameHolder extends js.JSApp {
       }
     }
   }
-
-  def update(): Unit = {
-    grid.update()
-  }
-
 
   def drawSmallMap(myheader: Point, otherSnakes: List[SkDt]): Unit = {
     val offx = myheader.x.toDouble / border.x * SmallMap.x
@@ -460,7 +447,6 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onerror = { event: Event =>
       drawGameOff()
-      //      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
@@ -546,7 +532,6 @@ object NetGameHolder extends js.JSApp {
 
     gameStream.onclose = { event: Event =>
       drawGameOff()
-      //      playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
@@ -559,12 +544,6 @@ object NetGameHolder extends js.JSApp {
   def getWebSocketUri(document: Document, nameOfChatParticipant: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     s"$wsProtocol://${dom.document.location.host}/carnie/netSnake/join?name=$nameOfChatParticipant"
-  }
-
-  def p(msg: String) = {
-    val paragraph = dom.document.createElement("p")
-    paragraph.innerHTML = msg
-    paragraph
   }
 
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
@@ -597,7 +576,7 @@ object NetGameHolder extends js.JSApp {
     grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
   }
 
-  def setScale(scale: Double, x: Double, y: Double) = {
+  def setScale(scale: Double, x: Double, y: Double): Unit = {
     ctx.translate(x, y)
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
