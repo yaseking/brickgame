@@ -31,8 +31,8 @@ object Tool {
   }
 
   def main(args: Array[String]): Unit = {
-    val points = Array(1, 2, 3, 4, 5, 8, 9, 10).sorted
-    findContinuous(points)
+    val points = Array(1).sorted
+    println(findContinuous(points))
   }
 
 }

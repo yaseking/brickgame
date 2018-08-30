@@ -554,7 +554,7 @@ object NetGameHolder extends js.JSApp {
 
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
     grid.frameCount = data.frameCount
-    var newGrid = grid.grid.filter(_._2 match { case Body(_, _) => false case _ => true })
+    var newGrid = grid.grid
     data.blankDetails.foreach { blank =>
       blank._2.foreach { l => (l._1 to l._2 by 1).foreach(y => newGrid -= Point(blank._1, y)) }
     }
