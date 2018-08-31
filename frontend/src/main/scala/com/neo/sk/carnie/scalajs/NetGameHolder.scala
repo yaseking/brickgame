@@ -478,8 +478,10 @@ object NetGameHolder extends js.JSApp {
                   if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
                     if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                       grid.addActionWithFrame(id, keyCode, frame)
-                      if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                      val frontFrame = grid.frameCount
+                      if (frame < frontFrame && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
                         val oldGrid = grid
+                        println("!!!!" + frontFrame)
                         oldGrid.recallGrid(frame, grid.frameCount)
                         grid = oldGrid
                       }
@@ -488,8 +490,10 @@ object NetGameHolder extends js.JSApp {
                         grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                         grid.addActionWithFrame(id, keyCode, frame)
                         val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                        if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
+                        val frontFrame = grid.frameCount
+                        if (miniFrame < frontFrame && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
                           val oldGrid = grid
+                          println("!!!!" + frontFrame)
                           oldGrid.recallGrid(frame, grid.frameCount)
                           grid = oldGrid
                         }
