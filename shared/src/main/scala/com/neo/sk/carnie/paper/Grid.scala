@@ -103,7 +103,7 @@ trait Grid {
   private[this] def updateSnakes() = {
     var isFinish = false //改帧更新中是否有圈地 若圈地了则后台传输数据到前端
 
-    def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], UpdateSnakeInfo] = {
+    def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Long, UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
       val newDirection = {
         val keyDirection = keyCode match {
@@ -231,7 +231,7 @@ trait Grid {
           }
 
         case Some(Border) =>
-          Left(None)
+          Left(snake.id)
 
         case _ =>
           grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
@@ -255,7 +255,8 @@ trait Grid {
       case Right(s) =>
         updatedSnakes ::= s
 
-      case Left(_) =>
+      case Left(sid) =>
+        killedSnaked ::= sid
     }
 
     val intersection = mayBeSuccess.keySet.filter(p => mayBeDieSnake.keys.exists(_ == p))
