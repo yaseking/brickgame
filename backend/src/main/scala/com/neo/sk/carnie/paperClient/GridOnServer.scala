@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paper
+package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory

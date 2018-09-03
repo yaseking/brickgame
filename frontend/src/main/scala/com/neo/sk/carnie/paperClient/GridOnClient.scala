@@ -1,8 +1,8 @@
-package com.neo.sk.carnie.scalajs
+package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
-import com.neo.sk.carnie.paper.{Body, Border, Field, Grid, Point, Short, SkDt, Spot, UpdateSnakeInfo}
+import com.neo.sk.carnie.paperClient.NetGameHolder.grid
 
 /**
   * User: Taoz
@@ -15,7 +15,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = println(msg)
 
-
   def updateInClient() = {
     updateSnakes()
     super.updateSpots()
@@ -24,7 +23,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     frameCount += 1
   }
 
-  private[this] def updateSnakes() = {
+  private[this] def updateSnakes() : Unit = {
     def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Option[Long], UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
       val newDirection = {
@@ -166,6 +165,50 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
   }
+
+  def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
+    val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.fid)).toMap
+    val bordMap = grid.filter(_._2 match { case Border => true case _ => false })
+    var gridMap = bodyMap ++ bordMap
+    data.fieldDetails.foreach { users =>
+      users._2.foreach { x =>
+        x._2.foreach { l => (l._1 to l._2 by 1).foreach(y => gridMap += Point(x._1, y) -> Field(users._1)) }
+      }
+    }
+    frameCount = data.frameCount
+    grid = gridMap
+    actionMap = actionMap.filterKeys(_ >= (data.frameCount - maxDelayed))
+    snakes = data.snakes.map(s => s.id -> s).toMap
+    killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
+  }
+
+  def setSyncGridData(data: Protocol.Data4Sync): Unit = {
+    var newGrid = grid
+    grid.foreach { g =>
+      g._2 match {
+        case Body(_, fid) if fid.nonEmpty => newGrid += g._1 -> Field(fid.get)
+        case Body(_, fid) if fid.isEmpty => newGrid -= g._1
+        case _ => //
+      }
+    }
+    data.blankDetails.foreach { blank =>
+      blank._2.foreach { l => (l._1 to l._2 by 1).foreach(y => newGrid -= Point(blank._1, y)) }
+    }
+    data.fieldDetails.foreach { users =>
+      users._2.foreach { x =>
+        x._2.foreach { l => (l._1 to l._2 by 1).foreach(y => newGrid += Point(x._1, y) -> Field(users._1)) }
+      }
+    }
+    data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id, b.fid))
+
+    frameCount = data.frameCount
+    grid = newGrid
+    actionMap = actionMap.filterKeys(_ >= (data.frameCount - maxDelayed))
+    snakes = data.snakes.map(s => s.id -> s).toMap
+    killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
+  }
+
+
 
 
 

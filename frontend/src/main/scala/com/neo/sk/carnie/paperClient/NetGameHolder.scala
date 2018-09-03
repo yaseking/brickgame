@@ -1,18 +1,15 @@
-package com.neo.sk.carnie.scalajs
+package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.carnie.paper.Protocol._
-import com.neo.sk.carnie.paper._
+import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
+import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.util.MiddleBufferInJs
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
-import com.neo.sk.carnie.util.byteObject.decoder
-import com.neo.sk.carnie.util.byteObject.ByteObject._
 
-import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 
@@ -21,10 +18,9 @@ import scala.scalajs.js.annotation.JSExportTopLevel
   * Date: 9/1/2016
   * Time: 12:45 PM
   */
-@JSExportTopLevel("scalajs.NetGameHolder")
+@JSExportTopLevel("paperClient.NetGameHolder")
 object NetGameHolder extends js.JSApp {
 
-  val bounds = Point(Boundary.w, Boundary.h)
   val border = Point(BorderSize.w, BorderSize.h)
   val window = Point(Window.w, Window.h)
   val SmallMap = Point(littleMap.w, littleMap.h)
@@ -41,7 +37,6 @@ object NetGameHolder extends js.JSApp {
   var grid = new GridOnClient(border)
 
   var firstCome = true
-  var wsSetup = false
   var justSynced = false
   var lastHeader = Point(border.x / 2, border.y / 2)
   var otherHeader: List[Point] = Nil
@@ -57,35 +52,20 @@ object NetGameHolder extends js.JSApp {
   var area = 0.16
   var kill = 0
 
+  private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess,connectError,messageHandler,connectError)
+
+
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
-
-  val watchKeys = Set(
-    KeyCode.Space,
-    KeyCode.Left,
-    KeyCode.Up,
-    KeyCode.Right,
-    KeyCode.Down,
-    KeyCode.F2
-  )
-
-  object ColorsSetting {
-    val backgroundColor = "#F5F5F5"
-    val fontColor = "#000000"
-    val defaultColor = "#000080"
-    val borderColor = "#696969"
-    val mapColor = "#C0C0C0"
-    val gradeColor = "#3358FF"
-  }
 
   private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
   private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private[this] val formField = dom.document.getElementById("form").asInstanceOf[HTMLFormElement]
-  private[this] val bodyField = dom.document.getElementById("body").asInstanceOf[HTMLBodyElement]
   private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
   private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private[this] val cacheCanvas = dom.document.getElementById("CacheView").asInstanceOf[Canvas]
+  private[this] val cacheCtx = cacheCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
@@ -96,7 +76,7 @@ object NetGameHolder extends js.JSApp {
 
   def main(): Unit = {
     joinButton.onclick = { event: MouseEvent =>
-      joinGame(nameField.value)
+      webSocketClient.joinGame(nameField.value)
       event.preventDefault()
     }
     nameField.focus()
@@ -111,6 +91,7 @@ object NetGameHolder extends js.JSApp {
   def startGame(): Unit = {
     drawGameOn()
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+    dom.window.setInterval(()=>{webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])}, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -203,16 +184,16 @@ object NetGameHolder extends js.JSApp {
 
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
-    if (wsSetup) {
+
+    if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
         grid.updateInClient()
       } else {
-        println("back!!!")
         if (firstSyncGridData.nonEmpty) {
-          initSyncGridData(firstSyncGridData.get)
+          grid.initSyncGridData(firstSyncGridData.get)
           firstSyncGridData = None
         } else if (syncGridData.nonEmpty) {
-          setSyncGridData(syncGridData.get)
+          grid.setSyncGridData(syncGridData.get)
           syncGridData = None
         }
         justSynced = false
@@ -240,7 +221,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def draw(offsetTime: Long): Unit = {
-    if (wsSetup) {
+    if (webSocketClient.getWsState) {
       if (isWin) {
         drawGameWin(winnerName)
       } else {
@@ -403,206 +384,99 @@ object NetGameHolder extends js.JSApp {
     ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
   }
 
-  val sendBuffer = new MiddleBufferInJs(409600) //sender buffer
 
-  def joinGame(name: String): Unit = {
-    formField.innerHTML = ""
-    bodyField.style.backgroundColor = "white"
-    val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
-    gameStream.onopen = { event0: Event =>
-      startGame()
-      wsSetup = true
-      canvas.focus()
-      canvas.onkeydown = { e: dom.KeyboardEvent => {
-        if (watchKeys.contains(e.keyCode)) {
-          val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
-            NetTest(myId, System.currentTimeMillis())
+  private def connectOpenSuccess(e:Event) = {
+    startGame()
+    canvas.focus()
+    canvas.onkeydown = { e: dom.KeyboardEvent => {
+      if (Constant.watchKeys.contains(e.keyCode)) {
+        val msg: Protocol.UserAction = {
+          val frame = grid.frameCount + 2
+          val actionId = idGenerator.getAndIncrement()
+          grid.addActionWithFrame(myId, e.keyCode, frame)
+          if (e.keyCode != KeyCode.Space) {
+            myActionHistory += actionId -> (e.keyCode, frame)
+          } else { //重新开始游戏
+            scoreFlag = true
+            scale = 1
+            ctx.scale(1, 1)
+            firstCome = true
+            if (isWin) {
+              isWin = false
+              winnerName = "unknown"
+            }
+          }
+          Key(myId, e.keyCode, frame, actionId)
+        }
+        webSocketClient.sendMessage(msg)
+      }}
+    }
+    e
+  }
+
+  private def connectError(e:Event) = {
+    drawGameOff()
+    e
+  }
+
+  private def messageHandler(data: GameMessage) = {
+    data match {
+      case Protocol.Id(id) => myId = id
+
+      case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
+        if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+          if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
+            grid.addActionWithFrame(id, keyCode, frame)
+            if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+              val oldGrid = grid
+              oldGrid.recallGrid(frame, grid.frameCount)
+              grid = oldGrid
+            }
           } else {
-            val frame = grid.frameCount + 2
-            val actionId = idGenerator.getAndIncrement()
-            grid.addActionWithFrame(myId, e.keyCode, frame)
-            if (e.keyCode != KeyCode.Space) {
-              myActionHistory += actionId -> (e.keyCode, frame)
-            } else { //重新开始游戏
-              scoreFlag = true
-              scale = 1
-              ctx.scale(1, 1)
-              firstCome = true
-              if (isWin) {
-                isWin = false
-                winnerName = "unknown"
+            if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
+              grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
+              grid.addActionWithFrame(id, keyCode, frame)
+              val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
+              if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
+                val oldGrid = grid
+                oldGrid.recallGrid(miniFrame, grid.frameCount)
+                grid = oldGrid
               }
             }
-            Key(myId, e.keyCode, frame, actionId)
+            myActionHistory -= actionId
           }
-          msg.fillMiddleBuffer(sendBuffer) //encode msg
-          val ab: ArrayBuffer = sendBuffer.result() //get encoded data.
-          gameStream.send(ab) // send data.
-          e.preventDefault()
-        }}
-      }
-
-      dom.window.setInterval(() => send(), 10)
-
-      event0
-    }
-
-    def send(): Unit ={
-      val msg: UserAction = SendPingPacket(myId, System.currentTimeMillis())
-      gameStream.send(msg.fillMiddleBuffer(sendBuffer).result()) // send data.
-    }
-
-    gameStream.onerror = { event: Event =>
-      drawGameOff()
-      joinButton.disabled = false
-      wsSetup = false
-      nameField.focus()
-    }
-
-    gameStream.onmessage = { event: MessageEvent =>
-      event.data match {
-        case blobMsg: Blob =>
-          val fr = new FileReader()
-          fr.readAsArrayBuffer(blobMsg)
-          fr.onloadend = { _: Event =>
-            val buf = fr.result.asInstanceOf[ArrayBuffer] // read data from ws.
-
-            val middleDataInJs = new MiddleBufferInJs(buf) //put data into MiddleBuffer
-
-            val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] =
-              bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
-            encodedData match {
-              case Right(data) => data match {
-                case Protocol.Id(id) => myId = id
-
-                case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
-
-                case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
-
-                case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
-
-                case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-                  if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-                    if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
-                      grid.addActionWithFrame(id, keyCode, frame)
-                      if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                        val oldGrid = grid
-                        oldGrid.recallGrid(frame, grid.frameCount)
-                        grid = oldGrid
-                      }
-                    } else {
-                      if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-                        grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
-                        grid.addActionWithFrame(id, keyCode, frame)
-                        val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                        if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                          val oldGrid = grid
-                          oldGrid.recallGrid(miniFrame, grid.frameCount)
-                          grid = oldGrid
-                        }
-                      }
-                      myActionHistory -= actionId
-                    }
-                  } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-                    grid.addActionWithFrame(id, keyCode, frame)
-                    if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                      val oldGrid = grid
-                      oldGrid.recallGrid(frame, grid.frameCount)
-                      grid = oldGrid
-                    }
-                  }
-
-                case Protocol.SomeOneWin(winner) =>
-                  isWin = true
-                  winnerName = winner
-                  grid.cleanData()
-
-                case Protocol.Ranks(current, history) =>
-                  currentRank = current
-                  historyRank = history
-
-                case data: Protocol.Data4TotalSync =>
-                  firstSyncGridData = Some(data)
-                  justSynced = true
-
-                case data: Protocol.Data4Sync =>
-                  syncGridData = Some(data)
-                  justSynced = true
-
-                case Protocol.NetDelayTest(createTime) =>
-                  val receiveTime = System.currentTimeMillis()
-                  val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
-                  writeToArea(m)
-
-                case x@Protocol.ReceivePingPacket(_) =>
-                  PerformanceTool.receivePingPackage(x)
-
-                case x@_ =>
-                  println(s"receive unknown msg:$x")
-              }
-
-              case Left(e) =>
-                println(s"got error: ${e.message}")
-            }
+        } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
+          grid.addActionWithFrame(id, keyCode, frame)
+          if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+            val oldGrid = grid
+            oldGrid.recallGrid(frame, grid.frameCount)
+            grid = oldGrid
           }
-      }
-    }
+        }
 
-    gameStream.onclose = { event: Event =>
-      drawGameOff()
-      joinButton.disabled = false
-      wsSetup = false
-      nameField.focus()
-    }
+      case Protocol.SomeOneWin(winner) =>
+        isWin = true
+        winnerName = winner
+        grid.cleanData()
 
-    def writeToArea(text: String): Unit = {}
-    //      playground.insertBefore(p(text), playground.firstChild)
-  }
+      case Protocol.Ranks(current, history) =>
+        currentRank = current
+        historyRank = history
 
-  def getWebSocketUri(document: Document, nameOfChatParticipant: String): String = {
-    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/netSnake/join?name=$nameOfChatParticipant"
-  }
+      case data: Protocol.Data4TotalSync =>
+        firstSyncGridData = Some(data)
+        justSynced = true
 
-  def setSyncGridData(data: Protocol.Data4Sync): Unit = {
-    grid.frameCount = data.frameCount
-    var newGrid = grid.grid
-    grid.grid.foreach { g =>
-      g._2 match {
-        case Body(_, fid) if fid.nonEmpty => newGrid += g._1 -> Field(fid.get)
-        case Body(_, fid) if fid.isEmpty => newGrid -= g._1
-        case _ => //
-      }
-    }
-    data.blankDetails.foreach { blank =>
-      blank._2.foreach { l => (l._1 to l._2 by 1).foreach(y => newGrid -= Point(blank._1, y)) }
-    }
-    data.fieldDetails.foreach { users =>
-      users._2.foreach { x =>
-        x._2.foreach { l => (l._1 to l._2 by 1).foreach(y => newGrid += Point(x._1, y) -> Field(users._1)) }
-      }
-    }
-    data.bodyDetails.foreach(b => newGrid += Point(b.x, b.y) -> Body(b.id, b.fid))
-    grid.grid = newGrid
-    grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
-    grid.snakes = data.snakes.map(s => s.id -> s).toMap
-    grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
-  }
+      case data: Protocol.Data4Sync =>
+        syncGridData = Some(data)
+        justSynced = true
 
-  def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
-    grid.frameCount = data.frameCount
-    val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.fid)).toMap
-    val bordMap = grid.grid.filter(_._2 match { case Border => true case _ => false })
-    var gridMap = bodyMap ++ bordMap
-    data.fieldDetails.foreach { users =>
-      users._2.foreach { x =>
-        x._2.foreach { l => (l._1 to l._2 by 1).foreach(y => gridMap += Point(x._1, y) -> Field(users._1)) }
-      }
+      case x@Protocol.ReceivePingPacket(_) =>
+        PerformanceTool.receivePingPackage(x)
+
+      case x@_ =>
+        println(s"receive unknown msg:$x")
     }
-    grid.grid = gridMap
-    grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
-    grid.snakes = data.snakes.map(s => s.id -> s).toMap
-    grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {

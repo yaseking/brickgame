@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paper
+package com.neo.sk.carnie.paperClient
 
 /**
   * User: Taoz
@@ -50,17 +50,15 @@ object Protocol {
 
   case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
 
-  case class NetDelayTest(createTime: Long) extends GameMessage
-
   case class SomeOneWin(winnerName: String) extends GameMessage
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
 
+
+
   sealed trait UserAction
 
   case class Key(id: Long, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
-
-  case class NetTest(id: Long, createTime: Long) extends UserAction
 
   case class TextInfo(msg: String) extends UserAction
 

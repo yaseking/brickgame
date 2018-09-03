@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paper
+package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 import scala.util.Random

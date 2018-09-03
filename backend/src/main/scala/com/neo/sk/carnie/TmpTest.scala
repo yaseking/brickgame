@@ -1,6 +1,6 @@
 package com.neo.sk.carnie
 
-import com.neo.sk.carnie.paper.Point
+import com.neo.sk.carnie.paperClient.Point
 
 /**
   * User: Taoz

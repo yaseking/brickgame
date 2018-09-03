@@ -1,6 +1,6 @@
-package com.neo.sk.carnie.scalajs
+package com.neo.sk.carnie.paperClient
 
-import com.neo.sk.carnie.paper.Protocol.ReceivePingPacket
+import com.neo.sk.carnie.paperClient.Protocol.ReceivePingPacket
 import org.scalajs.dom.CanvasRenderingContext2D
 
 /**
@@ -38,9 +38,7 @@ object PerformanceTool {
 
   def receivePingPackage(p: ReceivePingPacket): Unit = {
     receiveNetworkLatencyList = (System.currentTimeMillis() - p.createTime) :: receiveNetworkLatencyList
-    if (receiveNetworkLatencyList.size < PingTimes) {
-      //      Shortcut.scheduleOnce(() => startPing(), 10)
-    } else {
+    if (receiveNetworkLatencyList.size >= PingTimes) {
       latency = receiveNetworkLatencyList.sum / receiveNetworkLatencyList.size
       receiveNetworkLatencyList = Nil
     }

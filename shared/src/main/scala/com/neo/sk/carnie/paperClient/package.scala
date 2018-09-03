@@ -5,7 +5,7 @@ package com.neo.sk.carnie
   * Date: 8/29/2016
   * Time: 9:48 PM
   */
-package object paper {
+package object paperClient {
 
   sealed trait Spot
 

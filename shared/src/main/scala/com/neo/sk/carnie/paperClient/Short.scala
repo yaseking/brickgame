@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paper
+package com.neo.sk.carnie.paperClient
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer

@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paper
+package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
@@ -8,7 +8,7 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
-import com.neo.sk.carnie.paper.Protocol._
+import com.neo.sk.carnie.paperClient.Protocol._
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 import com.neo.sk.util.Tool
@@ -114,10 +114,6 @@ object PlayGround {
 
           case SendPingPacket(id, createTime) =>
             dispatchTo(id, Protocol.ReceivePingPacket(createTime))
-
-          case NetTest(id, createTime) =>
-            log.info(s"Net Test: createTime=$createTime")
-            dispatchTo(id, Protocol.NetDelayTest(createTime))
 
           case _ =>
 
