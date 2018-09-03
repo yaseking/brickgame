@@ -140,8 +140,7 @@ object PlayGround {
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
               val isFinish = r._2._2.update()
               val newData = r._2._2.getGridData
-              if (isFinish || tickCount % 20 == 5) {
-                tickCount = 0l
+              if (isFinish) {
                 val gridData = lastSyncDataMap.get(r._1) match {
                   case Some(oldData) =>
                     val newField = (newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet).groupBy(_.id).map { case (userId, fieldDetails) =>
@@ -163,17 +162,16 @@ object PlayGround {
                     }.toList
                     Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory)
                 }
-                lastSyncDataMap += (r._1 -> newData)
                 dispatch(gridData, r._1)
+              } else if (tickCount % 20 == 5) {
+                val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
+                  (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
+                    (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
+                  }.toList)
+                }.toList
+                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory), r._1)
               }
-//              else if (tickCount % 20 == 5) {
-//                val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
-//                  (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
-//                    (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
-//                  }.toList)
-//                }.toList
-//                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory), r._1)
-//              }
+              lastSyncDataMap += (r._1 -> newData)
 
               if (tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
