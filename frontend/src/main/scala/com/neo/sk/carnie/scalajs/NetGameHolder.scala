@@ -421,10 +421,8 @@ object NetGameHolder extends js.JSApp {
             grid.addActionWithFrame(myId, e.keyCode, frame)
             if (e.keyCode != KeyCode.Space) {
               myActionHistory += actionId -> (e.keyCode, frame)
-            } else {
+            } else { //重新开始游戏
               scoreFlag = true
-            }
-            if (e.keyCode == KeyCode.Space) { //重新开始游戏
               scale = 1
               ctx.scale(1, 1)
               firstCome = true
