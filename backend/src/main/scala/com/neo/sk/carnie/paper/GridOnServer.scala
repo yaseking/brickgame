@@ -144,7 +144,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def update() = {
     val isFinish = super.update()
-    genWaitingSnake()
+    if(!isFinish) genWaitingSnake()
     updateRanks()
     isFinish
   }
