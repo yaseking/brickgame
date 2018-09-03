@@ -207,6 +207,7 @@ object NetGameHolder extends js.JSApp {
       if (!justSynced) { //前端更新
         grid.updateInClient()
       } else {
+        println("back!!!")
         if (firstSyncGridData.nonEmpty) {
           initSyncGridData(firstSyncGridData.get)
           firstSyncGridData = None
