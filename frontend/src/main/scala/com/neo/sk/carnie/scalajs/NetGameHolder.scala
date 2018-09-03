@@ -171,11 +171,11 @@ object NetGameHolder extends js.JSApp {
         val temp = (endTime - startTime) / 1000
         val tempM = temp / 60
         val s1 = temp % 60
-        val s = if(s1<0) "00" else if(s1<10) "0"+s1 else s1.toString
-        val m = if(tempM<0) "00" else if(tempM<10) "0"+tempM else tempM.toString
+        val s = if (s1 < 0) "00" else if (s1 < 10) "0" + s1 else s1.toString
+        val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
         m + ":" + s
       }
-      val bestScore = if(historyRank.exists(_.id == myId)) historyRank.find(_.id == myId).head.area else area
+      val bestScore = if (historyRank.exists(_.id == myId)) historyRank.find(_.id == myId).head.area else area
       ctx.fillText(text, 150, 180)
       ctx.save()
       ctx.font = "bold 24px Helvetica"
@@ -211,7 +211,7 @@ object NetGameHolder extends js.JSApp {
         if (firstSyncGridData.nonEmpty) {
           initSyncGridData(firstSyncGridData.get)
           firstSyncGridData = None
-        } else if(syncGridData.nonEmpty){
+        } else if (syncGridData.nonEmpty) {
           setSyncGridData(syncGridData.get)
           syncGridData = None
         }
@@ -228,13 +228,13 @@ object NetGameHolder extends js.JSApp {
     val h = canvas.height - littleMap.h * canvasUnit * 1.030
     ctx.save()
     ctx.globalAlpha = 0.5
-    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit+5, littleMap.h * canvasUnit+5)
+    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
     ctx.restore()
     ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
-    otherSnakes.foreach {  i =>
+    otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * SmallMap.x
       val y = i.header.y.toDouble / border.y * SmallMap.y
-      ctx.fillStyle =i.color
+      ctx.fillStyle = i.color
       ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
     }
   }
@@ -248,7 +248,7 @@ object NetGameHolder extends js.JSApp {
         data.snakes.find(_.id == myId) match {
           case Some(_) =>
             firstCome = false
-            if(scoreFlag){
+            if (scoreFlag) {
               startTime = System.currentTimeMillis()
               area = 0.0
               kill = 0
@@ -275,7 +275,7 @@ object NetGameHolder extends js.JSApp {
     lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if(s.direction + nextDirection != Point(0,0)) nextDirection else s.direction
+        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
         s.header + direction * offsetTime.toFloat / Protocol.frameRate
 
       case None =>
@@ -287,7 +287,7 @@ object NetGameHolder extends js.JSApp {
 
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
-    val criticalX = (window.x + 1) /scale
+    val criticalX = (window.x + 1) / scale
     val criticalY = window.y / scale
 
     val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
@@ -556,7 +556,7 @@ object NetGameHolder extends js.JSApp {
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
     grid.frameCount = data.frameCount
     var newGrid = grid.grid
-    grid.grid.foreach{ g =>
+    grid.grid.foreach { g =>
       g._2 match {
         case Body(_, fid) if fid.nonEmpty => newGrid += g._1 -> Field(fid.get)
         case Body(_, fid) if fid.isEmpty => newGrid -= g._1
@@ -581,7 +581,7 @@ object NetGameHolder extends js.JSApp {
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     grid.frameCount = data.frameCount
     val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.fid)).toMap
-    val bordMap = grid.grid.filter(_._2 match {case Border => true case _ => false})
+    val bordMap = grid.grid.filter(_._2 match { case Border => true case _ => false })
     var gridMap = bodyMap ++ bordMap
     data.fieldDetails.foreach { users =>
       users._2.foreach { x =>

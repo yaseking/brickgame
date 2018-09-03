@@ -163,6 +163,7 @@ object PlayGround {
                     }.toList
                     Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory)
                 }
+                lastSyncDataMap += (r._1 -> newData)
                 dispatch(gridData, r._1)
               }
 //              else if (tickCount % 20 == 5) {
@@ -173,7 +174,6 @@ object PlayGround {
 //                }.toList
 //                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory), r._1)
 //              }
-              lastSyncDataMap += (r._1 -> newData)
 
               if (tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
