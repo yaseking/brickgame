@@ -106,7 +106,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   def randomColor(): String = {
     var color = randomHex()
     val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
-    val similarityDegree = 800
+    val similarityDegree = 1000
     while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
       color = randomHex()
     }
