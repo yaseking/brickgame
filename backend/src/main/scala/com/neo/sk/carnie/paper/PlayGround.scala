@@ -79,7 +79,7 @@ object PlayGround {
           subscribers += (id -> subscriber)
           roomMap(roomId)._2.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
-//          dispatch(Protocol.NewSnakeJoined(id, name), roomId)
+          //          dispatch(Protocol.NewSnakeJoined(id, name), roomId)
           dispatch(roomMap(roomId)._2.getGridData, roomId)
 
         case r@Left(id, name) =>
@@ -92,7 +92,7 @@ object PlayGround {
             userMap -= id
             subscribers.get(id).foreach(context.unwatch)
             subscribers -= id
-//            dispatch(Protocol.SnakeLeft(id, name), roomId)
+            //            dispatch(Protocol.SnakeLeft(id, name), roomId)
           }
 
         case userAction: UserAction => userAction match {
@@ -150,12 +150,21 @@ object PlayGround {
                     Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField, blankPoint, newData.killHistory)
 
                   case None =>
-                    GridDataSync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
+                    val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
+                      (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
+                        (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
+                      }.toList)
+                    }.toList
+                    Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory)
                 }
                 dispatch(gridData, r._1)
               } else if (tickCount % 20 == 5) {
-                val gridData = GridDataSync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
-                dispatch(gridData, r._1)
+                val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
+                  (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
+                    (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
+                  }.toList)
+                }.toList
+                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory), r._1)
               }
               lastSyncDataMap += (r._1 -> newData)
 

@@ -48,7 +48,7 @@ object NetGameHolder extends js.JSApp {
   var isWin = false
   var winnerName = "unknown"
   var syncGridData: scala.Option[Protocol.Data4Sync] = None
-  var firstSyncGridData: scala.Option[Protocol.GridDataSync] = None
+  var firstSyncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var scale = 1.0
   var base = 1
   private var startTime = System.currentTimeMillis()
@@ -513,7 +513,7 @@ object NetGameHolder extends js.JSApp {
                   currentRank = current
                   historyRank = history
 
-                case data: Protocol.GridDataSync =>
+                case data: Protocol.Data4TotalSync =>
                   firstSyncGridData = Some(data)
                   justSynced = true
 
@@ -525,6 +525,9 @@ object NetGameHolder extends js.JSApp {
                   val receiveTime = System.currentTimeMillis()
                   val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
                   writeToArea(m)
+
+                case x@_ =>
+                  println(s"receive unknown msg:$x")
               }
 
               case Left(e) =>
@@ -575,12 +578,16 @@ object NetGameHolder extends js.JSApp {
     grid.killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName)).toMap
   }
 
-  def initSyncGridData(data: Protocol.GridDataSync): Unit = {
+  def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     grid.frameCount = data.frameCount
     val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.fid)).toMap
-    val fieldMap = data.fieldDetails.map(f => Point(f.x, f.y) -> Field(f.id)).toMap
     val bordMap = grid.grid.filter(_._2 match {case Border => true case _ => false})
-    val gridMap = bodyMap ++ fieldMap ++ bordMap
+    var gridMap = bodyMap ++ bordMap
+    data.fieldDetails.foreach { users =>
+      users._2.foreach { x =>
+        x._2.foreach { l => (l._1 to l._2 by 1).foreach(y => gridMap += Point(x._1, y) -> Field(users._1)) }
+      }
+    }
     grid.grid = gridMap
     grid.actionMap = grid.actionMap.filterKeys(_ >= (data.frameCount - grid.maxDelayed))
     grid.snakes = data.snakes.map(s => s.id -> s).toMap

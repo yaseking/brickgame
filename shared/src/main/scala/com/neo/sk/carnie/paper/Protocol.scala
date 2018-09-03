@@ -27,6 +27,15 @@ object Protocol {
                            killHistory: List[Kill]
                          ) extends GameMessage
 
+  case class Data4TotalSync(
+                           frameCount: Long,
+                           snakes: List[SkDt],
+                           bodyDetails: List[Bd],
+                           fieldDetails: List[(Long, List[(Int, List[(Int, Int)])])],
+                           borderDetails: List[Bord],
+                           killHistory: List[Kill]
+                         ) extends GameMessage
+
   case class TextMsg(
                       msg: String
                     ) extends GameMessage
