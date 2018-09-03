@@ -416,7 +416,7 @@ object NetGameHolder extends js.JSApp {
           val msg: Protocol.UserAction = if (e.keyCode == KeyCode.F2) {
             NetTest(myId, System.currentTimeMillis())
           } else {
-            val frame = grid.frameCount + 1
+            val frame = grid.frameCount + 2
             val actionId = idGenerator.getAndIncrement()
             grid.addActionWithFrame(myId, e.keyCode, frame)
             if (e.keyCode != KeyCode.Space) {
