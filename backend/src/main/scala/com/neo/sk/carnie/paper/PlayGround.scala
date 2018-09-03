@@ -112,6 +112,9 @@ object PlayGround {
               dispatch(Protocol.SnakeAction(id, keyCode, realFrame, actionId), roomId)
             }
 
+          case SendPingPacket(id, createTime) =>
+            dispatchTo(id, Protocol.ReceivePingPacket(createTime))
+
           case NetTest(id, createTime) =>
             log.info(s"Net Test: createTime=$createTime")
             dispatchTo(id, Protocol.NetDelayTest(createTime))

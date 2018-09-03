@@ -54,6 +54,7 @@ object Protocol {
 
   case class SomeOneWin(winnerName: String) extends GameMessage
 
+  case class ReceivePingPacket(createTime: Long) extends GameMessage
 
   sealed trait UserAction
 
@@ -62,6 +63,8 @@ object Protocol {
   case class NetTest(id: Long, createTime: Long) extends UserAction
 
   case class TextInfo(msg: String) extends UserAction
+
+  case class SendPingPacket(id: Long, createTime: Long) extends UserAction
 
   val frameRate = 150
 

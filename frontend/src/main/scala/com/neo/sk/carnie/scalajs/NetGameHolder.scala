@@ -2,7 +2,7 @@ package com.neo.sk.carnie.scalajs
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.carnie.paper.Protocol.{GridDataSync, Key, NetTest}
+import com.neo.sk.carnie.paper.Protocol._
 import com.neo.sk.carnie.paper._
 import com.neo.sk.carnie.util.MiddleBufferInJs
 import org.scalajs.dom
@@ -361,6 +361,7 @@ object NetGameHolder extends js.JSApp {
     ctx.font = "12px Helvetica"
     drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
     drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
+    PerformanceTool.renderFps(ctx, leftBegin, (baseLine + 2) * textLineHeight)
 
     val myRankBaseLine = 3
     currentRank.filter(_.id == myId).foreach { score =>
@@ -438,10 +439,17 @@ object NetGameHolder extends js.JSApp {
           val ab: ArrayBuffer = sendBuffer.result() //get encoded data.
           gameStream.send(ab) // send data.
           e.preventDefault()
-        }
+        }}
       }
-      }
+
+      dom.window.setInterval(() => send(), 10)
+
       event0
+    }
+
+    def send(): Unit ={
+      val msg: UserAction = SendPingPacket(myId, System.currentTimeMillis())
+      gameStream.send(msg.fillMiddleBuffer(sendBuffer).result()) // send data.
     }
 
     gameStream.onerror = { event: Event =>
@@ -525,6 +533,9 @@ object NetGameHolder extends js.JSApp {
                   val receiveTime = System.currentTimeMillis()
                   val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
                   writeToArea(m)
+
+                case x@Protocol.ReceivePingPacket(_) =>
+                  PerformanceTool.receivePingPackage(x)
 
                 case x@_ =>
                   println(s"receive unknown msg:$x")
