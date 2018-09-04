@@ -24,14 +24,27 @@ class DrawGame(
   private val textLineHeight = 14
   private val fillWidth = 33
 
+  private[this] val cacheCanvas = dom.document.getElementById("CacheView").asInstanceOf[Canvas]
+  private[this] val cacheCtx = cacheCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
+  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
   private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
 
-  private var myScore = BaseScore(0, 0, 0l)
-
-
+  private var myScore = BaseScore(0, 0, 0l, 0l)
   private var scale = 1.0
+
+  def drawGameOn(): Unit = {
+    canvas.width = windowBoundary.x.toInt
+    canvas.height = windowBoundary.y.toInt
+
+    background.width = windowBoundary.x.toInt
+    background.height = windowBoundary.y.toInt
+
+    backCtx.fillStyle = ColorsSetting.backgroundColor
+    backCtx.fillRect(0, 0, background.width, background.height)
+  }
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor
@@ -62,7 +75,7 @@ class DrawGame(
     ctx.fillText("Please wait.", 150, 180)
   }
 
-  def drawGameDie(killerOpt: Option[String], startTime: Long, bestScore: Double): Unit = {
+  def drawGameDie(killerOpt: Option[String], bestScoreArea: Option[Int]): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
@@ -76,7 +89,8 @@ class DrawGame(
       case None => "Ops, Press Space Key To Restart!"
     }
 
-    val gameTime = (myScore.endTime - startTime) / 1000
+    val gameTime = (myScore.endTime - myScore.startTime) / 1000
+    val bestScore = bestScoreArea.getOrElse(myScore.area) / canvasSize * 100
     val time = {
       val tempM = gameTime / 60
       val s1 = gameTime % 60
@@ -209,7 +223,7 @@ class DrawGame(
 
     val myRankBaseLine = 3
     currentRank.filter(_.id == uid).foreach { score =>
-      myScore = BaseScore(score.k, score.k, System.currentTimeMillis())
+      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.globalAlpha = 0.6
       ctx.fillStyle = color
@@ -249,6 +263,10 @@ class DrawGame(
     ctx.translate(x, y)
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
+  }
+
+  def cleanMyScore: Unit = {
+    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
   }
 
 

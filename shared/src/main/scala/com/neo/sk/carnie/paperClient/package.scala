@@ -27,7 +27,7 @@ package object paperClient {
 
   case class Kill(killedId: Long, killerId: Long, killerName: String)
 
-  case class BaseScore(kill: Int, area: Int, endTime: Long)
+  case class BaseScore(kill: Int, area: Int, startTime: Long, endTime: Long)
 
 
   case class Point(x: Float, y: Float) {
