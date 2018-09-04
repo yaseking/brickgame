@@ -134,7 +134,6 @@ object NetGameHolder extends js.JSApp {
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
-
   private def connectOpenSuccess(e:Event) = {
     startGame()
     canvas.focus()

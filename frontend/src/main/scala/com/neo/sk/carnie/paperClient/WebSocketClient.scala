@@ -1,12 +1,13 @@
 package com.neo.sk.carnie.paperClient
 
-import com.neo.sk.carnie.paperClient.Protocol.{GameMessage, UserAction}
+import com.neo.sk.carnie.paperClient.Protocol.{GameMessage, ReceivePingPacket, UserAction}
 import com.neo.sk.carnie.util.byteObject.ByteObject.bytesDecode
 import com.neo.sk.carnie.util.byteObject.decoder
 import org.scalajs.dom
 import org.scalajs.dom.WebSocket
 import org.scalajs.dom.raw.{Blob, Event, FileReader, MessageEvent}
 import com.neo.sk.carnie.util.MiddleBufferInJs
+
 import scala.scalajs.js.typedarray.ArrayBuffer
 import com.neo.sk.carnie.util.byteObject.ByteObject._
 
@@ -53,9 +54,14 @@ class WebSocketClient (
             fr.onloadend = { _: Event =>
               val middleDataInJs = new MiddleBufferInJs(fr.result.asInstanceOf[ArrayBuffer]) //put data into MiddleBuffer
             val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] = bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
-
               encodedData match {
                 case Right(data) =>
+                  data match {
+                    case ReceivePingPacket(_) =>
+
+                    case _ =>
+                      println("!!!!!!!!!!" + blobMsg.size + "!!!!!!!!!!" + data)
+                  }
                   messageHandler(data)
 
                 case Left(e) =>
