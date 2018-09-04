@@ -1,10 +1,8 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.carnie.util.MiddleBufferInJs
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
@@ -52,9 +50,6 @@ object NetGameHolder extends js.JSApp {
   var area = 0.16
   var kill = 0
 
-  private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess,connectError,messageHandler,connectError)
-
-
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
 
@@ -73,6 +68,10 @@ object NetGameHolder extends js.JSApp {
 
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
+
+  private[this] val drawGame:DrawGame = new DrawGame(ctx, canvas)
+  private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess,connectError,messageHandler,connectError)
+
 
   def main(): Unit = {
     joinButton.onclick = { event: MouseEvent =>
@@ -112,74 +111,6 @@ object NetGameHolder extends js.JSApp {
 
     backCtx.fillStyle = ColorsSetting.backgroundColor
     backCtx.fillRect(0, 0, background.width, background.height)
-  }
-
-  def drawGameOff(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
-    if (firstCome) {
-      ctx.font = "36px Helvetica"
-      ctx.fillText("Welcome.", 150, 180)
-    } else {
-      ctx.font = "36px Helvetica"
-      ctx.fillText("Ops, connection lost.", 150, 180)
-    }
-  }
-
-  def drawGameDie(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
-    if (firstCome) {
-      ctx.font = "36px Helvetica"
-      ctx.fillText("Please wait.", 150, 180)
-    } else {
-      dom.window.cancelAnimationFrame(nextFrame)
-      ctx.font = "16px Helvetica"
-      val text = grid.getKiller(myId) match {
-        case Some(killer) =>
-          scale = 1
-          ctx.scale(1, 1)
-          s"Ops, You Killed By ${killer._2}! Press Space Key To Revenge!"
-
-        case None =>
-          scale = 1
-          ctx.scale(1, 1)
-          "Ops, Press Space Key To Restart!"
-      }
-      val time = {
-        val temp = (endTime - startTime) / 1000
-        val tempM = temp / 60
-        val s1 = temp % 60
-        val s = if (s1 < 0) "00" else if (s1 < 10) "0" + s1 else s1.toString
-        val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
-        m + ":" + s
-      }
-      val bestScore = if (historyRank.exists(_.id == myId)) historyRank.find(_.id == myId).head.area else area
-      ctx.fillText(text, 150, 180)
-      ctx.save()
-      ctx.font = "bold 24px Helvetica"
-      ctx.fillStyle = ColorsSetting.gradeColor
-      ctx.fillText("YOUR SCORE:", 150, 250)
-      ctx.fillText(f"${area / canvasSize * 100}%.2f" + "%", 380, 250)
-      ctx.fillText("BEST SCORE:", 150, 290)
-      ctx.fillText(f"${bestScore.toDouble / canvasSize * 100}%.2f" + "%", 380, 290)
-      ctx.fillText(s"PLAYERS KILLED:", 150, 330)
-      ctx.fillText(s"$kill", 380, 330)
-      ctx.fillText(s"TIME PLAYED:", 150, 370)
-      ctx.fillText(s"$time", 380, 370)
-      ctx.restore()
-    }
-  }
-
-  def drawGameWin(winner: String): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.font = "36px Helvetica"
-    ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
-    dom.window.cancelAnimationFrame(nextFrame)
   }
 
   def gameLoop(): Unit = {
@@ -223,7 +154,8 @@ object NetGameHolder extends js.JSApp {
   def draw(offsetTime: Long): Unit = {
     if (webSocketClient.getWsState) {
       if (isWin) {
-        drawGameWin(winnerName)
+        drawGame.drawGameWin(winnerName)
+        dom.window.cancelAnimationFrame(nextFrame)
       } else {
         val data = grid.getGridData
         data.snakes.find(_.id == myId) match {
@@ -235,15 +167,26 @@ object NetGameHolder extends js.JSApp {
               kill = 0
               scoreFlag = false
             }
-            drawGrid(myId, data, offsetTime)
+            drawGame(myId, data, offsetTime)
 
           case None =>
-            drawGameDie()
+            if(firstCome) drawGame.drawGameWait()
+            else {
+              val bestScore = if (historyRank.exists(_.id == myId)) historyRank.find(_.id == myId).head.area else area
+              drawGame.drawGameDie(grid.getKiller(myId).map(_._2), startTime, bestScore / canvasSize * 100)
+              dom.window.cancelAnimationFrame(nextFrame)
+            }
         }
       }
     } else {
-      drawGameOff()
+      drawGame.drawGameOff(firstCome)
     }
+  }
+
+  def drawGame(uid: Long, data: GridDataSync, offsetTime: Long): Unit = {
+    drawGame.drawGrid(uid, data, offsetTime, grid)
+    drawGame.drawRank(uid, data.snakes, currentRank)
+    drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
   def drawGrid(uid: Long, data: GridDataSync, offsetTime: Long): Unit = { //头所在的点是屏幕的正中心
@@ -308,16 +251,6 @@ object NetGameHolder extends js.JSApp {
         if (s.id == myId) myHeaderImg else otherHeaderImg
       }
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-
-      //      val tempDir = Point(if (direction.x > 0) 1 else off.x, if (direction.y > 0) 1 else off.y)
-      //      val inOtherField = fields.exists(f => f.id != s.id && f.x == s.header.x + direction.x && f.y == s.header.y + direction.y)
-      //      if (direction.x.toInt != 0){
-      //        if(inOtherField) ctx.clearRect((s.header.x + tempDir.x) * canvasUnit, s.header.y * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
-      //        ctx.fillRect((s.header.x + tempDir.x) * canvasUnit, s.header.y * canvasUnit, math.abs(off.x) * canvasUnit, canvasUnit)
-      //      } else {
-      //        if (inOtherField) ctx.clearRect(s.header.x * canvasUnit, (s.header.y + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
-      //        ctx.fillRect(s.header.x * canvasUnit, (s.header.y + tempDir.y) * canvasUnit, canvasUnit, math.abs(off.y) * canvasUnit)
-      //      }
 
     }
 
@@ -384,7 +317,6 @@ object NetGameHolder extends js.JSApp {
     ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
   }
 
-
   private def connectOpenSuccess(e:Event) = {
     startGame()
     canvas.focus()
@@ -415,7 +347,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   private def connectError(e:Event) = {
-    drawGameOff()
+    drawGame.drawGameOff(firstCome)
     e
   }
 

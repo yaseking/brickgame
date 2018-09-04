@@ -17,7 +17,7 @@ package object paperClient {
 
   case object Blank extends Spot
 
-  case class Score(id: Long, n: String, k: Int, t: Option[Long] = None, area: Int = 0)
+  case class Score(id: Long, n: String, k: Int, area: Int = 0)
 
   case class Bd(id: Long, fid: Option[Long], x: Float, y: Float)
 
@@ -26,6 +26,8 @@ package object paperClient {
   case class Bord(x: Float, y: Float)
 
   case class Kill(killedId: Long, killerId: Long, killerName: String)
+
+  case class BaseScore(kill: Int, area: Int, endTime: Long)
 
 
   case class Point(x: Float, y: Float) {
