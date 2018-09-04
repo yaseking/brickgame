@@ -1,7 +1,10 @@
 package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
+
 import scala.util.Random
+import scala.collection
+import scala.collection.mutable
 
 /**
   * User: Taoz
@@ -28,6 +31,7 @@ trait Grid {
   var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[Long, Map[Point, Spot]] //圈地成功后的被圈点
   var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
+  var snakeTurnPoints = new mutable.HashMap[Long, List[Point]] //保留拐点
 
   List(0, BorderSize.w - 1).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h - 1).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -121,6 +125,7 @@ trait Grid {
       }
 
       val newHeader = snake.header + newDirection
+      if(snake.direction != newDirection) snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(snake.header)))
 
       grid.get(newHeader) match {
         case Some(x: Body) => //进行碰撞检测
@@ -140,6 +145,7 @@ trait Grid {
           if (id == snake.id) {
             grid(snake.header) match {
               case Body(bid, _) if bid == snake.id => //回到了自己的领域
+                snakeTurnPoints -= snake.id
                 if (mayBeDieSnake.keys.exists(_ == snake.id)) { //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废
                   killHistory -= snake.id
                   mayBeDieSnake -= snake.id
@@ -345,6 +351,7 @@ trait Grid {
   }
 
   def returnBackField(snakeId: Long) = { //归还身体部分所占有的领地
+    snakeTurnPoints -= snakeId
     val bodyGrid = grid.filter(_._2 match{ case Body(bid, _) if bid == snakeId => true case _ => false })
     var newGrid = grid
     bodyGrid.foreach {

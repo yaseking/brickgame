@@ -19,8 +19,6 @@ import scala.scalajs.js.annotation.JSExportTopLevel
 @JSExportTopLevel("paperClient.NetGameHolder")
 object NetGameHolder extends js.JSApp {
 
-  private val windowBoundary = Point(dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
-
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   private var myId = -1l
