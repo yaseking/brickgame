@@ -31,7 +31,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   }
 
   private[this] def genWaitingSnake() = {
-    println("gengengengen!!!")
+    println(s"${System.currentTimeMillis()} - gengengengen!!!")
     waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
