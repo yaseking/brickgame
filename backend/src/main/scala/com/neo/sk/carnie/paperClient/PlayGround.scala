@@ -152,16 +152,16 @@ object PlayGround {
               }else if (isFinish) {
                 val gridData = lastSyncDataMap.get(r._1) match {
                   case Some(oldData) =>
+                    val getSnakeBody = newData.snakes.map{s => (s.id, r._2._2.getSnakesTurn(s.id, s.header))}
                     val newField = (newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet).groupBy(_.id).map { case (userId, fieldDetails) =>
                       (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
                         (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
                       }.toList)
                     }.toList
-
                     val blankPoint = (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y)).groupBy(_.x).map { case (x, target) =>
                       (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
                     }.toList
-                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField, blankPoint, newData.killHistory)
+                    Data4Sync(newData.frameCount, newData.snakes, getSnakeBody, newField, blankPoint, newData.killHistory)
 
                   case None =>
                     val getSnakeBody = newData.snakes.map{s => (s.id, r._2._2.getSnakesTurn(s.id, s.header))}

@@ -21,7 +21,7 @@ object Protocol {
   case class Data4Sync(
                            frameCount: Long,
                            snakes: List[SkDt],
-                           bodyDetails: List[Bd],
+                           bodyDetails: List[(Long, (scala.List[Point4Trans], scala.List[(Point4Trans, Long)]))],
                            fieldDetails: List[(Long, List[(Int, List[(Int, Int)])])],
                            blankDetails: List[(Int, List[(Int, Int)])],
                            killHistory: List[Kill]

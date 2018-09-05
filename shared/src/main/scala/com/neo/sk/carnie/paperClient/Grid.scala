@@ -300,12 +300,17 @@ trait Grid {
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
 
-    //if two (or more) headers go to the same point,die at the same time
-    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).values
-    val deadSnakes = snakesInDanger.flatMap { hits => hits.map(_.data.id) }.toList
+    //if two (or more) headers go to the same point
+    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).flatMap{res =>
+      val sids = res._2.map(_.data.id)
+      grid.get(res._1) match {
+        case Some(Field(fid)) if sids.contains(fid) =>  sids.filterNot(_ == fid)
+        case _ => sids
+      }
+    }.toList
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
 
-    val finalDie = deadSnakes ::: killedSnaked ::: noFieldSnake.toList
+    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList
 
     finalDie.foreach { sid =>
       returnBackField(sid)
