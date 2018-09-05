@@ -85,7 +85,8 @@ object PlayGround {
               (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
             }.toList)
           }.toList
-          dispatch(Data4TotalSync(gridData.frameCount, gridData.snakes, gridData.bodyDetails, fields, Nil, gridData.killHistory), roomId)
+          val getSnakeBody = gridData.snakes.map{s => (s.id, roomMap(roomId)._2.getSnakesTurn(s.id, s.header))}
+          dispatch(Data4TotalSync(gridData.frameCount, gridData.snakes, getSnakeBody, fields, Nil, gridData.killHistory), roomId)
 
         case r@Left(id, name) =>
           log.info(s"got $r")
@@ -141,12 +142,13 @@ object PlayGround {
               val isFinish = r._2._2.updateInService(shouldNewSnake)
               val newData = r._2._2.getGridData
               if (shouldNewSnake) {
+                val getSnakeBody = newData.snakes.map{s => (s.id, r._2._2.getSnakesTurn(s.id, s.header))}
                 val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
                   (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
                     (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
                   }.toList)
                 }.toList
-                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory), r._1)
+                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, getSnakeBody, fields, Nil, newData.killHistory), r._1)
               }else if (isFinish) {
                 val gridData = lastSyncDataMap.get(r._1) match {
                   case Some(oldData) =>
@@ -162,18 +164,19 @@ object PlayGround {
                     Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField, blankPoint, newData.killHistory)
 
                   case None =>
+                    val getSnakeBody = newData.snakes.map{s => (s.id, r._2._2.getSnakesTurn(s.id, s.header))}
                     val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
                       (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
                         (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
                       }.toList)
                     }.toList
-                    Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory)
+                    Data4TotalSync(newData.frameCount, newData.snakes, getSnakeBody, fields, Nil, newData.killHistory)
                 }
                 dispatch(gridData, r._1)
               }
               lastSyncDataMap += (r._1 -> newData)
 
-              if (tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
+              if(isFinish) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
                 dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)

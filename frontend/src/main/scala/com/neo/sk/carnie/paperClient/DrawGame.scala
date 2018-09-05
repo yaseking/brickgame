@@ -212,7 +212,7 @@ class DrawGame(
     ctx.textBaseline = "top"
 
     val leftBegin = 10
-    val rightBegin = windowBoundary.x - 180
+    val rightBegin = windowBoundary.x - 220
 
     val mySnake = snakes.filter(_.id == uid).head
     val baseLine = 1
@@ -251,7 +251,9 @@ class DrawGame(
       ctx.globalAlpha = 1
       ctx.fillStyle = ColorsSetting.fontColor
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"% kill=${score.k}", rightBegin.toInt, index, currentRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
+      drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
+      drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
   }
 

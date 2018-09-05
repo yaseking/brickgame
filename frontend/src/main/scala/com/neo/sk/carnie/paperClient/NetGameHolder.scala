@@ -83,7 +83,7 @@ object NetGameHolder extends js.JSApp {
 
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
-        grid.updateInClient()
+        grid.update("f")
       } else {
         if (firstSyncGridData.nonEmpty) {
           grid.initSyncGridData(firstSyncGridData.get)

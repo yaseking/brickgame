@@ -30,11 +30,13 @@ object Protocol {
   case class Data4TotalSync(
                            frameCount: Long,
                            snakes: List[SkDt],
-                           bodyDetails: List[Bd],
+                           bodyDetails: List[(Long, (scala.List[Point4Trans], scala.List[(Point4Trans, Long)]))],
                            fieldDetails: List[(Long, List[(Int, List[(Int, Int)])])],
                            borderDetails: List[Bord],
                            killHistory: List[Kill]
                          ) extends GameMessage
+
+  case class Point4Trans(x:Int, y: Int)
 
   case class TextMsg(
                       msg: String
