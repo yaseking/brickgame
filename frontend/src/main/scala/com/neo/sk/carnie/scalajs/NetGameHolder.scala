@@ -354,7 +354,7 @@ object NetGameHolder extends js.JSApp {
     ctx.textBaseline = "top"
 
     val leftBegin = 10
-    val rightBegin = windowBoundary.x - 180
+    val rightBegin = windowBoundary.x - 210
 
     val mySnake = snakes.filter(_.id == uid).head
     val baseLine = 1
