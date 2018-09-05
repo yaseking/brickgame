@@ -31,7 +31,6 @@ class GridOnServer(override val boundary: Point) extends Grid {
   }
 
   private[this] def genWaitingSnake() = {
-    println(s"${System.currentTimeMillis()} - gengengengen!!!")
     waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
@@ -143,9 +142,9 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  override def update() = {
+  def updateInService(newSnake: Boolean): Boolean = {
     val isFinish = super.update()
-    if(!isFinish) genWaitingSnake()
+    if (newSnake) genWaitingSnake()
     updateRanks()
     isFinish
   }

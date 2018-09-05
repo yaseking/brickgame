@@ -141,9 +141,17 @@ object PlayGround {
           tickCount += 1
           roomMap.foreach { r =>
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
-              val isFinish = r._2._2.update()
+              val shouldNewSnake = if(tickCount % 20 == 5) true else false
+              val isFinish = r._2._2.updateInService(shouldNewSnake)
               val newData = r._2._2.getGridData
-              if (isFinish) {
+              if (shouldNewSnake) {
+                val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
+                  (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
+                    (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
+                  }.toList)
+                }.toList
+                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory), r._1)
+              }else if (isFinish) {
                 val gridData = lastSyncDataMap.get(r._1) match {
                   case Some(oldData) =>
                     val newField = (newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet).groupBy(_.id).map { case (userId, fieldDetails) =>
@@ -166,13 +174,6 @@ object PlayGround {
                     Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory)
                 }
                 dispatch(gridData, r._1)
-              } else if (tickCount % 20 == 5) {
-                val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
-                  (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
-                    (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
-                  }.toList)
-                }.toList
-                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, fields, Nil, newData.killHistory), r._1)
               }
               lastSyncDataMap += (r._1 -> newData)
 
