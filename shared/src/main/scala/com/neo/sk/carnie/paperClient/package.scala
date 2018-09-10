@@ -42,6 +42,7 @@ package object paperClient {
     def /(n: Int) = Point(x / n, y / n)
 
     def %(other: Point) = Point(x % other.x, y % other.y)
+
   }
 
   case class SkDt(

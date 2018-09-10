@@ -2,7 +2,7 @@ package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
-import com.neo.sk.carnie.paperClient.Protocol.Point4Trans
+import com.neo.sk.carnie.paperClient.Protocol._
 
 import scala.util.Random
 import scala.collection.mutable
@@ -29,13 +29,13 @@ trait Grid {
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
-  var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
-  var mayBeSuccess = Map.empty[Long, Map[Point, Spot]] //圈地成功后的被圈点
-  var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
-  var snakeTurnPoints = new mutable.HashMap[Long, List[Point4Trans]] //保留拐点
+  private var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
+  private var mayBeSuccess = Map.empty[Long, Map[Point, Spot]] //圈地成功后的被圈点
+  private var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
+  private var snakeTurnPoints = new mutable.HashMap[Long, List[Point4Trans]] //保留拐点
 
-  List(0, BorderSize.w - 1).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
-  List(0, BorderSize.h - 1).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
+  List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
+  List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
 
   def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
@@ -44,7 +44,6 @@ trait Grid {
     }
     r
   }
-
 
   def addAction(id: Long, keyCode: Int): Unit = {
     addActionWithFrame(id, keyCode, frameCount)
@@ -73,7 +72,7 @@ trait Grid {
     }
   }
 
-  def update(origin: String): Boolean = {
+  def update(origin: String): List[(Long, List[Point])] = {
     val isFinish = updateSnakes(origin)
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
@@ -105,8 +104,8 @@ trait Grid {
     p
   }
 
-  private[this] def updateSnakes(origin: String): Boolean = {
-    var isFinish = false //改帧更新中是否有圈地 若圈地了则后台传输数据到前端
+  private[this] def updateSnakes(origin: String): List[(Long, List[Point])] = {
+    var finishFields = List.empty[(Long, List[Point])]
 
     def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Long, UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
@@ -162,7 +161,6 @@ trait Grid {
                       case _ => false
                     }) true else false //起点是否被圈走
                     if (stillStart && origin == "b") { //只在后台执行圈地算法
-                      isFinish = true
                       var finalFillPoll = grid.filter(_._2 match { case Body(bodyId, _) if bodyId == snake.id => true case _ => false })
 
                       grid ++= finalFillPoll.keys.map(p => p -> Field(snake.id))
@@ -297,6 +295,8 @@ trait Grid {
       killedSnaked ::= s._1
     }
 
+    finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
+
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
 
@@ -317,6 +317,7 @@ trait Grid {
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
+      snakeTurnPoints -= sid
     }
 
     val newSnakes = updatedSnakes.filterNot(s => finalDie.contains(s.data.id)).map { s =>
@@ -333,25 +334,30 @@ trait Grid {
 
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
-    isFinish
+    finishFields
   }
 
-  def getGridData: Protocol.GridDataSync = {
-    var bodyDetails: List[Bd] = Nil
-    var fieldDetails: List[Fd] = Nil
-    var bordDetails: List[Bord] = Nil
+  def getGridData: Protocol.Data4TotalSync = {
+    var fields: List[Fd] = Nil
+
+    val bodyDetails = snakes.values.map{s => BodyBaseInfo(s.id, getSnakesTurn(s.id, s.header))}.toList
+
     grid.foreach {
-      case (p, Body(id, fid)) => bodyDetails ::= Bd(id, fid, p.x.toInt, p.y.toInt)
-      case (p, Field(id)) => fieldDetails ::= Fd(id, p.x.toInt, p.y.toInt)
-      case (p, Border) => bordDetails ::= Bord(p.x.toInt, p.y.toInt)
+      case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
       case _ => //doNothing
     }
-    Protocol.GridDataSync(
+
+    val fieldDetails = fields.groupBy(_.id).map { case (userId, fieldPoints) =>
+      FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
+        ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+      }.toList)
+    }.toList
+
+    Protocol.Data4TotalSync(
       frameCount,
       snakes.values.toList,
       bodyDetails,
       fieldDetails,
-      bordDetails,
       killHistory.map(k => Kill(k._1, k._2._1, k._2._2)).toList
     )
   }
@@ -365,6 +371,7 @@ trait Grid {
     actionMap = Map.empty[Long, Map[Long, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
     killHistory = Map.empty[Long, (Long, String)]
+    snakeTurnPoints.empty
   }
 
   def returnBackField(snakeId: Long):Unit = { //归还身体部分所占有的领地
@@ -395,11 +402,18 @@ trait Grid {
     }
   }
 
-  def getSnakesTurn(sid: Long, header: Point): (List[Point4Trans], List[(Point4Trans, Long)]) = {
+  def getSnakesTurn(sid: Long, header: Point): TurnInfo = {
     val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
-    (if (turnPoint.nonEmpty) turnPoint ::: List(Point4Trans(header.x.toInt, header.y.toInt)) else turnPoint,
+    TurnInfo(if (turnPoint.nonEmpty) turnPoint ::: List(Point4Trans(header.x.toInt, header.y.toInt)) else turnPoint,
       grid.filter(_._2 match { case Body(id, fid) if id == sid && fid.nonEmpty => true case _ => false }).map(g =>
         (Point4Trans(g._1.x.toInt, g._1.y.toInt), g._2.asInstanceOf[Body].fid.get)).toList)
+  }
+
+  def getMyFieldCount(uid: Long, maxPoint: Point, minPoint: Point): Int = {
+    grid.count { g =>
+      (g._2 match {case Field(fid) if fid == uid => true case _ => false}) &&
+        (g._1.x < maxPoint.x && g._1.y < maxPoint.y && g._1.y > maxPoint.y && g._1.x > minPoint.x)
+    }
   }
 
 

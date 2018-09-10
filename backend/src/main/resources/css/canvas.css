@@ -9,6 +9,7 @@
 }
 
 #CacheView{
-    z-index: 0;
+    /*z-index: 3;*/
     position: absolute;
+    display: none;
 }

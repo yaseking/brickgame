@@ -18,25 +18,39 @@ object Protocol {
                            killHistory: List[Kill]
                          ) extends GameMessage
 
-  case class Data4Sync(
-                           frameCount: Long,
-                           snakes: List[SkDt],
-                           bodyDetails: List[(Long, (scala.List[Point4Trans], scala.List[(Point4Trans, Long)]))],
-                           fieldDetails: List[(Long, List[(Int, List[(Int, Int)])])],
-                           blankDetails: List[(Int, List[(Int, Int)])],
-                           killHistory: List[Kill]
+  case class NewFieldInfo(
+                           fieldDetails: List[FieldByColumn]
                          ) extends GameMessage
 
   case class Data4TotalSync(
-                           frameCount: Long,
-                           snakes: List[SkDt],
-                           bodyDetails: List[(Long, (scala.List[Point4Trans], scala.List[(Point4Trans, Long)]))],
-                           fieldDetails: List[(Long, List[(Int, List[(Int, Int)])])],
-                           borderDetails: List[Bord],
-                           killHistory: List[Kill]
-                         ) extends GameMessage
+                             frameCount: Long,
+                             snakes: List[SkDt],
+                             bodyDetails: List[BodyBaseInfo],
+                             fieldDetails: List[FieldByColumn],
+                             killHistory: List[Kill]
+                           ) extends GameMessage
 
-  case class Point4Trans(x:Int, y: Int)
+  case class Point4Trans(x: Int, y: Int)
+
+  case class BodyBaseInfo (
+                         uid: Long,
+                         turn: TurnInfo
+                         )
+
+  case class TurnInfo(
+                       turnPoint: List[Point4Trans],
+                       pointOnField : List[(Point4Trans, Long)]
+                     ) // (拐点顺序list， 占着别人领域的身体点)
+
+  case class FieldByColumn(
+                          uid: Long,
+                          scanField: List[ScanByColumn]
+                          )
+
+  case class ScanByColumn(
+                        y: Int,
+                        x: List[(Int, Int)]
+                        )
 
   case class TextMsg(
                       msg: String
@@ -55,7 +69,6 @@ object Protocol {
   case class SomeOneWin(winnerName: String) extends GameMessage
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
-
 
 
   sealed trait UserAction

@@ -142,7 +142,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  def updateInService(newSnake: Boolean): Boolean = {
+  def updateInService(newSnake: Boolean): List[(Long, List[Point])] = {
     val isFinish = super.update("b")
     if (newSnake) genWaitingSnake()
     updateRanks()

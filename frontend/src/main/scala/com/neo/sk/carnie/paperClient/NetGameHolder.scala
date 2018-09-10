@@ -30,8 +30,8 @@ object NetGameHolder extends js.JSApp {
   var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
-  var syncGridData: scala.Option[Protocol.Data4Sync] = None
-  var firstSyncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
+  var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -84,14 +84,13 @@ object NetGameHolder extends js.JSApp {
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
         grid.update("f")
-      } else {
-        if (firstSyncGridData.nonEmpty) {
-          grid.initSyncGridData(firstSyncGridData.get)
-          firstSyncGridData = None
-        } else if (syncGridData.nonEmpty) {
-          grid.setSyncGridData(syncGridData.get)
-          syncGridData = None
+        if(newFieldInfo.nonEmpty) {
+          grid.addNewFieldInfo(newFieldInfo.get)
+          newFieldInfo = None
         }
+      } else if (syncGridData.nonEmpty) {
+        grid.initSyncGridData(syncGridData.get)
+        syncGridData = None
         justSynced = false
       }
     }
@@ -126,10 +125,12 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  def drawGame(uid: Long, data: GridDataSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid)
+  def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
+    val starTime = System.currentTimeMillis()
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(0l), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
   private def connectOpenSuccess(e:Event) = {
@@ -209,12 +210,11 @@ object NetGameHolder extends js.JSApp {
         historyRank = history
 
       case data: Protocol.Data4TotalSync =>
-        firstSyncGridData = Some(data)
-        justSynced = true
-
-      case data: Protocol.Data4Sync =>
         syncGridData = Some(data)
         justSynced = true
+
+      case data: Protocol.NewFieldInfo =>
+        grid.addNewFieldInfo(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)

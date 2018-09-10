@@ -1,13 +1,10 @@
-package com.neo.sk.util
-
-import scala.collection.mutable
+package com.neo.sk.carnie.paperClient
 
 /**
-  * Created by dry on 2018/8/27.
+  * Created by dry on 2018/9/7.
   **/
 object Tool {
-
-  def findContinuous(points: Array[Int]) = {
+  def findContinuous(points: Array[Int]): List[(Int, Int)] = {
     var target = List.empty[(Int, Int)]
     if (points.max - points.min == (points.length - 1)) { //仅存在一段
       target = List((points.min, points.max))
@@ -31,8 +28,7 @@ object Tool {
   }
 
   def main(args: Array[String]): Unit = {
-    val points = Array(1).sorted
-    println(findContinuous(points))
+    findContinuous(Array(1,2,3,4,5,6,7,8,9,10,11))
   }
 
 }

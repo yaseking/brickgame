@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
-import com.neo.sk.util.Tool
 
 /**
   * User: Taoz
@@ -34,7 +33,7 @@ object PlayGround {
 
   val border = Point(BorderSize.w, BorderSize.h)
 
-  val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   val roomIdGen = new AtomicInteger(100)
 
@@ -80,15 +79,9 @@ object PlayGround {
           roomMap(roomId)._2.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
           val gridData = roomMap(roomId)._2.getGridData
-          val fields = gridData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
-            (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
-              (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
-            }.toList)
-          }.toList
-          val getSnakeBody = gridData.snakes.map{s => (s.id, roomMap(roomId)._2.getSnakesTurn(s.id, s.header))}
-          dispatch(Data4TotalSync(gridData.frameCount, gridData.snakes, getSnakeBody, fields, Nil, gridData.killHistory), roomId)
+          dispatch(gridData, roomId)
 
-        case r@Left(id, name) =>
+        case r@Left(id, _) =>
           log.info(s"got $r")
           if (userMap.get(id).nonEmpty) {
             val roomId = userMap(id)._1
@@ -139,44 +132,19 @@ object PlayGround {
           roomMap.foreach { r =>
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
               val shouldNewSnake = if(tickCount % 20 == 5) true else false
-              val isFinish = r._2._2.updateInService(shouldNewSnake)
+              val finishFields = r._2._2.updateInService(shouldNewSnake)
               val newData = r._2._2.getGridData
               if (shouldNewSnake) {
-                val getSnakeBody = newData.snakes.map{s => (s.id, r._2._2.getSnakesTurn(s.id, s.header))}
-                val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
-                  (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
-                    (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
+                dispatch(newData, r._1)
+              }else if (finishFields.nonEmpty) {
+                val newField = finishFields.map { f =>
+                  FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+                    ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
                   }.toList)
-                }.toList
-                dispatch(Data4TotalSync(newData.frameCount, newData.snakes, getSnakeBody, fields, Nil, newData.killHistory), r._1)
-              }else if (isFinish) {
-                val gridData = lastSyncDataMap.get(r._1) match {
-                  case Some(oldData) =>
-                    val getSnakeBody = newData.snakes.map{s => (s.id, r._2._2.getSnakesTurn(s.id, s.header))}
-                    val newField = (newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet).groupBy(_.id).map { case (userId, fieldDetails) =>
-                      (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
-                        (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
-                      }.toList)
-                    }.toList
-                    val blankPoint = (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y)).groupBy(_.x).map { case (x, target) =>
-                      (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
-                    }.toList
-                    Data4Sync(newData.frameCount, newData.snakes, getSnakeBody, newField, blankPoint, newData.killHistory)
-
-                  case None =>
-                    val getSnakeBody = newData.snakes.map{s => (s.id, r._2._2.getSnakesTurn(s.id, s.header))}
-                    val fields = newData.fieldDetails.groupBy(_.id).map { case (userId, fieldDetails) =>
-                      (userId, fieldDetails.groupBy(_.x).map { case (x, target) =>
-                        (x.toInt, Tool.findContinuous(target.map(_.y.toInt).toArray.sorted))
-                      }.toList)
-                    }.toList
-                    Data4TotalSync(newData.frameCount, newData.snakes, getSnakeBody, fields, Nil, newData.killHistory)
                 }
-                dispatch(gridData, r._1)
+                dispatch(NewFieldInfo(newField), r._1)
               }
-              lastSyncDataMap += (r._1 -> newData)
-
-              if(isFinish) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
+              if(tickCount % 5 == 3) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
                 dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)

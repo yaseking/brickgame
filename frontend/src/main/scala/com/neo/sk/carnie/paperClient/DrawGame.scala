@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.GridDataSync
+import com.neo.sk.carnie.paperClient.Protocol.Data4TotalSync
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Canvas, Image}
@@ -42,8 +42,24 @@ class DrawGame(
     background.width = windowBoundary.x.toInt
     background.height = windowBoundary.y.toInt
 
+    cacheCanvas.width = windowBoundary.x.toInt
+    cacheCanvas.height = windowBoundary.y.toInt
+
+    drawCache()
+
     backCtx.fillStyle = ColorsSetting.backgroundColor
     backCtx.fillRect(0, 0, background.width, background.height)
+  }
+
+  def drawCache(): Unit = { //离屏缓存的更新--缓存排行榜和边界
+    cacheCtx.fillStyle = ColorsSetting.backgroundColor
+    cacheCtx.fillRect(0, 0, cacheCanvas.width, cacheCanvas.height)
+
+    //画边界
+    cacheCtx.fillRect(0, 0, canvasUnit * BorderSize.w, canvasUnit)
+    cacheCtx.fillRect(0, 0, canvasUnit, canvasUnit * BorderSize.h)
+    cacheCtx.fillRect(0, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    cacheCtx.fillRect(BorderSize.w * canvasUnit, 0, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
   def drawGameOff(firstCome: Boolean): Unit = {
@@ -113,11 +129,8 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGrid(uid: Long, data: GridDataSync, offsetTime: Long, grid: Grid): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: Long, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: Long, myField: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
-    val championId = if (data.fieldDetails.nonEmpty) {
-      data.fieldDetails.groupBy(_.id).toList.sortBy(_._2.length).reverse.head._1
-    } else 0
 
     val lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
@@ -132,37 +145,55 @@ class DrawGame(
     val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
     val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
+    val (minPoint, maxPoint) = (lastHeader - window/2, lastHeader + window /2)
+
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
-    val criticalX = (window.x + 1) / scale
-    val criticalY = window.y / scale
+    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 
-    val bodies = data.bodyDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val fields = data.fieldDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val borders = data.borderDetails.filter(p => Math.abs(p.x - lastHeader.x) < criticalX && Math.abs(p.y - lastHeader.y) < criticalY).map(i => i.copy(x = i.x + offx, y = i.y + offy))
-    val snakeInWindow = data.snakes.filter(s => Math.abs(s.header.x - lastHeader.x) < criticalX && Math.abs(s.header.y - lastHeader.y) < criticalY).map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-
-    val myField = fields.count(_.id == uid)
-    scale = 1 - Math.sqrt(myField) * 0.0048
+    scale = 1 - Math.sqrt(grid.getMyFieldCount(uid, maxPoint, minPoint)) * 0.0048
 
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
     ctx.globalAlpha = 0.6
-    bodies.groupBy(_.id).foreach { case (sid, body) =>
-      val color = snakes.find(_.id == sid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+    data.bodyDetails.foreach { bds =>
+      val color = snakes.find(_.id == bds.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      body.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit, canvasUnit) }
+      val turnPoints = bds.turn.turnPoint
+      (0 until turnPoints.length - 1).foreach { i => //拐点渲染
+        val start = turnPoints(i)
+        val end = turnPoints(i + 1)
+        if (start.x == end.x) { //同x
+          if (start.y > end.y) {
+            ctx.fillRect((start.x + offx) * canvasUnit, (end.y + 1 + offy) * canvasUnit, canvasUnit, (start.y - end.y) * canvasUnit)
+          } else {
+            ctx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, canvasUnit, (end.y - start.y) * canvasUnit)
+          }
+        } else { // 同y
+          if (start.x > end.x) {
+            ctx.fillRect((end.x + 1 + offx) * canvasUnit, (end.y + offy) * canvasUnit, (start.x - end.x) * canvasUnit, canvasUnit)
+          } else {
+            ctx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, (end.x - start.x) * canvasUnit, canvasUnit)
+          }
+        }
+      }
+      if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
+
 
     ctx.globalAlpha = 1.0
-    fields.groupBy(_.id).foreach { case (sid, field) =>
-      val color = snakes.find(_.id == sid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+    data.fieldDetails.foreach { field => //按行渲染
+      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      field.foreach { i => ctx.fillRect(i.x * canvasUnit, i.y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05) }
+      field.scanField.foreach { point =>
+        point.x.foreach { x =>
+          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+        }
+      }
     }
 
-    snakeInWindow.foreach { s =>
+    snakeWithOff.foreach { s =>
       ctx.fillStyle = s.color
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
@@ -177,10 +208,14 @@ class DrawGame(
 
     }
 
+    // TODO: 边界渲染加入离屏和排行榜
     ctx.fillStyle = ColorsSetting.borderColor
-    borders.foreach { case Bord(x, y) =>
-      ctx.fillRect(x * canvasUnit, y * canvasUnit, canvasUnit * 1.05, canvasUnit * 1.05)
-    }
+    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(offx * canvasUnit, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect((BorderSize.w + offx) * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    //      ctx.drawImage(cacheCanvas, offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit)
+
 
     ctx.restore()
 

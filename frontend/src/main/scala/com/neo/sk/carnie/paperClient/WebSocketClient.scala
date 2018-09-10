@@ -56,11 +56,11 @@ class WebSocketClient (
             val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] = bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
               encodedData match {
                 case Right(data) =>
-                  data match {
-                    case ReceivePingPacket(_) =>
-
-                    case _ => println(blobMsg.size + "!!!" + data)
-                  }
+//                  data match {
+//                    case ReceivePingPacket(_) =>
+//
+//                    case _ => println(blobMsg.size + "!!!" + data)
+//                  }
                   messageHandler(data)
 
                 case Left(e) =>
