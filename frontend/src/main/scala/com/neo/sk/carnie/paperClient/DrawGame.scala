@@ -24,8 +24,8 @@ class DrawGame(
   private val textLineHeight = 14
   private val fillWidth = 33
 
-  private[this] val cacheCanvas = dom.document.getElementById("CacheView").asInstanceOf[Canvas]
-  private[this] val cacheCtx = cacheCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //离屏canvas
+  private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
   private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
@@ -42,8 +42,8 @@ class DrawGame(
     background.width = windowBoundary.x.toInt
     background.height = windowBoundary.y.toInt
 
-    cacheCanvas.width = windowBoundary.x.toInt
-    cacheCanvas.height = windowBoundary.y.toInt
+    borderCanvas.width = canvasUnit * Boundary.w
+    borderCanvas.height = canvasUnit * Boundary.h
 
     drawCache()
 
@@ -51,15 +51,14 @@ class DrawGame(
     backCtx.fillRect(0, 0, background.width, background.height)
   }
 
-  def drawCache(): Unit = { //离屏缓存的更新--缓存排行榜和边界
-    cacheCtx.fillStyle = ColorsSetting.backgroundColor
-    cacheCtx.fillRect(0, 0, cacheCanvas.width, cacheCanvas.height)
+  def drawCache(): Unit = { //离屏缓存的更新--缓存边界
+    borderCtx.fillStyle = ColorsSetting.borderColor
 
     //画边界
-    cacheCtx.fillRect(0, 0, canvasUnit * BorderSize.w, canvasUnit)
-    cacheCtx.fillRect(0, 0, canvasUnit, canvasUnit * BorderSize.h)
-    cacheCtx.fillRect(0, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    cacheCtx.fillRect(BorderSize.w * canvasUnit, 0, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    borderCtx.fillRect(0, 0, canvasUnit * BorderSize.w, canvasUnit)
+    borderCtx.fillRect(0, 0, canvasUnit, canvasUnit * BorderSize.h)
+    borderCtx.fillRect(0, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    borderCtx.fillRect(BorderSize.w * canvasUnit, 0, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
   def drawGameOff(firstCome: Boolean): Unit = {
@@ -145,7 +144,8 @@ class DrawGame(
     val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
     val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
-    val (minPoint, maxPoint) = (lastHeader - window/2, lastHeader + window /2)
+    val newWindowBorder = Point(window.x / (2.0 * scale).toFloat, window.y / (2.0 * scale).toFloat)
+    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
@@ -208,15 +208,8 @@ class DrawGame(
 
     }
 
-    // TODO: 边界渲染加入离屏和排行榜
-    ctx.fillStyle = ColorsSetting.borderColor
-    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(offx * canvasUnit, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect((BorderSize.w + offx) * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
-    //      ctx.drawImage(cacheCanvas, offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit)
-
-
+    //边界离屏
+    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
     ctx.restore()
 
   }

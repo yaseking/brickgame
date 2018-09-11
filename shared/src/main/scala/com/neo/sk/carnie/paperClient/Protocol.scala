@@ -19,6 +19,7 @@ object Protocol {
                          ) extends GameMessage
 
   case class NewFieldInfo(
+                           frameCount: Long,
                            fieldDetails: List[FieldByColumn]
                          ) extends GameMessage
 
@@ -32,25 +33,25 @@ object Protocol {
 
   case class Point4Trans(x: Int, y: Int)
 
-  case class BodyBaseInfo (
-                         uid: Long,
-                         turn: TurnInfo
+  case class BodyBaseInfo(
+                           uid: Long,
+                           turn: TurnInfo
                          )
 
   case class TurnInfo(
                        turnPoint: List[Point4Trans],
-                       pointOnField : List[(Point4Trans, Long)]
+                       pointOnField: List[(Point4Trans, Long)]
                      ) // (拐点顺序list， 占着别人领域的身体点)
 
   case class FieldByColumn(
-                          uid: Long,
-                          scanField: List[ScanByColumn]
+                            uid: Long,
+                            scanField: List[ScanByColumn]
                           )
 
   case class ScanByColumn(
-                        y: Int,
-                        x: List[(Int, Int)]
-                        )
+                           y: Int,
+                           x: List[(Int, Int)]
+                         )
 
   case class TextMsg(
                       msg: String
@@ -78,6 +79,9 @@ object Protocol {
   case class TextInfo(msg: String) extends UserAction
 
   case class SendPingPacket(id: Long, createTime: Long) extends UserAction
+
+  case class RequireSync(id: Long) extends UserAction
+
 
   val frameRate = 150
 

@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
@@ -84,8 +85,12 @@ object NetGameHolder extends js.JSApp {
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
         grid.update("f")
-        if(newFieldInfo.nonEmpty) {
-          grid.addNewFieldInfo(newFieldInfo.get)
+        if(newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
+          if (newFieldInfo.get.frameCount == grid.frameCount) {
+            grid.addNewFieldInfo(newFieldInfo.get)
+          } else { //主动要求同步数据
+            webSocketClient.sendMessage(RequireSync(myId))
+          }
           newFieldInfo = None
         }
       } else if (syncGridData.nonEmpty) {
@@ -126,11 +131,11 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
-    val starTime = System.currentTimeMillis()
+//    val starTime = System.currentTimeMillis()
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(0l), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
+//    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
   private def connectOpenSuccess(e:Event) = {
@@ -214,7 +219,7 @@ object NetGameHolder extends js.JSApp {
         justSynced = true
 
       case data: Protocol.NewFieldInfo =>
-        grid.addNewFieldInfo(data)
+        newFieldInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)

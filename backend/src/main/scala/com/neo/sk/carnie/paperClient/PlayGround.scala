@@ -9,6 +9,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
+
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
@@ -132,8 +133,9 @@ object PlayGround {
           roomMap.foreach { r =>
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
               val shouldNewSnake = if(tickCount % 20 == 5) true else false
-              val finishFields = r._2._2.updateInService(shouldNewSnake)
-              val newData = r._2._2.getGridData
+              val grid = r._2._2
+              val finishFields = grid.updateInService(shouldNewSnake)
+              val newData = grid.getGridData
               if (shouldNewSnake) {
                 dispatch(newData, r._1)
               }else if (finishFields.nonEmpty) {
@@ -142,15 +144,19 @@ object PlayGround {
                     ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
                   }.toList)
                 }
-                dispatch(NewFieldInfo(newField), r._1)
+                dispatch(NewFieldInfo(grid.frameCount, newField), r._1)
               }
-              if(tickCount % 5 == 3) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
+              if(tickCount % 10 == 3) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
                 dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)
               }
             }
           }
+
+        case RequireSync(id) =>
+          val roomId = userMap(id)._1
+          dispatchTo(id, roomMap(roomId)._2.getGridData)
 
         case x =>
           log.warn(s"got unknown msg: $x")
@@ -197,6 +203,5 @@ object PlayGround {
   private case class Left(id: Long, name: String)
 
   private case object Sync
-
 
 }

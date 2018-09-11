@@ -29,10 +29,10 @@ trait Grid {
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
   var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
+  var snakeTurnPoints = new mutable.HashMap[Long, List[Point4Trans]] //保留拐点
   private var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
   private var mayBeSuccess = Map.empty[Long, Map[Point, Spot]] //圈地成功后的被圈点
   private var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
-  private var snakeTurnPoints = new mutable.HashMap[Long, List[Point4Trans]] //保留拐点
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -125,10 +125,7 @@ trait Grid {
       }
 
       if (newDirection != Point(0, 0)) {
-
         val newHeader = snake.header + newDirection
-        if (snake.direction != newDirection || snake.header == snake.startPoint)
-          snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toInt, snake.header.y.toInt))))
 
         grid.get(newHeader) match {
           case Some(x: Body) => //进行碰撞检测
@@ -143,6 +140,8 @@ trait Grid {
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid))
 
               case _ =>
+                if (snake.direction != newDirection)
+                  snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toInt, snake.header.y.toInt))))
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), x.fid))
             }
 
@@ -151,6 +150,7 @@ trait Grid {
               grid(snake.header) match {
                 case Body(bid, _) if bid == snake.id => //回到了自己的领域
                   snakeTurnPoints -= snake.id
+
                   if (mayBeDieSnake.keys.exists(_ == snake.id)) { //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废
                     killHistory -= snake.id
                     mayBeDieSnake -= snake.id
@@ -237,6 +237,8 @@ trait Grid {
                   snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toInt, newHeader.y.toInt))))
                   Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), Some(id)))
                 case _ =>
+                  if (snake.direction != newDirection)
+                    snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toInt, snake.header.y.toInt))))
                   Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
               }
             }
@@ -251,6 +253,8 @@ trait Grid {
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
 
               case _ =>
+                if (snake.direction != newDirection)
+                  snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toInt, snake.header.y.toInt))))
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
             }
         }
@@ -412,7 +416,7 @@ trait Grid {
   def getMyFieldCount(uid: Long, maxPoint: Point, minPoint: Point): Int = {
     grid.count { g =>
       (g._2 match {case Field(fid) if fid == uid => true case _ => false}) &&
-        (g._1.x < maxPoint.x && g._1.y < maxPoint.y && g._1.y > maxPoint.y && g._1.x > minPoint.x)
+        (g._1.x < maxPoint.x && g._1.y < maxPoint.y && g._1.y > minPoint.y && g._1.x > minPoint.x)
     }
   }
 
