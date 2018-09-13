@@ -38,7 +38,7 @@ object PerformanceTool {
     ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight)
     ctx.strokeStyle = "black"
     ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
-    ctx.fillStyle = if (lastRenderTime < 50) ColorsSetting.redColor else ColorsSetting.greenColor
+    ctx.fillStyle = if (lastRenderTimes < 50) ColorsSetting.redColor else ColorsSetting.greenColor
     ctx.fillText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
     ctx.strokeStyle = "black"
     ctx.strokeText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)

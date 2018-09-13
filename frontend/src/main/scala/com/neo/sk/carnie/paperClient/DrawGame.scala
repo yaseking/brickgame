@@ -34,6 +34,9 @@ class DrawGame(
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
   private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
+  private val goldImg = dom.document.getElementById("goldImg").asInstanceOf[Image]
+  private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
+  private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var scale = 1.0
@@ -284,6 +287,18 @@ class DrawGame(
     var index = 0
     rankCtx.font = "14px Helvetica"
     drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+    if(currentRank.lengthCompare(3) >= 0){
+      ctx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+      ctx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+      ctx.drawImage(bronzeImg, rightBegin - 5 - textLineHeight, textLineHeight * 4, textLineHeight, textLineHeight)
+    }
+    else if (currentRank.lengthCompare(2) == 0) {
+      ctx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+      ctx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+    }
+    else {
+      ctx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+    }
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.globalAlpha = 0.6
