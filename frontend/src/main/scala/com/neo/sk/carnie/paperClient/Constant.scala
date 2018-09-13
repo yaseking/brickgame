@@ -22,6 +22,9 @@ object Constant {
     val borderColor = "#696969"
     val mapColor = "#C0C0C0"
     val gradeColor = "#3358FF"
+    val redColor = "#FF0000"
+    val greenColor = "#00FF00"
+    val yellowColor = "#FFFF00"
   }
 
 

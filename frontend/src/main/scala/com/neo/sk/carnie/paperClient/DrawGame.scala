@@ -21,8 +21,11 @@ class DrawGame(
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val canvasSize = (border.x - 2) * (border.y - 2)
 
-  private val textLineHeight = 14
+  private val textLineHeight = 15
   private val fillWidth = 33
+
+  private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //排行榜离屏canvas
+  private[this] val rankCtx = rankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //离屏canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -44,6 +47,9 @@ class DrawGame(
 
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
+
+    rankCanvas.width = canvasUnit * Window.w
+    rankCanvas.height = canvasUnit * Window.h
 
     drawCache()
 
@@ -212,6 +218,10 @@ class DrawGame(
     ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
     ctx.restore()
 
+    //排行榜边界离屏
+    ctx.drawImage(rankCanvas, 0, 0)
+    ctx.restore()
+
   }
 
   def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
@@ -235,49 +245,56 @@ class DrawGame(
 
 
   def drawRank(uid: Long, snakes: List[SkDt], currentRank: List[Score]): Unit = {
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-
     val leftBegin = 10
-    val rightBegin = windowBoundary.x - 220
+    val rightBegin = windowBoundary.x - 240
+
+    rankCtx.clearRect(leftBegin, textLineHeight, fillWidth + windowBoundary.x / 8, textLineHeight * 6) //绘制前清除canvas
+    rankCtx.clearRect(rightBegin, textLineHeight, 210, textLineHeight * (currentRank.length + 1) + 3)
+
+    rankCtx.globalAlpha = 1
+    rankCtx.textAlign = "left"
+    rankCtx.textBaseline = "top"
 
     val mySnake = snakes.filter(_.id == uid).head
-    val baseLine = 1
-    ctx.font = "12px Helvetica"
-    drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
-    drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
-    PerformanceTool.renderFps(ctx, leftBegin, (baseLine + 2) * textLineHeight)
+    val baseLine = 2
+    rankCtx.font = "22px Helvetica"
+    ctx.fillStyle = "rgba(99, 99, 99, 1)"
+//    drawTextLine(s"NAME: ${mySnake.name.take(32)}", leftBegin, 0, baseLine)
+    drawTextLine(s"KILL: ${mySnake.kill}", leftBegin, 0, baseLine)
+    rankCtx.fillStyle = ColorsSetting.fontColor
+    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
 
-    val myRankBaseLine = 3
+    val myRankBaseLine = 4
     currentRank.filter(_.id == uid).foreach { score =>
       myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 0.6
-      ctx.fillStyle = color
-      ctx.save()
-      ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
-      ctx.restore()
+      rankCtx.globalAlpha = 0.6
+      rankCtx.fillStyle = color
+      rankCtx.save()
+      rankCtx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
+      rankCtx.restore()
 
-      ctx.globalAlpha = 1
-      ctx.fillStyle = ColorsSetting.fontColor
+      rankCtx.globalAlpha = 1
+      rankCtx.font = "22px Helvetica"
+      rankCtx.fillStyle = ColorsSetting.fontColor
       drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
     }
 
-    val currentRankBaseLine = 1
+    val currentRankBaseLine = 2
     var index = 0
+    rankCtx.font = "14px Helvetica"
     drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.globalAlpha = 0.6
-      ctx.fillStyle = color
-      ctx.save()
-      ctx.fillRect(windowBoundary.x - 10 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
+      rankCtx.globalAlpha = 0.6
+      rankCtx.fillStyle = color
+      rankCtx.save()
+      rankCtx.fillRect(windowBoundary.x - 30 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
         fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
-      ctx.restore()
+      rankCtx.restore()
 
-      ctx.globalAlpha = 1
-      ctx.fillStyle = ColorsSetting.fontColor
+      rankCtx.globalAlpha = 1
+      rankCtx.fillStyle = ColorsSetting.fontColor
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
       drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
@@ -286,7 +303,7 @@ class DrawGame(
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
-    ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
+    rankCtx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {
