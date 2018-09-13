@@ -37,6 +37,7 @@ class DrawGame(
   private val goldImg = dom.document.getElementById("goldImg").asInstanceOf[Image]
   private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
+  private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var scale = 1.0
@@ -248,8 +249,8 @@ class DrawGame(
 
 
   def drawRank(uid: Long, snakes: List[SkDt], currentRank: List[Score]): Unit = {
-    val leftBegin = 10
-    val rightBegin = windowBoundary.x - 240
+    val leftBegin = 20
+    val rightBegin = windowBoundary.x - 230
 
     rankCtx.clearRect(leftBegin, textLineHeight, fillWidth + windowBoundary.x / 8, textLineHeight * 6) //绘制前清除canvas
     rankCtx.clearRect(rightBegin, textLineHeight, 210, textLineHeight * (currentRank.length + 1) + 3)
@@ -261,9 +262,11 @@ class DrawGame(
     val mySnake = snakes.filter(_.id == uid).head
     val baseLine = 2
     rankCtx.font = "22px Helvetica"
-    ctx.fillStyle = "rgba(99, 99, 99, 1)"
+    rankCtx.fillStyle = ColorsSetting.fontColor
 //    drawTextLine(s"NAME: ${mySnake.name.take(32)}", leftBegin, 0, baseLine)
-    drawTextLine(s"KILL: ${mySnake.kill}", leftBegin, 0, baseLine)
+    drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
+    rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
+    drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
     rankCtx.fillStyle = ColorsSetting.fontColor
     PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
 
@@ -304,7 +307,7 @@ class DrawGame(
       rankCtx.globalAlpha = 0.6
       rankCtx.fillStyle = color
       rankCtx.save()
-      rankCtx.fillRect(windowBoundary.x - 30 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
+      rankCtx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
         fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
       rankCtx.restore()
 
