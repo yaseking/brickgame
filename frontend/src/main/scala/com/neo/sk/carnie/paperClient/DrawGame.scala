@@ -223,6 +223,8 @@ class DrawGame(
     ctx.restore()
 
     //排行榜边界离屏
+    rankCtx.clearRect(20, textLineHeight * 5, fillWidth + windowBoundary.x / 8, textLineHeight * 2)
+    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     ctx.drawImage(rankCanvas, 0, 0)
     ctx.restore()
 
@@ -268,7 +270,7 @@ class DrawGame(
     rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
     rankCtx.fillStyle = ColorsSetting.fontColor
-    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
+//    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
 
     val myRankBaseLine = 4
     currentRank.filter(_.id == uid).foreach { score =>

@@ -25,7 +25,7 @@ object PerformanceTool {
 
   def renderFps(ctx: CanvasRenderingContext2D, leftBegin: Int, lineHeight: Int) = {
     addFps()
-    ctx.font = "14px Helvetica"
+//    ctx.font = "14px Helvetica"
     ctx.textAlign = "start"
 //    val fpsString = s"fps : $lastRenderTimes, ping: $latency"
 //    ctx.fillText(fpsString, leftBegin, lineHeight)
