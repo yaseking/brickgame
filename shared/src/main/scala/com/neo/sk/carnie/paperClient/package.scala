@@ -5,25 +5,29 @@ package com.neo.sk.carnie
   * Date: 8/29/2016
   * Time: 9:48 PM
   */
-package object paper {
+package object paperClient {
 
   sealed trait Spot
 
-  case class Body(id: Long) extends Spot
+  case class Body(id: Long, fid: Option[Long]) extends Spot
 
   case class Field(id: Long) extends Spot
 
   case object Border extends Spot
 
-  case class Score(id: Long, n: String, k: Int, t: Option[Long] = None, area: Int = 0)
+  case object Blank extends Spot
 
-  case class Bd(id: Long, x: Float, y: Float)
+  case class Score(id: Long, n: String, k: Int, area: Int = 0)
+
+  case class Bd(id: Long, fid: Option[Long], x: Float, y: Float)
 
   case class Fd(id: Long, x: Float, y: Float)
 
   case class Bord(x: Float, y: Float)
 
   case class Kill(killedId: Long, killerId: Long, killerName: String)
+
+  case class BaseScore(kill: Int, area: Int, startTime: Long, endTime: Long)
 
 
   case class Point(x: Float, y: Float) {
@@ -38,6 +42,7 @@ package object paper {
     def /(n: Int) = Point(x / n, y / n)
 
     def %(other: Point) = Point(x % other.x, y % other.y)
+
   }
 
   case class SkDt(
@@ -45,16 +50,14 @@ package object paper {
                    name: String,
                    color: String,
                    startPoint: Point,
-                   turnPoint: List[Point],
                    header: Point,
-                   direction: Point = Point(1, 0),
-                   kill: Int = 0,
-                   clockwise: Point = Point(0, 0)
+                   direction: Point = Point(0, 0),
+                   kill: Int = 0
                  )
 
   case class UpdateSnakeInfo(
                               data: SkDt,
-                              isFiled: Boolean = false
+                              bodyInField : Option[Long] = None
                             )
 
 
@@ -73,7 +76,7 @@ package object paper {
     val h = 30
   }
 
-  object LittleMap {
+  object littleMap {
     val w = 12
     val h = 7
   }

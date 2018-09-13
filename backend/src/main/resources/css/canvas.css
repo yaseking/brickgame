@@ -1,0 +1,14 @@
+#Background{
+    z-index: 1;
+    position: absolute;
+}
+
+#GameView{
+    z-index: 2;
+    position: absolute;
+}
+
+#CacheView{
+    position: absolute;
+    display: none;
+}

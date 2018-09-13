@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paper
+package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
@@ -8,7 +8,8 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
-import com.neo.sk.carnie.paper.Protocol._
+import com.neo.sk.carnie.paperClient.Protocol._
+
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
@@ -33,7 +34,7 @@ object PlayGround {
 
   val border = Point(BorderSize.w, BorderSize.h)
 
-  val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   val roomIdGen = new AtomicInteger(100)
 
@@ -78,12 +79,12 @@ object PlayGround {
           subscribers += (id -> subscriber)
           roomMap(roomId)._2.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
-          dispatch(Protocol.NewSnakeJoined(id, name), roomId)
-          dispatch(roomMap(roomId)._2.getGridData, roomId)
+          val gridData = roomMap(roomId)._2.getGridData
+          dispatch(gridData, roomId)
 
-        case r@Left(id, name) =>
+        case r@Left(id, _) =>
           log.info(s"got $r")
-          if(userMap.get(id).nonEmpty) {
+          if (userMap.get(id).nonEmpty) {
             val roomId = userMap(id)._1
             val newUserNum = roomMap(roomId)._1 - 1
             roomMap(roomId)._2.removeSnake(id)
@@ -91,26 +92,23 @@ object PlayGround {
             userMap -= id
             subscribers.get(id).foreach(context.unwatch)
             subscribers -= id
-            dispatch(Protocol.SnakeLeft(id, name), roomId)
+            //            dispatch(Protocol.SnakeLeft(id, name), roomId)
           }
 
         case userAction: UserAction => userAction match {
           case r@Key(id, keyCode, frameCount, actionId) =>
             val roomId = userMap(id)._1
-//            dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"), roomId) //just for test
             if (keyCode == KeyEvent.VK_SPACE) {
               roomMap(roomId)._2.addSnake(id, roomId, userMap.getOrElse(id, (0, "Unknown"))._2)
             } else {
               val grid = roomMap(roomId)._2
-//              log.debug(s"got $r - now${grid.frameCount}")
-              val realFrame = if(frameCount >= grid.frameCount) frameCount else grid.frameCount
+              val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
               grid.addActionWithFrame(id, keyCode, realFrame)
               dispatch(Protocol.SnakeAction(id, keyCode, realFrame, actionId), roomId)
             }
 
-          case NetTest(id, createTime) =>
-            log.info(s"Net Test: createTime=$createTime")
-            dispatchTo(id, Protocol.NetDelayTest(createTime))
+          case SendPingPacket(id, createTime) =>
+            dispatchTo(id, Protocol.ReceivePingPacket(createTime))
 
           case _ =>
 
@@ -134,30 +132,31 @@ object PlayGround {
           tickCount += 1
           roomMap.foreach { r =>
             if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
-              r._2._2.update()
-              if (tickCount % 20 == 5) {
-                val newData = r._2._2.getGridData
-//                val gridData = lastSyncDataMap.get(r._1) match {
-//                  case Some(oldData) =>
-//                    var blankPoint: Set[Point] = Set()
-//                    val newField = newData.fieldDetails.toSet &~ oldData.fieldDetails.toSet
-//                    blankPoint = (oldData.bodyDetails.toSet &~ newData.bodyDetails.toSet).map(p => Point(p.x, p.y)) ++
-//                      (oldData.fieldDetails.toSet &~ newData.fieldDetails.toSet).map(p => Point(p.x, p.y))
-//                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newField.toList, blankPoint.toList, newData.killHistory)
-//
-//                  case None =>
-//                    Data4Sync(newData.frameCount, newData.snakes, newData.bodyDetails, newData.fieldDetails, Nil, newData.killHistory)
-//                }
-//                lastSyncDataMap += (r._1 -> newData)
+              val shouldNewSnake = if(tickCount % 20 == 5) true else false
+              val grid = r._2._2
+              val finishFields = grid.updateInService(shouldNewSnake)
+              val newData = grid.getGridData
+              if (shouldNewSnake) {
                 dispatch(newData, r._1)
+              }else if (finishFields.nonEmpty) {
+                val newField = finishFields.map { f =>
+                  FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+                    ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+                  }.toList)
+                }
+                dispatch(NewFieldInfo(grid.frameCount, newField), r._1)
               }
-              if(tickCount % 3 == 1) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
-              if(r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
+              if(tickCount % 10 == 3) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
+              if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
                 dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)
               }
             }
           }
+
+        case RequireSync(id) =>
+          val roomId = userMap(id)._1
+          dispatchTo(id, roomMap(roomId)._2.getGridData)
 
         case x =>
           log.warn(s"got unknown msg: $x")
@@ -169,7 +168,7 @@ object PlayGround {
 
       def dispatch(gameOutPut: Protocol.GameMessage, roomId: Long) = {
         val user = userMap.filter(_._2._1 == roomId).keys.toList
-        subscribers.foreach { case (id, ref) if user.contains(id) => ref ! gameOutPut case _ =>}
+        subscribers.foreach { case (id, ref) if user.contains(id) => ref ! gameOutPut case _ => }
       }
     }
     ), "ground")
@@ -183,14 +182,14 @@ object PlayGround {
       override def joinGame(id: Long, name: String): Flow[UserAction, Protocol.GameMessage, Any] = {
         val in =
           Flow[UserAction]
-            .map {s => s}
+            .map { s => s }
             .to(playInSink(id, name))
 
         val out =
           Source.actorRef[Protocol.GameMessage](3, OverflowStrategy.dropHead)
             .mapMaterializedValue(outActor => ground ! Join(id, name, outActor))
 
-        Flow.fromSinkAndSource(in, out) //用法?
+        Flow.fromSinkAndSource(in, out)
       }
 
       override def syncData(): Unit = ground ! Sync
@@ -199,12 +198,10 @@ object PlayGround {
   }
 
 
-
   private case class Join(id: Long, name: String, subscriber: ActorRef)
 
   private case class Left(id: Long, name: String)
 
   private case object Sync
-
 
 }

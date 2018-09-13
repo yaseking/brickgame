@@ -7,9 +7,9 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.{ByteString, Timeout}
-import com.neo.sk.carnie.paper.PlayGround
+import com.neo.sk.carnie.paperClient.PlayGround
 import akka.stream.scaladsl.Flow
-import com.neo.sk.carnie.paper.Protocol._
+import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.util.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 

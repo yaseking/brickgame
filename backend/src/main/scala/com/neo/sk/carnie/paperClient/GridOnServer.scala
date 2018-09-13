@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paper
+package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory
@@ -17,7 +17,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-  private[this] var waitingJoin = Map.empty[Long, (Int, String, String)]
+  private[this] var waitingJoin = Map.empty[Long, (String, String)]
 
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[Long, Score]
@@ -27,11 +27,11 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   def addSnake(id: Long, roomId:Int, name: String) = {
     val bodyColor = randomColor()
-    waitingJoin += (id -> (roomId, name, bodyColor))
+    waitingJoin += (id -> (name, bodyColor))
   }
 
   private[this] def genWaitingSnake() = {
-    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (roomId, name, bodyColor)) =>
+    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
       (0 until indexSize).foreach { x =>
@@ -40,10 +40,10 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }
       }
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      snakes += id -> SkDt(id, name, bodyColor, startPoint, Nil, startPoint)
+      snakes += id -> SkDt(id, name, bodyColor, startPoint, startPoint)
       killHistory -= id
     }
-    waitingJoin = Map.empty[Long, (Int, String, String)]
+    waitingJoin = Map.empty[Long, (String, String)]
   }
 
   implicit val scoreOrdering = new Ordering[Score] {
@@ -69,7 +69,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       case (p, f@Field(_)) => (p, f)
       case _ => (Point(-1, -1), Field(-1L))
     }.filter(_._2.id != -1L).values.groupBy(_.id).map(p => (p._1, p._2.size))
-    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, area = areaMap.getOrElse(s.id, 0))).toList.sortBy(_.area).reverse
+    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, areaMap.getOrElse(s.id, 0))).toList.sortBy(_.area).reverse
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
@@ -105,8 +105,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   def randomColor(): String = {
     var color = randomHex()
-    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._3).toList
-    val similarityDegree = 800
+    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
+    val similarityDegree = 2000
     while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
       color = randomHex()
     }
@@ -142,10 +142,11 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  override def update(): Unit = {
-    super.update()
-    genWaitingSnake()
+  def updateInService(newSnake: Boolean): List[(Long, List[Point])] = {
+    val isFinish = super.update("b")
+    if (newSnake) genWaitingSnake()
     updateRanks()
+    isFinish
   }
 
 //  def getFeededApple = feededApples
