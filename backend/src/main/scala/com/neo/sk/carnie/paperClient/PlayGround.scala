@@ -131,7 +131,8 @@ object PlayGround {
         case Sync =>
           tickCount += 1
           roomMap.foreach { r =>
-            if (userMap.filter(_._2._1 == r._1).keys.nonEmpty) {
+            val userInRoom = userMap.filter(_._2._1 == r._1).keys
+            if (userInRoom.nonEmpty) {
               val shouldNewSnake = if(tickCount % 20 == 5) true else false
               val grid = r._2._2
               val finishFields = grid.updateInService(shouldNewSnake)
@@ -139,12 +140,14 @@ object PlayGround {
               if (shouldNewSnake) {
                 dispatch(newData, r._1)
               }else if (finishFields.nonEmpty) {
+                val finishUsers = finishFields.map(_._1)
+                finishUsers.foreach(u => dispatchTo(u, newData))
                 val newField = finishFields.map { f =>
                   FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
                     ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
                   }.toList)
                 }
-                dispatch(NewFieldInfo(grid.frameCount, newField), r._1)
+                userInRoom.filterNot(finishUsers.contains(_)).foreach(u => dispatchTo(u, NewFieldInfo(grid.frameCount, newField)))
               }
               if(tickCount % 10 == 3) dispatch(Protocol.Ranks(r._2._2.currentRank, r._2._2.historyRankList), r._1)
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
