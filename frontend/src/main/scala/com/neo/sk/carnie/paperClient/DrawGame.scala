@@ -128,7 +128,7 @@ class DrawGame(
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = ColorsSetting.gradeColor
     ctx.fillText("YOUR SCORE:", 150, 250)
-    ctx.fillText(f"${myScore.kill / canvasSize * 100}%.2f" + "%", 380, 250)
+    ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", 380, 250)
     ctx.fillText("BEST SCORE:", 150, 290)
     ctx.fillText(f"$bestScore%.2f" + "%", 380, 290)
     ctx.fillText(s"PLAYERS KILLED:", 150, 330)
