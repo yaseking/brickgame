@@ -221,7 +221,7 @@ class DrawGame(
 
 //    //边界离屏
 //    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
-//    ctx.restore()
+    ctx.restore()
 //
 //    //排行榜边界离屏
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
