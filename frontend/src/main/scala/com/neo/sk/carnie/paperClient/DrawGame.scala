@@ -139,6 +139,14 @@ class DrawGame(
     ctx.restore()
   }
 
+  def drawUserDieInfo(killedName:String,killerName:String)={
+    ctx.save()
+    ctx.font="bold 30px Microsoft YaHei"
+    ctx.fillStyle="#FF5809"
+    ctx.fillText(s"${killedName} is killed by ${killerName}",680,150)
+    ctx.restore()
+  }
+
   def drawGrid(uid: Long, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: Long, myField: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 

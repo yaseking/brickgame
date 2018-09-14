@@ -31,6 +31,8 @@ object NetGameHolder extends js.JSApp {
   var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
+  var killInfo=(0L,"","")
+  var lastTime=0
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
 
@@ -109,13 +111,21 @@ object NetGameHolder extends js.JSApp {
       } else {
         val data = grid.getGridData
         data.snakes.find(_.id == myId) match {
-          case Some(_) =>
+          case Some(snake) =>
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
               scoreFlag = false
             }
             drawGame(myId, data, offsetTime)
+            if(killInfo._2!=""&&killInfo._3!=""&&snake.id!=killInfo._1)
+            {
+              drawGame.drawUserDieInfo(killInfo._2,killInfo._3)
+              lastTime-=1
+              if(lastTime==0){
+                killInfo=(0,"","")
+              }
+            }
 
           case None =>
             if(firstCome) drawGame.drawGameWait()
@@ -219,6 +229,10 @@ object NetGameHolder extends js.JSApp {
       case data: Protocol.Data4TotalSync =>
         syncGridData = Some(data)
         justSynced = true
+
+      case Protocol.SomeOneKilled(killedId,killedName,killerName) =>
+        killInfo=(killedId,killedName,killerName)
+        lastTime=100
 
       case data: Protocol.NewFieldInfo =>
         newFieldInfo = Some(data)

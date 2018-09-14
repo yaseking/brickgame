@@ -137,6 +137,9 @@ object PlayGround {
               val grid = r._2._2
               val finishFields = grid.updateInService(shouldNewSnake)
               val newData = grid.getGridData
+              newData.killHistory.foreach{
+                i=> if(i.frameCount+1==newData.frameCount) dispatch(Protocol.SomeOneKilled(i.killedId,userMap(i.killedId)._2,i.killerName),userMap(i.killedId)._1)
+              }
               if (shouldNewSnake) {
                 dispatch(newData, r._1)
               }else if (finishFields.nonEmpty) {
