@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.Data4TotalSync
+import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Canvas, Image}
@@ -155,12 +155,13 @@ class DrawGame(
     val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
     val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
-    val newWindowBorder = Point(window.x / (2.0 * scale).toFloat, window.y / (2.0 * scale).toFloat)
+    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
     val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
+    val fieldInWindow = data.fieldDetails.map{f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y))}
 
     scale = 1 - Math.sqrt(grid.getMyFieldCount(uid, maxPoint, minPoint)) * 0.0048
 
@@ -194,7 +195,7 @@ class DrawGame(
 
 
     ctx.globalAlpha = 1.0
-    data.fieldDetails.foreach { field => //按行渲染
+    fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
       field.scanField.foreach { point =>
