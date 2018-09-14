@@ -41,6 +41,7 @@ class DrawGame(
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var scale = 1.0
+  private var lastRankNum = 0
 
   def drawGameOn(): Unit = {
     canvas.width = windowBoundary.x.toInt
@@ -218,15 +219,15 @@ class DrawGame(
 
     }
 
-    //边界离屏
-    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
-    ctx.restore()
-
-    //排行榜边界离屏
-    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
-    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
-    ctx.drawImage(rankCanvas, 0, 0)
-    ctx.restore()
+//    //边界离屏
+//    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
+//    ctx.restore()
+//
+//    //排行榜边界离屏
+//    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
+//    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+//    ctx.drawImage(rankCanvas, 0, 0)
+//    ctx.restore()
 
   }
 
