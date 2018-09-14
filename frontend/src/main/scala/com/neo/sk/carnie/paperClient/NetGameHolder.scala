@@ -130,7 +130,6 @@ object NetGameHolder extends js.JSApp {
           case None =>
             if(firstCome) drawGame.drawGameWait()
             else {
-              webSocketClient.sendMessage(UserDie(myId))
               drawGame.drawGameDie(grid.getKiller(myId).map(_._2), historyRank.find(_.id == myId).map(_.area))
               dom.window.cancelAnimationFrame(nextFrame)
             }
