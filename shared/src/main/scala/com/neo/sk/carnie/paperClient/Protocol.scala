@@ -69,6 +69,8 @@ object Protocol {
 
   case class SomeOneWin(winnerName: String) extends GameMessage
 
+  case class SomeOneKilled(killedId:Long,killedName:String,killerName:String) extends GameMessage
+
   case class ReceivePingPacket(createTime: Long) extends GameMessage
 
 

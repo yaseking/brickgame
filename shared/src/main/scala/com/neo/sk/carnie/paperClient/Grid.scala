@@ -28,7 +28,7 @@ trait Grid {
   var grid: Map[Point, Spot] = Map[Point, Spot]()
   var snakes = Map.empty[Long, SkDt]
   var actionMap = Map.empty[Long, Map[Long, Int]]
-  var killHistory = Map.empty[Long, (Long, String)] //killedId, (killerId, killerName)
+  var killHistory = Map.empty[Long, (Long, String,Long)] //killedId, (killerId, killerName,frameCount)
   var snakeTurnPoints = new mutable.HashMap[Long, List[Point4Trans]] //保留拐点
   private var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
   private var mayBeSuccess = Map.empty[Long, Map[Point, Spot]] //圈地成功后的被圈点
@@ -131,7 +131,7 @@ trait Grid {
           case Some(x: Body) => //进行碰撞检测
             debug(s"snake[${snake.id}] hit wall.")
             if (x.id != snake.id) { //撞到了别人的身体
-              killHistory += x.id -> (snake.id, snake.name)
+              killHistory += x.id -> (snake.id, snake.name,frameCount)
             }
             mayBeDieSnake += x.id -> snake.id
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
@@ -362,11 +362,11 @@ trait Grid {
       snakes.values.toList,
       bodyDetails,
       fieldDetails,
-      killHistory.map(k => Kill(k._1, k._2._1, k._2._2)).toList
+      killHistory.map(k => Kill(k._1, k._2._1, k._2._2,k._2._3)).toList
     )
   }
 
-  def getKiller(myId: Long): Option[(Long, String)] = {
+  def getKiller(myId: Long): Option[(Long, String,Long)] = {
     killHistory.get(myId)
   }
 
@@ -374,7 +374,7 @@ trait Grid {
     snakes = Map.empty[Long, SkDt]
     actionMap = Map.empty[Long, Map[Long, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
-    killHistory = Map.empty[Long, (Long, String)]
+    killHistory = Map.empty[Long, (Long, String,Long)]
     snakeTurnPoints.empty
   }
 
