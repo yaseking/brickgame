@@ -213,7 +213,8 @@ object NetGameHolder extends js.JSApp {
       case Protocol.Ranks(current, history) =>
         currentRank = current
         historyRank = history
-        drawGame.drawRank(myId, grid.getGridData.snakes, current)
+        if(grid.getGridData.snakes.exists(_.id == myId))
+          drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
         syncGridData = Some(data)

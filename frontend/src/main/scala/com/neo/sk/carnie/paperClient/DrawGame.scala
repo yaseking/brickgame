@@ -223,7 +223,7 @@ class DrawGame(
     ctx.restore()
 
     //排行榜边界离屏
-    rankCtx.clearRect(20, textLineHeight * 5, fillWidth + windowBoundary.x / 8, textLineHeight * 2)
+    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     ctx.drawImage(rankCanvas, 0, 0)
     ctx.restore()
@@ -254,7 +254,7 @@ class DrawGame(
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
 
-    rankCtx.clearRect(leftBegin, textLineHeight, fillWidth + windowBoundary.x / 8, textLineHeight * 6) //绘制前清除canvas
+    rankCtx.clearRect(leftBegin, textLineHeight, fillWidth + windowBoundary.x / 8, textLineHeight * 4) //绘制前清除canvas
     rankCtx.clearRect(rightBegin, textLineHeight, 210, textLineHeight * (currentRank.length + 1) + 3)
 
     rankCtx.globalAlpha = 1
