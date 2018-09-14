@@ -38,6 +38,7 @@ class DrawGame(
   private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
+  private val bloodImg=dom.document.getElementById("bloodImg").asInstanceOf[Image]
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var scale = 1.0
@@ -141,9 +142,16 @@ class DrawGame(
 
   def drawUserDieInfo(killedName:String,killerName:String)={
     ctx.save()
+    ctx.globalAlpha=0.6
+    ctx.drawImage(bloodImg,670,115,300,50)
+    ctx.restore()
+    ctx.save()
     ctx.font="bold 30px Microsoft YaHei"
     ctx.fillStyle="#FF5809"
-    ctx.fillText(s"${killedName} is killed by ${killerName}",680,150)
+    val txt=s"$killedName is killed by $killerName"
+    val length=ctx.measureText(txt).width
+    val offx=(270-length)/2
+    ctx.fillText(s"$killedName is killed by $killerName",670+offx,150)
     ctx.restore()
   }
 
