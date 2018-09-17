@@ -82,7 +82,7 @@ object Protocol {
 
   case class SendPingPacket(id: Long, createTime: Long) extends UserAction
 
-  case class RequireSync(id: Long) extends UserAction
+  case class NeedToSync(id: Long) extends UserAction
 
 
   val frameRate = 150

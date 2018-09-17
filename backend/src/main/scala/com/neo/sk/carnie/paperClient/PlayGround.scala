@@ -110,8 +110,11 @@ object PlayGround {
           case SendPingPacket(id, createTime) =>
             dispatchTo(id, Protocol.ReceivePingPacket(createTime))
 
-          case _ =>
+          case NeedToSync(id) =>
+            val roomId = userMap(id)._1
+            dispatchTo(id, roomMap(roomId)._2.getGridData)
 
+          case _ =>
         }
 
         case r@Terminated(actor) =>
@@ -159,11 +162,6 @@ object PlayGround {
               }
             }
           }
-
-        case RequireSync(id) =>
-          log.debug("i got it!!!!")
-          val roomId = userMap(id)._1
-          dispatchTo(id, roomMap(roomId)._2.getGridData)
 
         case x =>
           log.warn(s"got unknown msg: $x")

@@ -88,12 +88,11 @@ object NetGameHolder extends js.JSApp {
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
         grid.update("f")
-        if (newFieldInfo.nonEmpty) println(s"send!!!${newFieldInfo.get.frameCount}-- ${grid.frameCount}")
         if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
           } else { //主动要求同步数据
-            webSocketClient.sendMessage(RequireSync(myId).asInstanceOf[UserAction])
+            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
           }
           newFieldInfo = None
         }

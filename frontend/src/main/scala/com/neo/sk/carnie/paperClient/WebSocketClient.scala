@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
-import com.neo.sk.carnie.paperClient.Protocol.{GameMessage, ReceivePingPacket, RequireSync, UserAction}
+import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.util.byteObject.ByteObject.bytesDecode
 import com.neo.sk.carnie.util.byteObject.decoder
 import org.scalajs.dom
@@ -77,7 +77,6 @@ class WebSocketClient (
   def sendMessage(msg: UserAction): Unit = {
     gameStreamOpt match {
       case Some(gameStream) =>
-        msg match {case RequireSync(_) => println("!!!!!!!!!!!!!???????") case _ =>}
         gameStream.send(msg.fillMiddleBuffer(sendBuffer).result())
 
       case None => //
