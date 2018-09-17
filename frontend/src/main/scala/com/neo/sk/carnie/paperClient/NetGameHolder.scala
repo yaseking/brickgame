@@ -236,7 +236,6 @@ object NetGameHolder extends js.JSApp {
         lastTime = 100
 
       case data: Protocol.NewFieldInfo =>
-        println(data)
         newFieldInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
