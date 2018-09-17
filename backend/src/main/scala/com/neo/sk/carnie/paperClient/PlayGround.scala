@@ -161,6 +161,7 @@ object PlayGround {
           }
 
         case RequireSync(id) =>
+          log.debug("i got it!!!!")
           val roomId = userMap(id)._1
           dispatchTo(id, roomMap(roomId)._2.getGridData)
 

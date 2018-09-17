@@ -91,7 +91,8 @@ object NetGameHolder extends js.JSApp {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
           } else { //主动要求同步数据
-            webSocketClient.sendMessage(RequireSync(myId))
+            printf(s"send!!!${newFieldInfo.get.frameCount}-- ${grid.frameCount}")
+            webSocketClient.sendMessage(RequireSync(myId).asInstanceOf[UserAction])
           }
           newFieldInfo = None
         }
@@ -141,11 +142,11 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
-    val starTime = System.currentTimeMillis()
+//    val starTime = System.currentTimeMillis()
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(0l), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
 //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
+//    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
   private def connectOpenSuccess(e:Event) = {
