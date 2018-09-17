@@ -87,11 +87,11 @@ object NetGameHolder extends js.JSApp {
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
         grid.update("f")
-        if(newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
+        if (newFieldInfo.nonEmpty) printf(s"send!!!${newFieldInfo.get.frameCount}-- ${grid.frameCount}")
+        if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
           } else { //主动要求同步数据
-            printf(s"send!!!${newFieldInfo.get.frameCount}-- ${grid.frameCount}")
             webSocketClient.sendMessage(RequireSync(myId).asInstanceOf[UserAction])
           }
           newFieldInfo = None
@@ -236,7 +236,7 @@ object NetGameHolder extends js.JSApp {
         lastTime=100
 
       case data: Protocol.NewFieldInfo =>
-        println(NewFieldInfo)
+        println(data)
         newFieldInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
