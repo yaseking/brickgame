@@ -279,7 +279,7 @@ class DrawGame(
     val rightBegin = windowBoundary.x - 230
 
     rankCtx.clearRect(leftBegin, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    rankCtx.clearRect(rightBegin, textLineHeight, 210, textLineHeight * (lastRankNum + 1) + 3)
+    rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
 
     lastRankNum = currentRank.length
 
