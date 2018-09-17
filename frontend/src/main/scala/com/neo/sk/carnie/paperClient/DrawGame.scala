@@ -234,6 +234,12 @@ class DrawGame(
       }
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
+      ctx.font = "16px Helvetica"
+      ctx.fillStyle = "#000000"
+      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
+//      ctx.strokeStyle = "#000000"
+//      ctx.strokeText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
+
     }
 
 //    //边界离屏
