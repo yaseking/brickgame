@@ -2,7 +2,6 @@ package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
@@ -31,8 +30,8 @@ object NetGameHolder extends js.JSApp {
   var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
-  var killInfo=(0L,"","")
-  var lastTime=0
+  var killInfo = (0L, "", "")
+  var lastTime = 0
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
 
@@ -47,8 +46,8 @@ object NetGameHolder extends js.JSApp {
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
 
-  private[this] val drawGame:DrawGame = new DrawGame(ctx, canvas)
-  private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess,connectError,messageHandler,connectError)
+  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
+  private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
 
   def main(): Unit = {
@@ -68,7 +67,9 @@ object NetGameHolder extends js.JSApp {
   def startGame(): Unit = {
     drawGame.drawGameOn()
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
-    dom.window.setInterval(()=>{webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])}, 100)
+    dom.window.setInterval(() => {
+      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
+    }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -87,7 +88,7 @@ object NetGameHolder extends js.JSApp {
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
         grid.update("f")
-        if (newFieldInfo.nonEmpty) printf(s"send!!!${newFieldInfo.get.frameCount}-- ${grid.frameCount}")
+        if (newFieldInfo.nonEmpty) println(s"send!!!${newFieldInfo.get.frameCount}-- ${grid.frameCount}")
         if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
@@ -119,17 +120,16 @@ object NetGameHolder extends js.JSApp {
               scoreFlag = false
             }
             drawGame(myId, data, offsetTime)
-            if(killInfo._2!=""&&killInfo._3!=""&&snake.id!=killInfo._1)
-            {
-              drawGame.drawUserDieInfo(killInfo._2,killInfo._3)
-              lastTime-=1
-              if(lastTime==0){
-                killInfo=(0,"","")
+            if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
+              drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
+              lastTime -= 1
+              if (lastTime == 0) {
+                killInfo = (0, "", "")
               }
             }
 
           case None =>
-            if(firstCome) drawGame.drawGameWait()
+            if (firstCome) drawGame.drawGameWait()
             else {
               drawGame.drawGameDie(grid.getKiller(myId).map(_._2), historyRank.find(_.id == myId).map(_.area))
               dom.window.cancelAnimationFrame(nextFrame)
@@ -142,14 +142,14 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
-//    val starTime = System.currentTimeMillis()
+    //    val starTime = System.currentTimeMillis()
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(0l), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
-//    drawGame.drawRank(uid, data.snakes, currentRank)
+    //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-//    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
+    //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
-  private def connectOpenSuccess(e:Event) = {
+  private def connectOpenSuccess(e: Event) = {
     startGame()
     canvas.focus()
     canvas.onkeydown = { e: dom.KeyboardEvent => {
@@ -171,12 +171,13 @@ object NetGameHolder extends js.JSApp {
           Key(myId, e.keyCode, frame, actionId)
         }
         webSocketClient.sendMessage(msg)
-      }}
+      }
+    }
     }
     e
   }
 
-  private def connectError(e:Event) = {
+  private def connectError(e: Event) = {
     drawGame.drawGameOff(firstCome)
     e
   }
@@ -224,16 +225,16 @@ object NetGameHolder extends js.JSApp {
       case Protocol.Ranks(current, history) =>
         currentRank = current
         historyRank = history
-        if(grid.getGridData.snakes.exists(_.id == myId))
+        if (grid.getGridData.snakes.exists(_.id == myId))
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
         syncGridData = Some(data)
         justSynced = true
 
-      case Protocol.SomeOneKilled(killedId,killedName,killerName) =>
-        killInfo=(killedId,killedName,killerName)
-        lastTime=100
+      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
+        killInfo = (killedId, killedName, killerName)
+        lastTime = 100
 
       case data: Protocol.NewFieldInfo =>
         println(data)
