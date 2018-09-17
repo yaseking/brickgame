@@ -77,7 +77,7 @@ class WebSocketClient (
   def sendMessage(msg: UserAction): Unit = {
     gameStreamOpt match {
       case Some(gameStream) =>
-        msg match {case RequireSync(_) => println("!!!!!!!!!!!!!???????")}
+        msg match {case RequireSync(_) => println("!!!!!!!!!!!!!???????") case _ =>}
         gameStream.send(msg.fillMiddleBuffer(sendBuffer).result())
 
       case None => //
