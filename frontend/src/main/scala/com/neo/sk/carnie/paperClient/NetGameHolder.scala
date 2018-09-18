@@ -142,7 +142,7 @@ object NetGameHolder extends js.JSApp {
 
   def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
     //    val starTime = System.currentTimeMillis()
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(0l), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
