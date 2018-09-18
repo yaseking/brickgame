@@ -41,6 +41,7 @@ class DrawGame(
   private val bloodImg=dom.document.getElementById("bloodImg").asInstanceOf[Image]
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var maxArea:Int = 0
   private var scale = 1.0
   private var lastRankNum = 0
 
@@ -117,7 +118,7 @@ class DrawGame(
     }
 
     val gameTime = (myScore.endTime - myScore.startTime) / 1000
-    val bestScore = bestScoreArea.getOrElse(myScore.area) / canvasSize * 100
+    val bestScore = maxArea / canvasSize * 100
     val time = {
       val tempM = gameTime / 60
       val s1 = gameTime % 60
@@ -301,6 +302,8 @@ class DrawGame(
     val myRankBaseLine = 4
     currentRank.filter(_.id == uid).foreach { score =>
       myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+      if(myScore.area>maxArea)
+        maxArea = myScore.area
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.globalAlpha = 0.6
       rankCtx.fillStyle = color
