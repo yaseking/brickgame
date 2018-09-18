@@ -38,7 +38,7 @@ object PlayGround {
 
   val roomIdGen = new AtomicInteger(100)
 
-  private val limitNum = 10
+  private val limitNum = 2
 
   private val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.8
 
