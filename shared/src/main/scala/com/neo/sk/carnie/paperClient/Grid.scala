@@ -294,6 +294,20 @@ trait Grid {
       }
     }
 
+    //if two (or more) headers go to the same point
+    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).flatMap{res =>
+      val sids = res._2.map(_.data.id)
+      grid.get(res._1) match {
+        case Some(Field(fid)) if sids.contains(fid) =>
+          sids.filterNot(_==fid).foreach{ killedId=>
+            mayBeDieSnake += killedId -> fid
+            killHistory += killedId -> (killedId, snakes.find(_._1==fid).get._2.name,frameCount)
+          }
+          sids.filterNot(_ == fid)
+        case _ => sids
+      }
+    }.toList
+
     mayBeDieSnake.foreach { s =>
       mapKillCounter += s._2 -> (mapKillCounter.getOrElse(s._2, 0) + 1)
       killedSnaked ::= s._1
@@ -304,14 +318,6 @@ trait Grid {
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
 
-    //if two (or more) headers go to the same point
-    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).flatMap{res =>
-      val sids = res._2.map(_.data.id)
-      grid.get(res._1) match {
-        case Some(Field(fid)) if sids.contains(fid) =>  sids.filterNot(_ == fid)
-        case _ => sids
-      }
-    }.toList
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList
