@@ -55,9 +55,10 @@ object NetGameHolder extends js.JSApp {
     joinButton.onclick = { event: MouseEvent =>
       if(nameField.value == "")
         dom.window.alert("您的游戏昵称不能为空！")
-      else
+      else{
         webSocketClient.joinGame(nameField.value)
-      event.preventDefault()
+        event.preventDefault()
+      }
     }
     nameField.focus()
     nameField.onkeypress = { event: KeyboardEvent =>
