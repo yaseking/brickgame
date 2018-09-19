@@ -381,7 +381,7 @@ trait Grid {
     actionMap = Map.empty[Long, Map[Long, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
     killHistory = Map.empty[Long, (Long, String,Long)]
-    snakeTurnPoints.empty
+    snakeTurnPoints = snakeTurnPoints.empty
   }
 
   def returnBackField(snakeId: Long):Unit = { //归还身体部分所占有的领地
