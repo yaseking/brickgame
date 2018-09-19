@@ -8,6 +8,7 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 
@@ -52,7 +53,10 @@ object NetGameHolder extends js.JSApp {
 
   def main(): Unit = {
     joinButton.onclick = { event: MouseEvent =>
-      webSocketClient.joinGame(nameField.value)
+      if(nameField.value == "")
+        dom.window.alert("您的游戏昵称不能为空！")
+      else
+        webSocketClient.joinGame(nameField.value)
       event.preventDefault()
     }
     nameField.focus()
