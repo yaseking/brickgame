@@ -135,6 +135,7 @@ object NetGameHolder extends js.JSApp {
             if (firstCome) drawGame.drawGameWait()
             else {
               drawGame.drawGameDie(grid.getKiller(myId).map(_._2), historyRank.find(_.id == myId).map(_.area))
+              killInfo = (0, "", "")
               dom.window.cancelAnimationFrame(nextFrame)
             }
         }
