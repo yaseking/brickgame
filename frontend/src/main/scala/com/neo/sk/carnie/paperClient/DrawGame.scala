@@ -126,18 +126,18 @@ class DrawGame(
       val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
       m + ":" + s
     }
-    ctx.fillText(text, 150, 180)
+    ctx.fillText(text, 500, 180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = ColorsSetting.gradeColor
-    ctx.fillText("YOUR SCORE:", 150, 250)
-    ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", 380, 250)
-    ctx.fillText("BEST SCORE:", 150, 290)
-    ctx.fillText(f"$bestScore%.2f" + "%", 380, 290)
-    ctx.fillText(s"PLAYERS KILLED:", 150, 330)
-    ctx.fillText(s"${myScore.kill}", 380, 330)
-    ctx.fillText(s"TIME PLAYED:", 150, 370)
-    ctx.fillText(s"$time", 380, 370)
+    ctx.fillText("YOUR SCORE:", 500, 250)
+    ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", 730, 250)
+    ctx.fillText("BEST SCORE:", 500, 290)
+    ctx.fillText(f"$bestScore%.2f" + "%", 730, 290)
+    ctx.fillText(s"PLAYERS KILLED:", 500, 330)
+    ctx.fillText(s"${myScore.kill}", 730, 330)
+    ctx.fillText(s"TIME PLAYED:", 500, 370)
+    ctx.fillText(s"$time", 730, 370)
     ctx.restore()
   }
 
