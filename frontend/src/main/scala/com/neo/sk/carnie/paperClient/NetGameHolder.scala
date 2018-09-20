@@ -137,7 +137,7 @@ object NetGameHolder extends js.JSApp {
           case None =>
             if (firstCome) drawGame.drawGameWait()
             else {
-              drawGame.drawGameDie(grid.getKiller(myId).map(_._2), historyRank.find(_.id == myId).map(_.area))
+              drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
               killInfo = (0, "", "")
               dom.window.cancelAnimationFrame(nextFrame)
             }
@@ -229,9 +229,8 @@ object NetGameHolder extends js.JSApp {
         winnerName = winner
         grid.cleanData()
 
-      case Protocol.Ranks(current, history) =>
+      case Protocol.Ranks(current) =>
         currentRank = current
-        historyRank = history
         if (grid.getGridData.snakes.exists(_.id == myId))
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
