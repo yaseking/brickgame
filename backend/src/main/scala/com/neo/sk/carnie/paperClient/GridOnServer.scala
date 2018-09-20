@@ -30,6 +30,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
     waitingJoin += (id -> (name, bodyColor))
   }
 
+  def waitingListState = waitingJoin.nonEmpty
+
   private[this] def genWaitingSnake() = {
     waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
       val indexSize = 5

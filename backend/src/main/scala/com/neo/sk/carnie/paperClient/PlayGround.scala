@@ -136,7 +136,13 @@ object PlayGround {
           roomMap.foreach { r =>
             val userInRoom = userMap.filter(_._2._1 == r._1).keys
             if (userInRoom.nonEmpty) {
-              val shouldNewSnake = if(tickCount % 20 == 5) true else false
+//              val shouldNewSnake = if(tickCount % 20 == 5) true else false
+              val shouldNewSnake =
+                if(r._2._2.waitingListState)
+                  true
+                else {
+                  if(tickCount % 20 == 5) true else false
+                }
               val grid = r._2._2
               val finishFields = grid.updateInService(shouldNewSnake)
               val newData = grid.getGridData
