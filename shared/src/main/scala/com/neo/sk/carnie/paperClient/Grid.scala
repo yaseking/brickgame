@@ -139,6 +139,8 @@ trait Grid {
                 snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toInt, newHeader.y.toInt))))
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid))
 
+
+
               case _ =>
                 if (snake.direction != newDirection)
                   snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toInt, snake.header.y.toInt))))
@@ -315,12 +317,14 @@ trait Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
+    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(s._2.header + s._2.direction)).keySet
+
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
 
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
 
-    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList
+    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
     finalDie.foreach { sid =>
       returnBackField(sid)
