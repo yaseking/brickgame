@@ -65,7 +65,8 @@ object Protocol {
 
   case class SnakeLeft(id: Long, name: String) extends GameMessage
 
-  case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
+//  case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
+  case class Ranks(currentRank: List[Score]) extends GameMessage
 
   case class SomeOneWin(winnerName: String) extends GameMessage
 

@@ -103,7 +103,7 @@ class DrawGame(
     ctx.fillText("Please wait.", 150, 180)
   }
 
-  def drawGameDie(killerOpt: Option[String], bestScoreArea: Option[Int]): Unit = {
+  def drawGameDie(killerOpt: Option[String]): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
