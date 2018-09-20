@@ -55,6 +55,8 @@ object NetGameHolder extends js.JSApp {
     joinButton.onclick = { event: MouseEvent =>
       if(nameField.value == "")
         dom.window.alert("您的游戏昵称不能为空！")
+      else if(nameField.value.length>16)
+        dom.window.alert("您的游戏昵称不能超过16位！")
       else{
         webSocketClient.joinGame(nameField.value)
         event.preventDefault()

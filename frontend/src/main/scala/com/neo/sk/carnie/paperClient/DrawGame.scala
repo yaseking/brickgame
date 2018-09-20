@@ -117,6 +117,9 @@ class DrawGame(
       case None => "Ops, Press Space Key To Restart!"
     }
 
+    val x = (dom.window.innerWidth/2).toInt -130
+    val y = (dom.window.innerHeight/2).toInt - 160
+
     val gameTime = (myScore.endTime - myScore.startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
     val time = {
@@ -126,18 +129,18 @@ class DrawGame(
       val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
       m + ":" + s
     }
-    ctx.fillText(text, 150, 180)
+    ctx.fillText(text, x, y)//(500,180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = ColorsSetting.gradeColor
-    ctx.fillText("YOUR SCORE:", 150, 250)
-    ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", 380, 250)
-    ctx.fillText("BEST SCORE:", 150, 290)
-    ctx.fillText(f"$bestScore%.2f" + "%", 380, 290)
-    ctx.fillText(s"PLAYERS KILLED:", 150, 330)
-    ctx.fillText(s"${myScore.kill}", 380, 330)
-    ctx.fillText(s"TIME PLAYED:", 150, 370)
-    ctx.fillText(s"$time", 380, 370)
+    ctx.fillText("YOUR SCORE:", x, y+70)
+    ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x+230, y+70)
+    ctx.fillText("BEST SCORE:", x, y+110)
+    ctx.fillText(f"$bestScore%.2f" + "%", x+230, y+110)
+    ctx.fillText(s"PLAYERS KILLED:", x, y+150)
+    ctx.fillText(s"${myScore.kill}", x+230, y+150)
+    ctx.fillText(s"TIME PLAYED:", x, y+190)
+    ctx.fillText(s"$time", x+230, y+190)
     ctx.restore()
   }
 
