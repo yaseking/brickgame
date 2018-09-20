@@ -94,14 +94,14 @@ trait Grid {
 
   def randomEmptyPoint(size: Int): Point = {
     var p = Point(random.nextInt(boundary.x.toInt - size), random.nextInt(boundary.y.toInt - size))
-    while ((0 until size).flatMap { x =>
-      (0 until size).map { y =>
+    while ((0 until size * 2).flatMap { x =>
+      (0 until size * 2).map { y =>
         grid.contains(p.copy(x = p.x + x, y = p.y + y))
       }
     }.contains(true)) {
       p = Point(random.nextInt(boundary.x.toInt - size), random.nextInt(boundary.y.toInt - size))
     }
-    p
+    p + Point(2 + random.nextInt(2), 2 + random.nextInt(2))
   }
 
   private[this] def updateSnakes(origin: String): List[(Long, List[Point])] = {
