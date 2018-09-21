@@ -39,7 +39,7 @@ class DrawGame(
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
   private val bloodImg=dom.document.getElementById("bloodImg").asInstanceOf[Image]
-  private val fireImg=dom.document.getElementById("fireImg").asInstanceOf[Image]
+  //private val fireImg=dom.document.getElementById("fireImg").asInstanceOf[Image]
   private val crownImg=dom.document.getElementById("crownImg").asInstanceOf[Image]
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
@@ -192,7 +192,6 @@ class DrawGame(
     val length=ctx.measureText(txt).width
     ctx.fillText(txt,700,150)
     ctx.drawImage(crownImg,705+length,110,50,50)
-    //ctx.drawImage(fireImg,700,150,400,250)
     ctx.restore()
   }
 
