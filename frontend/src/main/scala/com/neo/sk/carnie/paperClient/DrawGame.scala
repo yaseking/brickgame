@@ -104,11 +104,12 @@ class DrawGame(
   }
 
   def drawGameDie(killerOpt: Option[String]): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillStyle = ColorsSetting.dieColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.globalAlpha = 0.8
+    ctx.fillStyle = ColorsSetting.dieFontColor1
 
-    ctx.font = "16px Helvetica"
+    ctx.font = "24px Helvetica"
     scale = 1
     ctx.scale(1, 1)
 
@@ -118,7 +119,7 @@ class DrawGame(
     }
 
     val x = (dom.window.innerWidth/2).toInt -130
-    val y = (dom.window.innerHeight/2).toInt - 160
+    val y = (dom.window.innerHeight/2).toInt - 180
 
     val gameTime = (myScore.endTime - myScore.startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
@@ -129,7 +130,7 @@ class DrawGame(
       val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
       m + ":" + s
     }
-    ctx.fillText(text, x, y)//(500,180)
+    ctx.fillText(text, x-20, y)//(500,180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = ColorsSetting.gradeColor
