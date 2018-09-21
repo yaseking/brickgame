@@ -104,10 +104,10 @@ class DrawGame(
   }
 
   def drawGameDie(killerOpt: Option[String]): Unit = {
-    ctx.fillStyle = ColorsSetting.dieColor
+    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.globalAlpha = 0.8
-    ctx.fillStyle = ColorsSetting.dieFontColor1
+    ctx.fillStyle = ColorsSetting.gameNameColor
 
     ctx.font = "24px Helvetica"
     scale = 1
@@ -133,7 +133,7 @@ class DrawGame(
     ctx.fillText(text, x-20, y)//(500,180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
-    ctx.fillStyle = ColorsSetting.gradeColor
+    ctx.fillStyle = ColorsSetting.fontColor
     ctx.fillText("YOUR SCORE:", x, y+70)
     ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x+230, y+70)
     ctx.fillText("BEST SCORE:", x, y+110)
