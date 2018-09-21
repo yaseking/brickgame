@@ -75,7 +75,7 @@ class DrawGame(
   }
 
   def drawGameOff(firstCome: Boolean): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     if (firstCome) {
@@ -88,7 +88,7 @@ class DrawGame(
   }
 
   def drawGameWin(winner: String): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.font = "36px Helvetica"
@@ -96,7 +96,7 @@ class DrawGame(
   }
 
   def drawGameWait(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.font = "36px Helvetica"
@@ -104,9 +104,9 @@ class DrawGame(
   }
 
   def drawGameDie(killerOpt: Option[String]): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.globalAlpha = 0.8
+//    ctx.globalAlpha = 0.8
     ctx.fillStyle = ColorsSetting.gameNameColor
 
     ctx.font = "24px Helvetica"
@@ -118,7 +118,7 @@ class DrawGame(
       case None => "Ops, Press Space Key To Restart!"
     }
 
-    val x = (dom.window.innerWidth/2).toInt -130
+    val x = (dom.window.innerWidth/2).toInt -145
     val y = (dom.window.innerHeight/2).toInt - 180
 
     val gameTime = (myScore.endTime - myScore.startTime) / 1000
@@ -295,12 +295,12 @@ class DrawGame(
     val mySnake = snakes.filter(_.id == uid).head
     val baseLine = 2
     rankCtx.font = "22px Helvetica"
-    rankCtx.fillStyle = ColorsSetting.fontColor
+    rankCtx.fillStyle = ColorsSetting.fontColor2
 //    drawTextLine(s"NAME: ${mySnake.name.take(32)}", leftBegin, 0, baseLine)
     drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
     rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
-    rankCtx.fillStyle = ColorsSetting.fontColor
+    rankCtx.fillStyle = ColorsSetting.fontColor2
 //    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
 
     val myRankBaseLine = 4
@@ -317,7 +317,7 @@ class DrawGame(
 
       rankCtx.globalAlpha = 1
       rankCtx.font = "22px Helvetica"
-      rankCtx.fillStyle = ColorsSetting.fontColor
+      rankCtx.fillStyle = ColorsSetting.fontColor2
       drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
     }
 
@@ -347,7 +347,7 @@ class DrawGame(
       rankCtx.restore()
 
       rankCtx.globalAlpha = 1
-      rankCtx.fillStyle = ColorsSetting.fontColor
+      rankCtx.fillStyle = ColorsSetting.fontColor2
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
       drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
