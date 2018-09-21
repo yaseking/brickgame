@@ -48,7 +48,11 @@
           </div>
           <div style="padding:5px 30px;">
             <img src="/carnie/static/img/info.png" style="height: 21px;width: 21px;">
-            <h4 style="display: inline;padding-left: 10px;">房间胜利条件：当有玩家圈地面积超过70%时，则该玩家获得胜利；房间内每增加一位玩家，胜利条件减少5%。例如，当某房间内有8位玩家，该房间的胜利条件为30%</h4>
+            <h4 style="display: inline;padding-left: 10px;line-height: 27px;">房间胜利条件：当有玩家圈地面积超过70%时，则该玩家获得胜利；房间内每增加一位玩家，胜利条件减少5%。例如，当某房间内有8位玩家，该房间的胜利条件为30%</h4>
+          </div>
+          <div style="padding:42px 30px 0px 30px;">
+            <img src="/carnie/static/img/tip.png" style="height: 21px;width: 21px;">
+            <h4 style="display: inline;padding-left: 10px;">游戏过程中可按R键查看该规则界面</h4>
           </div>
         </div>
       </div>
@@ -71,7 +75,14 @@
 
   <script type="text/javascript" src="/carnie/static/sjsout/frontend-fastopt.js"></script>
   <!--<script type="text/javascript" src="/hiStream/frontend-launcher.js"></script>-->
-  <script>$('#ruleModal').modal('show')  </script>
+  <script>$('#ruleModal').modal('show')</script>
+  <script>
+      $(document).keydown(function(event){
+          if(event.keyCode == 82){
+              $('#ruleModal').modal('show');
+          }
+      });
+  </script>
   <script>paperClient.NetGameHolder.main()</script>
 
 </body>
