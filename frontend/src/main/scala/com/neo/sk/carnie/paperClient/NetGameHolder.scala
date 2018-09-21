@@ -33,6 +33,7 @@ object NetGameHolder extends js.JSApp {
   var winnerName = "unknown"
   var killInfo = (0L, "", "")
   var lastTime = 0
+  var finalData:Protocol.Data4TotalSync=grid.getGridData
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
 
@@ -113,11 +114,15 @@ object NetGameHolder extends js.JSApp {
 
   def draw(offsetTime: Long): Unit = {
     if (webSocketClient.getWsState) {
+      val data = grid.getGridData
       if (isWin) {
-        drawGame.drawGameWin(winnerName)
+        //drawGame.drawGameWin(winnerName)
+        val color=data.snakes.find(_.name==winnerName).map(_.color).getOrElse("#000000")
+        ctx.clearRect(0,0,dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+        drawGame.drawWin(winnerName,color,finalData)
+        grid.cleanData()
         dom.window.cancelAnimationFrame(nextFrame)
       } else {
-        val data = grid.getGridData
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
             firstCome = false
@@ -227,7 +232,8 @@ object NetGameHolder extends js.JSApp {
       case Protocol.SomeOneWin(winner) =>
         isWin = true
         winnerName = winner
-        grid.cleanData()
+        finalData=grid.getGridData
+        //grid.cleanData()
 
       case Protocol.Ranks(current) =>
         currentRank = current
