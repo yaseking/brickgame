@@ -39,6 +39,8 @@ class DrawGame(
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
   private val bloodImg=dom.document.getElementById("bloodImg").asInstanceOf[Image]
+  //private val fireImg=dom.document.getElementById("fireImg").asInstanceOf[Image]
+  private val crownImg=dom.document.getElementById("crownImg").asInstanceOf[Image]
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea:Int = 0
@@ -157,6 +159,39 @@ class DrawGame(
     val length=ctx.measureText(txt).width
     val offx=(270-length)/2
     ctx.fillText(s"$killedName is killed by $killerName",670+offx,150)
+    ctx.restore()
+  }
+
+  def drawWin(winner:String,winnerColor:String,data: Data4TotalSync)={
+    val snakes=data.snakes
+    val snakesFields=data.fieldDetails
+    scale=0.33
+    ctx.save()
+    ctx.scale(scale,scale)
+    ctx.fillStyle = ColorsSetting.borderColor
+    ctx.fillRect(50, 125, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(50, 125, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(50, BorderSize.h * canvasUnit+125, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect(BorderSize.w * canvasUnit+50, 125, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    snakesFields.foreach{ field =>
+      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      ctx.fillStyle = color
+      field.scanField.foreach { point =>
+        point.x.foreach { x =>
+          ctx.fillRect(x._1 * canvasUnit+50, point.y * canvasUnit+125, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+        }
+      }
+    }
+    ctx.restore()
+    ctx.save()
+    ctx.scale(1,1)
+    ctx.globalAlpha=1
+    ctx.font="bold 30px Microsoft YaHei"
+    ctx.fillStyle=winnerColor
+    val txt=s"The Winner is $winner"
+    val length=ctx.measureText(txt).width
+    ctx.fillText(txt,700,150)
+    ctx.drawImage(crownImg,705+length,110,50,50)
     ctx.restore()
   }
 
