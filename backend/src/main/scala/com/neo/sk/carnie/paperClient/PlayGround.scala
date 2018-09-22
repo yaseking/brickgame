@@ -163,9 +163,11 @@ object PlayGround {
                 userInRoom.filterNot(finishUsers.contains(_)).foreach(u => dispatchTo(u, NewFieldInfo(grid.frameCount, newField)))
               }
               if(tickCount % 10 == 3) dispatch(Protocol.Ranks(r._2._2.currentRank), r._1)
-              val maxSize = r._2._2.currentRank.head.area
-              if((maxSize+fullSize*0.1)<winStandard)
-                winStandard = fullSize * (0.4 - r._2._1*0.05)
+              if(r._2._2.currentRank.nonEmpty){
+                val maxSize = r._2._2.currentRank.head.area
+                if((maxSize+fullSize*0.1)<winStandard)
+                  winStandard = fullSize * (0.2 - r._2._1*0.05)
+              }
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
                 r._2._2.cleanData()
                 dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)
