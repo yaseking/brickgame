@@ -169,8 +169,9 @@ object PlayGround {
                   winStandard = fullSize * (0.2 - r._2._1*0.05)
               }
               if (r._2._2.currentRank.nonEmpty && r._2._2.currentRank.head.area >= winStandard) {
+                val finalData=r._2._2.getGridData
                 r._2._2.cleanData()
-                dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2), r._1)
+                dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2,finalData), r._1)
               }
             }
           }

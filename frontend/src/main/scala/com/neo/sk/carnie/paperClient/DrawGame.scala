@@ -162,7 +162,8 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawWin(winner:String,winnerColor:String,data: Data4TotalSync)={
+  def drawWin(myId:Long,winner:String,data: Data4TotalSync)={
+    val winnerId=data.snakes.find(_.name==winner).map(_.id).get
     val snakes=data.snakes
     val snakesFields=data.fieldDetails
     scale=0.33
@@ -174,11 +175,13 @@ class DrawGame(
     ctx.fillRect(50, BorderSize.h * canvasUnit+125, canvasUnit * (BorderSize.w + 1), canvasUnit)
     ctx.fillRect(BorderSize.w * canvasUnit+50, 125, canvasUnit, canvasUnit * (BorderSize.h + 1))
     snakesFields.foreach{ field =>
-      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.fillStyle = color
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          ctx.fillRect(x._1 * canvasUnit+50, point.y * canvasUnit+125, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+      if(field.uid==myId||field.uid==winnerId){
+        val color = snakes.find(_.id == field.uid).map(_.color).get
+        ctx.fillStyle = color
+        field.scanField.foreach { point =>
+          point.x.foreach { x =>
+            ctx.fillRect(x._1 * canvasUnit+50, point.y * canvasUnit+125, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          }
         }
       }
     }
@@ -187,7 +190,7 @@ class DrawGame(
     ctx.scale(1,1)
     ctx.globalAlpha=1
     ctx.font="bold 30px Microsoft YaHei"
-    ctx.fillStyle=winnerColor
+    ctx.fillStyle="#000000"
     val txt=s"The Winner is $winner"
     val length=ctx.measureText(txt).width
     ctx.fillText(txt,700,150)
