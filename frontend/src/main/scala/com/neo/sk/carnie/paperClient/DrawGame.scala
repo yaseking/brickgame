@@ -167,20 +167,22 @@ class DrawGame(
     val snakes=data.snakes
     val snakesFields=data.fieldDetails
     scale=0.33
+    val width=dom.window.innerWidth.toFloat-BorderSize.w*canvasUnit*scale
+    val height=dom.window.innerHeight.toFloat-BorderSize.h*canvasUnit*scale
     ctx.save()
     ctx.scale(scale,scale)
     ctx.fillStyle = ColorsSetting.borderColor
-    ctx.fillRect(50, 125, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(50, 125, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(50, BorderSize.h * canvasUnit+125, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect(BorderSize.w * canvasUnit+50, 125, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    ctx.fillRect(1.5*width-canvasUnit, 1.5*height-canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(1.5*width-canvasUnit, 1.5*height-canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(1.5*width-canvasUnit, BorderSize.h * canvasUnit+1.5*height-canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect(BorderSize.w * canvasUnit+1.5*width-canvasUnit, 1.5*height-canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
     snakesFields.foreach{ field =>
       if(field.uid==myId||field.uid==winnerId){
         val color = snakes.find(_.id == field.uid).map(_.color).get
         ctx.fillStyle = color
         field.scanField.foreach { point =>
           point.x.foreach { x =>
-            ctx.fillRect(x._1 * canvasUnit+50, point.y * canvasUnit+125, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+            ctx.fillRect(x._1 * canvasUnit+1.5*width-canvasUnit, point.y * canvasUnit+1.5*height-canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
           }
         }
       }
