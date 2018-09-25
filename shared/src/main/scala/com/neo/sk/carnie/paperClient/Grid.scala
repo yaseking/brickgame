@@ -319,7 +319,7 @@ trait Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
-    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(s._2.header + s._2.direction)).keySet
+    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt(-1L, "", "",Point(0, 0), Point(-1, -1)))).data.header)).keySet
 
     mayBeDieSnake = Map.empty[Long, Long]
     mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
@@ -328,7 +328,7 @@ trait Grid {
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
-    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
+//    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
 
     finalDie.foreach { sid =>
       returnBackField(sid)
@@ -419,7 +419,7 @@ trait Grid {
               grid.get(p) match {
                 case Some(Body(bodyId, _)) => newGrid += p -> Body(bodyId, Some(snake.id))
                 case Some(Border) => //doNothing
-                case x => newGrid += p -> Field(snake.id)
+                case x  => newGrid += p -> Field(snake.id)
                   x match {
                     case Some(Field(fid)) => finalFillPoll += p -> Field(fid)
                     case _ => finalFillPoll += p -> Blank
