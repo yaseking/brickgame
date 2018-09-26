@@ -81,9 +81,13 @@ object NetGameHolder extends js.JSApp {
     dom.window.requestAnimationFrame(gameRender())
   }
 
+  private var tempRender = System.currentTimeMillis()
+
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
+    println(s"drawRender time:${curTime - tempRender}")
+    tempRender = curTime
     draw(offsetTime)
 
     nextFrame = dom.window.requestAnimationFrame(gameRender())
@@ -112,7 +116,11 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
+  private var tempDraw = System.currentTimeMillis()
+
   def draw(offsetTime: Long): Unit = {
+    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
+    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       val data = grid.getGridData
       if (isWin) {
@@ -152,8 +160,12 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
+  private var temp = System.currentTimeMillis()
+
   def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
     val starTime = System.currentTimeMillis()
+    println(s"draw time:${starTime - temp}")
+    temp = starTime
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
