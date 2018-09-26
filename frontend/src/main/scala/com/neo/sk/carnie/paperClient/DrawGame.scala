@@ -17,8 +17,7 @@ class DrawGame(
   private val windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val window = Point(Window.w, Window.h)
-//  private val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
-  private val canvasUnit = 20
+  private val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val canvasSize = (border.x - 2) * (border.y - 2)
 

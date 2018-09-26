@@ -34,6 +34,8 @@ object NetGameHolder extends js.JSApp {
   var killInfo = (0L, "", "")
   var lastTime = 0
   var winData:Protocol.Data4TotalSync=grid.getGridData
+  var fieldNum=1
+  var snakeNum=1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
 
@@ -45,6 +47,8 @@ object NetGameHolder extends js.JSApp {
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1=dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
+  private[this] val audioFinish=dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
+  private[this] val audioKill=dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
 
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
@@ -123,10 +127,9 @@ object NetGameHolder extends js.JSApp {
     println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
     tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
+      println(s"fieldNum: $fieldNum")
       val data = grid.getGridData
       if (isWin) {
-        //drawGame.drawGameWin(winnerName)
-        //val color=data.snakes.find(_.name==winnerName).map(_.color).get
         ctx.clearRect(0,0,dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
         drawGame.drawWin(myId,winnerName,winData)
         audio1.play()
@@ -139,6 +142,17 @@ object NetGameHolder extends js.JSApp {
               drawGame.cleanMyScore
               scoreFlag = false
             }
+            data.killHistory.foreach{
+              i=> if(i.frameCount+1==data.frameCount&&i.killerId==myId) audioKill.play()
+            }
+            var num=0
+            data.fieldDetails.find(_.uid==myId).get.scanField.foreach{
+              i=> num+=i.x.length
+            }
+            if(fieldNum<num&&snake.id==myId){
+              audioFinish.play()
+            }
+            fieldNum=num
             drawGame(myId, data, offsetTime)
             if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
               drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
