@@ -340,7 +340,7 @@ class DrawGame(
     drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
     rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
-    rankCtx.fillStyle = ColorsSetting.fontColor2
+//    rankCtx.fillStyle = ColorsSetting.fontColor2
 //    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
 
     val myRankBaseLine = 4
