@@ -44,6 +44,7 @@ object NetGameHolder extends js.JSApp {
   private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private[this] val audio1=dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
 
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
@@ -128,6 +129,7 @@ object NetGameHolder extends js.JSApp {
         //val color=data.snakes.find(_.name==winnerName).map(_.color).get
         ctx.clearRect(0,0,dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
         drawGame.drawWin(myId,winnerName,winData)
+        audio1.play()
         dom.window.cancelAnimationFrame(nextFrame)
       } else {
         data.snakes.find(_.id == myId) match {
@@ -184,6 +186,7 @@ object NetGameHolder extends js.JSApp {
           if (e.keyCode != KeyCode.Space) {
             myActionHistory += actionId -> (e.keyCode, frame)
           } else { //重新开始游戏
+            audio1.pause()
             scoreFlag = true
             firstCome = true
             if (isWin) {
