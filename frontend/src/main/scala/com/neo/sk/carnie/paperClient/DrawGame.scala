@@ -193,9 +193,13 @@ class DrawGame(
     ctx.globalAlpha=1
     ctx.font="bold 30px Microsoft YaHei"
     ctx.fillStyle="#000000"
-    val txt=s"The Winner is $winner"
-    val length=ctx.measureText(txt).width
-    ctx.fillText(txt,700,150)
+    val txt1=s"The Winner is $winner"
+    val txt2=s"Press space to reStart"
+    println(ctx.measureText(txt2).width.toString)
+    val length=ctx.measureText(txt1).width
+    ctx.fillText(txt1,700,150)
+    ctx.font="bold 20px Microsoft YaHei"
+    ctx.fillText(txt2,dom.window.innerWidth.toFloat-300,dom.window.innerHeight.toFloat-100)
     ctx.drawImage(crownImg,705+length,110,50,50)
     ctx.restore()
   }

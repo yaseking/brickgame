@@ -55,6 +55,9 @@ trait ResourceService {
     } ~
     pathPrefix("test") {
       getFromDirectory("D:\\workstation\\sbt\\vigour\\logs\\test")
+    } ~
+    pathPrefix("mp3") {
+      getFromResourceDirectory("mp3")
     }
   }
 
