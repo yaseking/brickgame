@@ -210,33 +210,35 @@ object NetGameHolder extends js.JSApp {
       case Protocol.Id(id) => myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-          if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
+        if(grid.snakes.exists(_._1 == id)) {
+          if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+            if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
+              grid.addActionWithFrame(id, keyCode, frame)
+              if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                val oldGrid = grid
+                oldGrid.recallGrid(frame, grid.frameCount)
+                grid = oldGrid
+              }
+            } else {
+              if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
+                grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
+                grid.addActionWithFrame(id, keyCode, frame)
+                val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
+                if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
+                  val oldGrid = grid
+                  oldGrid.recallGrid(miniFrame, grid.frameCount)
+                  grid = oldGrid
+                }
+              }
+              myActionHistory -= actionId
+            }
+          } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
             if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
               val oldGrid = grid
               oldGrid.recallGrid(frame, grid.frameCount)
               grid = oldGrid
             }
-          } else {
-            if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-              grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
-              grid.addActionWithFrame(id, keyCode, frame)
-              val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-              if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                val oldGrid = grid
-                oldGrid.recallGrid(miniFrame, grid.frameCount)
-                grid = oldGrid
-              }
-            }
-            myActionHistory -= actionId
-          }
-        } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-          grid.addActionWithFrame(id, keyCode, frame)
-          if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-            val oldGrid = grid
-            oldGrid.recallGrid(frame, grid.frameCount)
-            grid = oldGrid
           }
         }
 
