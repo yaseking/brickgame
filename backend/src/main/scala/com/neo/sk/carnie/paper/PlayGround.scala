@@ -22,7 +22,6 @@ import com.neo.sk.util.Tool
 
 trait PlayGround {
 
-
   def joinGame(id: Long, name: String): Flow[Protocol.UserAction, Protocol.GameMessage, Any]
 
   def syncData()
