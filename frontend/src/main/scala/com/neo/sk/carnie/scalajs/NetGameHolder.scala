@@ -566,6 +566,7 @@ object NetGameHolder extends js.JSApp {
     s"$wsProtocol://${dom.document.location.host}/carnie/netSnake/join?name=$nameOfChatParticipant"
   }
 
+
   def setSyncGridData(data: Protocol.Data4Sync): Unit = {
     grid.frameCount = data.frameCount
     var newGrid = grid.grid
