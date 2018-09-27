@@ -181,6 +181,7 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
+
   private var temp = System.currentTimeMillis()
 
   def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
