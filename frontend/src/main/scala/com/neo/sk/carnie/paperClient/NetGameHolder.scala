@@ -168,9 +168,7 @@ object NetGameHolder extends js.JSApp {
           case None =>
             if (firstCome) drawGame.drawGameWait()
             else {
-              if(play){
-                audioKilled.play()
-              }
+              if(play) audioKilled.play()
               play=false
               drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
               killInfo = (0, "", "")
