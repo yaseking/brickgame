@@ -147,7 +147,9 @@ object NetGameHolder extends js.JSApp {
             }
             var num=0
             data.fieldDetails.find(_.uid==myId).get.scanField.foreach{
-              i=> num+=i.x.length
+              row=> row.x.foreach{
+                x=> num+=(x._2-x._1)
+              }
             }
             if(fieldNum<num&&snake.id==myId){
               audioFinish.play()
