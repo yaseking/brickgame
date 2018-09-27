@@ -38,6 +38,7 @@ object NetGameHolder extends js.JSApp {
   var snakeNum=1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var play=true
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -49,6 +50,7 @@ object NetGameHolder extends js.JSApp {
   private[this] val audio1=dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
   private[this] val audioFinish=dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill=dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
+  private[this] val audioKilled=dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
 
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
@@ -127,7 +129,6 @@ object NetGameHolder extends js.JSApp {
     println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
     tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
-      println(s"fieldNum: $fieldNum")
       val data = grid.getGridData
       if (isWin) {
         ctx.clearRect(0,0,dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -167,6 +168,10 @@ object NetGameHolder extends js.JSApp {
           case None =>
             if (firstCome) drawGame.drawGameWait()
             else {
+              if(play){
+                audioKilled.play()
+              }
+              play=false
               drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
               killInfo = (0, "", "")
               dom.window.cancelAnimationFrame(nextFrame)
@@ -203,6 +208,10 @@ object NetGameHolder extends js.JSApp {
             myActionHistory += actionId -> (e.keyCode, frame)
           } else { //重新开始游戏
             audio1.pause()
+            audio1.currentTime=0
+            audioKilled.pause()
+            audioKilled.currentTime=0
+            play=true
             scoreFlag = true
             firstCome = true
             if (isWin) {
