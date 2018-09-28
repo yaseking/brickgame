@@ -328,7 +328,6 @@ class DrawGame(
     }
   }
 
-
   def drawRank(uid: Long, snakes: List[SkDt], currentRank: List[Score]): Unit = {
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
