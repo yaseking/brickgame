@@ -293,22 +293,19 @@ class DrawGame(
     }
 
 //    //边界离屏
-//    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
+    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
     ctx.restore()
 
-    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(offx * canvasUnit, BorderSize.h * canvasUnit + offy * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect(BorderSize.w * canvasUnit + offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
+//    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
+//    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
+//    ctx.fillRect(offx * canvasUnit, BorderSize.h * canvasUnit + offy * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+//    ctx.fillRect(BorderSize.w * canvasUnit + offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
 
 //
 //    //排行榜边界离屏
-    PerformanceTool.renderFps(ctx, 20, 5 * textLineHeight)
-    tickCount += 1
-    if(tickCount%20 == 3){
-      ctx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
-      ctx.drawImage(rankCanvas, 0, 0)
-    }
+    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
+    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+    ctx.drawImage(rankCanvas, 0, 0)
 //    ctx.restore()
 
   }
