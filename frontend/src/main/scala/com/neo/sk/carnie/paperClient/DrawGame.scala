@@ -86,6 +86,7 @@ class DrawGame(
       ctx.font = "36px Helvetica"
       ctx.fillText("Welcome.", 150, 180)
     } else {
+      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
@@ -108,6 +109,7 @@ class DrawGame(
   }
 
   def drawGameDie(killerOpt: Option[String]): Unit = {
+    rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 //    ctx.globalAlpha = 0.8
