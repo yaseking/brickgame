@@ -29,8 +29,9 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //离屏canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
-  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+//  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
+//  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
   private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
@@ -49,11 +50,14 @@ class DrawGame(
   private var tickCount = 0
 
   def drawGameOn(): Unit = {
+//    bodyAttribute.setAttribute("background-color", ColorsSetting.backgroundColor)
+    bodyAttribute.style_=("background-color: #F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
+
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
 
-    background.width = windowBoundary.x.toInt
-    background.height = windowBoundary.y.toInt
+//    background.width = windowBoundary.x.toInt
+//    background.height = windowBoundary.y.toInt
 
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
@@ -63,8 +67,10 @@ class DrawGame(
 
     drawCache()
 
-    backCtx.fillStyle = ColorsSetting.backgroundColor
-    backCtx.fillRect(0, 0, background.width, background.height)
+    println("Now we set backgroundColor!")
+
+//    backCtx.fillStyle = ColorsSetting.backgroundColor
+//    backCtx.fillRect(0, 0, background.width, background.height)
   }
 
   def drawCache(): Unit = { //离屏缓存的更新--缓存边界
@@ -85,6 +91,7 @@ class DrawGame(
       ctx.font = "36px Helvetica"
       ctx.fillText("Welcome.", 150, 180)
     } else {
+      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
@@ -107,6 +114,7 @@ class DrawGame(
   }
 
   def drawGameDie(killerOpt: Option[String]): Unit = {
+    rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
 //    ctx.globalAlpha = 0.8
@@ -305,7 +313,7 @@ class DrawGame(
 //    //排行榜边界离屏
     rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
-    ctx.drawImage(rankCanvas, 0, 0)
+//    ctx.drawImage(rankCanvas, 0, 0)
 //    ctx.restore()
 
   }
