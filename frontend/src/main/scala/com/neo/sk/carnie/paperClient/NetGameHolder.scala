@@ -53,6 +53,7 @@ object NetGameHolder extends js.JSApp {
   private[this] val audioKilled=dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
 
   private var nextFrame = 0
+  private var isContinue = true
   private var logicFrameTime = System.currentTimeMillis()
 
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
@@ -97,7 +98,8 @@ object NetGameHolder extends js.JSApp {
     tempRender = curTime
     draw(offsetTime)
 
-    nextFrame = dom.window.requestAnimationFrame(gameRender())
+    if(isContinue)
+      nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
 
@@ -135,6 +137,7 @@ object NetGameHolder extends js.JSApp {
         drawGame.drawWin(myId,winnerName,winData)
         audio1.play()
         dom.window.cancelAnimationFrame(nextFrame)
+        isContinue = false
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
@@ -173,6 +176,7 @@ object NetGameHolder extends js.JSApp {
               drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
               killInfo = (0, "", "")
               dom.window.cancelAnimationFrame(nextFrame)
+              isContinue = false
             }
         }
       }
@@ -217,6 +221,8 @@ object NetGameHolder extends js.JSApp {
               isWin = false
               winnerName = "unknown"
             }
+            nextFrame = dom.window.requestAnimationFrame(gameRender())
+            isContinue = true
           }
           Key(myId, e.keyCode, frame, actionId)
         }
