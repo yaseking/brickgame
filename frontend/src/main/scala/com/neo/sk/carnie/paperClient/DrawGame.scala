@@ -29,8 +29,9 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //离屏canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
-  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+//  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
+//  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
   private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
@@ -48,11 +49,14 @@ class DrawGame(
   private var lastRankNum = 0
 
   def drawGameOn(): Unit = {
+//    bodyAttribute.setAttribute("background-color", ColorsSetting.backgroundColor)
+    bodyAttribute.style_=("background-color: #F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
+
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
 
-    background.width = windowBoundary.x.toInt
-    background.height = windowBoundary.y.toInt
+//    background.width = windowBoundary.x.toInt
+//    background.height = windowBoundary.y.toInt
 
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
@@ -64,8 +68,8 @@ class DrawGame(
 
     println("Now we set backgroundColor!")
 
-    backCtx.fillStyle = ColorsSetting.backgroundColor
-    backCtx.fillRect(0, 0, background.width, background.height)
+//    backCtx.fillStyle = ColorsSetting.backgroundColor
+//    backCtx.fillRect(0, 0, background.width, background.height)
   }
 
   def drawCache(): Unit = { //离屏缓存的更新--缓存边界
