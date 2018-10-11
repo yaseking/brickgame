@@ -1,6 +1,6 @@
 package com.neo.sk.util.byteObject
 
-import com.neo.sk.carnie.util.MiddleBuffer
+import org.seekloud.byteobject.MiddleBuffer
 import com.neo.sk.util.byteObject.decoder.{BytesDecoder, DecoderFailure}
 import com.neo.sk.util.byteObject.encoder.BytesEncoder
 

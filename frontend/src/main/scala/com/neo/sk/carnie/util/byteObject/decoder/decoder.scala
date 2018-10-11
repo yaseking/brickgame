@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.util.byteObject
 
-import com.neo.sk.carnie.util.MiddleBuffer
+import org.seekloud.byteobject.MiddleBuffer
 import shapeless.labelled.{FieldType, field}
 import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, LabelledGeneric, Lazy, Witness}
 

@@ -2,7 +2,7 @@ package com.neo.sk.carnie.util.byteObject
 
 import com.neo.sk.carnie.util.byteObject.decoder.{BytesDecoder, DecoderFailure}
 import com.neo.sk.carnie.util.byteObject.encoder.BytesEncoder
-import com.neo.sk.carnie.util.MiddleBuffer
+import org.seekloud.byteobject.MiddleBuffer
 
 /**
   * User: Taoz
