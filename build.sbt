@@ -62,7 +62,8 @@ lazy val frontend = (project in file("frontend"))
       "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV,
       //"in.nvilla" %%% "monadic-rx-cats" % "0.4.0-RC1",
       "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV,
-      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV
+      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV,
+      "org.seekloud" %% "byteobject" % "0.1.1"
       //"com.lihaoyi" %%% "upickle" % upickleV,
       //"io.suzaku" %%% "diode" % "1.1.2",
       //"org.scala-js" %%% "scalajs-java-time" % scalaJsJavaTime
