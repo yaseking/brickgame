@@ -6,8 +6,8 @@ import com.neo.sk.carnie.util.byteObject.decoder
 import org.scalajs.dom
 import org.scalajs.dom.WebSocket
 import org.scalajs.dom.raw.{Blob, Event, FileReader, MessageEvent}
-import com.neo.sk.carnie.util.MiddleBufferInJs
-//import org.seekloud.byteobject
+//import com.neo.sk.carnie.util.MiddleBufferInJs
+import org.seekloud.byteobject.MiddleBufferInJs
 
 import scala.scalajs.js.typedarray.ArrayBuffer
 import com.neo.sk.carnie.util.byteObject.ByteObject._
