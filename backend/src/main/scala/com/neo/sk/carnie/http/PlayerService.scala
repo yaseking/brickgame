@@ -23,7 +23,8 @@ import scala.concurrent.ExecutionContextExecutor
   */
 trait PlayerService {
 
-  import com.neo.sk.util.byteObject.ByteObject._
+//  import com.neo.sk.util.byteObject.ByteObject._
+  import org.seekloud.byteobject.ByteObject._
 
 
   implicit val system: ActorSystem
