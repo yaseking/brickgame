@@ -10,7 +10,8 @@ import akka.util.{ByteString, Timeout}
 import com.neo.sk.carnie.paperClient.PlayGround
 import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.util.MiddleBufferInJvm
+import org.seekloud.byteobject.MiddleBufferInJvm
+//import com.neo.sk.util.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -22,7 +23,8 @@ import scala.concurrent.ExecutionContextExecutor
   */
 trait PlayerService {
 
-  import com.neo.sk.util.byteObject.ByteObject._
+//  import com.neo.sk.util.byteObject.ByteObject._
+  import org.seekloud.byteobject.ByteObject._
 
 
   implicit val system: ActorSystem

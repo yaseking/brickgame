@@ -57,6 +57,7 @@ object Dependencies {
   val asynchttpclient = "org.asynchttpclient" % "async-http-client" % "2.0.32"
   val ehcache = "net.sf.ehcache" % "ehcache" % "2.10.4"
 
+  val byteObject = "org.seekloud" %% "byteobject" % "0.1.1"
 
 
   val backendDependencies: Seq[ModuleID] =
@@ -76,7 +77,8 @@ object Dependencies {
         Dependencies.codec,
         Dependencies.postgresql,
         Dependencies.asynchttpclient,
-        Dependencies.ehcache
+        Dependencies.ehcache,
+        Dependencies.byteObject
         // "com.lihaoyi" %% "upickle" % "0.6.6"
       )
 
