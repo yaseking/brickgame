@@ -45,7 +45,7 @@ trait PlayerService {
   val netSnakeRoute = {
     (pathPrefix("netSnake") & get) {
       pathEndOrSingleSlash {
-        getFromResource("html/netSnake.html")
+        getFromResource("html/netSnake1.html")
       } ~
         path("join") {
           parameter('name) { name =>
