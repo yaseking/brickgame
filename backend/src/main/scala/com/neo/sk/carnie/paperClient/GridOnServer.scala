@@ -2,6 +2,11 @@ package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory
+import com.neo.sk.carnie.paperClient.Protocol._
+import com.neo.sk.util.MiddleBufferInJvm
+import org.seekloud.essf.io.FrameOutputStream
+import com.neo.sk.util.essf.RecordGame.getRecorder
+import com.neo.sk.util.byteObject.ByteObject._
 
 /**
   * User: Taoz
@@ -18,6 +23,30 @@ class GridOnServer(override val boundary: Point) extends Grid {
   override def info(msg: String): Unit = log.info(msg)
 
   private[this] var waitingJoin = Map.empty[Long, (String, String)]
+
+  private val maxRecordNum = 100
+
+  private val fileMaxRecordNum = 100000000
+
+  var fileRecordNum = 0
+
+  val currentTime = System.currentTimeMillis()
+
+  val fileName = s"carnie_${currentTime}"
+
+  val initState = State(grid, snakes, Nil)
+
+  var fileIndex = 0
+
+  var recorder: FrameOutputStream = getRecorder(fileName, fileIndex, GameInformation(currentTime), Some(initState))
+
+  val middleBuffer = new MiddleBufferInJvm(10 * 4096)
+
+  var eventFrames = List.empty[Option[(List[GameEvent], Option[State])]]
+
+  var enclosureEveryFrame = List.empty[(Long, List[Point])]
+
+  var stateEveryFrame :Option[State] = None
 
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[Long, Score]
@@ -150,6 +179,40 @@ class GridOnServer(override val boundary: Point) extends Grid {
     updateRanks()
     isFinish
   }
+
+  override def checkEvents(enclosure: List[(Long, List[Point])]): Unit = {
+    val encloseEventsEveryFrame = if(enclosure.isEmpty) Nil else List(EncloseEvent(enclosure))
+    val actionEventsEveryFrame = actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2))
+    val eventsEveryFrame: List[GameEvent] = actionEventsEveryFrame ::: encloseEventsEveryFrame
+    val evts = (eventsEveryFrame, stateEveryFrame) match {
+      case (Nil, None) => None
+      case (events, state) => Some(events, state)
+      case _ => None
+    }
+    eventFrames :+= evts
+
+    if (eventFrames.lengthCompare(maxRecordNum) > 0) { //每一百帧写入文件
+      println(s"================写入文件")
+      eventFrames.foreach {
+        case Some((events, Some(state))) =>
+          recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
+        case Some((events, None)) => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
+        case None => recorder.writeEmptyFrame()
+      }
+      eventFrames = List.empty[Option[(List[DirectionEvent], Option[State])]]
+      fileRecordNum += eventFrames.size
+    }
+
+    if (fileRecordNum > fileMaxRecordNum) { //文件写满
+      recorder.finish()
+      fileIndex += 1
+      val initState = if(stateEveryFrame.nonEmpty) stateEveryFrame else Some(State(grid, snakes, Nil))
+      recorder = getRecorder(fileName, fileIndex, GameInformation(System.currentTimeMillis()), initState)
+    }
+    stateEveryFrame = None
+
+  }
+
 
 //  def getFeededApple = feededApples
 

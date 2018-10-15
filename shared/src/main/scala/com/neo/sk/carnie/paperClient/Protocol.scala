@@ -86,6 +86,23 @@ object Protocol {
   case class NeedToSync(id: Long) extends UserAction
 
 
+  //essf
+  sealed trait GameEvent
+
+  case class JoinEvent(id: Long) extends GameEvent
+
+  case class LeftEvent(id: Long) extends GameEvent
+
+  case class DirectionEvent(id: Long, keyCode: Int) extends GameEvent
+
+  case class EncloseEvent(enclosure: List[(Long, List[Point])]) extends GameEvent
+
+
+  case class State(grid: Map[Point, Spot], snakes: Map[Long, SkDt], joinOrLeftEvent: List[GameEvent])
+
+  case class GameInformation(startTime: Long)
+
+
   val frameRate = 150
 
 }

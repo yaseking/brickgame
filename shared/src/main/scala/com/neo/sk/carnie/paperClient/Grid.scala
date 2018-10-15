@@ -27,7 +27,7 @@ trait Grid {
   var frameCount = 0l
   var grid: Map[Point, Spot] = Map[Point, Spot]()
   var snakes = Map.empty[Long, SkDt]
-  var actionMap = Map.empty[Long, Map[Long, Int]]
+  var actionMap = Map.empty[Long, Map[Long, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[Long, (Long, String,Long)] //killedId, (killerId, killerName,frameCount)
   var snakeTurnPoints = new mutable.HashMap[Long, List[Point4Trans]] //保留拐点
   private var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
@@ -36,6 +36,8 @@ trait Grid {
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
+
+  def checkEvents(enclosure: List[(Long, List[Point])]): Unit
 
   def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
@@ -77,6 +79,8 @@ trait Grid {
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
     historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    //testEvents
+    checkEvents(isFinish)
     frameCount += 1
     isFinish
   }

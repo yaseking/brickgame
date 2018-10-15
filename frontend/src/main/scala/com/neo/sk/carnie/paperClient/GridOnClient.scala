@@ -15,6 +15,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = println(msg)
 
+  override def checkEvents(enclosure: List[(Long, List[Point])]): Unit = {}
+
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     var gridMap = grid.filter(_._2 match { case Border => true case _ => false })
     data.bodyDetails.foreach{ bodys =>
