@@ -22,7 +22,6 @@ import scala.language.postfixOps
 
 trait PlayGround {
 
-
   def joinGame(id: Long, name: String): Flow[Protocol.UserAction, Protocol.GameMessage, Any]
 
   def syncData()
