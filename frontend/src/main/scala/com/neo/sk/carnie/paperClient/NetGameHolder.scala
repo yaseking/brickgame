@@ -195,6 +195,7 @@ object NetGameHolder extends js.JSApp {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
     println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 

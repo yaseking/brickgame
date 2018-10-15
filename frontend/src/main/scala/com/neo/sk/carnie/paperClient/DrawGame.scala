@@ -338,6 +338,7 @@ class DrawGame(
   }
 
   def drawRank(uid: Long, snakes: List[SkDt], currentRank: List[Score]): Unit = {
+
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
 
@@ -378,7 +379,7 @@ class DrawGame(
       rankCtx.fillStyle = ColorsSetting.fontColor2
       drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
     }
-
+//    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "14px Helvetica"
