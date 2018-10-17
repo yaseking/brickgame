@@ -3,10 +3,10 @@ package com.neo.sk.carnie.paperClient
 import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.util.MiddleBufferInJvm
+import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.essf.io.FrameOutputStream
 import com.neo.sk.util.essf.RecordGame.getRecorder
-import com.neo.sk.util.byteObject.ByteObject._
+import org.seekloud.byteobject.ByteObject._
 
 /**
   * User: Taoz

@@ -9,12 +9,15 @@ import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.{ByteString, Timeout}
 import com.neo.sk.carnie.paperClient.PlayGround
 import akka.stream.scaladsl.Flow
+import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.carnie.paperClient.Protocol._
-import org.seekloud.byteobject.MiddleBufferInJvm
+import org.seekloud.byteobject.ByteObject._
 //import com.neo.sk.util.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.carnie.Boot.roomManager
 import scala.concurrent.ExecutionContextExecutor
+import io.circe.generic.auto._
+import org.seekloud.byteobject.decoder
 
 /**
   * User: Taoz
@@ -23,8 +26,7 @@ import scala.concurrent.ExecutionContextExecutor
   */
 trait PlayerService {
 
-//  import com.neo.sk.util.byteObject.ByteObject._
-  import org.seekloud.byteobject.ByteObject._
+//  import com.neo.sk.util.byteObject.ByteObject.
 
 
   implicit val system: ActorSystem
@@ -35,7 +37,7 @@ trait PlayerService {
 
   implicit val timeout: Timeout
 
-  lazy val playGround = PlayGround.create(system)
+//  lazy val playGround = PlayGround.create(system)
 
   val idGenerator = new AtomicInteger(1000000)
 
@@ -55,7 +57,12 @@ trait PlayerService {
     }
   }
 
-  def webSocketChatFlow(sender: String): Flow[Message, Message, Any] =
+  def webSocketChatFlow(sender: String): Flow[Message, Message, Any] = {
+    import scala.language.implicitConversions
+    import org.seekloud.byteobject.ByteObject._
+    import org.seekloud.byteobject.MiddleBufferInJvm
+    import io.circe.generic.auto._
+    import io.circe.parser._
     Flow[Message]
       .collect {
         case TextMessage.Strict(msg) =>
@@ -78,14 +85,16 @@ trait PlayerService {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(playGround.joinGame(idGenerator.getAndIncrement().toLong, sender))
+      .via(RoomManager.joinGame(roomManager, idGenerator.getAndIncrement().toLong, sender))
       .map { msg =>
         val sendBuffer = new MiddleBufferInJvm(409600)
         BinaryMessage.Strict(ByteString(
           //encoded process
           msg.fillMiddleBuffer(sendBuffer).result()
+
         ))
-    }.withAttributes(ActorAttributes.supervisionStrategy(decider))    // ... then log any processing errors on stdin
+      }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
+  }
 
 
   val decider: Supervision.Decider = {

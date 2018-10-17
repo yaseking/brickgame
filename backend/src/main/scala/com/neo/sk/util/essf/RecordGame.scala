@@ -3,10 +3,10 @@ package com.neo.sk.util.essf
 import java.io.File
 
 import com.neo.sk.carnie.common.AppSettings
-import com.neo.sk.util.MiddleBufferInJvm
+import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.essf.io.FrameOutputStream
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.util.byteObject.ByteObject._
+import org.seekloud.byteobject.ByteObject._
 
 
 

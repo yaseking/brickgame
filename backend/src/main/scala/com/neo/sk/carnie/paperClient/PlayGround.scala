@@ -9,9 +9,9 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.util.MiddleBufferInJvm
+import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.util.essf.RecordGame._
-import com.neo.sk.util.byteObject.ByteObject._
+import org.seekloud.byteobject.ByteObject._
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
@@ -82,16 +82,16 @@ object PlayGround {
           }
           val grid = roomMap(roomId)._2
           grid.stateEveryFrame = if(grid.stateEveryFrame.isEmpty) Some(State(grid.grid, grid.snakes, List(JoinEvent(id)))) //玩家加入储存快照,更新用户加入信息
-          else Some(State(grid.grid, grid.snakes, JoinEvent(id) :: grid.stateEveryFrame.get.joinOrLeftEvent))
+          else Some(State(grid.grid, grid.snakes, JoinEvent(id) :: grid.stateEveryFrame.get.joinOrLeftEvent))   //for replay
 
           userMap += (id -> (roomId, name))
 //          playerMap += (roomId -> (id, name))  //for replay
           roomMap += (roomId -> (roomMap(roomId)._1 + 1, roomMap(roomId)._2))
           context.watch(subscriber)
           subscribers += (id -> subscriber)
-          roomMap(roomId)._2.addSnake(id, roomId, name)
+          grid.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
-          val gridData = roomMap(roomId)._2.getGridData
+          val gridData = grid.getGridData
           dispatch(gridData, roomId)
           //event
 //          roomMap(roomId)._2.eventsEveryFrame :+=
@@ -104,6 +104,7 @@ object PlayGround {
             val grid = roomMap(roomId)._2
             grid.stateEveryFrame = if(grid.stateEveryFrame.isEmpty) Some(State(grid.grid, grid.snakes, List(LeftEvent(id)))) //玩家离开储存快照,更新用户离开信息
             else Some(State(grid.grid, grid.snakes, LeftEvent(id) :: grid.stateEveryFrame.get.joinOrLeftEvent))
+
             grid.removeSnake(id)
             if (newUserNum <= 0) {
               roomMap -= roomId
@@ -163,7 +164,7 @@ object PlayGround {
                   if(tickCount % 20 == 5) true else false
                 }
               val grid = r._2._2
-              grid.enclosureEveryFrame = List.empty[(Long, List[Point])]
+              grid.enclosureEveryFrame = List.empty[(Long, List[Point])] //for replay
               val finishFields = grid.updateInService(shouldNewSnake)
               val newData = grid.getGridData
               newData.killHistory.foreach { i =>
@@ -172,7 +173,7 @@ object PlayGround {
               if (shouldNewSnake) {
                 dispatch(newData, r._1)
               }else if (finishFields.nonEmpty) {
-                grid.enclosureEveryFrame = finishFields
+                grid.enclosureEveryFrame = finishFields //for replay
                 val finishUsers = finishFields.map(_._1)
                 finishUsers.foreach(u => dispatchTo(u, newData))
                 val newField = finishFields.map { f =>

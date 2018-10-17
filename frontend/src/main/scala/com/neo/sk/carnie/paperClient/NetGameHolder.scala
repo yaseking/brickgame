@@ -141,6 +141,7 @@ object NetGameHolder extends js.JSApp {
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
+            println(s"data里有蛇：：：：：：")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -288,6 +289,7 @@ object NetGameHolder extends js.JSApp {
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
+        println(s"receive data========================")
         syncGridData = Some(data)
         justSynced = true
 

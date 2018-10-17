@@ -7,7 +7,7 @@ package com.neo.sk.carnie.paperClient
   */
 object Protocol {
 
-  sealed trait GameMessage
+  sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
   case class GridDataSync(
                            frameCount: Long,
