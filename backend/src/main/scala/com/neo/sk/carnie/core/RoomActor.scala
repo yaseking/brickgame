@@ -32,8 +32,8 @@ object RoomActor {
   sealed trait Command
   case class UserActionOnServer(id: Long, action: Protocol.UserAction) extends Command
   case class JoinRoom(id:Long, name:String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
-  case class LeftRoom(id:Long, name:String) extends Command with RoomManager.Command
-  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
+  case class LeftRoom(id:Long, name:String) extends Command
+
 
   final case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
