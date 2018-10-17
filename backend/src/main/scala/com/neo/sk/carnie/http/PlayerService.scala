@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.{ByteString, Timeout}
-import com.neo.sk.carnie.paperClient.PlayGround
+import com.neo.sk.carnie.paperClient.{PlayGround, Protocol}
 import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -86,13 +86,18 @@ trait PlayerService {
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
       .via(RoomManager.joinGame(roomManager, idGenerator.getAndIncrement().toLong, sender))
-      .map { msg =>
-        val sendBuffer = new MiddleBufferInJvm(409600)
-        BinaryMessage.Strict(ByteString(
-          //encoded process
-          msg.fillMiddleBuffer(sendBuffer).result()
+      .map {
+        case msg:Protocol.GameMessage =>
+          val sendBuffer = new MiddleBufferInJvm(409600)
+          BinaryMessage.Strict(ByteString(
+            //encoded process
+            msg.fillMiddleBuffer(sendBuffer).result()
 
-        ))
+          ))
+
+        case x =>
+          TextMessage.apply("")
+
       }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
   }
 
