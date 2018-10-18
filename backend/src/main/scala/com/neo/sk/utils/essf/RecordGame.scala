@@ -1,12 +1,12 @@
-package com.neo.sk.util.essf
+package com.neo.sk.utils.essf
 
 import java.io.File
 
 import com.neo.sk.carnie.common.AppSettings
-import org.seekloud.byteobject.MiddleBufferInJvm
-import org.seekloud.essf.io.FrameOutputStream
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject._
+import org.seekloud.byteobject.MiddleBufferInJvm
+import org.seekloud.essf.io.FrameOutputStream
 
 
 

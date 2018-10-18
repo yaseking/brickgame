@@ -10,7 +10,7 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.MiddleBufferInJvm
-import com.neo.sk.util.essf.RecordGame._
+import com.neo.sk.utils.essf.RecordGame._
 import org.seekloud.byteobject.ByteObject._
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps

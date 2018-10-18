@@ -21,7 +21,13 @@ object AppSettings {
   val httpPort = appConfig.getInt("http.port")
 
 
-
+  val appSecureMap = {
+    import collection.JavaConverters._
+    val appIds = appConfig.getStringList("client.appIds").asScala
+    val secureKeys = appConfig.getStringList("client.secureKeys").asScala
+    require(appIds.length == secureKeys.length, "appIdList.length and secureKeys.length not equel.")
+    appIds.zip(secureKeys).toMap
+  }
 
 
 }
