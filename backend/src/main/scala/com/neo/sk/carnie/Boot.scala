@@ -1,12 +1,16 @@
 package com.neo.sk.carnie
 
 import akka.actor.ActorSystem
+import akka.actor.typed.ActorRef
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.carnie.http.HttpService
 import scala.language.postfixOps
+import com.neo.sk.carnie.core._
+import akka.actor.typed.scaladsl.adapter._
+
 
 /**
   * User: Taoz
@@ -25,6 +29,8 @@ object Boot extends HttpService {
   override implicit val materializer = ActorMaterializer()
 
   override val timeout = Timeout(20 seconds) // for actor asks
+
+  implicit val tokenActor: ActorRef[TokenActor.Command] = system.spawn(TokenActor.behavior, "tokenActor")
 
   val log: LoggingAdapter = Logging(system, getClass)
 
