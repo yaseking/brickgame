@@ -192,7 +192,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     eventFrames :+= evts
 
     if (eventFrames.lengthCompare(maxRecordNum) > 0) { //每一百帧写入文件
-      println(s"================写入文件")
+      println(s"================")
       eventFrames.foreach {
         case Some((events, Some(state))) =>
           recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))

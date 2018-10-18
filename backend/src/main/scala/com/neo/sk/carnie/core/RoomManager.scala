@@ -57,8 +57,7 @@ object RoomManager {
 
 
   def create():Behavior[Command] = {
-    Behaviors.setup[Command]{
-      ctx =>
+    Behaviors.setup[Command]{ ctx =>
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           val roomIdGenerator = new AtomicInteger(1)
@@ -78,13 +77,16 @@ object RoomManager {
             roomMap.put(roomId, mutable.HashSet((id, name)))
             getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
           } else {
-            if(roomMap.exists(_._2.size < limitNum)) roomMap.filter(_._2.size < limitNum).head._1
+            if(roomMap.exists(_._2.size < limitNum)) {
+              val roomId = roomMap.filter(_._2.size < limitNum).head._1
+              roomMap.put(roomId, roomMap(roomId) += ((id, name)))
+              getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
+            }
             else {
               val roomId = roomIdGenerator.getAndIncrement()
               roomMap.put(roomId, mutable.HashSet((id, name)))
               getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
             }
-
           }
           Behaviors.same
 
@@ -131,7 +133,7 @@ object RoomManager {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def joinGame(actor:ActorRef[RoomManager.Command], id: Long, name: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+  def joinGame(actor:ActorRef[RoomManager.Command], userId: Long, name: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
         case action@Protocol.Key(id, keyCode, frameCount, actionId) => UserActionOnServer(id, action)
@@ -139,7 +141,7 @@ object RoomManager {
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
         case _ => UnKnowAction
       }
-      .to(sink(actor, id, name))
+      .to(sink(actor, userId, name))
 
     val out =
       ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
@@ -151,7 +153,7 @@ object RoomManager {
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! Join(id, name, outActor))
+      ).mapMaterializedValue(outActor => actor ! Join(userId, name, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }
