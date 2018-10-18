@@ -15,9 +15,19 @@ object AppSettings {
   val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
 
   val appConfig = config.getConfig("app")
+  val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
 
   val httpInterface = appConfig.getString("http.interface")
   val httpPort = appConfig.getInt("http.port")
+
+
+  val appSecureMap = {
+    import collection.JavaConverters._
+    val appIds = appConfig.getStringList("client.appIds").asScala
+    val secureKeys = appConfig.getStringList("client.secureKeys").asScala
+    require(appIds.length == secureKeys.length, "appIdList.length and secureKeys.length not equel.")
+    appIds.zip(secureKeys).toMap
+  }
 
   val esheepConfig = config.getConfig("dependence.esheep")
   val esheepProtocol = esheepConfig.getString("protocol")

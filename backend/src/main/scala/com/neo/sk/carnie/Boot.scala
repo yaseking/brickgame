@@ -6,7 +6,9 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
+import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.carnie.http.HttpService
+import akka.actor.typed.scaladsl.adapter._
 import scala.language.postfixOps
 import com.neo.sk.carnie.core._
 import akka.actor.typed.scaladsl.adapter._
@@ -34,7 +36,7 @@ object Boot extends HttpService {
 
   val log: LoggingAdapter = Logging(system, getClass)
 
-
+  val roomManager: ActorRef[RoomManager.Command] =system.spawn(RoomManager.create(),"roomManager")
 
   def main(args: Array[String]) {
     log.info("Starting.")
