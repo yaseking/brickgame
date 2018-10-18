@@ -19,8 +19,13 @@ object AppSettings {
   val httpInterface = appConfig.getString("http.interface")
   val httpPort = appConfig.getInt("http.port")
 
-
-
-
+  val esheepConfig = config.getConfig("dependence.esheep")
+  val esheepProtocol = esheepConfig.getString("protocol")
+  val esheepDomain = esheepConfig.getString("domain")
+  val esheepUrl = esheepConfig.getString("url")
+  val esheepAppId = esheepConfig.getString("appId")
+  val esheepSecureKey = esheepConfig.getString("secureKey")
+  val esheepGameId = esheepConfig.getLong("gameId")
+  val esheepGsKey = esheepConfig.getString("gsKey")
 
 }
