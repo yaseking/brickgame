@@ -141,6 +141,7 @@ object NetGameHolder extends js.JSApp {
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
+            println(s"data里有蛇：：：：：：")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -195,6 +196,7 @@ object NetGameHolder extends js.JSApp {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
     println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
@@ -287,6 +289,7 @@ object NetGameHolder extends js.JSApp {
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
+        println(s"receive data========================")
         syncGridData = Some(data)
         justSynced = true
 

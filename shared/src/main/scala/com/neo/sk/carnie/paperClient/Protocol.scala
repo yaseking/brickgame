@@ -7,7 +7,8 @@ package com.neo.sk.carnie.paperClient
   */
 object Protocol {
 
-  sealed trait GameMessage
+  sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
+
 
   case class GridDataSync(
                            frameCount: Long,
@@ -84,6 +85,23 @@ object Protocol {
   case class SendPingPacket(id: Long, createTime: Long) extends UserAction
 
   case class NeedToSync(id: Long) extends UserAction
+
+
+  //essf
+  sealed trait GameEvent
+
+  case class JoinEvent(id: Long) extends GameEvent
+
+  case class LeftEvent(id: Long) extends GameEvent
+
+  case class DirectionEvent(id: Long, keyCode: Int) extends GameEvent
+
+  case class EncloseEvent(enclosure: List[(Long, List[Point])]) extends GameEvent
+
+
+  case class State(grid: Map[Point, Spot], snakes: Map[Long, SkDt], joinOrLeftEvent: List[GameEvent])
+
+  case class GameInformation(startTime: Long)
 
 
   val frameRate = 150

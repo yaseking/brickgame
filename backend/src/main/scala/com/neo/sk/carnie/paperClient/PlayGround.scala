@@ -9,7 +9,9 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
-
+import org.seekloud.byteobject.MiddleBufferInJvm
+import com.neo.sk.utils.essf.RecordGame._
+import org.seekloud.byteobject.ByteObject._
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 
@@ -49,6 +51,8 @@ object PlayGround {
 
       var userMap = Map.empty[Long, (Int, String)] //(userId, (roomId, name))
 
+//      var playerMap = Map.empty[Int, (Int, String)] //(roomId, (userId, name)) --玩过本局游戏所有玩家
+
       var roomMap = Map.empty[Int, (Int, GridOnServer)] //(roomId, (roomNum, grid))
 
       var lastSyncDataMap = Map.empty[Int, GridDataSync] //(roomId, (roomNum, grid))
@@ -57,6 +61,8 @@ object PlayGround {
 
       override def receive: Receive = {
         case r@Join(id, name, subscriber) =>
+          val joinTime = System.currentTimeMillis()
+          //数据库存入玩家id、帧号、加入时间
           log.info(s"got $r")
           val roomId = if (roomMap.isEmpty) {
             val grid = new GridOnServer(border)
@@ -73,22 +79,35 @@ object PlayGround {
               newRoomId
             }
           }
+          val grid = roomMap(roomId)._2
+          grid.stateEveryFrame = if(grid.stateEveryFrame.isEmpty) Some(State(grid.grid, grid.snakes, List(JoinEvent(id)))) //玩家加入储存快照,更新用户加入信息
+          else Some(State(grid.grid, grid.snakes, JoinEvent(id) :: grid.stateEveryFrame.get.joinOrLeftEvent))   //for replay
+
           userMap += (id -> (roomId, name))
+//          playerMap += (roomId -> (id, name))  //for replay
           roomMap += (roomId -> (roomMap(roomId)._1 + 1, roomMap(roomId)._2))
           context.watch(subscriber)
           subscribers += (id -> subscriber)
-          roomMap(roomId)._2.addSnake(id, roomId, name)
+          grid.addSnake(id, roomId, name)
           dispatchTo(id, Protocol.Id(id))
-          val gridData = roomMap(roomId)._2.getGridData
+          val gridData = grid.getGridData
           dispatch(gridData, roomId)
+          //event
+//          roomMap(roomId)._2.eventsEveryFrame :+=
 
         case r@Left(id, _) =>
           log.info(s"got $r")
           if (userMap.get(id).nonEmpty) {
             val roomId = userMap(id)._1
             val newUserNum = roomMap(roomId)._1 - 1
-            roomMap(roomId)._2.removeSnake(id)
-            if (newUserNum <= 0) roomMap -= roomId else roomMap += (roomId -> (newUserNum, roomMap(roomId)._2))
+            val grid = roomMap(roomId)._2
+            grid.stateEveryFrame = if(grid.stateEveryFrame.isEmpty) Some(State(grid.grid, grid.snakes, List(LeftEvent(id)))) //玩家离开储存快照,更新用户离开信息
+            else Some(State(grid.grid, grid.snakes, LeftEvent(id) :: grid.stateEveryFrame.get.joinOrLeftEvent))
+
+            grid.removeSnake(id)
+            if (newUserNum <= 0) {
+              roomMap -= roomId
+            } else roomMap += (roomId -> (newUserNum, grid))
             userMap -= id
             subscribers.get(id).foreach(context.unwatch)
             subscribers -= id
@@ -144,6 +163,7 @@ object PlayGround {
                   if(tickCount % 20 == 5) true else false
                 }
               val grid = r._2._2
+              grid.enclosureEveryFrame = List.empty[(Long, List[Point])] //for replay
               val finishFields = grid.updateInService(shouldNewSnake)
               val newData = grid.getGridData
               newData.killHistory.foreach { i =>
@@ -152,6 +172,7 @@ object PlayGround {
               if (shouldNewSnake) {
                 dispatch(newData, r._1)
               }else if (finishFields.nonEmpty) {
+                grid.enclosureEveryFrame = finishFields //for replay
                 val finishUsers = finishFields.map(_._1)
                 finishUsers.foreach(u => dispatchTo(u, newData))
                 val newField = finishFields.map { f =>
@@ -171,6 +192,10 @@ object PlayGround {
                 val finalData=r._2._2.getGridData
                 r._2._2.cleanData()
                 dispatch(Protocol.SomeOneWin(userMap(r._2._2.currentRank.head.id)._2,finalData), r._1)
+              }
+              if(tickCount % 100 == 0) { //存储state (snapshot)
+                if(grid.stateEveryFrame.isEmpty) grid.stateEveryFrame = Some(State(grid.grid, grid.snakes, Nil))
+
               }
             }
           }

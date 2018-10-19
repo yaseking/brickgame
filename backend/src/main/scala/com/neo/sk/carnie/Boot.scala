@@ -1,11 +1,14 @@
 package com.neo.sk.carnie
 
 import akka.actor.ActorSystem
+import akka.actor.typed.ActorRef
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
+import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.carnie.http.HttpService
+import akka.actor.typed.scaladsl.adapter._
 import scala.language.postfixOps
 
 /**
@@ -22,13 +25,16 @@ object Boot extends HttpService {
   override implicit val system = ActorSystem("hiStream", config)
   // the executor should not be the default dispatcher.
   override implicit val executor = system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
+
   override implicit val materializer = ActorMaterializer()
 
-  override val timeout = Timeout(20 seconds) // for actor asks
+  implicit val scheduler = system.scheduler
+
+  implicit val timeout = Timeout(20 seconds) // for actor asks
 
   val log: LoggingAdapter = Logging(system, getClass)
 
-
+  override val roomManager: ActorRef[RoomManager.Command] =system.spawn(RoomManager.create(),"roomManager")
 
   def main(args: Array[String]) {
     log.info("Starting.")
