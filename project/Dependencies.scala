@@ -12,8 +12,8 @@ object Dependencies {
 
 
   val slickV = "3.2.3"
-//  val akkaV = "2.5.13"
-  val akkaV = "2.5.11"
+  val akkaV = "2.5.13"
+//  val akkaV = "2.5.11"
   val akkaHttpV = "10.1.3"
   val scalaXmlV = "1.1.0"
   val circeVersion = "0.9.3"

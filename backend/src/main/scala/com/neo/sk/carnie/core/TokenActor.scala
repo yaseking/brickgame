@@ -19,7 +19,7 @@ object TokenActor {
   final case object GetTokenKey extends Command
 
   private[this] def interval = {//测试，每5s请求一次
-    5 * 1000
+    50 * 1000
   }
 
   private[this] val gameId: Long = 1L
@@ -37,7 +37,7 @@ object TokenActor {
   }
 
   def idle()(implicit timer: TimerScheduler[Command]): Behavior[Command] = {
-    Behaviors.immutable[Command] { (ctx, msg) =>
+    Behaviors.receive { (ctx, msg) =>
       msg match {
         case GetToken(gameId, gsKey) =>
           println("hello, typed actor!")

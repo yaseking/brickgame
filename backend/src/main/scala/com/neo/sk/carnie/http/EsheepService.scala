@@ -47,6 +47,10 @@ trait EsheepService extends ServiceUtils with CirceSupport with PlayerService{
     }
   }
 
+//  private val inputBatRecord = (path("inputBatRecord") & post & pathEndOrSingleSlash) {
+//
+//  }
+
   val esheepRoute: Route = pathPrefix("game") {
     playGame
   }

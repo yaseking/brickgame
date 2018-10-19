@@ -17,8 +17,8 @@ object EsheepProtocol {
                         )
 
   case class TokenData(
-                      gsToken: String,
-                      expireTime: Int
+                      token: String,
+                      expireTime: Long
                       )
 
   case class GetTokenRsp(
@@ -46,5 +46,21 @@ object EsheepProtocol {
                              errCode: Int,
                              msg: String
                              )
+
+  case class PlayerRecord(
+                         playerId: String,
+                         gameId: Long,
+                         nickname: String,
+                         killing: Int,
+                         killed: Int,
+                         score: Int,
+                         gameExtent: String,
+                         startTime: Long,
+                         endTime: Long
+                         )
+
+  case class InputRecord(
+                        playerRecord: PlayerRecord
+                        )
 
 }
