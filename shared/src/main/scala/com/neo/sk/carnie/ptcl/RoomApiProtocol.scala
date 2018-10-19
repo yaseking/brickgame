@@ -21,6 +21,10 @@ object RoomApiProtocol {
     roomId: Int
   )
 
+  case class RoomIdReq(
+    roomId: Int
+  )
+
   case class RoomIdRsp(
     data: RoomIdInfo,
     errCode: Int = 0,

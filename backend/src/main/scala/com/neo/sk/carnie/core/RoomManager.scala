@@ -40,9 +40,9 @@ object RoomManager {
   case class UserActionOnServer(id: Long, action: Protocol.UserAction) extends Command
   case class Join(id: Long, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
   case class Left(id: Long, name: String) extends Command
-  case class FindRoomId(pid: String,rid: ActorRef[Int]) extends Command
-  case class FindPlayerList(rid: Int,pid: ActorRef[List[(Long,String)]]) extends Command
-  case class FindAllRoom(allroom: ActorRef[List[Int]]) extends Command
+  case class FindRoomId(pid: String,reply: ActorRef[Option[Int]]) extends Command
+  case class FindPlayerList(rid: Int,reply: ActorRef[List[(Long,String)]]) extends Command
+  case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
   private final case object BehaviorChangeKey
@@ -124,19 +124,19 @@ object RoomManager {
           }
           Behaviors.same
 
-        case FindRoomId(pid,rid) =>
+        case FindRoomId(pid,reply) =>
           log.debug(s"got playerId = $pid")
-          rid ! roomMap.filter(r => r._2.exists(i => i._2 == pid)).head._1
+          reply ! Option(roomMap.filter(r => r._2.exists(i => i._2 == pid)).head._1)
           Behaviors.same
 
-        case FindPlayerList(rid,pid) =>
+        case FindPlayerList(rid,reply) =>
           log.debug(s"got roomId = $rid")
-          pid ! roomMap.filter(_._1 == rid).toList.flatMap(_._2.toList)
+          reply ! roomMap.filter(_._1 == rid).toList.flatMap(_._2.toList)
           Behaviors.same
 
-        case FindAllRoom(allroom) =>
+        case FindAllRoom(reply) =>
           log.debug(s"got all room")
-          allroom ! roomMap.keySet.toList
+          reply ! roomMap.keySet.toList
           Behaviors.same
 
         case unknow =>

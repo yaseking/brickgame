@@ -29,9 +29,9 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
     entity(as[Either[Error, PlayerIdInfo]]){
       case Right(req) =>
       dealFutureResult {
-        val msg:Future[Int] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
+        val msg:Future[Option[Int]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
         msg.map{
-          case rid => complete(RoomIdRsp(RoomIdInfo(rid)))
+          case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid)))
           case _ =>
             log.info("get roomId error")
             complete(ErrorRsp(100010,"get roomId error"))
@@ -45,15 +45,17 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
   }
 
   private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RoomIdInfo]]){
+    entity(as[Either[Error, RoomIdReq]]){
       case Right(req) =>
       val msg:Future[List[(Long,String)]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
       dealFutureResult{
-        msg.map{
-          case plist => complete(PlayerListRsp(PlayerInfo(plist)))
-          case _ =>
-            log.info("get playerList error")
-            complete(ErrorRsp(100011,"get playerList error"))
+        msg.map{ plist =>
+            if(plist.nonEmpty)
+              complete(PlayerListRsp(PlayerInfo(plist)))
+            else{
+              log.info("get playerlist error")
+              complete(ErrorRsp(100001,"get playerlist error"))
+            }
         }
       }
 
@@ -67,10 +69,14 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
     dealFutureResult{
       val msg:Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
       msg.map{
-        case allroom => complete(RoomListRsp(RoomListInfo(allroom)))
-        case _ =>
-          log.info("get all room error")
-          complete(ErrorRsp(100000,"get all room error"))
+         allroom =>
+           if(allroom.nonEmpty)
+             complete(RoomListRsp(RoomListInfo(allroom)))
+           else{
+             log.info("get all room error")
+             complete(ErrorRsp(100000,"get all room error"))
+           }
+
       }
     }
   }
