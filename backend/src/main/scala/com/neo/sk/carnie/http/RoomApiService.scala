@@ -1,26 +1,24 @@
 package com.neo.sk.carnie.http
 
-import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Route
-import org.slf4j.LoggerFactory
-import akka.http.scaladsl.server.Directives._
-import akka.util.Timeout
-import scala.concurrent.duration._
-import akka.http.scaladsl.unmarshalling
-
-import scala.concurrent.Future
-import akka.actor.typed.scaladsl.AskPattern._
-import io.circe.generic.auto._
+import akka.stream.Materializer
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
-import com.neo.sk.carnie.Boot.{scheduler,executor,timeout}
+import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
+import org.slf4j.LoggerFactory
+import akka.http.scaladsl.server.Directives._
+import io.circe.generic.auto._
+
+import scala.concurrent.Future
+import akka.actor.typed.scaladsl.AskPattern._
+import io.circe.Error
 
 
 /**
   * Created by dry on 2018/10/18.
   **/
-trait RoomApiService extends  ServiceUtils with CirceSupport {
+trait RoomApiService extends ServiceUtils with CirceSupport {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -28,7 +26,7 @@ trait RoomApiService extends  ServiceUtils with CirceSupport {
 
 
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
-    entity(as[Either[ErrorRsp, PlayerIdInfo]]){
+    entity(as[Either[Error, PlayerIdInfo]]){
       case Right(req) =>
       dealFutureResult {
         val msg:Future[Int] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
@@ -39,6 +37,7 @@ trait RoomApiService extends  ServiceUtils with CirceSupport {
             complete(ErrorRsp(100010,"get roomId error"))
         }
       }
+
       case Left(error) =>
         log.warn(s"some error: $error")
         complete(ErrorRsp(110000,"parse error"))
@@ -46,7 +45,7 @@ trait RoomApiService extends  ServiceUtils with CirceSupport {
   }
 
   private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[ErrorRsp, RoomIdInfo]]){
+    entity(as[Either[Error, RoomIdInfo]]){
       case Right(req) =>
       val msg:Future[List[(Long,String)]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
       dealFutureResult{
@@ -57,6 +56,7 @@ trait RoomApiService extends  ServiceUtils with CirceSupport {
             complete(ErrorRsp(100011,"get playerList error"))
         }
       }
+
       case Left(error) =>
         log.warn(s"some error: $error")
         complete(ErrorRsp(110000,"parse error"))
