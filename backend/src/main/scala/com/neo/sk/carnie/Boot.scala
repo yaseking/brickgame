@@ -25,13 +25,16 @@ object Boot extends HttpService {
   override implicit val system = ActorSystem("hiStream", config)
   // the executor should not be the default dispatcher.
   override implicit val executor = system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
+
   override implicit val materializer = ActorMaterializer()
 
-  override val timeout = Timeout(20 seconds) // for actor asks
+  implicit val scheduler = system.scheduler
+
+  implicit val timeout = Timeout(20 seconds) // for actor asks
 
   val log: LoggingAdapter = Logging(system, getClass)
 
-  val roomManager: ActorRef[RoomManager.Command] =system.spawn(RoomManager.create(),"roomManager")
+  override val roomManager: ActorRef[RoomManager.Command] =system.spawn(RoomManager.create(),"roomManager")
 
   def main(args: Array[String]) {
     log.info("Starting.")

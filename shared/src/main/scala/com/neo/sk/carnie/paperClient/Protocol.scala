@@ -9,6 +9,7 @@ object Protocol {
 
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
+
   case class GridDataSync(
                            frameCount: Long,
                            snakes: List[SkDt],
