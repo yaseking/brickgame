@@ -4,6 +4,8 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
 import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
+import com.neo.sk.carnie.utils.EsheepClient
+import com.neo.sk.carnie.common.AppSettings
 
 /**
   * Lty 18/10/17
@@ -19,17 +21,22 @@ object TokenActor {
   final case object GetTokenKey extends Command
 
   private[this] def interval = {//测试，每5s请求一次
-    50 * 1000
+    10 * 1000
   }
 
-  private[this] val gameId: Long = 1L
-  private[this] val gsKey: String = ""
+  private[this] def firstTime = {
+    1 * 1000
+  }
+
+  private[this] val gameId: Long = AppSettings.esheepGameId
+  private[this] val gsKey: String = AppSettings.esheepGsKey
 
   val behavior = init()
 
   def init(): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
       Behaviors.withTimers[Command] { implicit timer =>
+        timer.startSingleTimer(GetTokenKey, GetToken(gameId, gsKey), firstTime.millis)
         timer.startPeriodicTimer(GetTokenKey, GetToken(gameId, gsKey), interval.millis)
         idle()
       }
@@ -40,7 +47,7 @@ object TokenActor {
     Behaviors.receive { (ctx, msg) =>
       msg match {
         case GetToken(gameId, gsKey) =>
-          println("hello, typed actor!")
+          EsheepClient.getTokenRequest(gameId, gsKey)
           Behaviors.same
 
         case x =>

@@ -71,6 +71,7 @@ object RoomManager {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
         case msg@Join(id, name, subscriber) =>
+          println(s"$name join the Game!")
           log.info(s"got $msg")
           if(roomMap.isEmpty) {
             val roomId = roomIdGenerator.getAndIncrement()
