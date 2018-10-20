@@ -94,16 +94,18 @@ object EsheepClient extends HttpUtil with CirceSupport {
                     ) = {
     val token = KeyData.token
     val gameId = AppSettings.esheepGameId
+    println(s"token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/addPlayerRecord?token=$token"
     val sn = appId + System.currentTimeMillis().toString
-    val sendData = PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime).asJson.noSpaces
+    val sendData = InputRecord(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime)).asJson.noSpaces
     val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, sendData), secureKey)
 
     val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
 
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params, isLog = false).map {
       case Right(str) =>
-        decode[SuccessRsp](str) match {
+        println(s"str: $str")
+        decode[ErrorRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
               Right(rsp)
@@ -127,7 +129,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val gsKey = AppSettings.esheepGsKey
     getTokenRequest(gameId, gsKey)
     Thread.sleep(5000)
-    verifyAccessCode(gameId, "1234456asdf")
+//    verifyAccessCode(gameId, "1234456asdf")
+    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
   }
 
 }

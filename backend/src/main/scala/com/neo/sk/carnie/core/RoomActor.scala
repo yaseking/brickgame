@@ -153,10 +153,11 @@ object RoomActor {
             val newData = grid.getGridData
             newData.killHistory.foreach { i =>
               if (i.frameCount + 1 == newData.frameCount) {
-                val score = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.area else 0
-                val killing = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.k else 0
-                val nickname = if(userMap.filter(_._1 == i.killedId).nonEmpty) userMap(i.killedId) else "Unknown"
-                EsheepClient.inputBatRecord(i.killedId.toString, nickname, killing, 1, score, "", 1L, 2L)
+//                val score = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.area else 0
+//                val killing = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.k else 0
+//                val nickname = if(userMap.filter(_._1 == i.killedId).nonEmpty) userMap(i.killedId) else "Unknown"
+//                println("test: lalala")
+//                EsheepClient.inputBatRecord(i.killedId.toString, nickname, killing, 1, score, "", 1L, 2L)
                 dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId), i.killerName))
               }
             }
