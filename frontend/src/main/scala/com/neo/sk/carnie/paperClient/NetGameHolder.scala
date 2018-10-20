@@ -127,8 +127,8 @@ object NetGameHolder extends js.JSApp {
   private var tempDraw = System.currentTimeMillis()
 
   def draw(offsetTime: Long): Unit = {
-//    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
-//    tempDraw = System.currentTimeMillis()
+    //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
+    //    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       val data = grid.getGridData
       if (isWin) {
