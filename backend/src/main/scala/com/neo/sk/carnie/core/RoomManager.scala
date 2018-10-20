@@ -1,26 +1,18 @@
 package com.neo.sk.carnie.core
 
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.atomic.AtomicInteger
 
-import akka.NotUsed
-import akka.actor.typed.{ActorRef, Behavior, Terminated}
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.duration._
-import scala.collection.immutable.HashMap
 import scala.collection.mutable
-import scala.concurrent.duration.{Duration, FiniteDuration}
 import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.neo.sk.carnie.paperClient.PlayGround.{Join, Left}
+import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
-
-
-import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 
 
 /**
@@ -28,68 +20,73 @@ import scala.util.{Failure, Success}
   **/
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private case object LeftRoomKey
-//  private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
-  private val roomMap = mutable.HashMap[Int, mutable.HashSet[(Long, String)]]() //roomId->Set((userId, name))
+
+  //  private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
+  private val roomMap = mutable.HashMap[Int, mutable.HashSet[(String, String)]]() //roomId->Set((userId, name))
   private val limitNum = 8
-//  private val userMap = mutable.HashMap[Long, (Long, String)]() //(userId, (roomId, name))
+
+  //  private val userMap = mutable.HashMap[Long, (Long, String)]() //(userId, (roomId, name))
 
 
   trait Command
+
   trait UserAction extends Command
-  case class UserActionOnServer(id: Long, action: Protocol.UserAction) extends Command
-  case class Join(id: Long, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
-  case class Left(id: Long, name: String) extends Command
-  case class FindRoomId(pid: String,reply: ActorRef[Option[Int]]) extends Command
-  case class FindPlayerList(rid: Int,reply: ActorRef[List[(Long,String)]]) extends Command
+
+  case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
+
+  case class Join(id: String, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+
+  case class Left(id: String, name: String) extends Command
+
+  case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
+
+  case class FindPlayerList(roomId: Int, reply: ActorRef[List[(String, String)]]) extends Command
+
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
+
   case object CompleteMsgFront extends Command
+
   case class FailMsgFront(ex: Throwable) extends Command
-  private final case object BehaviorChangeKey
-  private case class TimeOut(msg:String) extends Command
-  private case class ChildDead[U](roomId:Int, name:String,childRef:ActorRef[U]) extends Command
-  case class LeftRoom(uid:Long,tankId:Int,name:String,userOpt: Option[Long]) extends Command
-  case class UserLeft(id: Long) extends Command
+
+  private case class TimeOut(msg: String) extends Command
+
+  private case class ChildDead[U](roomId: Int, name: String, childRef: ActorRef[U]) extends Command
+
+  case class LeftRoom(uid: String, tankId: Int, name: String, userOpt: Option[Long]) extends Command
+
+  case class UserLeft(id: String) extends Command
 
   private case object UnKnowAction extends Command
 
-//  case class Key(id: Long, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
-//  case class TextInfo(msg: String) extends UserAction
-//  case class SendPingPacket(id: Long, createTime: Long) extends UserAction
-//  case class NeedToSync(id: Long) extends UserAction with Command
+  //  case class Key(id: Long, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
+  //  case class TextInfo(msg: String) extends UserAction
+  //  case class SendPingPacket(id: Long, createTime: Long) extends UserAction
+  //  case class NeedToSync(id: Long) extends UserAction with Command
 
 
-  def create():Behavior[Command] = {
-    Behaviors.setup[Command]{ ctx =>
-        implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
-        Behaviors.withTimers[Command]{implicit timer =>
-          val roomIdGenerator = new AtomicInteger(1)
-
-          idle(roomIdGenerator)
-        }
+  def create(): Behavior[Command] = {
+    Behaviors.setup[Command] { ctx =>
+      implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
+      Behaviors.withTimers[Command] { implicit timer =>
+        val roomIdGenerator = new AtomicInteger(1000)
+        idle(roomIdGenerator)
+      }
     }
   }
 
-  def idle(roomIdGenerator:AtomicInteger)(implicit stashBuffer: StashBuffer[Command],timer:TimerScheduler[Command]) = {
-    Behaviors.receive[Command]{(ctx,msg) =>
+  def idle(roomIdGenerator: AtomicInteger)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg@Join(id, name, subscriber) =>
           log.info(s"got $msg")
-          if(roomMap.isEmpty) {
+          if (roomMap.nonEmpty && roomMap.exists(_._2.size < limitNum)) {
+            val roomId = roomMap.filter(_._2.size < limitNum).head._1
+            roomMap.put(roomId, roomMap(roomId) += ((id, name)))
+            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
+          } else {
             val roomId = roomIdGenerator.getAndIncrement()
             roomMap.put(roomId, mutable.HashSet((id, name)))
             getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
-          } else {
-            if(roomMap.exists(_._2.size < limitNum)) {
-              val roomId = roomMap.filter(_._2.size < limitNum).head._1
-              roomMap.put(roomId, roomMap(roomId) += ((id, name)))
-              getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
-            }
-            else {
-              val roomId = roomIdGenerator.getAndIncrement()
-              roomMap.put(roomId, mutable.HashSet((id, name)))
-              getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
-            }
           }
           Behaviors.same
 
@@ -100,16 +97,20 @@ object RoomManager {
           getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
           Behaviors.same
 
-        case UserActionOnServer(id, action) =>
-//          log.info(s"got $msg")
-          if(roomMap.exists(r => r._2.exists(u => u._1 == id))) {
+        case m@UserActionOnServer(id, action) =>
+          action match {
+            case SendPingPacket(_, createTime) => //
+
+            case _ => log.debug(s"receive $m...roomMap:$roomMap")
+          }
+          if (roomMap.exists(r => r._2.exists(u => u._1 == id))) {
             val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
             getRoomActor(ctx, roomId) ! RoomActor.UserActionOnServer(id, action)
           }
           Behaviors.same
 
 
-        case ChildDead(roomId, child,childRef) =>
+        case ChildDead(roomId, child, childRef) =>
           log.debug(s"roomManager 不再监管room:$child,$childRef")
           ctx.unwatch(childRef)
           roomMap.remove(roomId)
@@ -119,19 +120,19 @@ object RoomManager {
           log.debug(s"got Terminated id = $id")
           val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
           val filterUserInfo = roomMap(roomId).find(_._1 == id)
-          if (filterUserInfo.nonEmpty){
+          if (filterUserInfo.nonEmpty) {
             roomMap.update(roomId, roomMap(roomId).-(filterUserInfo.get))
           }
           Behaviors.same
 
-        case FindRoomId(pid,reply) =>
+        case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
           reply ! Option(roomMap.filter(r => r._2.exists(i => i._2 == pid)).head._1)
           Behaviors.same
 
-        case FindPlayerList(rid,reply) =>
-          log.debug(s"got roomId = $rid")
-          reply ! roomMap.filter(_._1 == rid).toList.flatMap(_._2.toList)
+        case FindPlayerList(roomId, reply) =>
+          log.debug(s"got roomId = $roomId")
+          reply ! roomMap(roomId).toList
           Behaviors.same
 
         case FindAllRoom(reply) =>
@@ -140,22 +141,23 @@ object RoomManager {
           Behaviors.same
 
         case unknow =>
-          Behaviors.same
+          log.debug(s"${ctx.self.path} receive a msg unknow:$unknow")
+          Behaviors.unhandled
       }
     }
   }
 
-  private def sink(actor: ActorRef[Command], id: Long, name: String) = ActorSink.actorRef[Command](
+  private def sink(actor: ActorRef[Command], id: String, name: String) = ActorSink.actorRef[Command](
     ref = actor,
     onCompleteMessage = Left(id, name),
     onFailureMessage = FailMsgFront.apply
   )
 
-  def joinGame(actor:ActorRef[RoomManager.Command], userId: Long, name: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+  def joinGame(actor: ActorRef[RoomManager.Command], userId: String, name: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
-        case action@Protocol.Key(id, keyCode, frameCount, actionId) => UserActionOnServer(id, action)
-        case action@Protocol.SendPingPacket(id, createTime) => UserActionOnServer(id, action)
+        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
         case _ => UnKnowAction
       }
@@ -167,7 +169,7 @@ object RoomManager {
           case WsSourceProtocol.CompleteMsgServer ⇒
         },
         failureMatcher = {
-          case WsSourceProtocol.FailMsgServer(e)  ⇒ e
+          case WsSourceProtocol.FailMsgServer(e) ⇒ e
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
@@ -176,11 +178,11 @@ object RoomManager {
     Flow.fromSinkAndSource(in, out)
   }
 
-  private def getRoomActor(ctx:ActorContext[Command],roomId:Int) = {
+  private def getRoomActor(ctx: ActorContext[Command], roomId: Int) = {
     val childName = s"room_$roomId"
-    ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(RoomActor.create(roomId),childName)
-      ctx.watchWith(actor,ChildDead(roomId, childName,actor))
+    ctx.child(childName).getOrElse {
+      val actor = ctx.spawn(RoomActor.create(roomId), childName)
+      ctx.watchWith(actor, ChildDead(roomId, childName, actor))
       actor
 
     }.upcast[RoomActor.Command]

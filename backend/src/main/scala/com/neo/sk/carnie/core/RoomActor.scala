@@ -25,19 +25,17 @@ object RoomActor {
   private val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
   private var winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.7
 
-  private final val InitTime = Some(5.minutes)
-
   private final case object BehaviorChangeKey
 
   private final case object SyncKey
 
   sealed trait Command
 
-  case class UserActionOnServer(id: Long, action: Protocol.UserAction) extends Command
+  case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
 
-  case class JoinRoom(id: Long, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class JoinRoom(id: String, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
-  case class LeftRoom(id: Long, name: String) extends Command
+  case class LeftRoom(id: String, name: String) extends Command
 
 
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
@@ -65,13 +63,13 @@ object RoomActor {
   }
 
   def create(roomId: Int): Behavior[Command] = {
-    log.debug(s"Room Actor-${roomId} start...")
+    log.debug(s"Room Actor-$roomId start...")
     Behaviors.setup[Command] {
       ctx =>
         Behaviors.withTimers[Command] {
           implicit timer =>
-            val subscribersMap = mutable.HashMap[Long, ActorRef[WsSourceProtocol.WsMsgSource]]()
-            val userMap = mutable.HashMap[Long, String]()
+            val subscribersMap = mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]]()
+            val userMap = mutable.HashMap[String, String]()
             val grid = new GridOnServer(border)
             //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
             timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
@@ -82,8 +80,8 @@ object RoomActor {
 
   def idle(
             roomId: Int, grid: GridOnServer,
-            userMap: mutable.HashMap[Long, String],
-            subscribersMap: mutable.HashMap[Long, ActorRef[WsSourceProtocol.WsMsgSource]],
+            userMap: mutable.HashMap[String, String],
+            subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long
           )(
             implicit timer: TimerScheduler[Command]
@@ -192,11 +190,11 @@ object RoomActor {
 
   }
 
-  def dispatchTo(subscribers: mutable.HashMap[Long, ActorRef[WsSourceProtocol.WsMsgSource]], id: Long, gameOutPut: Protocol.GameMessage): Unit = {
+  def dispatchTo(subscribers: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]], id: String, gameOutPut: Protocol.GameMessage): Unit = {
     subscribers.get(id).foreach {_ ! gameOutPut}
   }
 
-  def dispatch(subscribers: mutable.HashMap[Long, ActorRef[WsSourceProtocol.WsMsgSource]], gameOutPut: Protocol.GameMessage) = {
+  def dispatch(subscribers: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]], gameOutPut: Protocol.GameMessage) = {
     //    log.info(s"dispatch:::$gameOutPut")
     subscribers.values.foreach {_ ! gameOutPut }
   }
