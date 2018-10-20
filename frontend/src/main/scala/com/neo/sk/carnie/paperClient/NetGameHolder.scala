@@ -1,11 +1,10 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
-
+import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 
 
@@ -94,7 +93,7 @@ object NetGameHolder extends js.JSApp {
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
-//    println(s"drawRender time:${curTime - tempRender}")
+    //    println(s"drawRender time:${curTime - tempRender}")
     tempRender = curTime
     draw(offsetTime)
 
@@ -129,7 +128,7 @@ object NetGameHolder extends js.JSApp {
 
   def draw(offsetTime: Long): Unit = {
 //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
-    tempDraw = System.currentTimeMillis()
+//    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       val data = grid.getGridData
       if (isWin) {
@@ -141,7 +140,7 @@ object NetGameHolder extends js.JSApp {
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
-//            println(s"data里有蛇：：：：：：")
+            //            println(s"data里有蛇：：：：：：")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -192,13 +191,13 @@ object NetGameHolder extends js.JSApp {
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     val starTime = System.currentTimeMillis()
-//    println(s"draw time:${starTime - temp}")
+    //    println(s"draw time:${starTime - temp}")
     temp = starTime
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
-//    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
+    //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
   private def connectOpenSuccess(e: Event) = {
@@ -243,7 +242,7 @@ object NetGameHolder extends js.JSApp {
     e
   }
 
-  private def messageHandler(data: GameMessage) = {
+  private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id(id) => myId = id
 
@@ -292,7 +291,7 @@ object NetGameHolder extends js.JSApp {
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
-//        println(s"receive data========================")
+        //        println(s"receive data========================")
         syncGridData = Some(data)
         justSynced = true
 
