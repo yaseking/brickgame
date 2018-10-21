@@ -124,7 +124,7 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  private var tempDraw = System.currentTimeMillis()
+//  private var tempDraw = System.currentTimeMillis()
 
   def draw(offsetTime: Long): Unit = {
     //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
@@ -200,7 +200,7 @@ object NetGameHolder extends js.JSApp {
     //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
-  private def connectOpenSuccess(e: Event) = {
+  private def connectOpenSuccess(event0: Event) = {
     startGame()
     canvas.focus()
     canvas.onkeydown = { e: dom.KeyboardEvent => {
@@ -230,15 +230,16 @@ object NetGameHolder extends js.JSApp {
           Key(myId, e.keyCode, frame, actionId)
         }
         webSocketClient.sendMessage(msg)
+        e.preventDefault()
       }
-    }
-    }
-    e
+    }}
+    event0
   }
 
   private def connectError(e: Event) = {
     println("connectError..")
     drawGame.drawGameOff(firstCome)
+    nameField.focus()
     e
   }
 
