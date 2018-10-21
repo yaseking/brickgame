@@ -205,6 +205,7 @@ object NetGameHolder extends js.JSApp {
     canvas.focus()
     canvas.onkeydown = { e: dom.KeyboardEvent => {
       if (Constant.watchKeys.contains(e.keyCode)) {
+        println(s"onkeydown：${e.keyCode}")
         val msg: Protocol.UserAction = {
           val frame = grid.frameCount + 2
           val actionId = idGenerator.getAndIncrement()
@@ -212,7 +213,6 @@ object NetGameHolder extends js.JSApp {
           if (e.keyCode != KeyCode.Space) {
             myActionHistory += actionId -> (e.keyCode, frame)
           } else { //重新开始游戏
-            println("AAAAAA")
             audio1.pause()
             audio1.currentTime = 0
             audioKilled.pause()
