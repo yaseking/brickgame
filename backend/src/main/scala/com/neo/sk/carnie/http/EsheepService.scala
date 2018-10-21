@@ -65,7 +65,7 @@ trait EsheepService extends ServiceUtils with CirceSupport with PlayerService{
         val playerId = if(playerMsg.contains("playerId")) playerMsg("playerId").toLong else 1L
         val playerName = if(playerMsg.contains("playerName")) playerMsg("playerName") else ""
         if(AppSettings.appSecureMap.contains(appId) && (AppSettings.appSecureMap(appId) == secureKey)){
-          println("lalala")
+//          println("lalala")
           val gameId = AppSettings.esheepGameId
           dealFutureResult{
             EsheepClient.verifyAccessCode(gameId, accessCode).map {
@@ -78,13 +78,17 @@ trait EsheepService extends ServiceUtils with CirceSupport with PlayerService{
                 }
               case Left(e) =>
                 log.error(s"playGame error. fail to verifyAccessCode err: $e")
-//                webSocketChatFlow(playerName)
                 complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
             }
           }
         } else {
+//          println("test:1111")
+//          webSocketChatFlow(playerName)
+//          println("test:2222!")
           complete(ErrorRsp(120003, "Wrong player applies to playGame."))
         }
+      case Left(_) =>
+        complete(ErrorRsp(120004, "Wrong player applies to playGame."))
     }
   }
 

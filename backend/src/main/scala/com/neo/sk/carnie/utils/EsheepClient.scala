@@ -79,8 +79,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
       case Left(e) =>
         log.error(s"verifyAccessCode error $esheepUrl failed: $e")
         Left("error")
-  }
     }
+  }
 
   def inputBatRecord(
                       playerId: String,

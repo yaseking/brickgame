@@ -51,6 +51,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   var stateEveryFrame :Option[State] = None
 
+  var startTimeMap = Map.empty[Long, Long]
+
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[Long, Score]
   var historyRankList = historyRankMap.values.toList.sortBy(_.k).reverse
@@ -66,6 +68,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   private[this] def genWaitingSnake() = {
     waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
+      startTimeMap += (id -> System.currentTimeMillis())
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
       (0 until indexSize).foreach { x =>
@@ -375,7 +378,9 @@ class GridOnServer(override val boundary: Point) extends Grid {
       val killing = if(snakes.contains(sid)) snakes(sid).kill else 0
       val nickname = if(snakes.contains(sid)) snakes(sid).name else "Unknown"
       println(s"score: $score, killing: $killing, nickname: $nickname")
-      EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", 1L, 2L)
+      val startTime = startTimeMap(sid)
+      val endTime = System.currentTimeMillis()
+      EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime)
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
