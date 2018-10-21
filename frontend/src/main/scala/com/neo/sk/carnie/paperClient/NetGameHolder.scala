@@ -2,12 +2,19 @@ package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import com.neo.sk.carnie.ptcl.EsheepPtcl._
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
+import com.neo.sk.carnie.Routes.Esheep
+import com.neo.sk.carnie.ptcl.SuccessRsp
+import io.circe.syntax._
+import io.circe.generic.auto._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import com.neo.sk.carnie.util._
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
@@ -59,8 +66,40 @@ object NetGameHolder extends js.JSApp {
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
+//  private[this] def getHash: String = dom.window.location.hash
 
   def main(): Unit = {
+    val hash = dom.window.location.hash.drop(1)
+//    println(s"hash: $hash")
+    val info = hash.split("\\?")
+//    println(s"info(0): ${info(0)}")
+//    println(s"info(1): ${info(1)}")
+    val playerMsgMap = info(1).split("&").map {
+      a =>
+        val b = a.split("=")
+        (b(0), b(1))
+    }.toMap
+    val sendData = PlayerMsg(playerMsgMap).asJson.noSpaces
+    println(s"sendData: $sendData")
+    info(0) match {
+      case "playGame" =>
+        val url = Esheep.playGame
+        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
+          case Right(rsp) =>
+            println(s"rsp: $rsp")
+            if(rsp.errCode==0) {
+              //todo
+            } else {
+              println(s"err: ${rsp.msg}")
+            }
+          case Left(e) =>
+            println(s"Some err happened in apply to connect the game, e: $e")
+        }
+      case _ =>
+    }
+  }
+
+  def joinGame(): Unit = {
     joinButton.onclick = { event: MouseEvent =>
       if(nameField.value == "")
         dom.window.alert("您的游戏昵称不能为空！")

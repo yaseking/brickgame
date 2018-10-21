@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.protocal
+package com.neo.sk.carnie.protocol
 
 object EsheepProtocol {
 
