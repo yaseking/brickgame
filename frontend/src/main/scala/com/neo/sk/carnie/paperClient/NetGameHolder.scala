@@ -50,8 +50,8 @@ object NetGameHolder extends js.JSApp {
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
 
-  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
-  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
+//  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
+//  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1=dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
@@ -68,53 +68,57 @@ object NetGameHolder extends js.JSApp {
 
 //  private[this] def getHash: String = dom.window.location.hash
 
-//  def main(): Unit = {
-//    val hash = dom.window.location.hash.drop(1)
-//    val info = hash.split("\\?")
-//    val playerMsgMap = info(1).split("&").map {
-//      a =>
-//        val b = a.split("=")
-//        (b(0), b(1))
-//    }.toMap
-//    val sendData = PlayerMsg(playerMsgMap).asJson.noSpaces
-//    println(s"sendData: $sendData")
-//    info(0) match {
-//      case "playGame" =>
-//        val url = Esheep.playGame
-//        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
-//          case Right(rsp) =>
-//            println(s"rsp: $rsp")
-//            if(rsp.errCode==0) {
-//              //todo
-//            } else {
-//              println(s"err: ${rsp.msg}")
-//            }
-//          case Left(e) =>
-//            println(s"Some err happened in apply to connect the game, e: $e")
-//        }
-//      case _ =>
-//    }
-//  }
-
   def main(): Unit = {
-    joinButton.onclick = { event: MouseEvent =>
-      if(nameField.value == "")
-        dom.window.alert("您的游戏昵称不能为空！")
-      else if(nameField.value.length>16)
-        dom.window.alert("您的游戏昵称不能超过16位！")
-      else{
-        webSocketClient.joinGame(nameField.value)
-        event.preventDefault()
-      }
-    }
-    nameField.focus()
-    nameField.onkeypress = { event: KeyboardEvent =>
-      if (event.keyCode == 13) {
-        joinButton.click()
-        event.preventDefault()
-      }
+    val hash = dom.window.location.hash.drop(1)
+    val info = hash.split("\\?")
+    val playerMsgMap = info(1).split("&").map {
+      a =>
+        val b = a.split("=")
+        (b(0), b(1))
+    }.toMap
+    val sendData = PlayerMsg(playerMsgMap).asJson.noSpaces
+    println(s"sendData: $sendData")
+    info(0) match {
+      case "playGame" =>
+        val url = Esheep.playGame
+        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
+          case Right(rsp) =>
+            println(s"rsp: $rsp")
+            if(rsp.errCode==0) {
+//              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+            } else {
+              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+              println(s"playerName: $playerName")
+              webSocketClient.joinGame(playerName)
+              println(s"err: ${rsp.msg}")
+            }
+          case Left(e) =>
+            println(s"Some err happened in apply to connect the game, e: $e")
+        }
+      case _ =>
+        println("Unknown order!")
     }
   }
+
+//  def main1(): Unit = {
+//    joinButton.onclick = { event: MouseEvent =>
+//      if(nameField.value == "")
+//        dom.window.alert("您的游戏昵称不能为空！")
+//      else if(nameField.value.length>16)
+//        dom.window.alert("您的游戏昵称不能超过16位！")
+//      else{
+//        webSocketClient.joinGame(nameField.value)
+//        event.preventDefault()
+//      }
+//    }
+//    nameField.focus()
+//    nameField.onkeypress = { event: KeyboardEvent =>
+//      if (event.keyCode == 13) {
+//        joinButton.click()
+//        event.preventDefault()
+//      }
+//    }
+//  }
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
@@ -130,7 +134,7 @@ object NetGameHolder extends js.JSApp {
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
-    println(s"drawRender time:${curTime - tempRender}")
+//    println(s"drawRender time:${curTime - tempRender}")
     tempRender = curTime
     draw(offsetTime)
 
@@ -164,7 +168,7 @@ object NetGameHolder extends js.JSApp {
   private var tempDraw = System.currentTimeMillis()
 
   def draw(offsetTime: Long): Unit = {
-    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
+//    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
     tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       val data = grid.getGridData
@@ -177,7 +181,7 @@ object NetGameHolder extends js.JSApp {
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
-            println(s"data里有蛇：：：：：：")
+//            println(s"data里有蛇：：：：：：")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -227,13 +231,13 @@ object NetGameHolder extends js.JSApp {
 
   def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
     val starTime = System.currentTimeMillis()
-    println(s"draw time:${starTime - temp}")
+//    println(s"draw time:${starTime - temp}")
     temp = starTime
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
-    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
+//    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
   private def connectOpenSuccess(e: Event) = {

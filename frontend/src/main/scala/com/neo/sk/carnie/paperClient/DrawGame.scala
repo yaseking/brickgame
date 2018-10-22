@@ -67,7 +67,7 @@ class DrawGame(
 
     drawCache()
 
-    println("Now we set backgroundColor!")
+//    println("Now we set backgroundColor!")
 
 //    backCtx.fillStyle = ColorsSetting.backgroundColor
 //    backCtx.fillRect(0, 0, background.width, background.height)

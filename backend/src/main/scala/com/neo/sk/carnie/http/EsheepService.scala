@@ -62,7 +62,7 @@ trait EsheepService extends ServiceUtils with CirceSupport with PlayerService{
         val appId = if(playerMsg.contains("appId")) playerMsg("appId") else ""
         val secureKey = if(playerMsg.contains("secureKey")) playerMsg("secureKey") else ""
         val accessCode = if(playerMsg.contains("accessCode")) playerMsg("accessCode") else ""
-        val playerId = if(playerMsg.contains("playerId")) playerMsg("playerId").toLong else 1L
+        val playerId = if(playerMsg.contains("playerId")) playerMsg("playerId") else "unKnown"
         val playerName = if(playerMsg.contains("playerName")) playerMsg("playerName") else ""
         if(AppSettings.appSecureMap.contains(appId) && (AppSettings.appSecureMap(appId) == secureKey)){
 //          println("lalala")
