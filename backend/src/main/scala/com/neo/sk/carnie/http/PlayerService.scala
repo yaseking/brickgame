@@ -81,7 +81,7 @@ trait PlayerService {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(RoomManager.joinGame(roomManager, idGenerator.getAndIncrement().toLong, sender))
+      .via(RoomManager.joinGame(roomManager, idGenerator.getAndIncrement().toLong.toString, sender))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)

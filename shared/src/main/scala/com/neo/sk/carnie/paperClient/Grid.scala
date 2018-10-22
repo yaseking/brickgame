@@ -26,20 +26,20 @@ trait Grid {
   val historyRankLength = 5
   var frameCount = 0l
   var grid: Map[Point, Spot] = Map[Point, Spot]()
-  var snakes = Map.empty[Long, SkDt]
-  var actionMap = Map.empty[Long, Map[Long, Int]] //Map[frameCount,Map[id, keyCode]]
-  var killHistory = Map.empty[Long, (Long, String,Long)] //killedId, (killerId, killerName,frameCount)
-  var snakeTurnPoints = new mutable.HashMap[Long, List[Point4Trans]] //保留拐点
-  var mayBeDieSnake = Map.empty[Long, Long] //可能死亡的蛇 killedId,killerId
-  var mayBeSuccess = Map.empty[Long, Map[Point, Spot]] //圈地成功后的被圈点
-  var historyStateMap = Map.empty[Long, (Map[Long, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯
+  var snakes = Map.empty[String, SkDt]
+  var actionMap = Map.empty[Long, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
+  var killHistory = Map.empty[String, (String, String, Long)] //killedId, (killerId, killerName,frameCount)
+  var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
+  private var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
+  private var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
+  private var historyStateMap = Map.empty[Long, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
 
-  def checkEvents(enclosure: List[(Long, List[Point])]): Unit
+  def checkEvents(enclosure: List[(String, List[Point])]): Unit
 
-  def removeSnake(id: Long): Option[SkDt] = {
+  def removeSnake(id: String): Option[SkDt] = {
     val r = snakes.get(id)
     if (r.isDefined) {
       snakes -= id
@@ -47,23 +47,23 @@ trait Grid {
     r
   }
 
-  def addAction(id: Long, keyCode: Int): Unit = {
+  def addAction(id: String, keyCode: Int): Unit = {
     addActionWithFrame(id, keyCode, frameCount)
   }
 
-  def addActionWithFrame(id: Long, keyCode: Int, frame: Long):Unit = {
+  def addActionWithFrame(id: String, keyCode: Int, frame: Long): Unit = {
     val map = actionMap.getOrElse(frame, Map.empty)
     val tmp = map + (id -> keyCode)
     actionMap += (frame -> tmp)
   }
 
-  def deleteActionWithFrame(id: Long, frame: Long): Unit = {
+  def deleteActionWithFrame(id: String, frame: Long): Unit = {
     val map = actionMap.getOrElse(frame, Map.empty)
     val tmp = map - id
     actionMap += (frame -> tmp)
   }
 
-  def nextDirection(id: Long): Option[Point] = {
+  def nextDirection(id: String): Option[Point] = {
     val map = actionMap.getOrElse(frameCount, Map.empty)
     map.get(id) match {
       case Some(KeyEvent.VK_LEFT) => Some(Point(-1, 0))
@@ -74,7 +74,7 @@ trait Grid {
     }
   }
 
-  def update(origin: String): List[(Long, List[Point])] = {
+  def update(origin: String): List[(String, List[Point])] = {
     val isFinish = updateSnakes(origin)
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
@@ -108,10 +108,10 @@ trait Grid {
     p + Point(2 + random.nextInt(2), 2 + random.nextInt(2))
   }
 
-  def updateSnakes(origin: String): List[(Long, List[Point])] = {
-    var finishFields = List.empty[(Long, List[Point])]
+  private[this] def updateSnakes(origin: String): List[(String, List[Point])] = {
+    var finishFields = List.empty[(String, List[Point])]
 
-    def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Long, UpdateSnakeInfo] = {
+    def updateASnake(snake: SkDt, actMap: Map[String, Int]): Either[String, UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
       val newDirection = {
         val keyDirection = keyCode match {
@@ -135,7 +135,7 @@ trait Grid {
           case Some(x: Body) => //进行碰撞检测
             debug(s"snake[${snake.id}] hit wall.")
             if (x.id != snake.id) { //撞到了别人的身体
-              killHistory += x.id -> (snake.id, snake.name,frameCount)
+              killHistory += x.id -> (snake.id, snake.name, frameCount)
             }
             mayBeDieSnake += x.id -> snake.id
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
@@ -193,13 +193,13 @@ trait Grid {
 
     }
 
-    var mapKillCounter = Map.empty[Long, Int]
+    var mapKillCounter = Map.empty[String, Int]
     var updatedSnakes = List.empty[UpdateSnakeInfo]
-    var killedSnaked = List.empty[Long]
+    var killedSnaked = List.empty[String]
 
     historyStateMap += frameCount -> (snakes, grid)
 
-    val acts = actionMap.getOrElse(frameCount, Map.empty[Long, Int])
+    val acts = actionMap.getOrElse(frameCount, Map.empty[String, Int])
 
     snakes.values.map(updateASnake(_, acts)).foreach {
       case Right(s) =>
@@ -225,13 +225,13 @@ trait Grid {
     }
 
     //if two (or more) headers go to the same point
-    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).flatMap{res =>
+    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).flatMap { res =>
       val sids = res._2.map(_.data.id)
       grid.get(res._1) match {
         case Some(Field(fid)) if sids.contains(fid) =>
-          sids.filterNot(_==fid).foreach{ killedId=>
+          sids.filterNot(_ == fid).foreach { killedId =>
             mayBeDieSnake += killedId -> fid
-            killHistory += killedId -> (killedId, snakes.find(_._1==fid).get._2.name,frameCount)
+            killHistory += killedId -> (killedId, snakes.find(_._1 == fid).get._2.name, frameCount)
           }
           sids.filterNot(_ == fid)
         case _ => sids
@@ -245,16 +245,16 @@ trait Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
-    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt(-1L, "", "",Point(0, 0), Point(-1, -1)))).data.header)).keySet
+    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1)))).data.header)).keySet
 
-    mayBeDieSnake = Map.empty[Long, Long]
-    mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
+    mayBeDieSnake = Map.empty[String, String]
+    mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
-    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
+    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0.toString }).toSet.filter(_ != 0.toString) //若领地全被其它玩家圈走则死亡
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
-//    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
+    //    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
 
     finalDie.foreach { sid =>
       println("Test: A snake die!")
@@ -354,7 +354,7 @@ trait Grid {
               grid.get(p) match {
                 case Some(Body(bodyId, _)) => newGrid += p -> Body(bodyId, Some(snake.id))
                 case Some(Border) => //doNothing
-                case x  => newGrid += p -> Field(snake.id)
+                case x => newGrid += p -> Field(snake.id)
                   x match {
                     case Some(Field(fid)) => finalFillPoll += p -> Field(fid)
                     case _ => finalFillPoll += p -> Blank
@@ -374,7 +374,7 @@ trait Grid {
   def getGridData: Protocol.Data4TotalSync = {
     var fields: List[Fd] = Nil
 
-    val bodyDetails = snakes.values.map{s => BodyBaseInfo(s.id, getSnakesTurn(s.id, s.header))}.toList
+    val bodyDetails = snakes.values.map { s => BodyBaseInfo(s.id, getSnakesTurn(s.id, s.header)) }.toList
 
     grid.foreach {
       case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
@@ -392,23 +392,23 @@ trait Grid {
       snakes.values.toList,
       bodyDetails,
       fieldDetails,
-      killHistory.map(k => Kill(k._1, k._2._1, k._2._2,k._2._3)).toList
+      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
     )
   }
 
-  def getKiller(myId: Long): Option[(Long, String,Long)] = {
+  def getKiller(myId: String): Option[(String, String, Long)] = {
     killHistory.get(myId)
   }
 
   def cleanData(): Unit = {
-    snakes = Map.empty[Long, SkDt]
-    actionMap = Map.empty[Long, Map[Long, Int]]
+    snakes = Map.empty[String, SkDt]
+    actionMap = Map.empty[Long, Map[String, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
-    killHistory = Map.empty[Long, (Long, String,Long)]
+    killHistory = Map.empty[String, (String, String, Long)]
     snakeTurnPoints = snakeTurnPoints.empty
   }
 
-  def returnBackField(snakeId: Long):Unit = { //归还身体部分所占有的领地
+  def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地
     snakeTurnPoints -= snakeId
     val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
     var newGrid = grid
@@ -419,7 +419,7 @@ trait Grid {
     grid = newGrid
   }
 
-  def recallGrid(startFrame: Long, endFrame: Long):Unit = {
+  def recallGrid(startFrame: Long, endFrame: Long): Unit = {
     historyStateMap.get(startFrame) match {
       case Some(state) =>
         println(s"recallGrid-start$startFrame-end-$endFrame")
@@ -436,16 +436,19 @@ trait Grid {
     }
   }
 
-  def getSnakesTurn(sid: Long, header: Point): TurnInfo = {
+  def getSnakesTurn(sid: String, header: Point): TurnInfo = {
     val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
     TurnInfo(if (turnPoint.nonEmpty) turnPoint ::: List(Point4Trans(header.x.toInt, header.y.toInt)) else turnPoint,
       grid.filter(_._2 match { case Body(id, fid) if id == sid && fid.nonEmpty => true case _ => false }).map(g =>
         (Point4Trans(g._1.x.toInt, g._1.y.toInt), g._2.asInstanceOf[Body].fid.get)).toList)
   }
 
-  def getMyFieldCount(uid: Long, maxPoint: Point, minPoint: Point): Int = {
+  def getMyFieldCount(uid: String, maxPoint: Point, minPoint: Point): Int = {
     grid.count { g =>
-      (g._2 match {case Field(fid) if fid == uid => true case _ => false}) &&
+      (g._2 match {
+        case Field(fid) if fid == uid => true
+        case _ => false
+      }) &&
         (g._1.x < maxPoint.x && g._1.y < maxPoint.y && g._1.y > minPoint.y && g._1.x > minPoint.x)
     }
   }

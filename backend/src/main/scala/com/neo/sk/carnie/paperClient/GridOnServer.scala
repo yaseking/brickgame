@@ -25,7 +25,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-  private[this] var waitingJoin = Map.empty[Long, (String, String)]
+  private[this] var waitingJoin = Map.empty[String, (String, String)]
 
   private val maxRecordNum = 100
 
@@ -37,7 +37,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   val fileName = s"carnie_${currentTime}"
 
-  val initState = State(grid, snakes, Nil)
+  val initState = Snapshot(grid, snakes, Nil)
 
   var fileIndex = 0
 
@@ -45,21 +45,21 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   val middleBuffer = new MiddleBufferInJvm(10 * 4096)
 
-  var eventFrames = List.empty[Option[(List[GameEvent], Option[State])]]
+  var eventFrames = List.empty[Option[(List[GameEvent], Option[Snapshot])]]
 
   var enclosureEveryFrame = List.empty[(Long, List[Point])]
 
-  var stateEveryFrame :Option[State] = None
+  var stateEveryFrame :Option[Snapshot] = None
 
   var startTimeMap = Map.empty[Long, Long]
 
   var currentRank = List.empty[Score]
-  private[this] var historyRankMap = Map.empty[Long, Score]
+  private[this] var historyRankMap = Map.empty[String, Score]
   var historyRankList = historyRankMap.values.toList.sortBy(_.k).reverse
 
   private[this] var historyRankThreshold = if (historyRankList.isEmpty) (-1, -1) else (historyRankList.map(_.area).min ,historyRankList.map(_.k).min)
 
-  def addSnake(id: Long, roomId:Int, name: String) = {
+  def addSnake(id: String, roomId:Int, name: String) = {
     val bodyColor = randomColor()
     waitingJoin += (id -> (name, bodyColor))
   }
@@ -80,7 +80,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       snakes += id -> SkDt(id, name, bodyColor, startPoint, startPoint)
       killHistory -= id
     }
-    waitingJoin = Map.empty[Long, (String, String)]
+    waitingJoin = Map.empty[String, (String, String)]
   }
 
   implicit val scoreOrdering = new Ordering[Score] {
@@ -89,9 +89,6 @@ class GridOnServer(override val boundary: Point) extends Grid {
       if (r == 0) {
         r = y.k - x.k
       }
-//      if (r == 0) {
-//        r = (x.id - y.id).toInt
-//      }
       r
     }
   }
@@ -104,7 +101,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
       }
     }.map {
       case (p, f@Field(_)) => (p, f)
-      case _ => (Point(-1, -1), Field(-1L))
+      case _ => (Point(-1, -1), Field((-1L).toString))
     }.filter(_._2.id != -1L).values.groupBy(_.id).map(p => (p._1, p._2.size))
     currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, areaMap.getOrElse(s.id, 0))).toList.sortBy(_.area).reverse
     var historyChange = false
@@ -179,14 +176,14 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  def updateInService(newSnake: Boolean): List[(Long, List[Point])] = {
+  def updateInService(newSnake: Boolean): List[(String, List[Point])] = {
     val isFinish = super.update("b")
     if (newSnake) genWaitingSnake()
     updateRanks()
     isFinish
   }
 
-  override def checkEvents(enclosure: List[(Long, List[Point])]): Unit = {
+  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {
     val encloseEventsEveryFrame = if(enclosure.isEmpty) Nil else List(EncloseEvent(enclosure))
     val actionEventsEveryFrame = actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2))
     val eventsEveryFrame: List[GameEvent] = actionEventsEveryFrame ::: encloseEventsEveryFrame
@@ -198,21 +195,21 @@ class GridOnServer(override val boundary: Point) extends Grid {
     eventFrames :+= evts
 
     if (eventFrames.lengthCompare(maxRecordNum) > 0) { //每一百帧写入文件
-      println(s"================")
+//      println(s"================")
       eventFrames.foreach {
         case Some((events, Some(state))) =>
           recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
         case Some((events, None)) => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
         case None => recorder.writeEmptyFrame()
       }
-      eventFrames = List.empty[Option[(List[DirectionEvent], Option[State])]]
+      eventFrames = List.empty[Option[(List[DirectionEvent], Option[Snapshot])]]
       fileRecordNum += eventFrames.size
     }
 
     if (fileRecordNum > fileMaxRecordNum) { //文件写满
       recorder.finish()
       fileIndex += 1
-      val initState = if(stateEveryFrame.nonEmpty) stateEveryFrame else Some(State(grid, snakes, Nil))
+      val initState = if(stateEveryFrame.nonEmpty) stateEveryFrame else Some(Snapshot(grid, snakes, Nil))
       recorder = getRecorder(fileName, fileIndex, GameInformation(System.currentTimeMillis()), initState)
     }
     stateEveryFrame = None

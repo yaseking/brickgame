@@ -3,6 +3,7 @@ package com.neo.sk.carnie.paperClient
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
+import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
@@ -29,7 +30,7 @@ object NetGameHolder extends js.JSApp {
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
-  private var myId = -1l
+  private var myId = ""
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -38,14 +39,14 @@ object NetGameHolder extends js.JSApp {
   var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
-  var killInfo = (0L, "", "")
+  private var killInfo = ("", "", "")
   var lastTime = 0
-  var winData:Protocol.Data4TotalSync=grid.getGridData
-  var fieldNum=1
-  var snakeNum=1
+  var winData: Protocol.Data4TotalSync = grid.getGridData
+  var fieldNum = 1
+  var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
-  var play=true
+  var play = true
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -54,10 +55,10 @@ object NetGameHolder extends js.JSApp {
 //  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private[this] val audio1=dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
-  private[this] val audioFinish=dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
-  private[this] val audioKill=dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
-  private[this] val audioKilled=dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
+  private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
+  private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
+  private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
+  private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
 
   private var nextFrame = 0
   private var isContinue = true
@@ -66,7 +67,6 @@ object NetGameHolder extends js.JSApp {
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
-//  private[this] def getHash: String = dom.window.location.hash
 
   def main(): Unit = {
     val hash = dom.window.location.hash.drop(1)
@@ -134,11 +134,11 @@ object NetGameHolder extends js.JSApp {
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
-//    println(s"drawRender time:${curTime - tempRender}")
+    //    println(s"drawRender time:${curTime - tempRender}")
     tempRender = curTime
     draw(offsetTime)
 
-    if(isContinue)
+    if (isContinue)
       nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -165,57 +165,58 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  private var tempDraw = System.currentTimeMillis()
+//  private var tempDraw = System.currentTimeMillis()
 
   def draw(offsetTime: Long): Unit = {
-//    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
-    tempDraw = System.currentTimeMillis()
+    //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
+    //    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       val data = grid.getGridData
       if (isWin) {
-        ctx.clearRect(0,0,dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-        drawGame.drawWin(myId,winnerName,winData)
+        ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+        drawGame.drawWin(myId, winnerName, winData)
         audio1.play()
         dom.window.cancelAnimationFrame(nextFrame)
         isContinue = false
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
-//            println(s"data里有蛇：：：：：：")
+            //            println(s"data里有蛇：：：：：：")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
               scoreFlag = false
             }
-            data.killHistory.foreach{
-              i=> if(i.frameCount+1==data.frameCount&&i.killerId==myId) audioKill.play()
+            data.killHistory.foreach {
+              i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
             }
-            var num=0
-            data.fieldDetails.find(_.uid==myId).get.scanField.foreach{
-              row=> row.x.foreach{
-                x=> num+=(x._2-x._1)
-              }
+            var num = 0
+            data.fieldDetails.find(_.uid == myId).get.scanField.foreach {
+              row =>
+                row.x.foreach {
+                  x => num += (x._2 - x._1)
+                }
             }
-            if(fieldNum<num&&snake.id==myId){
+            if (fieldNum < num && snake.id == myId) {
               audioFinish.play()
             }
-            fieldNum=num
-            drawGame(myId, data, offsetTime)
+            fieldNum = num
+            drawGameImage(myId, data, offsetTime)
             if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
               drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
               lastTime -= 1
               if (lastTime == 0) {
-                killInfo = (0, "", "")
+                killInfo = ("", "", "")
               }
             }
 
           case None =>
             if (firstCome) drawGame.drawGameWait()
             else {
-              if(play) audioKilled.play()
-              play=false
+              if (play) audioKilled.play()
+              play = false
               drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
-              killInfo = (0, "", "")
+              killInfo = ("", "", "")
               dom.window.cancelAnimationFrame(nextFrame)
               isContinue = false
             }
@@ -229,22 +230,23 @@ object NetGameHolder extends js.JSApp {
 
   private var temp = System.currentTimeMillis()
 
-  def drawGame(uid: Long, data: Data4TotalSync, offsetTime: Long): Unit = {
+  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     val starTime = System.currentTimeMillis()
-//    println(s"draw time:${starTime - temp}")
+    //    println(s"draw time:${starTime - temp}")
     temp = starTime
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
     //    drawGame.drawRank(uid, data.snakes, currentRank)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
-//    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
+    //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
-  private def connectOpenSuccess(e: Event) = {
+  private def connectOpenSuccess(event0: Event) = {
     startGame()
     canvas.focus()
     canvas.onkeydown = { e: dom.KeyboardEvent => {
       if (Constant.watchKeys.contains(e.keyCode)) {
+        println(s"onkeydown：${e.keyCode}")
         val msg: Protocol.UserAction = {
           val frame = grid.frameCount + 2
           val actionId = idGenerator.getAndIncrement()
@@ -253,10 +255,10 @@ object NetGameHolder extends js.JSApp {
             myActionHistory += actionId -> (e.keyCode, frame)
           } else { //重新开始游戏
             audio1.pause()
-            audio1.currentTime=0
+            audio1.currentTime = 0
             audioKilled.pause()
-            audioKilled.currentTime=0
-            play=true
+            audioKilled.currentTime = 0
+            play = true
             scoreFlag = true
             firstCome = true
             if (isWin) {
@@ -269,10 +271,10 @@ object NetGameHolder extends js.JSApp {
           Key(myId, e.keyCode, frame, actionId)
         }
         webSocketClient.sendMessage(msg)
+        e.preventDefault()
       }
-    }
-    }
-    e
+    }}
+    event0
   }
 
   private def connectError(e: Event) = {
@@ -280,12 +282,12 @@ object NetGameHolder extends js.JSApp {
     e
   }
 
-  private def messageHandler(data: GameMessage) = {
+  private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id(id) => myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        if(grid.snakes.exists(_._1 == id)) {
+        if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
@@ -317,10 +319,10 @@ object NetGameHolder extends js.JSApp {
           }
         }
 
-      case Protocol.SomeOneWin(winner,finalData) =>
+      case Protocol.SomeOneWin(winner, finalData) =>
         isWin = true
         winnerName = winner
-        winData=finalData
+        winData = finalData
         grid.cleanData()
 
       case Protocol.Ranks(current) =>
@@ -329,7 +331,7 @@ object NetGameHolder extends js.JSApp {
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
-        println(s"receive data========================")
+        //        println(s"receive data========================")
         syncGridData = Some(data)
         justSynced = true
 

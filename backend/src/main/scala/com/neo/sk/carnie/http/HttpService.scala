@@ -28,7 +28,7 @@ trait HttpService extends PlayerService with ResourceService with EsheepService{
     pathPrefix("carnie") {
       netSnakeRoute ~
       resourceRoutes ~
-      esheepRoute
+      esheepRoute ~ roomApiRoutes
     }
 
 
