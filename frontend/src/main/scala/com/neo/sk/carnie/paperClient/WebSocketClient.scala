@@ -88,6 +88,11 @@ class WebSocketClient (
     s"$wsProtocol://${dom.document.location.host}/carnie/game/join?id=$idOfChatParticipant&name=$nameOfChatParticipant"
   }
 
+  def getWebSocketUri4WatchGame(idOfChatParticipant: String, nameOfChatParticipant: String): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    s"$wsProtocol://${dom.document.location.host}/carnie/game/watchGame?roomId=$idOfChatParticipant&playerId=$nameOfChatParticipant"
+  }
+
   def getWsState = wsSetup
 
 

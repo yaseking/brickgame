@@ -38,6 +38,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
+  case class WatchGame(uid: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
 
@@ -98,6 +99,11 @@ object RoomActor {
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
+          Behaviors.same
+
+        case WatchGame(uid, subscriber) =>
+          ctx.watchWith(subscriber, UserLeft(subscriber))
+          dispatchTo(subscribersMap, uid, Protocol.Id(uid))
           Behaviors.same
 
         case LeftRoom(id, name) =>
