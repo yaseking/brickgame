@@ -24,9 +24,9 @@ class WebSocketClient (
   private var wsSetup = false
   private var gameStreamOpt: Option[WebSocket] = None
 
-  def joinGame(name: String): Unit = {
+  def joinGame(playId: String, name: String): Unit = {
     if (!wsSetup) {
-      val gameStream = new WebSocket(getWebSocketUri(name))
+      val gameStream = new WebSocket(getWebSocketUri(playId, name))
       gameStreamOpt = Some(gameStream)
 
       gameStream.onopen = { event0: Event =>
@@ -83,9 +83,9 @@ class WebSocketClient (
     }
   }
 
-  def getWebSocketUri(nameOfChatParticipant: String): String = {
+  def getWebSocketUri(idOfChatParticipant: String, nameOfChatParticipant: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/netSnake/join?name=$nameOfChatParticipant"
+    s"$wsProtocol://${dom.document.location.host}/carnie/game/join?id=$idOfChatParticipant&name=$nameOfChatParticipant"
   }
 
   def getWsState = wsSetup

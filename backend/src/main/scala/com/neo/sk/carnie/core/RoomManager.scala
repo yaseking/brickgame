@@ -78,6 +78,8 @@ object RoomManager {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg@Join(id, name, subscriber) =>
+          println(s"$id join the Game!")
+          println(s"$name join the Game!")
           log.info(s"got $msg")
           if (roomMap.nonEmpty && roomMap.exists(_._2.size < limitNum)) {
             val roomId = roomMap.filter(_._2.size < limitNum).head._1

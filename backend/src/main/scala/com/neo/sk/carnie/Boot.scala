@@ -10,6 +10,9 @@ import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.carnie.http.HttpService
 import akka.actor.typed.scaladsl.adapter._
 import scala.language.postfixOps
+import com.neo.sk.carnie.core._
+import akka.actor.typed.scaladsl.adapter._
+
 
 /**
   * User: Taoz
@@ -31,6 +34,8 @@ object Boot extends HttpService {
   implicit val scheduler = system.scheduler
 
   implicit val timeout = Timeout(20 seconds) // for actor asks
+
+  implicit val tokenActor: ActorRef[TokenActor.Command] = system.spawn(TokenActor.behavior, "tokenActor")
 
   val log: LoggingAdapter = Logging(system, getClass)
 

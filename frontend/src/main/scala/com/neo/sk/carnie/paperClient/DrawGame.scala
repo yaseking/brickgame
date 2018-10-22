@@ -67,10 +67,20 @@ class DrawGame(
 
     drawCache()
 
-    println("Now we set backgroundColor!")
+//    println("Now we set backgroundColor!")
 
     //    backCtx.fillStyle = ColorsSetting.backgroundColor
     //    backCtx.fillRect(0, 0, background.width, background.height)
+  }
+
+  def drawVerifyErr(): Unit = {
+    canvas.width = windowBoundary.x.toInt
+    canvas.height = windowBoundary.y.toInt
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.font = "36px Helvetica"
+    ctx.fillText(s"It failed to verify the player's info!", 150, 180)
   }
 
   def drawCache(): Unit = { //离屏缓存的更新--缓存边界
