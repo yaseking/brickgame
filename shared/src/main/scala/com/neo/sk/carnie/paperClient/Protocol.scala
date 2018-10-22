@@ -100,7 +100,6 @@ object Protocol {
 
   case class Snapshot(grid: Map[Point, Spot], snakes: Map[String, SkDt], joinOrLeftEvent: List[GameEvent])
 
-
   case class GameInformation(startTime: Long)
 
 

@@ -35,14 +35,12 @@ object GameRecorder {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  def create(fileName:String, gameInformation: Protocol.GameInformation, initStateOpt:Option[Protocol.Snapshot] = None, roomId: Long):Behavior[Command] = {
+  def create():Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
       log.info(s"${ctx.self.path} is starting..")
       implicit val stashBuffer: StashBuffer[GameRecorder.Command] = StashBuffer[Command](Int.MaxValue)
       implicit val middleBuffer: MiddleBufferInJvm = new MiddleBufferInJvm(10 * 4096)
       Behaviors.withTimers[Command] { implicit timer =>
-        val fileRecorder = RecordGame.getRecorder(fileName, 0, gameInformation, initStateOpt)
-        val gameRecordBuffer: List[RecordData] = List[RecordData]()
         timer.startSingleTimer(SaveDateKey, Save, saveTime)
         idle()
       }
@@ -55,12 +53,9 @@ object GameRecorder {
         case RecordData(event) =>  //记录数据
           Behaviors.same
 
-
         case Save =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, Save, saveTime)
-//          ctx.self ! SaveDate
-//          switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
           Behaviors.same
 
         case _ =>

@@ -37,6 +37,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
+  private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
 
@@ -140,12 +141,10 @@ object RoomActor {
           Behaviors.same
 
         case Sync =>
-          //          log.debug("syncccccccccccc")
           if (userMap.nonEmpty) {
             val shouldNewSnake =
               if (grid.waitingListState) true
               else if (tickCount % 20 == 5) true else false
-            //            log.debug(s"shouldNewSnake:::$shouldNewSnake")
             val finishFields = grid.updateInService(shouldNewSnake)
             val newData = grid.getGridData
             newData.killHistory.foreach { i =>
@@ -173,18 +172,17 @@ object RoomActor {
               grid.cleanData()
               dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
             }
-
           }
-
-
           idle(roomId, grid, userMap, subscribersMap, tickCount + 1)
 
+        case ChildDead(child, childRef) =>
+          log.debug(s"roomActor 不再监管gameRecorder:$child,$childRef")
+          ctx.unwatch(childRef)
+          Behaviors.same
 
         case _ =>
           log.warn(s"${ctx.self.path} recv a unknow msg=${msg}")
           Behaviors.same
-
-
       }
     }
 
@@ -197,6 +195,15 @@ object RoomActor {
   def dispatch(subscribers: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]], gameOutPut: Protocol.GameMessage) = {
     //    log.info(s"dispatch:::$gameOutPut")
     subscribers.values.foreach {_ ! gameOutPut }
+  }
+
+  private def getGameRecorder(ctx: ActorContext[Command],roomId:Long):ActorRef[GameRecorder.Command] = {
+    val childName = "gameRecorder"
+    ctx.child(childName).getOrElse{
+      val actor = ctx.spawn(GameRecorder.create(),childName)
+      ctx.watchWith(actor,ChildDead(childName,actor))
+      actor
+    }.upcast[GameRecorder.Command]
   }
 
 }
