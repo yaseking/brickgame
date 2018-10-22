@@ -98,9 +98,9 @@ object Protocol {
 
   case class EncloseEvent(enclosure: List[(String, List[Point])]) extends GameEvent
 
-  case class Snapshot(grid: Map[Point, Spot], snakes: Map[String, SkDt], joinOrLeftEvent: List[GameEvent])
+  case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent])
 
-  case class GameInformation(startTime: Long)
+  case class GameInformation(startTime: Long, initFrame: Long)
 
 
   val frameRate = 150

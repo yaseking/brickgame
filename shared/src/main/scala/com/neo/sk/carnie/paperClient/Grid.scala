@@ -37,7 +37,7 @@ trait Grid {
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
 
-  def checkEvents(enclosure: List[(String, List[Point])]): Unit
+//  def checkEvents(enclosure: List[(String, List[Point])]): Unit
 
   def removeSnake(id: String): Option[SkDt] = {
     val r = snakes.get(id)
@@ -80,7 +80,7 @@ trait Grid {
     actionMap -= (frameCount - maxDelayed)
     historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
     //testEvents
-    checkEvents(isFinish)
+//    checkEvents(isFinish)
     frameCount += 1
     isFinish
   }

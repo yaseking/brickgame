@@ -37,11 +37,11 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   val fileName = s"carnie_${currentTime}"
 
-  val initState = Snapshot(grid, snakes, Nil)
+//  val initState = Snapshot(grid, snakes, Nil)
 
   var fileIndex = 0
 
-  var recorder: FrameOutputStream = getRecorder(fileName, fileIndex, GameInformation(currentTime), Some(initState))
+//  var recorder: FrameOutputStream = getRecorder(fileName, fileIndex, GameInformation(currentTime), Some(initState))
 
   val middleBuffer = new MiddleBufferInJvm(10 * 4096)
 
@@ -183,38 +183,42 @@ class GridOnServer(override val boundary: Point) extends Grid {
     isFinish
   }
 
-  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {
-    val encloseEventsEveryFrame = if(enclosure.isEmpty) Nil else List(EncloseEvent(enclosure))
-    val actionEventsEveryFrame = actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2))
-    val eventsEveryFrame: List[GameEvent] = actionEventsEveryFrame ::: encloseEventsEveryFrame
-    val evts = (eventsEveryFrame, stateEveryFrame) match {
-      case (Nil, None) => None
-      case (events, state) => Some(events, state)
-      case _ => None
-    }
-    eventFrames :+= evts
-
-    if (eventFrames.lengthCompare(maxRecordNum) > 0) { //每一百帧写入文件
-//      println(s"================")
-      eventFrames.foreach {
-        case Some((events, Some(state))) =>
-          recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
-        case Some((events, None)) => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
-        case None => recorder.writeEmptyFrame()
-      }
-      eventFrames = List.empty[Option[(List[DirectionEvent], Option[Snapshot])]]
-      fileRecordNum += eventFrames.size
-    }
-
-    if (fileRecordNum > fileMaxRecordNum) { //文件写满
-      recorder.finish()
-      fileIndex += 1
-      val initState = if(stateEveryFrame.nonEmpty) stateEveryFrame else Some(Snapshot(grid, snakes, Nil))
-      recorder = getRecorder(fileName, fileIndex, GameInformation(System.currentTimeMillis()), initState)
-    }
-    stateEveryFrame = None
-
+  def getEventSnapshot(frameCount: Long) = {
+    val state = historyStateMap.getOrElse(frameCount, (Map.empty, Map.empty))
+    (actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2)), Snapshot(state._2.toList, state._1.toList, Nil))
   }
+
+//  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {
+//    val encloseEventsEveryFrame = if(enclosure.isEmpty) Nil else List(EncloseEvent(enclosure))
+//    val actionEventsEveryFrame = actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2))
+//    val eventsEveryFrame: List[GameEvent] = actionEventsEveryFrame ::: encloseEventsEveryFrame
+//    val evts = (eventsEveryFrame, stateEveryFrame) match {
+//      case (Nil, None) => None
+//      case (events, state) => Some(events, state)
+//      case _ => None
+//    }
+//    eventFrames :+= evts
+//
+//    if (eventFrames.lengthCompare(maxRecordNum) > 0) { //每一百帧写入文件
+//      eventFrames.foreach {
+//        case Some((events, Some(state))) =>
+//          recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
+//        case Some((events, None)) => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
+//        case None => recorder.writeEmptyFrame()
+//      }
+//      eventFrames = List.empty[Option[(List[DirectionEvent], Option[Snapshot])]]
+//      fileRecordNum += eventFrames.size
+//    }
+//
+//    if (fileRecordNum > fileMaxRecordNum) { //文件写满
+//      recorder.finish()
+//      fileIndex += 1
+//      val initState = if(stateEveryFrame.nonEmpty) stateEveryFrame else Some(Snapshot(grid, snakes, Nil))
+//      recorder = getRecorder(fileName, fileIndex, GameInformation(System.currentTimeMillis()), initState)
+//    }
+//    stateEveryFrame = None
+//
+//  }
 
   override def updateSnakes(origin: String): List[(String, List[Point])] = {
     var finishFields = List.empty[(String, List[Point])]
@@ -395,8 +399,5 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
     finishFields
   }
-
-
-  //  def getFeededApple = feededApples
 
 }

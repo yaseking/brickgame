@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient._
 import org.seekloud.byteobject._
 import com.neo.sk.carnie.Boot.roomManager
+import com.neo.sk.carnie.core.GameRecorder.RecordData
 import com.neo.sk.carnie.utils.EsheepClient
 
 import scala.collection.mutable
@@ -142,19 +143,13 @@ object RoomActor {
           Behaviors.same
 
         case Sync =>
+          var finishFields: List[(String, List[Point])] = Nil
           if (userMap.nonEmpty) {
-            val shouldNewSnake =
-              if (grid.waitingListState) true
-              else if (tickCount % 20 == 5) true else false
-            val finishFields = grid.updateInService(shouldNewSnake)
+            val shouldNewSnake = if (grid.waitingListState) true else if (tickCount % 20 == 5) true else false
+            finishFields = grid.updateInService(shouldNewSnake)
             val newData = grid.getGridData
             newData.killHistory.foreach { i =>
               if (i.frameCount + 1 == newData.frameCount) {
-//                val score = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.area else 0
-//                val killing = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.k else 0
-//                val nickname = if(userMap.filter(_._1 == i.killedId).nonEmpty) userMap(i.killedId) else "Unknown"
-//                println("test: lalala")
-//                EsheepClient.inputBatRecord(i.killedId.toString, nickname, killing, 1, score, "", 1L, 2L)
                 dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId), i.killerName))
               }
             }
@@ -181,15 +176,24 @@ object RoomActor {
               dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
             }
           }
+
+          //for gameRecorder...
+          val (baseEvent, baseSnapshot) = grid.getEventSnapshot(grid.frameCount)
+          val recordData = if (finishFields.nonEmpty) RecordData(EncloseEvent(finishFields) :: baseEvent, Some(baseSnapshot))
+          else {
+            if (tickCount % 10 == 3) RecordData(baseEvent, None) else RecordData(baseEvent, None)
+          }
+          getGameRecorder(ctx, roomId, grid) ! recordData
+
           idle(roomId, grid, userMap, subscribersMap, tickCount + 1)
 
         case ChildDead(child, childRef) =>
-          log.debug(s"roomActor 不再监管gameRecorder:$child,$childRef")
+          log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
           ctx.unwatch(childRef)
           Behaviors.same
 
         case _ =>
-          log.warn(s"${ctx.self.path} recv a unknow msg=${msg}")
+          log.warn(s"${ctx.self.path} recv a unknow msg=$msg")
           Behaviors.same
       }
     }
@@ -205,10 +209,10 @@ object RoomActor {
     subscribers.values.foreach {_ ! gameOutPut }
   }
 
-  private def getGameRecorder(ctx: ActorContext[Command],roomId:Long):ActorRef[GameRecorder.Command] = {
+  private def getGameRecorder(ctx: ActorContext[Command],roomId:Long, grid: GridOnServer):ActorRef[GameRecorder.Command] = {
     val childName = "gameRecorder"
     ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(GameRecorder.create(),childName)
+      val actor = ctx.spawn(GameRecorder.create(roomId, grid.getEventSnapshot(grid.frameCount)._2, GameInformation(System.currentTimeMillis(), grid.frameCount)),childName)
       ctx.watchWith(actor,ChildDead(childName,actor))
       actor
     }.upcast[GameRecorder.Command]

@@ -24,7 +24,7 @@ object RecordGame {
     if(!dir.exists()){
       dir.mkdir()
     }
-    val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
+    val file = AppSettings.gameDataDirectoryPath + name + "_" + fileName + s"_$index"
     val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
     val initStateBytes = initStateOpt.map{
       case t: Snapshot =>
