@@ -9,23 +9,23 @@ package object paperClient {
 
   sealed trait Spot
 
-  case class Body(id: Long, fid: Option[Long]) extends Spot
+  case class Body(id: String, fid: Option[String]) extends Spot
 
-  case class Field(id: Long) extends Spot
+  case class Field(id: String) extends Spot
 
   case object Border extends Spot
 
   case object Blank extends Spot
 
-  case class Score(id: Long, n: String, k: Int, area: Int = 0)
+  case class Score(id: String, n: String, k: Int, area: Int = 0)
 
-  case class Bd(id: Long, fid: Option[Long], x: Float, y: Float)
+  case class Bd(id: String, fid: Option[Long], x: Float, y: Float)
 
-  case class Fd(id: Long, x: Float, y: Float)
+  case class Fd(id: String, x: Float, y: Float)
 
   case class Bord(x: Float, y: Float)
 
-  case class Kill(killedId: Long, killerId: Long, killerName: String,frameCount:Long)
+  case class Kill(killedId: String, killerId: String, killerName: String,frameCount:Long)
 
   case class BaseScore(kill: Int, area: Int, startTime: Long, endTime: Long)
 
@@ -46,7 +46,7 @@ package object paperClient {
   }
 
   case class SkDt(
-                   id: Long,
+                   id: String,
                    name: String,
                    color: String,
                    startPoint: Point,
@@ -57,7 +57,7 @@ package object paperClient {
 
   case class UpdateSnakeInfo(
                               data: SkDt,
-                              bodyInField : Option[Long] = None
+                              bodyInField : Option[String] = None
                             )
 
 

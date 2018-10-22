@@ -6,55 +6,59 @@ package com.neo.sk.carnie.ptcl
   * Time: 14:37
   */
 object RoomApiProtocol {
+
   trait CommonRsp {
     val errCode: Int
     val msg: String
   }
 
   case class PlayerIdInfo(
-    playerId: String
-  )
+                           playerId: String
+                         )
+
   case class PlayerInfo(
-    playerList:List[(Long,String)]
-  )
+                         playerList: List[(String, String)]
+                       )
+
   case class RoomIdInfo(
-    roomId: Int
-  )
+                         roomId: Int
+                       )
 
   case class RoomIdReq(
-    roomId: Int
-  )
+                        roomId: Int
+                      )
 
   case class RoomIdRsp(
-    data: RoomIdInfo,
-    errCode: Int = 0,
-    msg: String = "OK"
-  )
+                        data: RoomIdInfo,
+                        errCode: Int = 0,
+                        msg: String = "OK"
+                      )
+
   case class PlayerListRsp(
-    data: PlayerInfo,
-    errCode: Int = 0,
-    msg: String = "OK"
-  )
+                            data: PlayerInfo,
+                            errCode: Int = 0,
+                            msg: String = "OK"
+                          )
+
   case class RoomListRsp(
-    data: RoomListInfo,
-    errCode: Int = 0,
-    msg: String = "OK"
-  )
+                          data: RoomListInfo,
+                          errCode: Int = 0,
+                          msg: String = "OK"
+                        )
 
   case class RoomListInfo(
-    roomList:List[Int]
-  )
+                           roomList: List[Int]
+                         )
 
   final case class ErrorRsp(
-    errCode: Int,
-    msg: String
-  ) extends CommonRsp
+                             errCode: Int,
+                             msg: String
+                           ) extends CommonRsp
 
   final case class SuccessRsp(
-    errCode: Int = 0,
-    msg: String = "ok"
-  ) extends CommonRsp
-
+                               errCode: Int = 0,
+                               msg: String = "ok"
+                             ) extends CommonRsp
 
 
 }

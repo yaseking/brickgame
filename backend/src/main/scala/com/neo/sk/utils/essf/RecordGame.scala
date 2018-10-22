@@ -16,7 +16,7 @@ import org.seekloud.essf.io.FrameOutputStream
 object RecordGame {
   val utf8 = "utf-8"
 
-  def getRecorder(fileName:String, index:Int, gameInformation: GameInformation, initStateOpt:Option[State] = None): FrameOutputStream = {
+  def getRecorder(fileName:String, index:Int, gameInformation: GameInformation, initStateOpt:Option[Snapshot] = None): FrameOutputStream = {
     val middleBuffer = new MiddleBufferInJvm(10 * 4096)
     val name = "carnie"
     val version = "0.1"
@@ -27,7 +27,7 @@ object RecordGame {
     val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
     val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
     val initStateBytes = initStateOpt.map{
-      case t: State =>
+      case t: Snapshot =>
         t.fillMiddleBuffer(middleBuffer).result()
     }.getOrElse(Array[Byte]())
     val recorder = new FrameOutputStream(file)

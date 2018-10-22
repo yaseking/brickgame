@@ -26,63 +26,60 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
 
 
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, PlayerIdInfo]]){
+    entity(as[Either[Error, PlayerIdInfo]]) {
       case Right(req) =>
-      dealFutureResult {
-        val msg:Future[Option[Int]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
-        msg.map{
-          case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid)))
-          case _ =>
-            log.info("get roomId error")
-            complete(ErrorRsp(100010,"get roomId error"))
+        dealFutureResult {
+          val msg: Future[Option[Int]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
+          msg.map {
+            case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid)))
+            case _ =>
+              log.info("get roomId error")
+              complete(ErrorRsp(100010, "get roomId error"))
+          }
         }
-      }
 
       case Left(error) =>
         log.warn(s"some error: $error")
-        complete(ErrorRsp(110000,"parse error"))
+        complete(ErrorRsp(110000, "parse error"))
     }
   }
 
   private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RoomIdReq]]){
+    entity(as[Either[Error, RoomIdReq]]) {
       case Right(req) =>
-      val msg:Future[List[(Long,String)]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-      dealFutureResult{
-        msg.map{ plist =>
-            if(plist.nonEmpty)
+        val msg: Future[List[(String, String)]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+        dealFutureResult {
+          msg.map { plist =>
+            if (plist.nonEmpty)
               complete(PlayerListRsp(PlayerInfo(plist)))
-            else{
+            else {
               log.info("get playerlist error")
-              complete(ErrorRsp(100001,"get playerlist error"))
+              complete(ErrorRsp(100001, "get playerlist error"))
             }
+          }
         }
-      }
 
       case Left(error) =>
         log.warn(s"some error: $error")
-        complete(ErrorRsp(110000,"parse error"))
+        complete(ErrorRsp(110000, "parse error"))
     }
   }
 
   private val getRoomList = (path("getRoomList") & get & pathEndOrSingleSlash) {
-    dealFutureResult{
-      val msg:Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
-      msg.map{
-         allroom =>
-           if(allroom.nonEmpty)
-             complete(RoomListRsp(RoomListInfo(allroom)))
-           else{
-             log.info("get all room error")
-             complete(ErrorRsp(100000,"get all room error"))
-           }
+    dealFutureResult {
+      val msg: Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
+      msg.map {
+        allroom =>
+          if (allroom.nonEmpty)
+            complete(RoomListRsp(RoomListInfo(allroom)))
+          else {
+            log.info("get all room error")
+            complete(ErrorRsp(100000, "get all room error"))
+          }
 
       }
     }
   }
-
-
-
 
 
   val roomApiRoutes: Route = pathPrefix("roomApi") {

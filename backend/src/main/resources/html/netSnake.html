@@ -13,7 +13,6 @@
 
 <canvas id="RankView" tabindex="1" style="z-index: 3;position: absolute;"></canvas>
 <canvas id="GameView" tabindex="1" style="position: relative;"></canvas>
-<!--<canvas id="Background" tabindex="1" style="position: relative;"></canvas>-->
 <canvas id="BorderView" tabindex="1"></canvas>
 
 
@@ -87,7 +86,7 @@
   <script>$('#ruleModal').modal('show')</script>
   <script>
       $(document).keydown(function(event){
-          if(event.keyCode == 82){
+          if(event.keyCode === 82){
               $('#ruleModal').modal('toggle');
           }
       });

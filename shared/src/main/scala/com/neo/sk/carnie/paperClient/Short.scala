@@ -144,7 +144,7 @@ object Short {
 
   case class InsidePoint(point: Point, direct: Point)
 
-  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: Long, grid: Map[Point, Spot], turnPoints: List[Point]) = {
+  def breadthFirst(startPointOpt: Option[Point], boundary: List[Point], snakeId: String, grid: Map[Point, Spot], turnPoints: List[Point]) = {
     var count = 0
     var newGrid = grid
     val colorQueue = new mutable.Queue[InsidePoint]()
@@ -273,7 +273,7 @@ object Short {
     }
   }
 
-  def detection(boundary: List[Point], snakeId: Long, grid: Map[Point, Spot]) = {
+  def detection(boundary: List[Point], snakeId: String, grid: Map[Point, Spot]) = {
     var newGrid = grid
     var pointMap = Map.empty[Float, (Float, Float)]
 

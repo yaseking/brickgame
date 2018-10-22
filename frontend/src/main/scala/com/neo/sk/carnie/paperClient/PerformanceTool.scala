@@ -17,7 +17,7 @@ object PerformanceTool {
   private def addFps() = {
     val time = System.currentTimeMillis()
     renderTimes += 1
-    println(s"addFps time:${time - tempTime}")
+//    println(s"addFps time:${time - tempTime}")
     tempTime = time
     if (time - lastRenderTime > 1000) {
       lastRenderTime = time
