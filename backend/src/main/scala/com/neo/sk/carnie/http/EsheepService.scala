@@ -1,6 +1,5 @@
 package com.neo.sk.carnie.http
 
-import com.neo.sk.carnie.utils.CirceSupport
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -11,8 +10,9 @@ import io.circe.generic.auto._
 import com.neo.sk.carnie.Boot.executor
 import io.circe.Error
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
+import com.neo.sk.utils.CirceSupport
 
-trait EsheepService extends ServiceUtils with CirceSupport with PlayerService{
+trait EsheepService extends ServiceUtils with CirceSupport {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -25,7 +25,7 @@ trait EsheepService extends ServiceUtils with CirceSupport with PlayerService{
 //      'roomId.as[Int].?,
 //      'accessCode.as[String],
 //      'appId.as[String],
-//      'secureKey.as[String],
+//      'secureKey.as[String]
 //    ) {
 //      case (playerId, playerName, roomId, accessCode, appId, secureKey) =>
 //        if(AppSettings.appSecureMap.contains(appId) && (AppSettings.appSecureMap(appId) == secureKey)){

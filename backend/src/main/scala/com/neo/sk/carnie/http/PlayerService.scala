@@ -35,7 +35,7 @@ trait PlayerService {
 
 //  lazy val playGround = PlayGround.create(system)
 
-  val idGenerator = new AtomicInteger(1000000)
+//  val idGenerator = new AtomicInteger(1000000)
 
   private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.SnakeService")
 
@@ -46,14 +46,18 @@ trait PlayerService {
         getFromResource("html/netSnake.html")
       } ~
         path("join") {
-          parameter('name) { name =>
-            handleWebSocketMessages(webSocketChatFlow(sender = name))
+          parameter(
+            'id.as[String],
+            'name.as[String]
+          ) { (id, name) =>
+              //todo
+            handleWebSocketMessages(webSocketChatFlow(id, sender = name))
           }
         }
     }
   }
 
-  def webSocketChatFlow(sender: String): Flow[Message, Message, Any] = {
+  def webSocketChatFlow(playedId: String, sender: String): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
     import org.seekloud.byteobject.MiddleBufferInJvm
@@ -81,7 +85,7 @@ trait PlayerService {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(RoomManager.joinGame(roomManager, idGenerator.getAndIncrement().toLong.toString, sender))
+      .via(RoomManager.joinGame(roomManager, playedId, sender))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)

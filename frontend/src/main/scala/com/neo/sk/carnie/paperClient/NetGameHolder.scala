@@ -87,9 +87,10 @@ object NetGameHolder extends js.JSApp {
             if(rsp.errCode==0) {
 //              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
             } else {
+              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
               val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
               println(s"playerName: $playerName")
-              webSocketClient.joinGame(playerName)
+              webSocketClient.joinGame(playerId, playerName)
               println(s"err: ${rsp.msg}")
             }
           case Left(e) =>

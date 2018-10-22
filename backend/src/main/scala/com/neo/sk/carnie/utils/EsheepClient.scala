@@ -8,6 +8,7 @@ import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.ptcl._
+import com.neo.sk.utils.CirceSupport
 
 object EsheepClient extends HttpUtil with CirceSupport {
 
