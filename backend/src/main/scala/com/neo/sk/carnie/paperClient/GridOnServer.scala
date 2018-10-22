@@ -51,7 +51,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   var stateEveryFrame :Option[Snapshot] = None
 
-  var startTimeMap = Map.empty[Long, Long]
+  var startTimeMap = Map.empty[String, Long]
 
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[String, Score]
@@ -216,10 +216,10 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   }
 
-  override def updateSnakes(origin: String): List[(Long, List[Point])] = {
-    var finishFields = List.empty[(Long, List[Point])]
+  override def updateSnakes(origin: String): List[(String, List[Point])] = {
+    var finishFields = List.empty[(String, List[Point])]
 
-    def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Long, UpdateSnakeInfo] = {
+    def updateASnake(snake: SkDt, actMap: Map[String, Int]): Either[String, UpdateSnakeInfo] = {
       val keyCode = actMap.get(snake.id)
       val newDirection = {
         val keyDirection = keyCode match {
@@ -243,7 +243,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
           case Some(x: Body) => //进行碰撞检测
             debug(s"snake[${snake.id}] hit wall.")
             if (x.id != snake.id) { //撞到了别人的身体
-              killHistory += x.id -> (snake.id, snake.name,frameCount)
+              killHistory += x.id -> (snake.id, snake.name, frameCount)
             }
             mayBeDieSnake += x.id -> snake.id
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
@@ -301,13 +301,13 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
     }
 
-    var mapKillCounter = Map.empty[Long, Int]
+    var mapKillCounter = Map.empty[String, Int]
     var updatedSnakes = List.empty[UpdateSnakeInfo]
-    var killedSnaked = List.empty[Long]
+    var killedSnaked = List.empty[String]
 
     historyStateMap += frameCount -> (snakes, grid)
 
-    val acts = actionMap.getOrElse(frameCount, Map.empty[Long, Int])
+    val acts = actionMap.getOrElse(frameCount, Map.empty[String, Int])
 
     snakes.values.map(updateASnake(_, acts)).foreach {
       case Right(s) =>
@@ -333,13 +333,13 @@ class GridOnServer(override val boundary: Point) extends Grid {
     }
 
     //if two (or more) headers go to the same point
-    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).flatMap{res =>
+    val snakesInDanger = updatedSnakes.groupBy(_.data.header).filter(_._2.lengthCompare(1) > 0).flatMap { res =>
       val sids = res._2.map(_.data.id)
       grid.get(res._1) match {
         case Some(Field(fid)) if sids.contains(fid) =>
-          sids.filterNot(_==fid).foreach{ killedId=>
+          sids.filterNot(_ == fid).foreach { killedId =>
             mayBeDieSnake += killedId -> fid
-            killHistory += killedId -> (killedId, snakes.find(_._1==fid).get._2.name,frameCount)
+            killHistory += killedId -> (killedId, snakes.find(_._1 == fid).get._2.name, frameCount)
           }
           sids.filterNot(_ == fid)
         case _ => sids
@@ -353,24 +353,18 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
-    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt(-1L, "", "",Point(0, 0), Point(-1, -1)))).data.header)).keySet
+    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1)))).data.header)).keySet
 
-    mayBeDieSnake = Map.empty[Long, Long]
-    mayBeSuccess = Map.empty[Long, Map[Point, Spot]]
+    mayBeDieSnake = Map.empty[String, String]
+    mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
-    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0 }).toSet.filter(_ != 0) //若领地全被其它玩家圈走则死亡
+    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0.toString }).toSet.filter(_ != 0.toString) //若领地全被其它玩家圈走则死亡
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
     //    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
 
     finalDie.foreach { sid =>
-      println("Test: A snake die!")
-      //                val score = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.area else 0
-      //                val killing = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.k else 0
-      //                val nickname = if(userMap.filter(_._1 == i.killedId).nonEmpty) userMap(i.killedId) else "Unknown"
-      //                println("test: lalala")
-      //                EsheepClient.inputBatRecord(i.killedId.toString, nickname, killing, 1, score, "", 1L, 2L)
       val score = grid.filter(_._2 match { case Body(id, _) if id == sid => true case _ => false }).toList.length
       val killing = if(snakes.contains(sid)) snakes(sid).kill else 0
       val nickname = if(snakes.contains(sid)) snakes(sid).name else "Unknown"

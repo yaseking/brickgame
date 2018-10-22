@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContextExecutor
   * Date: 8/26/2016
   * Time: 10:27 PM
   */
-trait HttpService extends PlayerService with ResourceService with EsheepService{
+trait HttpService extends PlayerService with ResourceService with EsheepService with RoomApiService{
 
 
   implicit val system: ActorSystem
@@ -28,7 +28,8 @@ trait HttpService extends PlayerService with ResourceService with EsheepService{
     pathPrefix("carnie") {
       netSnakeRoute ~
       resourceRoutes ~
-      esheepRoute ~ roomApiRoutes
+      esheepRoute ~
+      roomApiRoutes
     }
 
 

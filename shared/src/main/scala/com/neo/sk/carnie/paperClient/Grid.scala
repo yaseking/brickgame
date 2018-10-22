@@ -30,9 +30,9 @@ trait Grid {
   var actionMap = Map.empty[Long, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[String, (String, String, Long)] //killedId, (killerId, killerName,frameCount)
   var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
-  private var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
-  private var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
-  private var historyStateMap = Map.empty[Long, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
+  var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
+  var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
+  var historyStateMap = Map.empty[Long, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -108,7 +108,7 @@ trait Grid {
     p + Point(2 + random.nextInt(2), 2 + random.nextInt(2))
   }
 
-  private[this] def updateSnakes(origin: String): List[(String, List[Point])] = {
+  def updateSnakes(origin: String): List[(String, List[Point])] = {
     var finishFields = List.empty[(String, List[Point])]
 
     def updateASnake(snake: SkDt, actMap: Map[String, Int]): Either[String, UpdateSnakeInfo] = {
@@ -257,15 +257,6 @@ trait Grid {
     //    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
 
     finalDie.foreach { sid =>
-      println("Test: A snake die!")
-      //                val score = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.area else 0
-      //                val killing = if(grid.currentRank.filter(_.id == i.killedId).nonEmpty) grid.currentRank.filter(_.id == i.killedId).head.k else 0
-      //                val nickname = if(userMap.filter(_._1 == i.killedId).nonEmpty) userMap(i.killedId) else "Unknown"
-      //                println("test: lalala")
-      //                EsheepClient.inputBatRecord(i.killedId.toString, nickname, killing, 1, score, "", 1L, 2L)
-      val score = grid.filter(_._2 match { case Body(id, _) if id == sid => true case _ => false }).toList.length
-      val killing = if(snakes.contains(sid)) snakes(sid).kill else 0
-      val nickname = if(snakes.contains(sid)) snakes(sid).name else "Unknown"
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
