@@ -14,6 +14,8 @@ import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
 import io.circe.Error
 
+import scala.collection.mutable
+
 
 /**
   * Created by dry on 2018/10/18.
@@ -29,12 +31,12 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
     entity(as[Either[Error, PlayerIdInfo]]) {
       case Right(req) =>
         dealFutureResult {
-          val msg: Future[Option[Int]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
+          val msg: Future[Option[(Int, mutable.HashSet[(String, String)])]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
           msg.map {
-            case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid)))
+            case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid._1)))
             case _ =>
-              log.info("get roomId error")
-              complete(ErrorRsp(100010, "get roomId error"))
+              log.info("this player doesn't exist")
+              complete(ErrorRsp(100010, "get roomId error:this player doesn't exist"))
           }
         }
 
