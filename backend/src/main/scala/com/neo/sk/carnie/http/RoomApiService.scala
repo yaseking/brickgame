@@ -106,9 +106,9 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
       case Right(req) =>
         dealFutureResult{
           RecordDAO.getRecordListByTime(req.startTime,req.endTime,req.lastRecordId,req.count).map{recordL =>
-            complete(RecordListRsp(records(recordL.toList.map{ r =>
-              val userList = recordL.map(i => i._2).filter(_.recordId == r._1.recordId).map(_.userId)
-              recordInfo(r._1.recordId,r._1.roomId,r._1.startTime,r._1.endTime,userList.length,userList)
+            complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+              val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
+              recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
             })))
           }
         }
@@ -123,9 +123,9 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
       case Right(req) =>
         dealFutureResult{
           RecordDAO.getRecordListByPlayer(req.playerId,req.lastRecordId,req.count).map{recordL =>
-            complete(RecordListRsp(records(recordL.toList.map{ r =>
-              val userList = recordL.map(i => i._2).filter(_.recordId == r._1.recordId).map(_.userId)
-              recordInfo(r._1.recordId,r._1.roomId,r._1.startTime,r._1.endTime,userList.length,userList)
+            complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+              val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
+              recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
             })))
           }
         }

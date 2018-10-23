@@ -18,7 +18,9 @@ object RecordDAO {
   def getRecordList(lastRecord: Long,count: Int)= {
     if(lastRecord == 0L){
       val action = {
-        tGameRecord.sortBy(_.recordId.desc).take(count) join tUserInRecord
+        tGameRecord.sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
+          game.recordId === user.recordId
+        }
       }.result
       db.run(action)
     }
