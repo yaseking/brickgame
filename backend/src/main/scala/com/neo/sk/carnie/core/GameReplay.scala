@@ -3,14 +3,14 @@ package com.neo.sk.carnie.core
 import akka.actor.typed.{ActorRef, Behavior, PostStop}
 import com.neo.sk.carnie.paperClient.{Protocol, WsSourceProtocol}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
-import com.neo.sk.carnie.common.AppSettings
+import com.neo.sk.carnie.common.{AppSettings, KeyData}
 import com.neo.sk.carnie.models.SlickTables
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.utils.essf.RecordGame.getRecorder
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
-import org.seekloud.essf.io.{FrameInputStream, FrameOutputStream}
+import org.seekloud.essf.io.{FrameData, FrameInputStream, FrameOutputStream}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
@@ -74,7 +74,7 @@ object GameReplay {
                   replay,
                   metaDataDecode(info.simulatorMetadata).right.get,
                   // todo mutableInfo
-                  userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+                  userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
                 ))
             }catch {
               case e:Throwable=>
@@ -91,8 +91,8 @@ object GameReplay {
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
            //           initState:TankGameEvent.TankGameSnapshot,
-           userMap:List[(EssfMapKey,EssfMapJoinLeftInfo)],
-           userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None
+           userMap:List[((Protocol.UserBaseInfo, Protocol.UserJoinLeft))],
+           userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None
           )(
             implicit stashBuffer:StashBuffer[Command],
             timer:TimerScheduler[Command],
@@ -104,9 +104,10 @@ object GameReplay {
           log.info("start new replay!")
           timer.cancel(GameLoopKey)
           timer.cancel(BehaviorWaitKey)
-          userMap.find(_._1.userId == msg.userId) match {
+          userMap.find(_._1.id == msg.userId) match {
             case Some(u)=>
-              dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
+              //todo dispatch gameInformation
+//              dispatchTo(msg.subscriber, GameInformation)
               log.info(s" set replay from frame=${msg.f}")
               //fixme 跳转帧数goto失效
               //              fileReader.reset()
@@ -119,7 +120,7 @@ object GameReplay {
               log.info(s"replay from frame=${fileReader.getFramePosition}")
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
-                work(fileReader,metaData,userMap,Some(msg.userActor))
+                work(fileReader,metaData,userMap,Some(msg.subscriber))
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
                 Behaviors.same
@@ -194,6 +195,5 @@ object GameReplay {
           Behavior.same
       }
     }
-}
 
 }

@@ -162,8 +162,8 @@ object GameRecorder {
               case -1l =>(essf._1, UserJoinLeft(essf._2.joinFrame, lastFrame))
               case _ => essf
             }
-          }.toList.fillMiddleBuffer(middleBuffer).result()
-          recorder.putMutableInfo(KeyData.essfMapKeyName, mapInfo)
+          }.toList
+          recorder.putMutableInfo(KeyData.essfMapKeyName, mapInfo.fillMiddleBuffer(middleBuffer).result())
           recorder.finish()
 
           val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"

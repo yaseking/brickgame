@@ -9,7 +9,6 @@ object Protocol {
 
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
-
   case class GridDataSync(
                            frameCount: Long,
                            snakes: List[SkDt],
@@ -106,9 +105,14 @@ object Protocol {
 
   case class UserBaseInfo(id:String, name: String)
 
+  case class EssfMapInfo(m:List[(UserBaseInfo, UserJoinLeft)])
+
   //for replay
   sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
 
+  /**
+    * replay-frame-msg*/
+  case class ReplayFrameData(ws:Array[Byte]) extends WsSourceProtocol.WsMsgSource
 
   val frameRate = 150
 
