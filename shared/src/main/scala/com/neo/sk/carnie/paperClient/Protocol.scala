@@ -75,8 +75,11 @@ object Protocol {
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
 
+  sealed trait WsSendMsg
+  case object WsSendComplete extends WsSendMsg
+  case class WsSendFailed(ex: Throwable) extends WsSendMsg
 
-  sealed trait UserAction
+  sealed trait UserAction extends WsSendMsg
 
   case class Key(id: String, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
 

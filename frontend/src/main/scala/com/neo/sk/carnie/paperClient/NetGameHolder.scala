@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -9,14 +8,8 @@ import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
-import com.neo.sk.carnie.Routes.Esheep
-import com.neo.sk.carnie.ptcl.SuccessRsp
 import io.circe.syntax._
 import io.circe.generic.auto._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import com.neo.sk.carnie.util._
-
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 
