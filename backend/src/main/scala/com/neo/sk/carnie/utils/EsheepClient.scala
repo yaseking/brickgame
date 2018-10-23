@@ -67,8 +67,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
-              println(s"nickName: ${rsp.data.playerInfo.nickName}")
-              Right(rsp.data.playerInfo)
+              println(s"nickName: ${rsp.data.nickName}")
+              Right(rsp.data)
             } else {
               log.error(s"verifyAccessCode error $esheepUrl rsp.error ${rsp.msg}")
               Left("error")
@@ -93,6 +93,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
                       startTime: Long,
                       endTime: Long
                     ) = {
+    println("start inputBatRecord!")
     val token = KeyData.token
     val gameId = AppSettings.esheepGameId
     println(s"token: $token")
@@ -109,6 +110,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[ErrorRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
+              println("finish inputBatRecord!")
               Right(rsp)
             } else {
               log.error(s"inputBatRecord error $esheepUrl rsp.error${rsp.msg}")
