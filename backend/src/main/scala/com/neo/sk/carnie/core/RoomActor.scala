@@ -100,7 +100,7 @@ object RoomActor {
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
-          gameEvent += ((grid.frameCount, JoinEvent(id)))
+          gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           Behaviors.same
 
         case LeftRoom(id, name) =>
@@ -108,7 +108,7 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
-          gameEvent += ((grid.frameCount, LeftEvent(id)))
+          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserLeft(actor) =>
@@ -119,7 +119,7 @@ object RoomActor {
             userMap.remove(id)
             grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
             roomManager ! RoomManager.UserLeft(id)
-            gameEvent += ((grid.frameCount, LeftEvent(id)))
+            gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           }
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
@@ -146,8 +146,9 @@ object RoomActor {
           Behaviors.same
 
         case Sync =>
-          val (actionEvent, snapshot) = grid.getEventSnapshot(grid.frameCount)
-          val joinOrLeftEvent = gameEvent.filter(_._1 == grid.frameCount)
+          val frame = grid.frameCount
+          val (actionEvent, snapshot) = grid.getEventSnapshot(frame)
+          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
           val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
 
@@ -186,7 +187,7 @@ object RoomActor {
           }
 
           //for gameRecorder...
-          val recordData = if (finishFields.nonEmpty) RecordData(EncloseEvent(finishFields) :: baseEvent, snapshot) else RecordData(baseEvent, snapshot)
+          val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(finishFields) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
           idle(roomId, grid, userMap, subscribersMap, tickCount + 1, gameEvent)
 

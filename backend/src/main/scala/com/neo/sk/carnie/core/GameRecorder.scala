@@ -3,7 +3,7 @@ package com.neo.sk.carnie.core
 import akka.actor.typed.{Behavior, PostStop}
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
-import com.neo.sk.carnie.common.AppSettings
+import com.neo.sk.carnie.common.{AppSettings, KeyData}
 import com.neo.sk.carnie.models.SlickTables
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -11,9 +11,11 @@ import com.neo.sk.utils.essf.RecordGame.getRecorder
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
 import org.seekloud.essf.io.FrameOutputStream
+
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 import org.slf4j.LoggerFactory
+
 import scala.collection.mutable
 import scala.util.{Failure, Success}
 import com.neo.sk.carnie.Boot.executor
@@ -25,7 +27,7 @@ object GameRecorder {
 
   sealed trait Command
 
-  final case class RecordData(event: (List[Protocol.GameEvent], Protocol.Snapshot)) extends Command
+  final case class RecordData(frame: Long, event: (List[Protocol.GameEvent], Protocol.Snapshot)) extends Command
 
   final case object SaveDate extends Command
 
@@ -60,34 +62,42 @@ object GameRecorder {
       Behaviors.withTimers[Command] { implicit timer =>
         timer.startSingleTimer(SaveDateKey, SaveInFile, saveTime)
         val recorder: FrameOutputStream = getRecorder(getFileName(roomId, gameInfo.startTime), gameInfo.index, gameInfo, Some(initState))
-        idle(recorder, gameInfo)
+        idle(recorder, gameInfo, lastFrame = gameInfo.initFrame)
       }
     }
   }
 
   def idle(recorder: FrameOutputStream,
            gameInfo: GameInformation,
-           userMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String](),
-           userHistoryMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String](),
+           essfMap: mutable.HashMap[UserBaseInfo,UserJoinLeft] = mutable.HashMap[UserBaseInfo,UserJoinLeft](),
+           userMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
+           userHistoryMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
            eventRecorder: List[(List[Protocol.GameEvent], Option[Protocol.Snapshot])] = Nil,
+           lastFrame: Long,
            tickCount: Long = 1
           )(implicit stashBuffer: StashBuffer[Command],
             timer: TimerScheduler[Command],
             middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case RecordData(event) => //记录数据
+        case RecordData(frame, event) => //记录数据
           val snapshot =
-            if(event._1.exists{case Protocol.DirectionEvent(_,_) => false case _ => true} || tickCount % 50 == 0) Some(event._2)
-            else None //是否做快照
+            if(event._1.exists{ case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true} ||
+              tickCount % 50 == 0) Some(event._2) else None //是否做快照
 
           event._1.foreach {
-            case Protocol.JoinEvent(id) =>
-              userMap += id
-              userHistoryMap += id
+            case Protocol.JoinEvent(id, nickName) =>
+              userMap.put(id, nickName)
+              userHistoryMap.put(id, nickName)
+              essfMap.put(UserBaseInfo(id, nickName), UserJoinLeft(frame, -1l))
 
-            case Protocol.LeftEvent(id) =>
-              userMap -= id
+            case Protocol.LeftEvent(id, nickName) =>
+              userMap.put(id, nickName)
+              essfMap.get(UserBaseInfo(id, nickName)) match {
+                case Some(joinInfo) => essfMap.put(UserBaseInfo(id, nickName), UserJoinLeft(joinInfo.joinFrame, frame))
+                case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
+              }
+
 
             case _ =>
           }
@@ -102,12 +112,12 @@ object GameRecorder {
             }
             newEventRecorder = Nil
           }
-          idle(recorder, gameInfo, userMap, userHistoryMap, newEventRecorder, tickCount + 1)
+          idle(recorder, gameInfo, essfMap, userMap, userHistoryMap, newEventRecorder, frame, tickCount + 1)
 
         case SaveInFile =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, SaveInFile, saveTime)
-          switchBehavior(ctx, "save", save(recorder, gameInfo, userMap, userHistoryMap))
+          switchBehavior(ctx, "save", save(recorder, gameInfo, essfMap, userMap, userHistoryMap, lastFrame))
 
         case _ =>
           Behaviors.unhandled
@@ -120,16 +130,16 @@ object GameRecorder {
         val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
           case Success(recordId) =>
-            val usersInRoom = userHistoryMap.map(uid => SlickTables.rUserInRecord(uid, recordId, gameInfo.roomId)).toSet
+            val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId)).toSet
             RecordDAO.saveUserInGame(usersInRoom).onComplete{
               case Success(_) =>
 
-              case Failure(_) =>
-                log.warn("save the detail of UserInGame in db fail...")
+              case Failure(e) =>
+                log.warn(s"save the detail of UserInGame in db fail...$e")
             }
 
           case Failure(e) =>
-            log.warn("save the detail of GameRecorder in db fail...")
+            log.warn(s"save the detail of GameRecorder in db fail...$e")
         }
         Behaviors.stopped
     }
@@ -137,19 +147,29 @@ object GameRecorder {
 
   def save(recorder: FrameOutputStream,
            gameInfo: GameInformation,
-           userMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String](),
-           userHistoryMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String]()
+           essfMap: mutable.HashMap[UserBaseInfo,UserJoinLeft] = mutable.HashMap[UserBaseInfo,UserJoinLeft](),
+           userMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
+           userHistoryMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
+           lastFrame: Long,
           )(implicit stashBuffer: StashBuffer[Command],
             timer: TimerScheduler[Command],
             middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case SaveInFile =>
+          val mapInfo = essfMap.map{ essf=>
+            essf._2.leftFrame match {
+              case -1l =>(essf._1, UserJoinLeft(essf._2.joinFrame, lastFrame))
+              case _ => essf
+            }
+          }.toList.fillMiddleBuffer(middleBuffer).result()
+          recorder.putMutableInfo(KeyData.essfMapKeyName, mapInfo)
           recorder.finish()
+
           val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
           RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
             case Success(recordId) =>
-              val usersInRoom = userHistoryMap.map(uid => SlickTables.rUserInRecord(uid, recordId, gameInfo.roomId)).toSet
+              val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId)).toSet
               RecordDAO.saveUserInGame(usersInRoom).onComplete{
                 case Success(_) =>
                   ctx.self ! SwitchBehavior("resetRecord", resetRecord(gameInfo, userMap, userHistoryMap))
@@ -172,19 +192,24 @@ object GameRecorder {
   }
 
   def resetRecord(gameInfo: GameInformation,
-                  userMap: mutable.ArrayBuffer[String],
-                  userHistoryMap: mutable.ArrayBuffer[String]
+                  userMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
+                  userHistoryMap: mutable.HashMap[String, String] = mutable.HashMap[String, String]()
                  )(implicit stashBuffer: StashBuffer[Command],
                                              timer: TimerScheduler[Command],
                                              middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case RecordData(event) => //新的文件初始化
+        case RecordData(frame, event) => //新的文件初始化
           val newUserMap = userMap
-          val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, 0)
+          val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, frame)
           val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, gameInfo, Some(event._2))
           val newEventRecorder = List((event._1, Some(event._2)))
-          switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newUserMap, newUserMap, newEventRecorder))
+          val newEssfMap = mutable.HashMap.empty[UserBaseInfo, UserJoinLeft]
+
+          newUserMap.foreach { user =>
+            newEssfMap.put(UserBaseInfo(user._1, user._2), UserJoinLeft(frame, -1L))
+          }
+          switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newEssfMap, newUserMap, newUserMap, newEventRecorder, frame))
 
         case _ =>
           Behaviors.unhandled
