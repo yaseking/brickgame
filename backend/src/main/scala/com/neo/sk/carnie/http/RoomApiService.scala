@@ -6,6 +6,7 @@ import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
+import com.neo.sk.carnie.models.dao.RecordDAO
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
 import io.circe.generic.auto._
@@ -49,15 +50,14 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
   private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
     entity(as[Either[Error, RoomIdReq]]) {
       case Right(req) =>
-        val msg: Future[List[(String, String)]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+        val msg: Future[Option[List[(String, String)]]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
         dealFutureResult {
-          msg.map { plist =>
-            if (plist.nonEmpty)
-              complete(PlayerListRsp(PlayerInfo(plist)))
-            else {
-              log.info("get playerlist error")
-              complete(ErrorRsp(100001, "get playerlist error"))
-            }
+          msg.map {
+            case Some(plist) =>
+              complete(PlayerListRsp(PlayerInfo(plist.map(p => PlayerIdName(p._1,p._2)))))
+            case None =>
+              log.info("get player list error")
+              complete(ErrorRsp(100001, "get player list error"))
           }
         }
 
@@ -83,9 +83,62 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
     }
   }
 
+  private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, RecordListReq]]) {
+      case Right(req) =>
+        dealFutureResult{
+          RecordDAO.getRecordList(req.lastRecordId,req.count).map{recordL =>
+            complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+              val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
+              recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
+            })))
+          }
+        }
+
+      case Left(error) =>
+        log.warn(s"some error: $error")
+        complete(ErrorRsp(110000, "parse error"))
+    }
+  }
+
+  private val getRecordListByTime = (path("getRecordListByTime") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, RecordByTimeReq]]) {
+      case Right(req) =>
+        dealFutureResult{
+          RecordDAO.getRecordListByTime(req.startTime,req.endTime,req.lastRecordId,req.count).map{recordL =>
+            complete(RecordListRsp(records(recordL.toList.map{ r =>
+              val userList = recordL.map(i => i._2).filter(_.recordId == r._1.recordId).map(_.userId)
+              recordInfo(r._1.recordId,r._1.roomId,r._1.startTime,r._1.endTime,userList.length,userList)
+            })))
+          }
+        }
+      case Left(error) =>
+        log.warn(s"some error: $error")
+        complete(ErrorRsp(110000, "parse error"))
+    }
+  }
+
+  private val getRecordListByPlayer = (path("getRecordListByPlayer") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, RecordByPlayerReq]]) {
+      case Right(req) =>
+        dealFutureResult{
+          RecordDAO.getRecordListByPlayer(req.playerId,req.lastRecordId,req.count).map{recordL =>
+            complete(RecordListRsp(records(recordL.toList.map{ r =>
+              val userList = recordL.map(i => i._2).filter(_.recordId == r._1.recordId).map(_.userId)
+              recordInfo(r._1.recordId,r._1.roomId,r._1.startTime,r._1.endTime,userList.length,userList)
+            })))
+          }
+        }
+      case Left(error) =>
+        log.warn(s"some error: $error")
+        complete(ErrorRsp(110000, "parse error"))
+    }
+  }
+
+
 
   val roomApiRoutes: Route = pathPrefix("roomApi") {
-    getRoomId ~ getRoomPlayerList ~ getRoomList
+    getRoomId ~ getRoomPlayerList ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ getRecordListByPlayer
   }
 
 
