@@ -56,7 +56,7 @@ object RoomManager {
 
   case class UserLeft(id: String) extends Command
 
-  case class PreWatchGame(roomId: Int, uid: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class PreWatchGame(roomId: Int, playerId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   private case object UnKnowAction extends Command
 
@@ -92,9 +92,9 @@ object RoomManager {
           }
           Behaviors.same
 
-        case m@PreWatchGame(roomId, uid, subscriber) =>
+        case m@PreWatchGame(roomId, playerId, subscriber) =>
           log.info(s"got $m")
-          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(uid, subscriber)
+          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, subscriber)
           Behaviors.same
 
         case msg@Left(id, name) =>

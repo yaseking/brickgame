@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.core
 
 import java.awt.event.KeyEvent
+import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
@@ -43,6 +44,8 @@ object RoomActor {
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
 
   private case object Sync extends Command
+
+  private val watcherIdGenerator = new AtomicInteger(100)
 
 
   final case class SwitchBehavior(
@@ -91,6 +94,7 @@ object RoomActor {
     Behaviors.receive { (ctx, msg) =>
       msg match {
         case JoinRoom(id, name, subscriber) =>
+          println(s"roomId: $roomId")
           log.info(s"got $msg")
           userMap.put(id, name)
           subscribersMap.put(id, subscriber)
@@ -101,9 +105,13 @@ object RoomActor {
           dispatch(subscribersMap, gridData)
           Behaviors.same
 
-        case WatchGame(uid, subscriber) =>
+        case WatchGame(playerId, subscriber) =>
+          val watchId = watcherIdGenerator.getAndIncrement().toString
+          subscribersMap.put(watchId, subscriber)
+          dispatchTo(subscribersMap, watchId, Protocol.Id(playerId))
           ctx.watchWith(subscriber, UserLeft(subscriber))
-          dispatchTo(subscribersMap, uid, Protocol.Id(uid))
+          val gridData = grid.getGridData
+          dispatch(subscribersMap, gridData)
           Behaviors.same
 
         case LeftRoom(id, name) =>

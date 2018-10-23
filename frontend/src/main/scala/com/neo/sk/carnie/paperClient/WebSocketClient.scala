@@ -15,7 +15,7 @@ import org.seekloud.byteobject.ByteObject._
   * Created by dry on 2018/9/3.
   **/
 class WebSocketClient (
-                        connectOpenSuccess: Event => Unit,
+                        connectOpenSuccess: (Event, String) => Unit,
                         connectError: Event => Unit,
                         messageHandler: GameMessage => Unit,
                         close:Event => Unit
@@ -24,14 +24,21 @@ class WebSocketClient (
   private var wsSetup = false
   private var gameStreamOpt: Option[WebSocket] = None
 
-  def joinGame(playId: String, name: String): Unit = {
+  def setUp(playId: String, name: String, order: String): Unit = {
     if (!wsSetup) {
-      val gameStream = new WebSocket(getWebSocketUri(playId, name))
+      val url = order match {
+        case "playGame" =>
+          getWebSocketUri(playId, name)
+        case "watchGame" =>
+          println("set up watchGame webSocket!")
+          getWebSocketUri4WatchGame(playId, name)
+      }
+      val gameStream = new WebSocket(url)
       gameStreamOpt = Some(gameStream)
 
       gameStream.onopen = { event0: Event =>
         wsSetup = true
-        connectOpenSuccess(event0)
+        connectOpenSuccess(event0, order)
       }
 
       gameStream.onerror = { event: Event =>
