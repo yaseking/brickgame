@@ -40,7 +40,7 @@ object RoomManager {
 
   case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
 
-  case class FindPlayerList(roomId: Int, reply: ActorRef[List[(String, String)]]) extends Command
+  case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
@@ -55,6 +55,8 @@ object RoomManager {
   case class LeftRoom(uid: String, tankId: Int, name: String, userOpt: Option[Long]) extends Command
 
   case class UserLeft(id: String) extends Command
+
+  case class PreWatchGame(roomId: Int, playerId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   private case object UnKnowAction extends Command
 
@@ -78,8 +80,6 @@ object RoomManager {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg@Join(id, name, subscriber) =>
-          println(s"$id join the Game!")
-          println(s"$name join the Game!")
           log.info(s"got $msg")
           if (roomMap.nonEmpty && roomMap.exists(_._2.size < limitNum)) {
             val roomId = roomMap.filter(_._2.size < limitNum).head._1
@@ -90,6 +90,11 @@ object RoomManager {
             roomMap.put(roomId, mutable.HashSet((id, name)))
             getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
           }
+          Behaviors.same
+
+        case m@PreWatchGame(roomId, playerId, subscriber) =>
+          log.info(s"got $m")
+          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, subscriber)
           Behaviors.same
 
         case msg@Left(id, name) =>
@@ -134,7 +139,11 @@ object RoomManager {
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"got roomId = $roomId")
-          reply ! roomMap(roomId).toList
+          val replyMsg = roomMap.get(roomId) match {
+            case Some(plays) => Some(plays.toList)
+            case _ => None
+          }
+          reply ! replyMsg
           Behaviors.same
 
         case FindAllRoom(reply) =>
@@ -176,6 +185,31 @@ object RoomManager {
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
       ).mapMaterializedValue(outActor => actor ! Join(userId, name, outActor))
+
+    Flow.fromSinkAndSource(in, out)
+  }
+
+  def watchGame(actor: ActorRef[RoomManager.Command], roomId: Int, playerId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+    val in = Flow[Protocol.UserAction]
+      .map {
+        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
+        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case _ => UnKnowAction
+      }
+      .to(sink(actor, roomId.toString, playerId))
+
+    val out =
+      ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
+        completionMatcher = {
+          case WsSourceProtocol.CompleteMsgServer ⇒
+        },
+        failureMatcher = {
+          case WsSourceProtocol.FailMsgServer(e) ⇒ e
+        },
+        bufferSize = 64,
+        overflowStrategy = OverflowStrategy.dropHead
+      ).mapMaterializedValue(outActor => actor ! PreWatchGame(roomId, playerId, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }
