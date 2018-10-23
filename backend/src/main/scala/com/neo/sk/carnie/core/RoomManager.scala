@@ -40,7 +40,7 @@ object RoomManager {
 
   case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
 
-  case class FindPlayerList(roomId: Int, reply: ActorRef[List[(String, String)]]) extends Command
+  case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
@@ -134,7 +134,11 @@ object RoomManager {
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"got roomId = $roomId")
-          reply ! roomMap(roomId).toList
+          val replyMsg = roomMap.get(roomId) match {
+            case Some(plays) => Some(plays.toList)
+            case _ => None
+          }
+          reply ! replyMsg
           Behaviors.same
 
         case FindAllRoom(reply) =>

@@ -47,15 +47,13 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
   private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
     entity(as[Either[Error, RoomIdReq]]) {
       case Right(req) =>
-        val msg: Future[List[(String, String)]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+        val msg: Future[Option[List[(String, String)]]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
         dealFutureResult {
-          msg.map { plist =>
-            if (plist.nonEmpty)
-              complete(PlayerListRsp(PlayerInfo(plist)))
-            else {
+          msg.map {
+            case Some(plist) => complete(PlayerListRsp(PlayerInfo(plist)))
+            case None =>
               log.info("get playerlist error")
               complete(ErrorRsp(100001, "get playerlist error"))
-            }
           }
         }
 
