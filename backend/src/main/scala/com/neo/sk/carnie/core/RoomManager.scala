@@ -101,6 +101,7 @@ object RoomManager {
           log.info(s"got $msg")
           val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
           roomMap.update(roomId, roomMap(roomId).-((id, name)))
+          if(roomMap(roomId).map(_._2).isEmpty) roomMap -= roomId
           getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
           Behaviors.same
 
@@ -129,6 +130,7 @@ object RoomManager {
           val filterUserInfo = roomMap(roomId).find(_._1 == id)
           if (filterUserInfo.nonEmpty) {
             roomMap.update(roomId, roomMap(roomId).-(filterUserInfo.get))
+            if(roomMap(roomId).map(_._2).isEmpty) roomMap -= roomId
           }
           Behaviors.same
 
