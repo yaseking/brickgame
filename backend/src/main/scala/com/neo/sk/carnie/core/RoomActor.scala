@@ -112,7 +112,7 @@ object RoomActor {
           val watchId = watcherIdGenerator.getAndIncrement().toString
           subscribersMap.put(watchId, subscriber)
           dispatchTo(subscribersMap, watchId, Protocol.Id(playerId))
-          ctx.watchWith(subscriber, UserLeft(subscriber))
+//          ctx.watchWith(subscriber, UserLeft(subscriber))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           Behaviors.same
