@@ -140,8 +140,8 @@ object RoomManager {
           reply ! roomMap.keySet.toList
           Behaviors.same
 
-        case unknow =>
-          log.debug(s"${ctx.self.path} receive a msg unknow:$unknow")
+        case unknown =>
+          log.debug(s"${ctx.self.path} receive a msg unknown:$unknown")
           Behaviors.unhandled
       }
     }
