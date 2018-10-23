@@ -30,14 +30,14 @@ trait Grid {
   var actionMap = Map.empty[Long, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[String, (String, String, Long)] //killedId, (killerId, killerName,frameCount)
   var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
-  private var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
-  private var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
-  private var historyStateMap = Map.empty[Long, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
+  var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
+  var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
+  var historyStateMap = Map.empty[Long, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
 
-  def checkEvents(enclosure: List[(String, List[Point])]): Unit
+//  def checkEvents(enclosure: List[(String, List[Point])]): Unit
 
   def removeSnake(id: String): Option[SkDt] = {
     val r = snakes.get(id)
@@ -80,7 +80,7 @@ trait Grid {
     actionMap -= (frameCount - maxDelayed)
     historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
     //testEvents
-    checkEvents(isFinish)
+//    checkEvents(isFinish)
     frameCount += 1
     isFinish
   }
@@ -108,7 +108,7 @@ trait Grid {
     p + Point(2 + random.nextInt(2), 2 + random.nextInt(2))
   }
 
-  private[this] def updateSnakes(origin: String): List[(String, List[Point])] = {
+  def updateSnakes(origin: String): List[(String, List[Point])] = {
     var finishFields = List.empty[(String, List[Point])]
 
     def updateASnake(snake: SkDt, actMap: Map[String, Int]): Either[String, UpdateSnakeInfo] = {

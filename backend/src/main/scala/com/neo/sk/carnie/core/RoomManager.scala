@@ -38,9 +38,9 @@ object RoomManager {
 
   case class Left(id: String, name: String) extends Command
 
-  case class FindRoomId(pid: String, reply: ActorRef[Option[(Int, mutable.HashSet[(String, String)])]]) extends Command
+  case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
 
-  case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
+  case class FindPlayerList(roomId: Int, reply: ActorRef[List[(String, String)]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
@@ -127,16 +127,12 @@ object RoomManager {
 
         case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
-          reply ! roomMap.find(r => r._2.exists(i => i._1 == pid))
+          reply ! Option(roomMap.filter(r => r._2.exists(i => i._2 == pid)).head._1)
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"got roomId = $roomId")
-          val replyMsg = roomMap.get(roomId) match {
-            case Some(p) => Some(p.toList)
-            case _ => None
-          }
-          reply ! replyMsg
+          reply ! roomMap(roomId).toList
           Behaviors.same
 
         case FindAllRoom(reply) =>

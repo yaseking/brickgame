@@ -90,18 +90,21 @@ object Protocol {
   //essf
   sealed trait GameEvent
 
-  case class JoinEvent(id: Long) extends GameEvent
+  case class JoinEvent(id: String, nickName: String) extends GameEvent
 
-  case class LeftEvent(id: Long) extends GameEvent
+  case class LeftEvent(id: String, nickName: String) extends GameEvent
 
   case class DirectionEvent(id: String, keyCode: Int) extends GameEvent
 
   case class EncloseEvent(enclosure: List[(String, List[Point])]) extends GameEvent
 
-  case class Snapshot(grid: Map[Point, Spot], snakes: Map[String, SkDt], joinOrLeftEvent: List[GameEvent])
+  case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent])
 
+  case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
 
-  case class GameInformation(startTime: Long)
+  case class UserJoinLeft(joinFrame: Long, leftFrame: Long)
+
+  case class UserBaseInfo(id:String, name: String)
 
 
   val frameRate = 150

@@ -1,8 +1,9 @@
 CREATE TABLE public.game_record (
-  record_id     SERIAL8 PRIMARY KEY NOT NULL,
-  room_id       INT   NOT NULL ,
-  start_time    BIGINT NOT NULL,
-  end_time      BIGINT NOT NULL
+  record_id    SERIAL8 PRIMARY KEY NOT NULL,
+  room_id      INT   NOT NULL ,
+  start_time   BIGINT NOT NULL,
+  end_time     BIGINT NOT NULL,
+  file_path    varchar(255) NOT NULL
   );
 CREATE INDEX game_record_record_id_idx ON game_record(record_id);
 

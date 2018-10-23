@@ -39,5 +39,22 @@ object AppSettings {
     appIds.zip(secureKeys).toMap
   }
 
+  val esheepConfig = config.getConfig("dependence.esheep")
+  val esheepProtocol = esheepConfig.getString("protocol")
+  val esheepDomain = esheepConfig.getString("domain")
+  val esheepUrl = esheepConfig.getString("url")
+  val esheepAppId = esheepConfig.getString("appId")
+  val esheepSecureKey = esheepConfig.getString("secureKey")
+  val esheepGameId = esheepConfig.getLong("gameId")
+  val esheepGsKey = esheepConfig.getString("gsKey")
+
+  val slickConfig = config.getConfig("slick.db")
+  val slickUrl = slickConfig.getString("url")
+  val slickUser = slickConfig.getString("user")
+  val slickPassword = slickConfig.getString("password")
+  val slickMaximumPoolSize = slickConfig.getInt("maximumPoolSize")
+  val slickConnectTimeout = slickConfig.getInt("connectTimeout")
+  val slickIdleTimeout = slickConfig.getInt("idleTimeout")
+  val slickMaxLifetime = slickConfig.getInt("maxLifetime")
 
 }

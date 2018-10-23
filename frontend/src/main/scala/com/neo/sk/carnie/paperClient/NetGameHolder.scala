@@ -1,11 +1,22 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
+
+import com.neo.sk.carnie.ptcl.EsheepPtcl._
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
+import com.neo.sk.carnie.Routes.Esheep
+import com.neo.sk.carnie.ptcl.SuccessRsp
+import io.circe.syntax._
+import io.circe.generic.auto._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import com.neo.sk.carnie.util._
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 
@@ -40,8 +51,8 @@ object NetGameHolder extends js.JSApp {
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
 
-  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
-  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
+//  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
+//  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
@@ -62,24 +73,67 @@ object NetGameHolder extends js.JSApp {
 
 
   def main(): Unit = {
-    joinButton.onclick = { event: MouseEvent =>
-      if (nameField.value == "")
-        dom.window.alert("您的游戏昵称不能为空！")
-      else if (nameField.value.length > 16)
-        dom.window.alert("您的游戏昵称不能超过16位！")
-      else {
-        webSocketClient.joinGame(nameField.value)
-        event.preventDefault()
-      }
-    }
-    nameField.focus()
-    nameField.onkeypress = { event: KeyboardEvent =>
-      if (event.keyCode == 13) {
-        joinButton.click()
-        event.preventDefault()
-      }
+    val hash = dom.window.location.hash.drop(1)
+    val info = hash.split("\\?")
+    val playerMsgMap = info(1).split("&").map {
+      a =>
+        val b = a.split("=")
+        (b(0), b(1))
+    }.toMap
+    val sendData = PlayerMsg(playerMsgMap).asJson.noSpaces
+    println(s"sendData: $sendData")
+    info(0) match {
+      case "playGame" =>
+        //todo 验证接口已测试通过，后续测试其他接口先不开放验证接口
+//        val url = Esheep.playGame
+//        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
+//          case Right(rsp) =>
+//            println(s"rsp: $rsp")
+//            if(rsp.errCode==0) {
+//              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+//              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+//              println(s"playerName: $playerName")
+//              webSocketClient.setUp(playerId, playerName, "playGame")
+//            } else {
+//              drawGame.drawVerifyErr()
+//              println(s"err: ${rsp.msg}")
+//            }
+//          case Left(e) =>
+//            println(s"Some err happened in apply to connect the game, e: $e")
+//        }
+        val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+        val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+        webSocketClient.setUp(playerId, playerName, "playGame")
+
+      case "watchGame" =>
+        val roomId = playerMsgMap.getOrElse("roomId", "1000")
+        val playerId = playerMsgMap.getOrElse("playerId", "1000001")
+        println(s"Frontend-roomId: $roomId, playerId:$playerId")
+        webSocketClient.setUp(roomId, playerId, "watchGame")
+      case _ =>
+        println("Unknown order!")
     }
   }
+
+//  def main1(): Unit = {
+//    joinButton.onclick = { event: MouseEvent =>
+//      if(nameField.value == "")
+//        dom.window.alert("您的游戏昵称不能为空！")
+//      else if(nameField.value.length>16)
+//        dom.window.alert("您的游戏昵称不能超过16位！")
+//      else{
+//        webSocketClient.joinGame(nameField.value)
+//        event.preventDefault()
+//      }
+//    }
+//    nameField.focus()
+//    nameField.onkeypress = { event: KeyboardEvent =>
+//      if (event.keyCode == 13) {
+//        joinButton.click()
+//        event.preventDefault()
+//      }
+//    }
+//  }
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
@@ -202,46 +256,46 @@ object NetGameHolder extends js.JSApp {
     //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
-  private def connectOpenSuccess(event0: Event) = {
+  private def connectOpenSuccess(event0: Event, order: String) = {
     startGame()
-    rankCanvas.focus()
-    rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
-      if (Constant.watchKeys.contains(e.keyCode)) {
-        println(s"onkeydown：${e.keyCode}")
-        val msg: Protocol.UserAction = {
-          val frame = grid.frameCount + 2
-          val actionId = idGenerator.getAndIncrement()
-          grid.addActionWithFrame(myId, e.keyCode, frame)
-          if (e.keyCode != KeyCode.Space) {
-            myActionHistory += actionId -> (e.keyCode, frame)
-          } else { //重新开始游戏
-            audio1.pause()
-            audio1.currentTime = 0
-            audioKilled.pause()
-            audioKilled.currentTime = 0
-            play = true
-            scoreFlag = true
-            firstCome = true
-            if (isWin) {
-              isWin = false
-              winnerName = "unknown"
+    if(order=="playGame") {
+      canvas.focus()
+      canvas.onkeydown = { e: dom.KeyboardEvent => {
+        if (Constant.watchKeys.contains(e.keyCode)) {
+          println(s"onkeydown：${e.keyCode}")
+          val msg: Protocol.UserAction = {
+            val frame = grid.frameCount + 2
+            val actionId = idGenerator.getAndIncrement()
+            grid.addActionWithFrame(myId, e.keyCode, frame)
+            if (e.keyCode != KeyCode.Space) {
+              myActionHistory += actionId -> (e.keyCode, frame)
+            } else { //重新开始游戏
+              audio1.pause()
+              audio1.currentTime = 0
+              audioKilled.pause()
+              audioKilled.currentTime = 0
+              play = true
+              scoreFlag = true
+              firstCome = true
+              if (isWin) {
+                isWin = false
+                winnerName = "unknown"
+              }
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
+              isContinue = true
             }
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
-            isContinue = true
+            Key(myId, e.keyCode, frame, actionId)
           }
-          Key(myId, e.keyCode, frame, actionId)
+          webSocketClient.sendMessage(msg)
+          e.preventDefault()
         }
-        webSocketClient.sendMessage(msg)
-        e.preventDefault()
-      }
-    }}
+      }}
+    }
     event0
   }
 
   private def connectError(e: Event) = {
-    println("connectError..")
     drawGame.drawGameOff(firstCome)
-    nameField.focus()
     e
   }
 
