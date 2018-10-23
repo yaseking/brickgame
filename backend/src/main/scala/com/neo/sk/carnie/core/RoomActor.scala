@@ -97,6 +97,7 @@ object RoomActor {
       msg match {
         case JoinRoom(id, name, subscriber) =>
           log.info(s"got $msg")
+          log.info(s"roomId: $roomId")
           userMap.put(id, name)
           subscribersMap.put(id, subscriber)
           ctx.watchWith(subscriber, UserLeft(subscriber))
