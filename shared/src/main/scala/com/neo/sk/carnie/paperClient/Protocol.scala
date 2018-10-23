@@ -69,6 +69,8 @@ object Protocol {
   //  case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
   case class Ranks(currentRank: List[Score]) extends GameMessage
 
+  case object ReStartGame extends GameMessage
+
   case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage

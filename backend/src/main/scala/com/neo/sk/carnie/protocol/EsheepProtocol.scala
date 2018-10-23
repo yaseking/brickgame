@@ -36,10 +36,6 @@ object EsheepProtocol {
                        playerId: String,
                        nickName: String
                        )
-//
-//  case class PlayerInfoData(
-//                           playerInfo: PlayerInfo
-//                           )
 
   case class VerifyAccCodeRsp(
                              data: PlayerInfo,

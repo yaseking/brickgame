@@ -336,6 +336,22 @@ object NetGameHolder extends js.JSApp {
           }
         }
 
+      case ReStartGame =>
+        println("Now in reStartGame order!")
+        audio1.pause()
+        audio1.currentTime = 0
+        audioKilled.pause()
+        audioKilled.currentTime = 0
+        play = true
+        scoreFlag = true
+        firstCome = true
+        if (isWin) {
+          isWin = false
+          winnerName = "unknown"
+        }
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
+        isContinue = true
+
       case Protocol.SomeOneWin(winner, finalData) =>
         isWin = true
         winnerName = winner
