@@ -67,8 +67,7 @@ object RoomActor {
 
   def create(roomId: Int): Behavior[Command] = {
     log.debug(s"Room Actor-$roomId start...")
-    Behaviors.setup[Command] {
-      ctx =>
+    Behaviors.setup[Command] { ctx =>
         Behaviors.withTimers[Command] {
           implicit timer =>
             val subscribersMap = mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]]()
@@ -76,7 +75,7 @@ object RoomActor {
             val grid = new GridOnServer(border)
             //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
             timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
-            idle(roomId, grid, userMap, subscribersMap, 0L)
+            idle(roomId, grid, userMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)]())
         }
     }
   }
@@ -85,7 +84,8 @@ object RoomActor {
             roomId: Int, grid: GridOnServer,
             userMap: mutable.HashMap[String, String],
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
-            tickCount: Long
+            tickCount: Long,
+            gameEvent: mutable.ArrayBuffer[(Long, GameEvent)]
           )(
             implicit timer: TimerScheduler[Command]
           ): Behavior[Command] = {
@@ -100,6 +100,7 @@ object RoomActor {
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
+          gameEvent += ((grid.frameCount, JoinEvent(id)))
           Behaviors.same
 
         case LeftRoom(id, name) =>
@@ -107,6 +108,7 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
+          gameEvent += ((grid.frameCount, LeftEvent(id)))
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserLeft(actor) =>
@@ -117,6 +119,7 @@ object RoomActor {
             userMap.remove(id)
             grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
             roomManager ! RoomManager.UserLeft(id)
+            gameEvent += ((grid.frameCount, LeftEvent(id)))
           }
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
@@ -143,6 +146,11 @@ object RoomActor {
           Behaviors.same
 
         case Sync =>
+          val (actionEvent, snapshot) = grid.getEventSnapshot(grid.frameCount)
+          val joinOrLeftEvent = gameEvent.filter(_._1 == grid.frameCount)
+          val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
+          gameEvent --= joinOrLeftEvent
+
           var finishFields: List[(String, List[Point])] = Nil
           if (userMap.nonEmpty) {
             val shouldNewSnake = if (grid.waitingListState) true else if (tickCount % 20 == 5) true else false
@@ -178,14 +186,9 @@ object RoomActor {
           }
 
           //for gameRecorder...
-          val (baseEvent, baseSnapshot) = grid.getEventSnapshot(grid.frameCount)
-          val recordData = if (finishFields.nonEmpty) RecordData(EncloseEvent(finishFields) :: baseEvent, Some(baseSnapshot))
-          else {
-            if (tickCount % 10 == 3) RecordData(baseEvent, None) else RecordData(baseEvent, None)
-          }
+          val recordData = if (finishFields.nonEmpty) RecordData(EncloseEvent(finishFields) :: baseEvent, snapshot) else RecordData(baseEvent, snapshot)
           getGameRecorder(ctx, roomId, grid) ! recordData
-
-          idle(roomId, grid, userMap, subscribersMap, tickCount + 1)
+          idle(roomId, grid, userMap, subscribersMap, tickCount + 1, gameEvent)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
@@ -209,11 +212,12 @@ object RoomActor {
     subscribers.values.foreach {_ ! gameOutPut }
   }
 
-  private def getGameRecorder(ctx: ActorContext[Command],roomId:Long, grid: GridOnServer):ActorRef[GameRecorder.Command] = {
+  private def getGameRecorder(ctx: ActorContext[Command],roomId:Int, grid: GridOnServer):ActorRef[GameRecorder.Command] = {
     val childName = "gameRecorder"
-    ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(GameRecorder.create(roomId, grid.getEventSnapshot(grid.frameCount)._2, GameInformation(System.currentTimeMillis(), grid.frameCount)),childName)
-      ctx.watchWith(actor,ChildDead(childName,actor))
+    ctx.child(childName).getOrElse {
+      val actor = ctx.spawn(GameRecorder.create(roomId, grid.getEventSnapshot(grid.frameCount)._2,
+        GameInformation(roomId, System.currentTimeMillis(), 0, grid.frameCount)), childName)
+      ctx.watchWith(actor, ChildDead(childName, actor))
       actor
     }.upcast[GameRecorder.Command]
   }

@@ -90,9 +90,9 @@ object Protocol {
   //essf
   sealed trait GameEvent
 
-  case class JoinEvent(id: Long) extends GameEvent
+  case class JoinEvent(id: String) extends GameEvent
 
-  case class LeftEvent(id: Long) extends GameEvent
+  case class LeftEvent(id: String) extends GameEvent
 
   case class DirectionEvent(id: String, keyCode: Int) extends GameEvent
 
@@ -100,7 +100,7 @@ object Protocol {
 
   case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent])
 
-  case class GameInformation(startTime: Long, initFrame: Long)
+  case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
 
 
   val frameRate = 150

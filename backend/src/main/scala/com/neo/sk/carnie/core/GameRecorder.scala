@@ -1,9 +1,12 @@
 package com.neo.sk.carnie.core
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{Behavior, PostStop}
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
-import com.neo.sk.carnie.paperClient.Protocol.{GameInformation, Snapshot}
+import com.neo.sk.carnie.common.AppSettings
+import com.neo.sk.carnie.models.SlickTables
+import com.neo.sk.carnie.models.dao.RecordDAO
+import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.utils.essf.RecordGame.getRecorder
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
@@ -11,6 +14,9 @@ import org.seekloud.essf.io.FrameOutputStream
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 import org.slf4j.LoggerFactory
+import scala.collection.mutable
+import scala.util.{Failure, Success}
+import com.neo.sk.carnie.Boot.executor
 
 /**
   * Created by dry on 2018/10/19.
@@ -19,17 +25,17 @@ object GameRecorder {
 
   sealed trait Command
 
-  final case class RecordData(event: (List[Protocol.GameEvent], Option[Protocol.Snapshot])) extends Command
+  final case class RecordData(event: (List[Protocol.GameEvent], Protocol.Snapshot)) extends Command
 
   final case object SaveDate extends Command
 
-  final case object Save extends Command
+  final case object SaveInFile extends Command
 
   private final case object BehaviorChangeKey
 
   private final case object SaveDateKey
 
-  private final val saveTime = 1.minute
+  private final val saveTime = 10.minute
 
   private val maxRecordNum = 100
 
@@ -44,44 +50,120 @@ object GameRecorder {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  def create(roomId: Long, initState: Snapshot, gameInfo: GameInformation): Behavior[Command] = {
+  private[this] def getFileName(roomId: Int, startTime: Long) = s"carnie_${roomId}_$startTime"
+
+  def create(roomId: Int, initState: Snapshot, gameInfo: GameInformation): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
       log.info(s"${ctx.self.path} is starting..")
       implicit val stashBuffer: StashBuffer[GameRecorder.Command] = StashBuffer[Command](Int.MaxValue)
       implicit val middleBuffer: MiddleBufferInJvm = new MiddleBufferInJvm(10 * 4096)
       Behaviors.withTimers[Command] { implicit timer =>
-        timer.startSingleTimer(SaveDateKey, Save, saveTime)
-        val fileName = s"${roomId}_${gameInfo.startTime}"
-        val recorder: FrameOutputStream = getRecorder(fileName, 0, gameInfo, Some(initState))
-        idle(recorder)
+        timer.startSingleTimer(SaveDateKey, SaveInFile, saveTime)
+        val recorder: FrameOutputStream = getRecorder(getFileName(roomId, gameInfo.startTime), gameInfo.index, gameInfo, Some(initState))
+        idle(recorder, gameInfo)
       }
     }
   }
 
   def idle(recorder: FrameOutputStream,
-           eventRecorder: List[(List[Protocol.GameEvent], Option[Protocol.Snapshot])] = Nil
-  )(implicit stashBuffer: StashBuffer[Command],
-    timer: TimerScheduler[Command],
-    middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
+           gameInfo: GameInformation,
+           userMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String](),
+           userHistoryMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String](),
+           eventRecorder: List[(List[Protocol.GameEvent], Option[Protocol.Snapshot])] = Nil,
+           tickCount: Long = 1
+          )(implicit stashBuffer: StashBuffer[Command],
+            timer: TimerScheduler[Command],
+            middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case RecordData(event) => //记录数据
-          val newEventRecorder = event :: eventRecorder
-          if (newEventRecorder.lengthCompare(maxRecordNum) > 0) { //每一百帧写入文件
+          val snapshot =
+            if(event._1.exists{case Protocol.DirectionEvent(_,_) => false case _ => true} || tickCount % 50 == 0) Some(event._2)
+            else None //是否做快照
+
+          event._1.foreach {
+            case Protocol.JoinEvent(id) =>
+              userMap += id
+              userHistoryMap += id
+
+            case Protocol.LeftEvent(id) =>
+              userMap -= id
+
+            case _ =>
+          }
+
+          var newEventRecorder = (event._1, snapshot) :: eventRecorder
+          if (newEventRecorder.lengthCompare(maxRecordNum) > 0) { //每一百帧写入一次
             newEventRecorder.reverse.foreach {
               case (events, Some(state)) if events.nonEmpty =>
                 recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
               case (events, None) if events.nonEmpty => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
               case _ => recorder.writeEmptyFrame()
             }
+            newEventRecorder = Nil
           }
-          idle(recorder, newEventRecorder)
-          Behaviors.same
+          idle(recorder, gameInfo, userMap, userHistoryMap, newEventRecorder, tickCount + 1)
 
-        case Save =>
+        case SaveInFile =>
           log.info(s"${ctx.self.path} work get msg save")
-          timer.startSingleTimer(SaveDateKey, Save, saveTime)
-          Behaviors.same
+          timer.startSingleTimer(SaveDateKey, SaveInFile, saveTime)
+          switchBehavior(ctx, "save", save(recorder, gameInfo, userMap, userHistoryMap))
+
+        case _ =>
+          Behaviors.unhandled
+      }
+    }.receiveSignal{
+      case (ctx, PostStop) =>
+        timer.cancelAll()
+        log.info(s"${ctx.self.path} stopping....")
+        recorder.finish()
+        val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
+        RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
+          case Success(recordId) =>
+            val usersInRoom = userHistoryMap.map(uid => SlickTables.rUserInRecord(uid, recordId, gameInfo.roomId)).toSet
+            RecordDAO.saveUserInGame(usersInRoom).onComplete{
+              case Success(_) =>
+
+              case Failure(_) =>
+                log.warn("save the detail of UserInGame in db fail...")
+            }
+
+          case Failure(e) =>
+            log.warn("save the detail of GameRecorder in db fail...")
+        }
+        Behaviors.stopped
+    }
+  }
+
+  def save(recorder: FrameOutputStream,
+           gameInfo: GameInformation,
+           userMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String](),
+           userHistoryMap: mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String]()
+          )(implicit stashBuffer: StashBuffer[Command],
+            timer: TimerScheduler[Command],
+            middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case SaveInFile =>
+          recorder.finish()
+          val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
+          RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
+            case Success(recordId) =>
+              val usersInRoom = userHistoryMap.map(uid => SlickTables.rUserInRecord(uid, recordId, gameInfo.roomId)).toSet
+              RecordDAO.saveUserInGame(usersInRoom).onComplete{
+                case Success(_) =>
+                  ctx.self ! SwitchBehavior("resetRecord", resetRecord(gameInfo, userMap, userHistoryMap))
+
+                case Failure(_) =>
+                  log.warn("save the detail of UserInGame in db fail...")
+                  ctx.self ! SwitchBehavior("resetRecord", resetRecord(gameInfo, userMap, userHistoryMap))
+              }
+
+            case Failure(e) =>
+              log.warn("save the detail of GameRecorder in db fail...")
+              ctx.self ! SwitchBehavior("resetRecord", resetRecord(gameInfo, userMap, userHistoryMap))
+          }
+          switchBehavior(ctx,"busy", busy())
 
         case _ =>
           Behaviors.unhandled
@@ -89,12 +171,54 @@ object GameRecorder {
     }
   }
 
+  def resetRecord(gameInfo: GameInformation,
+                  userMap: mutable.ArrayBuffer[String],
+                  userHistoryMap: mutable.ArrayBuffer[String]
+                 )(implicit stashBuffer: StashBuffer[Command],
+                                             timer: TimerScheduler[Command],
+                                             middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case RecordData(event) => //新的文件初始化
+          val newUserMap = userMap
+          val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, 0)
+          val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, gameInfo, Some(event._2))
+          val newEventRecorder = List((event._1, Some(event._2)))
+          switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newUserMap, newUserMap, newEventRecorder))
+
+        case _ =>
+          Behaviors.unhandled
+
+      }
+    }
+  }
+
+  private def busy()(
+    implicit stashBuffer:StashBuffer[Command],
+    timer:TimerScheduler[Command]
+  ): Behavior[Command] =
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case SwitchBehavior(name, behavior,durationOpt,timeOut) =>
+          switchBehavior(ctx,name,behavior,durationOpt,timeOut)
+
+        case TimeOut(m) =>
+          log.debug(s"${ctx.self.path} is time out when busy,msg=$m")
+          Behaviors.stopped
+
+        case unknowMsg =>
+          stashBuffer.stash(unknowMsg)
+          Behavior.same
+      }
+    }
+
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
-                                   behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
+                                   behaviorName: String, behavior: Behavior[Command],
+                                   durationOpt: Option[FiniteDuration] = None,
+                                   timeOut: TimeOut = TimeOut("busy time error"))
                                   (implicit stashBuffer: StashBuffer[Command],
                                    timer: TimerScheduler[Command]) = {
-    //log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
     timer.cancel(BehaviorChangeKey)
     durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey, timeOut, _))
     stashBuffer.unstashAll(ctx, behavior)

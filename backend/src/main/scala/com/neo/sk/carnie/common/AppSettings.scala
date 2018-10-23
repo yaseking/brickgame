@@ -38,4 +38,13 @@ object AppSettings {
   val esheepGameId = esheepConfig.getLong("gameId")
   val esheepGsKey = esheepConfig.getString("gsKey")
 
+  val slickConfig = config.getConfig("slick.db")
+  val slickUrl = slickConfig.getString("url")
+  val slickUser = slickConfig.getString("user")
+  val slickPassword = slickConfig.getString("password")
+  val slickMaximumPoolSize = slickConfig.getInt("maximumPoolSize")
+  val slickConnectTimeout = slickConfig.getInt("connectTimeout")
+  val slickIdleTimeout = slickConfig.getInt("idleTimeout")
+  val slickMaxLifetime = slickConfig.getInt("maxLifetime")
+
 }

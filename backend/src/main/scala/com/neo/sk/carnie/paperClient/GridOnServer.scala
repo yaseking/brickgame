@@ -2,13 +2,10 @@ package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
-import com.neo.sk.carnie._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.utils.EsheepClient
 import org.seekloud.byteobject.MiddleBufferInJvm
-import org.seekloud.essf.io.FrameOutputStream
-import com.neo.sk.utils.essf.RecordGame.getRecorder
 import org.seekloud.byteobject.ByteObject._
 
 /**
