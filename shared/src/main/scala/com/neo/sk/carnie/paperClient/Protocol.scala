@@ -102,6 +102,9 @@ object Protocol {
 
   case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
 
+  //for replay
+  sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
+
 
   val frameRate = 150
 

@@ -51,7 +51,10 @@ trait PlayerService {
               //todo
             handleWebSocketMessages(webSocketChatFlow(id, sender = name))
           }
-        }
+        } ~ path("replay") {
+        //todo replay websocket url 解析 初始化GameReplayActor
+        handleWebSocketMessages(webSocketChatFlow("", ""))
+      }
     }
   }
 
