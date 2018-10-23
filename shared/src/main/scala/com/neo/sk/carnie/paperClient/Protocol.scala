@@ -90,9 +90,9 @@ object Protocol {
   //essf
   sealed trait GameEvent
 
-  case class JoinEvent(id: String) extends GameEvent
+  case class JoinEvent(id: String, nickName: String) extends GameEvent
 
-  case class LeftEvent(id: String) extends GameEvent
+  case class LeftEvent(id: String, nickName: String) extends GameEvent
 
   case class DirectionEvent(id: String, keyCode: Int) extends GameEvent
 
@@ -101,6 +101,10 @@ object Protocol {
   case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent])
 
   case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
+
+  case class UserJoinLeft(joinFrame: Long, leftFrame: Long)
+
+  case class UserBaseInfo(id:String, name: String)
 
   //for replay
   sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
