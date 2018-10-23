@@ -84,22 +84,32 @@ object NetGameHolder extends js.JSApp {
     println(s"sendData: $sendData")
     info(0) match {
       case "playGame" =>
-        val url = Esheep.playGame
-        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
-          case Right(rsp) =>
-            println(s"rsp: $rsp")
-            if(rsp.errCode==0) {
-              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-              println(s"playerName: $playerName")
-              webSocketClient.joinGame(playerId, playerName)
-            } else {
-              drawGame.drawVerifyErr()
-              println(s"err: ${rsp.msg}")
-            }
-          case Left(e) =>
-            println(s"Some err happened in apply to connect the game, e: $e")
-        }
+        //todo 验证接口已测试通过，后续测试其他接口先不开放验证接口
+//        val url = Esheep.playGame
+//        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
+//          case Right(rsp) =>
+//            println(s"rsp: $rsp")
+//            if(rsp.errCode==0) {
+//              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+//              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+//              println(s"playerName: $playerName")
+//              webSocketClient.setUp(playerId, playerName, "playGame")
+//            } else {
+//              drawGame.drawVerifyErr()
+//              println(s"err: ${rsp.msg}")
+//            }
+//          case Left(e) =>
+//            println(s"Some err happened in apply to connect the game, e: $e")
+//        }
+        val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+        val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+        webSocketClient.setUp(playerId, playerName, "playGame")
+
+      case "watchGame" =>
+        val roomId = playerMsgMap.getOrElse("roomId", "1000")
+        val playerId = playerMsgMap.getOrElse("playerId", "1000001")
+        println(s"Frontend-roomId: $roomId, playerId:$playerId")
+        webSocketClient.setUp(roomId, playerId, "watchGame")
       case _ =>
         println("Unknown order!")
     }
@@ -246,39 +256,41 @@ object NetGameHolder extends js.JSApp {
     //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
-  private def connectOpenSuccess(event0: Event) = {
+  private def connectOpenSuccess(event0: Event, order: String) = {
     startGame()
-    rankCanvas.focus()
-    rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
-      if (Constant.watchKeys.contains(e.keyCode)) {
-        println(s"onkeydown：${e.keyCode}")
-        val msg: Protocol.UserAction = {
-          val frame = grid.frameCount + 2
-          val actionId = idGenerator.getAndIncrement()
-          grid.addActionWithFrame(myId, e.keyCode, frame)
-          if (e.keyCode != KeyCode.Space) {
-            myActionHistory += actionId -> (e.keyCode, frame)
-          } else { //重新开始游戏
-            audio1.pause()
-            audio1.currentTime = 0
-            audioKilled.pause()
-            audioKilled.currentTime = 0
-            play = true
-            scoreFlag = true
-            firstCome = true
-            if (isWin) {
-              isWin = false
-              winnerName = "unknown"
+    if(order=="playGame") {
+      canvas.focus()
+      canvas.onkeydown = { e: dom.KeyboardEvent => {
+        if (Constant.watchKeys.contains(e.keyCode)) {
+          println(s"onkeydown：${e.keyCode}")
+          val msg: Protocol.UserAction = {
+            val frame = grid.frameCount + 2
+            val actionId = idGenerator.getAndIncrement()
+            grid.addActionWithFrame(myId, e.keyCode, frame)
+            if (e.keyCode != KeyCode.Space) {
+              myActionHistory += actionId -> (e.keyCode, frame)
+            } else { //重新开始游戏
+              audio1.pause()
+              audio1.currentTime = 0
+              audioKilled.pause()
+              audioKilled.currentTime = 0
+              play = true
+              scoreFlag = true
+              firstCome = true
+              if (isWin) {
+                isWin = false
+                winnerName = "unknown"
+              }
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
+              isContinue = true
             }
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
-            isContinue = true
+            Key(myId, e.keyCode, frame, actionId)
           }
-          Key(myId, e.keyCode, frame, actionId)
+          webSocketClient.sendMessage(msg)
+          e.preventDefault()
         }
-        webSocketClient.sendMessage(msg)
-        e.preventDefault()
-      }
-    }}
+      }}
+    }
     event0
   }
 
