@@ -1,6 +1,8 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
+
+import com.neo.sk.carnie.model.ReplayInfo
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -10,9 +12,11 @@ import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import io.circe.syntax._
 import io.circe.generic.auto._
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.typedarray.ArrayBuffer
+
 
 /**
   * User: Taoz

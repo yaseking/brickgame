@@ -3,10 +3,7 @@ package com.neo.sk.carnie.core
 import akka.actor.typed.{ActorRef, Behavior, PostStop}
 import com.neo.sk.carnie.paperClient.{Protocol, WsSourceProtocol}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
-import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.Flow
-import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
-import com.neo.sk.carnie.common.{AppSettings, KeyData}
+import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.SlickTables
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -76,13 +73,13 @@ object GameReplay {
         try{
           println(s"test1")
           println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-          println(s"test3:${userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+          println(s"test3:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
           ctx.self ! SwitchBehavior("work",
             work(
               replay,
               metaDataDecode(info.simulatorMetadata).right.get,
               // todo mutableInfo
-              userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+              userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
             ))
         }catch {
           case e:Throwable=>
