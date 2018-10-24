@@ -18,26 +18,15 @@ import akka.http.scaladsl.model.headers.{CacheDirectives, Expires, `Cache-Contro
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive1, Route}
-//import akka.stream.scaladsl.{FileIO, Source}
-import akka.util.ByteString
-import com.neo.sk.carnie.common.AppSettings
-//import com.neo.sk.carnie.common.Constant.{UserRolesType, VersionState}
 import io.circe.Error
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
-//import com.neo.sk.utils.FileUtil
-import java.net.URLDecoder
-import java.sql.Timestamp
 
-import akka.stream._
 import akka.stream.scaladsl.{ FileIO, Sink, Source }
-import akka.util.ByteString
 
 import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.http.scaladsl.model.HttpEntity
-import akka.http.scaladsl.server.ContentNegotiator.Alternative.ContentType
-import com.neo.sk.carnie.common.AppSettings
 import io.circe.Error
 
 import scala.collection.mutable
