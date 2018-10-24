@@ -95,9 +95,13 @@ object Protocol {
 
   case class DirectionEvent(id: String, keyCode: Int) extends GameEvent
 
-  case class EncloseEvent(enclosure: List[(String, List[Point])]) extends GameEvent
+  case class EncloseEvent(fieldDetails: List[FieldByColumn]) extends GameEvent
 
-  case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent])
+  case class EventData(events: List[GameEvent]) extends GameEvent
+
+  case class DecodeError() extends GameEvent
+
+  case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent]) extends GameEvent
 
   case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
 
@@ -108,11 +112,11 @@ object Protocol {
   case class EssfMapInfo(m:List[(UserBaseInfo, UserJoinLeft)])
 
   //for replay
-  sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
+//  sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
 
   /**
     * replay-frame-msg*/
-  case class ReplayFrameData(ws:Array[Byte]) extends WsSourceProtocol.WsMsgSource
+  case class ReplayFrameData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]]) extends GameMessage
 
   val frameRate = 150
 

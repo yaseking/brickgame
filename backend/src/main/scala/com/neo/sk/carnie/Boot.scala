@@ -8,7 +8,6 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.carnie.http.HttpService
-import akka.actor.typed.scaladsl.adapter._
 import scala.language.postfixOps
 import com.neo.sk.carnie.core._
 import akka.actor.typed.scaladsl.adapter._

@@ -3,6 +3,8 @@ import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.essf.io.{FrameData, FrameInputStream}
 import org.seekloud.byteobject.ByteObject._
 import org.seekloud.byteobject.{MiddleBuffer, MiddleBufferInJvm}
+
+import scala.collection.mutable
 /**
   * Created by haoshuhan on 2018/10/12.
   */
@@ -29,8 +31,8 @@ object RecallGame {
     bytesDecode[EssfMapInfo](buffer)
   }
 
-  def userMapEncode(u:mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo])(implicit middleBuffer: MiddleBufferInJvm)={
-    EssfMapInfo(u.toList).fillMiddleBuffer(middleBuffer).result()
-  }
+//  def userMapEncode(u:mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo])(implicit middleBuffer: MiddleBufferInJvm)={
+//    EssfMapInfo(u.toList).fillMiddleBuffer(middleBuffer).result()
+//  }
 
 }

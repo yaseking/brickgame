@@ -10,6 +10,7 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.Routes.Esheep
+import com.neo.sk.carnie.model.ReplayInfo
 import com.neo.sk.carnie.ptcl.SuccessRsp
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -19,6 +20,7 @@ import com.neo.sk.carnie.util._
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
+import scala.scalajs.js.typedarray.ArrayBuffer
 
 /**
   * User: Taoz
@@ -103,13 +105,21 @@ object NetGameHolder extends js.JSApp {
 //        }
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-        webSocketClient.setUp(playerId, playerName, "playGame")
+        webSocketClient.setUp(playerId, playerName, "playGame", None)
 
       case "watchGame" =>
         val roomId = playerMsgMap.getOrElse("roomId", "1000")
         val playerId = playerMsgMap.getOrElse("playerId", "1000001")
         println(s"Frontend-roomId: $roomId, playerId:$playerId")
-        webSocketClient.setUp(roomId, playerId, "watchGame")
+        webSocketClient.setUp(roomId, playerId, "watchGame", None)
+
+      case "watchRecord" =>
+        val recordId = playerMsgMap.getOrElse("recordId", "1000001")
+        val playerId = playerMsgMap.getOrElse("playerId", "1000001")
+        val frame = playerMsgMap.getOrElse("frame", "1000")
+        val accessCode = playerMsgMap.getOrElse("accessCode", "abcd1000")
+        webSocketClient.setUp("", "", "watchRecord", Some(ReplayInfo(recordId, playerId, frame, accessCode)))
+
       case _ =>
         println("Unknown order!")
     }
@@ -196,7 +206,6 @@ object NetGameHolder extends js.JSApp {
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
-            //            println(s"data里有蛇：：：：：：")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -362,8 +371,76 @@ object NetGameHolder extends js.JSApp {
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
+      case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
+        replayEventDecode(eventsData.asInstanceOf[ArrayBuffer]) match {
+          case Protocol.EventData(events) =>
+            events.foreach (event => replayMessageHandler(event, frameIndex))
+          case Protocol.DecodeError() => println("events decode error")
+        }
+        replayStateDecode(stateData.asInstanceOf[ArrayBuffer])  match {
+          case msg: Snapshot => replayMessageHandler(msg, frameIndex)
+          case Protocol.DecodeError() => println("state decode error")
+        }
+
       case x@_ =>
         println(s"receive unknown msg:$x")
+    }
+  }
+
+  private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
+    data match {
+      case Protocol.JoinEvent(id, name) => //不做处理，直接获取快照
+      case Protocol.LeftEvent(id, name) => //不做处理，直接获取快照
+      case DirectionEvent(id, keyCode) =>
+        grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
+      case EncloseEvent(enclosure) =>
+        newFieldInfo = Some(NewFieldInfo(frameIndex.toLong, enclosure))
+      case Snapshot(gridReceive, snakes, joinOrLeftEvent) =>
+        if(grid.frameCount < frameIndex) { //保留
+          grid.historyStateMap += frameIndex.toLong -> (snakes.toMap, gridReceive.toMap)
+        } else if(grid.frameCount == frameIndex.toLong){ //重置
+          grid.grid = gridReceive.toMap
+          grid.snakes = snakes.toMap
+//          joinOrLeftEvent.foreach {
+//            case JoinEvent(id, name) =>
+//            case LeftEvent(id, name) =>
+//          }
+        }
+        if(grid.historyStateMap.contains(frameIndex.toLong)) {
+          grid.grid = gridReceive.toMap
+          grid.snakes = snakes.toMap
+        }
+
+    }
+  }
+
+  import scala.scalajs.js.typedarray.ArrayBuffer
+  import org.seekloud.byteobject.ByteObject._
+  import org.seekloud.byteobject.MiddleBufferInJs
+
+  private def replayEventDecode(a:ArrayBuffer): GameEvent={
+    val middleDataInJs = new MiddleBufferInJs(a)
+    if (a.byteLength > 0) {
+      bytesDecode[List[GameEvent]](middleDataInJs) match {
+        case Right(r) =>
+          Protocol.EventData(r)
+        case Left(e) =>
+          println(e.message)
+          Protocol.DecodeError()
+      }
+    }else{
+      Protocol.DecodeError()
+    }
+  }
+
+  private def replayStateDecode(a:ArrayBuffer): GameEvent={
+    val middleDataInJs = new MiddleBufferInJs(a)
+    bytesDecode[Snapshot](middleDataInJs) match {
+      case Right(r) =>
+        r
+      case Left(e) =>
+        println(e.message)
+        Protocol.DecodeError()
     }
   }
 

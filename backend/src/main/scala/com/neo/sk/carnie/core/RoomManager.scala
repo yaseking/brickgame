@@ -38,6 +38,10 @@ object RoomManager {
 
   case class Left(id: String, name: String) extends Command
 
+  case class StartReplay(recordId: Long, playerId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+
+  case class StopReplay() extends Command
+
   case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
 
   case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
@@ -95,6 +99,10 @@ object RoomManager {
         case m@PreWatchGame(roomId, playerId, subscriber) =>
           log.info(s"got $m")
           getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, subscriber)
+          Behaviors.same
+
+        case StartReplay(recordId, playerId, subscriber) =>
+          getGameReplay(ctx, recordId) ! GameReplay.InitReplay(subscriber, playerId, 0)
           Behaviors.same
 
         case msg@Left(id, name) =>
@@ -163,6 +171,11 @@ object RoomManager {
     onCompleteMessage = Left(id, name),
     onFailureMessage = FailMsgFront.apply
   )
+  private def sink4Replay(actor: ActorRef[Command]) = ActorSink.actorRef[Command](
+    ref = actor,
+    onCompleteMessage = StopReplay(),
+    onFailureMessage = FailMsgFront.apply
+  )
 
   def joinGame(actor: ActorRef[RoomManager.Command], userId: String, name: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
@@ -214,6 +227,31 @@ object RoomManager {
     Flow.fromSinkAndSource(in, out)
   }
 
+  def replayGame(actor: ActorRef[RoomManager.Command], recordId: Long, userId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+    val in = Flow[Protocol.UserAction]
+      .map {
+        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
+        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case _ => UnKnowAction
+      }
+      .to(sink4Replay(actor))
+
+    val out =
+      ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
+        completionMatcher = {
+          case WsSourceProtocol.CompleteMsgServer ⇒
+        },
+        failureMatcher = {
+          case WsSourceProtocol.FailMsgServer(e) ⇒ e
+        },
+        bufferSize = 64,
+        overflowStrategy = OverflowStrategy.dropHead
+      ).mapMaterializedValue(outActor => actor ! StartReplay(recordId, userId, outActor))
+
+    Flow.fromSinkAndSource(in, out)
+  }
+
   private def getRoomActor(ctx: ActorContext[Command], roomId: Int) = {
     val childName = s"room_$roomId"
     ctx.child(childName).getOrElse {
@@ -222,5 +260,13 @@ object RoomManager {
       actor
 
     }.upcast[RoomActor.Command]
+  }
+
+  private def getGameReplay(ctx: ActorContext[Command], recordId:Long) = {
+    val childName = s"gameReplay--$recordId"
+    ctx.child(childName).getOrElse {
+      val actor = ctx.spawn(GameReplay.create(recordId), childName)
+      actor
+    }.upcast[GameReplay.Command]
   }
 }

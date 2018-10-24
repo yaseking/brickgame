@@ -3,6 +3,9 @@ package com.neo.sk.carnie.core
 import akka.actor.typed.{ActorRef, Behavior, PostStop}
 import com.neo.sk.carnie.paperClient.{Protocol, WsSourceProtocol}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
+import akka.stream.OverflowStrategy
+import akka.stream.scaladsl.Flow
+import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.carnie.common.{AppSettings, KeyData}
 import com.neo.sk.carnie.models.SlickTables
 import com.neo.sk.carnie.models.dao.RecordDAO
@@ -19,6 +22,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable
 import scala.util.{Failure, Success}
 import com.neo.sk.carnie.Boot.executor
+import com.neo.sk.carnie.core.RoomManager.{Command, FailMsgFront, Left}
 import com.neo.sk.utils.essf.RecallGame._
 
 /**
@@ -37,6 +41,8 @@ object GameReplay {
   private final case object BehaviorWaitKey
   private final case object GameLoopKey
   case object GameLoop extends Command
+
+  case class Left() extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -64,25 +70,43 @@ object GameReplay {
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
-        RecordDAO.getRecordById(recordId).map {
-          case Some(r)=>
-            val replay=initInput(r.filePath)
-            val info=replay.init()
-            try{
-              ctx.self ! SwitchBehavior("work",
-                work(
-                  replay,
-                  metaDataDecode(info.simulatorMetadata).right.get,
-                  // todo mutableInfo
-                  userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-                ))
-            }catch {
-              case e:Throwable=>
-                log.error("error---"+e.getMessage)
-            }
-          case None=>
-            log.debug(s"record--$recordId didn't exist!!")
+        //todo test
+        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540360130144_0")
+        val info=replay.init()
+        try{
+          println(s"test1")
+          println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
+          println(s"test3:${userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+          ctx.self ! SwitchBehavior("work",
+            work(
+              replay,
+              metaDataDecode(info.simulatorMetadata).right.get,
+              // todo mutableInfo
+              userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+            ))
+        }catch {
+          case e:Throwable=>
+            log.error("error init game replay---"+e.getMessage)
         }
+//        RecordDAO.getRecordById(recordId).map {
+//          case Some(r)=>
+//            val replay=initInput(r.filePath)
+//            val info=replay.init()
+//            try{
+//              ctx.self ! SwitchBehavior("work",
+//                work(
+//                  replay,
+//                  metaDataDecode(info.simulatorMetadata).right.get,
+//                  // todo mutableInfo
+//                  userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+//                ))
+//            }catch {
+//              case e:Throwable=>
+//                log.error("error---"+e.getMessage)
+//            }
+//          case None=>
+//            log.debug(s"record--$recordId didn't exist!!")
+//        }
         switchBehavior(ctx,"busy",busy())
       }
     }
@@ -165,16 +189,15 @@ object GameReplay {
   }
 
   import org.seekloud.byteobject.ByteObject._
-  def dispatchTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg: Protocol.ReplayMessage)(implicit sendBuffer: MiddleBufferInJvm)= {
-    //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-    subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
-  }
+//  def dispatchTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg: Protocol.GameMessage)(implicit sendBuffer: MiddleBufferInJvm)= {
+//    //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+//    subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
+//  }
 
   def dispatchByteTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
     //    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
     //    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
-    subscriber ! ReplayFrameData(msg.eventsData)
-    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(s))
+    subscriber ! ReplayFrameData(msg.frameIndex, msg.eventsData, msg.stateData)
   }
 
   private def busy()(
@@ -195,5 +218,6 @@ object GameReplay {
           Behavior.same
       }
     }
+
 
 }
