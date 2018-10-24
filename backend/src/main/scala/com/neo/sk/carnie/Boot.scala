@@ -37,7 +37,7 @@ object Boot extends HttpService {
 
   implicit val timeout: Timeout = Timeout(20 seconds) // for actor asks
 
-  implicit val tokenActor: ActorRef[TokenActor.Command] = system.spawn(TokenActor.behavior, "tokenActor")
+  implicit val tokenActor: ActorRef[TokenActor.Command] = system.spawn(TokenActor.behaviors, "tokenActor")
 
   val log: LoggingAdapter = Logging(system, getClass)
 

@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.utils
 
-import com.neo.sk.carnie.common.{AppSettings, KeyData}
+import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.protocol.EsheepProtocol._
 import io.circe.generic.auto._
 import io.circe.parser.decode

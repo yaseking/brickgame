@@ -47,4 +47,6 @@ object AppSettings {
   val slickIdleTimeout = slickConfig.getInt("idleTimeout")
   val slickMaxLifetime = slickConfig.getInt("maxLifetime")
 
+  val essfMapKeyName = "essfMap"
+
 }

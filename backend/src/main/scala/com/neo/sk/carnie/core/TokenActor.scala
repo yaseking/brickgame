@@ -1,18 +1,13 @@
 package com.neo.sk.carnie.core
 
-import akka.actor.typed.{ActorRef, Behavior}
-import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
-import org.slf4j.LoggerFactory
-
 import scala.concurrent.duration._
 import com.neo.sk.carnie.utils.EsheepClient
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.protocol.EsheepProtocol.TokenData
-import io.circe.generic.auto._
-import io.circe.parser.decode
-import io.circe.syntax._
-
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import org.slf4j.LoggerFactory
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 
 /**
   * Lty 18/10/17
@@ -23,69 +18,101 @@ object TokenActor {
 
   sealed trait Command
 
-  case object GetToken extends Command
+  case class GetToken(times: Int = 0) extends Command
 
-  final case object GetTokenKey extends Command
+  case class TimeOut(msg: String) extends Command
 
-  final case class AskForToken(reply: ActorRef[Option[String]]) extends Command
+  private final case object BehaviorChangeKey
 
-  private var token: String = ""
-  private var expiredTime: Long = 1000 * 60 * 10
+  private final case object GetTokenKey
 
-  private[this] def interval = {//测试，每5s请求一次
-    10 * 1000
+  final case class SwitchBehavior(
+                                   name: String,
+                                   behavior: Behavior[Command],
+                                   durationOpt: Option[FiniteDuration] = None,
+                                   timeOut: TimeOut = TimeOut("busy time error")
+                                 ) extends Command
+
+  final case class AskForToken(reply: ActorRef[String]) extends Command
+
+  final case class AccessToken(token: String, expiresAt: Long) {
+    def isOutOfTime: Boolean = System.currentTimeMillis() > expiresAt
   }
 
-  private[this] def firstTime = {
-    1 * 1000
-  }
-
-  private[this] val gameId: Long = AppSettings.esheepGameId
-  private[this] val gsKey: String = AppSettings.esheepGsKey
-
-  val behavior = init()
+  val behaviors: Behavior[Command] = init()
 
   def init(): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
+      implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
-//        timer.startSingleTimer(GetTokenKey, GetToken(gameId, gsKey), firstTime.millis)
-//        timer.startPeriodicTimer(GetTokenKey, GetToken(gameId, gsKey), interval.millis)
-//        EsheepClient.getTokenRequest(gameId, gsKey).map {
-//          case Right(rsp) =>
-//            println(s"getToken first time: $rsp")
-//            token = rsp.token
-//        }
-        ctx.self ! GetToken
-        idle()
+        ctx.self ! GetToken()
+        updateToken()
       }
     }
   }
 
-  def idle()(implicit timer: TimerScheduler[Command]): Behavior[Command] = {
-    Behaviors.receive { (ctx, msg) =>
+  def idle(token: AccessToken)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case GetToken =>
-          EsheepClient.getTokenRequest(gameId, gsKey).map{
-            case Right(rsp) =>
-              println(s"getToken first time: $rsp")
-              expiredTime = rsp.expireTime
-              token = rsp.token
-            case Left(e) =>
-              log.info(s"Some errors happened in getToken: $e")
-          }
-          timer.startSingleTimer(GetTokenKey, GetToken, expiredTime.millis)
-          Behaviors.same
-
         case AskForToken(reply) =>
-          reply ! Option(token)
-          Behaviors.same
+          if (token.isOutOfTime) {
+            reply ! token.token
+            ctx.self ! GetToken()
+            switchBehavior(ctx, "updateToken", updateToken())
+          } else {
+            reply ! token.token
+            Behaviors.same
+          }
 
-        case x =>
-          log.warn(s"${ctx.self.path} unknown msg: $x")
+        case unknownMsg@_ =>
+          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
+          stashBuffer.stash(unknownMsg)
           Behaviors.unhandled
       }
-
     }
+  }
+
+  def updateToken()(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case GetToken(times) =>
+          if (times < 3) {
+            EsheepClient.getTokenRequest(AppSettings.esheepGameId, AppSettings.esheepGsKey).map {
+              case Right(rsp) =>
+                val expiresAt = System.currentTimeMillis() + rsp.expireTime - 120000
+                ctx.self ! SwitchBehavior("idle", idle(AccessToken(rsp.token, expiresAt)))
+
+              case Left(e) =>
+                timer.startSingleTimer(GetTokenKey, GetToken(times + 1), 5.seconds)
+                log.info(s"Some errors happened in getToken: $e")
+            }
+          } else {
+            log.warn("get token from esheep try over times...i try it again 5 minutes...")
+            timer.startSingleTimer(GetTokenKey, GetToken(), 5.minutes)
+          }
+          Behaviors.same
+
+        case SwitchBehavior(name, behavior, durationOpt, timeOut) =>
+          switchBehavior(ctx, name, behavior, durationOpt, timeOut)
+
+        case unknownMsg@_ =>
+          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
+          stashBuffer.stash(unknownMsg)
+          Behaviors.unhandled
+      }
+    }
+  }
+
+  private[this] def switchBehavior(ctx: ActorContext[Command],
+                                   behaviorName: String,
+                                   behavior: Behavior[Command],
+                                   durationOpt: Option[FiniteDuration] = None,
+                                   timeOut: TimeOut = TimeOut("busy time error"))
+                                  (implicit stashBuffer: StashBuffer[Command],
+                                   timer: TimerScheduler[Command]) = {
+    timer.cancel(BehaviorChangeKey)
+    durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey, timeOut, _))
+    stashBuffer.unstashAll(ctx, behavior)
   }
 
 }

@@ -375,18 +375,14 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
     finalDie.foreach { sid =>
       val score = grid.filter(_._2 match { case Body(id, _) if id == sid => true case _ => false }).toList.length
-      val killing = if(snakes.contains(sid)) snakes(sid).kill else 0
-      val nickname = if(snakes.contains(sid)) snakes(sid).name else "Unknown"
+      val killing = if (snakes.contains(sid)) snakes(sid).kill else 0
+      val nickname = if (snakes.contains(sid)) snakes(sid).name else "Unknown"
       println(s"score: $score, killing: $killing, nickname: $nickname")
       val startTime = startTimeMap(sid)
       val endTime = System.currentTimeMillis()
-      val msg: Future[Option[String]] = tokenActor ? AskForToken
-      msg.map {
-        case Some(token) =>
-          EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime, token)
-        case _ =>
-          println("failed to get token leading to fail to inputRecord")
-          //若未获得token，则什么也不做
+      val msg: Future[String] = tokenActor ? AskForToken
+      msg.map { token =>
+        EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime, token)
       }
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
