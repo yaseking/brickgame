@@ -125,6 +125,13 @@ object GameRecorder {
       case (ctx, PostStop) =>
         timer.cancelAll()
         log.info(s"${ctx.self.path} stopping....")
+        val mapInfo = essfMap.map{ essf=>
+          essf._2.leftFrame match {
+            case -1l =>(essf._1, UserJoinLeft(essf._2.joinFrame, lastFrame))
+            case _ => essf
+          }
+        }.toList
+        recorder.putMutableInfo(AppSettings.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
         recorder.finish()
         val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{

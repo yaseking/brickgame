@@ -68,12 +68,13 @@ object GameReplay {
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
         //todo test
-        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540360130144_0")
+        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1001_1540365672569_0")
         val info=replay.init()
         try{
           println(s"test1")
           println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-          println(s"test3:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+          println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
+          println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
           ctx.self ! SwitchBehavior("work",
             work(
               replay,
