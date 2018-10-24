@@ -2,11 +2,17 @@ package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
+import com.neo.sk.carnie.core.TokenActor
+import com.neo.sk.carnie.core.TokenActor.AskForToken
+import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.utils.EsheepClient
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
+
+import scala.concurrent.Future
 
 /**
   * User: Taoz
@@ -27,6 +33,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
   private val maxRecordNum = 100
 
   private val fileMaxRecordNum = 100000000
+
+//  val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
 
   var fileRecordNum = 0
 
@@ -367,12 +375,15 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
     finalDie.foreach { sid =>
       val score = grid.filter(_._2 match { case Body(id, _) if id == sid => true case _ => false }).toList.length
-      val killing = if(snakes.contains(sid)) snakes(sid).kill else 0
-      val nickname = if(snakes.contains(sid)) snakes(sid).name else "Unknown"
+      val killing = if (snakes.contains(sid)) snakes(sid).kill else 0
+      val nickname = if (snakes.contains(sid)) snakes(sid).name else "Unknown"
       println(s"score: $score, killing: $killing, nickname: $nickname")
       val startTime = startTimeMap(sid)
       val endTime = System.currentTimeMillis()
-      EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime)
+      val msg: Future[String] = tokenActor ? AskForToken
+      msg.map { token =>
+        EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime, token)
+      }
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)

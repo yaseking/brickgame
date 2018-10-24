@@ -3,7 +3,7 @@ package com.neo.sk.carnie.core
 import akka.actor.typed.{Behavior, PostStop}
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
-import com.neo.sk.carnie.common.{AppSettings, KeyData}
+import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.SlickTables
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -11,7 +11,6 @@ import com.neo.sk.utils.essf.RecordGame.getRecorder
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
 import org.seekloud.essf.io.FrameOutputStream
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 import org.slf4j.LoggerFactory
@@ -163,7 +162,7 @@ object GameRecorder {
               case _ => essf
             }
           }.toList
-          recorder.putMutableInfo(KeyData.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
+          recorder.putMutableInfo(AppSettings.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
           recorder.finish()
 
           val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"

@@ -51,7 +51,7 @@ class DrawGame(
 
   def drawGameOn(): Unit = {
     //    bodyAttribute.setAttribute("background-color", ColorsSetting.backgroundColor)
-    bodyAttribute.style_=("background-color: #F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
+    bodyAttribute.style_=("background-color:#F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
 
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt

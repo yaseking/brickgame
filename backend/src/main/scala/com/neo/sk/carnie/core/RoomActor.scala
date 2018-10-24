@@ -76,10 +76,11 @@ object RoomActor {
           implicit timer =>
             val subscribersMap = mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]]()
             val userMap = mutable.HashMap[String, String]()
+            val watcherMap = mutable.HashMap[String, String]()
             val grid = new GridOnServer(border)
             //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
             timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
-            idle(roomId, grid, userMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)]())
+            idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)]())
         }
     }
   }
@@ -87,6 +88,7 @@ object RoomActor {
   def idle(
             roomId: Int, grid: GridOnServer,
             userMap: mutable.HashMap[String, String],
+            watcherMap: mutable.HashMap[String, String],
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long,
             gameEvent: mutable.ArrayBuffer[(Long, GameEvent)]
@@ -110,6 +112,7 @@ object RoomActor {
 
         case WatchGame(playerId, subscriber) =>
           val watchId = watcherIdGenerator.getAndIncrement().toString
+          watcherMap.put(watchId, playerId)
           subscribersMap.put(watchId, subscriber)
           dispatchTo(subscribersMap, watchId, Protocol.Id(playerId))
           ctx.watchWith(subscriber, UserLeft(subscriber))
@@ -143,6 +146,9 @@ object RoomActor {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE) {
                 grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
+                watcherMap.filter(_._2==id).foreach{w =>
+                  dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
+                }
               } else {
                 val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
                 grid.addActionWithFrame(id, keyCode, realFrame)
@@ -206,7 +212,7 @@ object RoomActor {
             RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot))
           } else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
-          idle(roomId, grid, userMap, subscribersMap, tickCount + 1, gameEvent)
+          idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
