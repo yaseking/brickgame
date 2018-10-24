@@ -22,18 +22,19 @@ trait SlickTables {
     *  @param recordId Database column record_id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param roomId Database column room_id SqlType(int4)
     *  @param startTime Database column start_time SqlType(int8)
-    *  @param endTime Database column end_time SqlType(int8) */
-  case class rGameRecord(recordId: Long, roomId: Int, startTime: Long, endTime: Long)
+    *  @param endTime Database column end_time SqlType(int8)
+    *  @param filePath Database column file_path SqlType(varchar), Length(255,true) */
+  case class rGameRecord(recordId: Long, roomId: Int, startTime: Long, endTime: Long, filePath: String)
   /** GetResult implicit for fetching rGameRecord objects using plain SQL queries */
-  implicit def GetResultrGameRecord(implicit e0: GR[Long], e1: GR[Int]): GR[rGameRecord] = GR{
+  implicit def GetResultrGameRecord(implicit e0: GR[Long], e1: GR[Int], e2: GR[String]): GR[rGameRecord] = GR{
     prs => import prs._
-      rGameRecord.tupled((<<[Long], <<[Int], <<[Long], <<[Long]))
+      rGameRecord.tupled((<<[Long], <<[Int], <<[Long], <<[Long], <<[String]))
   }
   /** Table description of table game_record. Objects of this class serve as prototypes for rows in queries. */
   class tGameRecord(_tableTag: Tag) extends profile.api.Table[rGameRecord](_tableTag, "game_record") {
-    def * = (recordId, roomId, startTime, endTime) <> (rGameRecord.tupled, rGameRecord.unapply)
+    def * = (recordId, roomId, startTime, endTime, filePath) <> (rGameRecord.tupled, rGameRecord.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (Rep.Some(recordId), Rep.Some(roomId), Rep.Some(startTime), Rep.Some(endTime)).shaped.<>({r=>import r._; _1.map(_=> rGameRecord.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (Rep.Some(recordId), Rep.Some(roomId), Rep.Some(startTime), Rep.Some(endTime), Rep.Some(filePath)).shaped.<>({r=>import r._; _1.map(_=> rGameRecord.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column record_id SqlType(bigserial), AutoInc, PrimaryKey */
     val recordId: Rep[Long] = column[Long]("record_id", O.AutoInc, O.PrimaryKey)
@@ -43,6 +44,8 @@ trait SlickTables {
     val startTime: Rep[Long] = column[Long]("start_time")
     /** Database column end_time SqlType(int8) */
     val endTime: Rep[Long] = column[Long]("end_time")
+    /** Database column file_path SqlType(varchar), Length(255,true) */
+    val filePath: Rep[String] = column[String]("file_path", O.Length(255,varying=true))
   }
   /** Collection-like TableQuery object for table tGameRecord */
   lazy val tGameRecord = new TableQuery(tag => new tGameRecord(tag))

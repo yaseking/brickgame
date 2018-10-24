@@ -12,6 +12,9 @@ object RoomApiProtocol {
     val msg: String
   }
 
+  case class RecordReq(
+                            recordId: Long
+  )
   case class RecordListReq(
                             lastRecordId: Long,
                             count: Int
