@@ -79,6 +79,7 @@ lazy val client = (project in file("client")).enablePlugins(PackPlugin)
   .settings(
     libraryDependencies ++= Dependencies.backendDependencies
   )
+  .dependsOn(sharedJvm)
 
 // Akka Http based backend
 lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
@@ -133,7 +134,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
 
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
-  .aggregate(frontend, backend)
+  .aggregate(frontend, backend, client)
   .settings(name := "root")
 
 

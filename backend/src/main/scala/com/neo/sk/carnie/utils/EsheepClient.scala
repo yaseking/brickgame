@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.utils
 
-import com.neo.sk.carnie.common.{AppSettings, KeyData}
+import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.protocol.EsheepProtocol._
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -33,7 +33,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
           case Right(rsp) =>
             if(rsp.errCode==0) {
 //              println(s"before gsToken: ${KeyData.token}")
-              KeyData.token = rsp.data.token
+//              KeyData.token = rsp.data.token
 //              println(s"after gsToken: ${KeyData.token}")
               Right(rsp.data)
             } else {
@@ -51,9 +51,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
   }
 
-  def verifyAccessCode(gameId: Long, accessCode: String) = {
-    val token = KeyData.token
-    println(s"token: $token")
+  def verifyAccessCode(gameId: Long, accessCode: String, token: String) = {
+    println(s"got token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/verifyAccessCode?token=$token"
     val sn = appId + System.currentTimeMillis().toString
     val sendData = VerifyAccCode(gameId, accessCode).asJson.noSpaces
@@ -67,8 +66,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
-              println(s"nickName: ${rsp.data.playerInfo.nickName}")
-              Right(rsp.data.playerInfo)
+              println(s"nickName: ${rsp.data.nickName}")
+              Right(rsp.data)
             } else {
               log.error(s"verifyAccessCode error $esheepUrl rsp.error ${rsp.msg}")
               Left("error")
@@ -91,9 +90,11 @@ object EsheepClient extends HttpUtil with CirceSupport {
                       score: Int,
                       gameExtent: String = "",
                       startTime: Long,
-                      endTime: Long
+                      endTime: Long,
+                      token: String
                     ) = {
-    val token = KeyData.token
+    println("start inputBatRecord!")
+//    val token = KeyData.token
     val gameId = AppSettings.esheepGameId
     println(s"token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/addPlayerRecord?token=$token"
@@ -109,6 +110,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[ErrorRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
+              println("finish inputBatRecord!")
               Right(rsp)
             } else {
               log.error(s"inputBatRecord error $esheepUrl rsp.error${rsp.msg}")
@@ -131,7 +133,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     getTokenRequest(gameId, gsKey)
     Thread.sleep(5000)
 //    verifyAccessCode(gameId, "1234456asdf")
-    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
+//    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
   }
 
 }

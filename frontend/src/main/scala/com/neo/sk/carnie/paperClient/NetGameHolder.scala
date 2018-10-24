@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -9,14 +8,8 @@ import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
-import com.neo.sk.carnie.Routes.Esheep
-import com.neo.sk.carnie.ptcl.SuccessRsp
 import io.circe.syntax._
 import io.circe.generic.auto._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import com.neo.sk.carnie.util._
-
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 
@@ -93,7 +86,7 @@ object NetGameHolder extends js.JSApp {
 //              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
 //              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
 //              println(s"playerName: $playerName")
-//              webSocketClient.setUp(playerId, playerName, "playGame")
+////              webSocketClient.setUp(playerId, playerName, "playGame")
 //            } else {
 //              drawGame.drawVerifyErr()
 //              println(s"err: ${rsp.msg}")
@@ -114,26 +107,6 @@ object NetGameHolder extends js.JSApp {
         println("Unknown order!")
     }
   }
-
-//  def main1(): Unit = {
-//    joinButton.onclick = { event: MouseEvent =>
-//      if(nameField.value == "")
-//        dom.window.alert("您的游戏昵称不能为空！")
-//      else if(nameField.value.length>16)
-//        dom.window.alert("您的游戏昵称不能超过16位！")
-//      else{
-//        webSocketClient.joinGame(nameField.value)
-//        event.preventDefault()
-//      }
-//    }
-//    nameField.focus()
-//    nameField.onkeypress = { event: KeyboardEvent =>
-//      if (event.keyCode == 13) {
-//        joinButton.click()
-//        event.preventDefault()
-//      }
-//    }
-//  }
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
@@ -335,6 +308,22 @@ object NetGameHolder extends js.JSApp {
             }
           }
         }
+
+      case ReStartGame =>
+        println("Now in reStartGame order!")
+        audio1.pause()
+        audio1.currentTime = 0
+        audioKilled.pause()
+        audioKilled.currentTime = 0
+        play = true
+        scoreFlag = true
+        firstCome = true
+        if (isWin) {
+          isWin = false
+          winnerName = "unknown"
+        }
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
+        isContinue = true
 
       case Protocol.SomeOneWin(winner, finalData) =>
         isWin = true

@@ -4,12 +4,9 @@ import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
 /**
-  * User: Taoz
-  * Date: 9/4/2015
-  * Time: 4:29 PM
-  */
-object AppSettings {
-
+  * Created by dry on 2018/10/23.
+  **/
+object AppSetting {
 
   val log = LoggerFactory.getLogger(this.getClass)
   val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
@@ -19,16 +16,6 @@ object AppSettings {
 
   val httpInterface = appConfig.getString("http.interface")
   val httpPort = appConfig.getInt("http.port")
-
-
-  val slickConfig = config.getConfig("slick.db")
-  val slickUrl = slickConfig.getString("url")
-  val slickUser = slickConfig.getString("user")
-  val slickPassword = slickConfig.getString("password")
-  val slickMaximumPoolSize = slickConfig.getInt("maximumPoolSize")
-  val slickConnectTimeout = slickConfig.getInt("connectTimeout")
-  val slickIdleTimeout = slickConfig.getInt("idleTimeout")
-  val slickMaxLifetime = slickConfig.getInt("maxLifetime")
 
 
   val appSecureMap = {
@@ -56,7 +43,5 @@ object AppSettings {
   val slickConnectTimeout = slickConfig.getInt("connectTimeout")
   val slickIdleTimeout = slickConfig.getInt("idleTimeout")
   val slickMaxLifetime = slickConfig.getInt("maxLifetime")
-
-  val essfMapKeyName = "essfMap"
 
 }

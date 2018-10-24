@@ -7,6 +7,6 @@ object WsSourceProtocol {
   trait WsMsgSource
 
   case object CompleteMsgServer extends WsMsgSource
-  case class FailMsgServer(ex: Exception) extends WsMsgSource
+  case class FailMsgServer(ex: Throwable) extends WsMsgSource
 
 }
