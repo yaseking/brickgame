@@ -2,11 +2,17 @@ package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
+import com.neo.sk.carnie.core.TokenActor
+import com.neo.sk.carnie.core.TokenActor.AskForToken
+import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.utils.EsheepClient
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
+
+import scala.concurrent.Future
 
 /**
   * User: Taoz
@@ -27,6 +33,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
   private val maxRecordNum = 100
 
   private val fileMaxRecordNum = 100000000
+
+//  val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
 
   var fileRecordNum = 0
 
@@ -372,7 +380,14 @@ class GridOnServer(override val boundary: Point) extends Grid {
       println(s"score: $score, killing: $killing, nickname: $nickname")
       val startTime = startTimeMap(sid)
       val endTime = System.currentTimeMillis()
-      EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime)
+      val msg: Future[Option[String]] = tokenActor ? AskForToken
+      msg.map {
+        case Some(token) =>
+          EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime, token)
+        case _ =>
+          println("failed to get token leading to fail to inputRecord")
+          //若未获得token，则什么也不做
+      }
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
