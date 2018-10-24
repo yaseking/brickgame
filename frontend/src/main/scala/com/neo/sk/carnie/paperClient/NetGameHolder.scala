@@ -86,7 +86,7 @@ object NetGameHolder extends js.JSApp {
 //              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
 //              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
 //              println(s"playerName: $playerName")
-//              webSocketClient.setUp(playerId, playerName, "playGame")
+////              webSocketClient.setUp(playerId, playerName, "playGame")
 //            } else {
 //              drawGame.drawVerifyErr()
 //              println(s"err: ${rsp.msg}")
@@ -107,26 +107,6 @@ object NetGameHolder extends js.JSApp {
         println("Unknown order!")
     }
   }
-
-//  def main1(): Unit = {
-//    joinButton.onclick = { event: MouseEvent =>
-//      if(nameField.value == "")
-//        dom.window.alert("您的游戏昵称不能为空！")
-//      else if(nameField.value.length>16)
-//        dom.window.alert("您的游戏昵称不能超过16位！")
-//      else{
-//        webSocketClient.joinGame(nameField.value)
-//        event.preventDefault()
-//      }
-//    }
-//    nameField.focus()
-//    nameField.onkeypress = { event: KeyboardEvent =>
-//      if (event.keyCode == 13) {
-//        joinButton.click()
-//        event.preventDefault()
-//      }
-//    }
-//  }
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
