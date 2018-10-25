@@ -68,7 +68,7 @@ object GameReplay {
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
         //todo test
-        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540391535774_0")
+        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540437686192_0")
         val info=replay.init()
         try{
           println(s"test1")
@@ -142,7 +142,7 @@ object GameReplay {
               fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
               if(fileReader.hasMoreFrame){
-                timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
+                timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
                 work(fileReader,metaData,userMap,Some(msg.subscriber))
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)

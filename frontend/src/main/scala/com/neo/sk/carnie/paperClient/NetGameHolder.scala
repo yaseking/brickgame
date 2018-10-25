@@ -376,7 +376,7 @@ object NetGameHolder extends js.JSApp {
           stateData.get match {
             case msg: Snapshot =>
               println(s"snapshot get")
-              println(s"snapshot:$msg")
+//              println(s"snapshot:$msg")
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() => println("state decode error")
             case _ =>
@@ -393,6 +393,8 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
+  var tag = true
+
   private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
     data match {
       case Protocol.JoinEvent(id, name) => //不做处理，直接获取快照
@@ -404,6 +406,14 @@ object NetGameHolder extends js.JSApp {
       case Snapshot(gridReceive, snakes, joinOrLeftEvent) =>
         println(s"当前帧号：${grid.frameCount}")
         println(s"传输帧号：$frameIndex")
+        println(s"snapshot snakes:::$snakes")
+        if(snakes.nonEmpty && tag){
+          tag = false
+          grid.frameCount = frameIndex
+          grid.grid = gridReceive.toMap
+          grid.snakes = snakes.toMap
+          println(s"grid snakes::::::${grid.snakes}")
+        }
         if(grid.frameCount < frameIndex) { //保留
           grid.historyStateMap += frameIndex.toLong -> (snakes.toMap, gridReceive.toMap)
         } else if(grid.frameCount == frameIndex.toLong){ //重置
@@ -413,10 +423,6 @@ object NetGameHolder extends js.JSApp {
 //            case JoinEvent(id, name) =>
 //            case LeftEvent(id, name) =>
 //          }
-        } else if(frameIndex == 0){
-          grid.frameCount = 0
-          grid.grid = gridReceive.toMap
-          grid.snakes = snakes.toMap
         }
 
 

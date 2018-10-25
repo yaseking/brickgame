@@ -82,7 +82,10 @@ object GameRecorder {
         case RecordData(frame, event) => //记录数据
           val snapshot =
             if(event._1.exists{ case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true} ||
-              tickCount % 50 == 0) Some(event._2) else None //是否做快照
+              tickCount % 50 == 2) Some(event._2) else None //是否做快照
+
+          log.debug(s"${event._1.exists{case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true}}")
+          log.debug(s"做快照::tickcount:$tickCount, snapshot:$snapshot")
 
           event._1.foreach {
             case Protocol.JoinEvent(id, nickName) =>
