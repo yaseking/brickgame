@@ -9,6 +9,7 @@ object Protocol {
 
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
+
   case class GridDataSync(
                            frameCount: Long,
                            snakes: List[SkDt],
@@ -104,9 +105,8 @@ object Protocol {
 
   case class EventData(events: List[GameEvent]) extends GameEvent
 
+  case class Snapshot(snakes: List[SkDt], bodyDetails: List[BodyBaseInfo], fieldDetails: List[FieldByColumn], killHistory: List[Kill])
   case class DecodeError() extends GameEvent
-
-  case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent]) extends GameEvent
 
   case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
 

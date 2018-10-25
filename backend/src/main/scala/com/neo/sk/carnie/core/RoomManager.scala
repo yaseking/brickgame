@@ -11,6 +11,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import com.neo.sk.carnie.core.RoomManager.PreWatchGame
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
 
@@ -42,7 +43,7 @@ object RoomManager {
 
   case class StopReplay() extends Command
 
-  case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
+  case class FindRoomId(pid: String, reply: ActorRef[Option[(Int, mutable.HashSet[(String, String)])]]) extends Command
 
   case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
 
@@ -109,7 +110,6 @@ object RoomManager {
           log.info(s"got $msg")
           val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
           roomMap.update(roomId, roomMap(roomId).-((id, name)))
-          if(roomMap(roomId).map(_._2).isEmpty) roomMap -= roomId
           getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
           Behaviors.same
 
@@ -138,19 +138,18 @@ object RoomManager {
           val filterUserInfo = roomMap(roomId).find(_._1 == id)
           if (filterUserInfo.nonEmpty) {
             roomMap.update(roomId, roomMap(roomId).-(filterUserInfo.get))
-            if(roomMap(roomId).map(_._2).isEmpty) roomMap -= roomId
           }
           Behaviors.same
 
         case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
-          reply ! Option(roomMap.filter(r => r._2.exists(i => i._2 == pid)).head._1)
+          reply ! roomMap.find(r => r._2.exists(i => i._1 == pid))
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"got roomId = $roomId")
           val replyMsg = roomMap.get(roomId) match {
-            case Some(plays) => Some(plays.toList)
+            case Some(p) => Some(p.toList)
             case _ => None
           }
           reply ! replyMsg
@@ -161,8 +160,8 @@ object RoomManager {
           reply ! roomMap.keySet.toList
           Behaviors.same
 
-        case unknow =>
-          log.debug(s"${ctx.self.path} receive a msg unknow:$unknow")
+        case unknown =>
+          log.debug(s"${ctx.self.path} receive a msg unknown:$unknown")
           Behaviors.unhandled
       }
     }
@@ -171,11 +170,6 @@ object RoomManager {
   private def sink(actor: ActorRef[Command], id: String, name: String) = ActorSink.actorRef[Command](
     ref = actor,
     onCompleteMessage = Left(id, name),
-    onFailureMessage = FailMsgFront.apply
-  )
-  private def sink4Replay(actor: ActorRef[Command]) = ActorSink.actorRef[Command](
-    ref = actor,
-    onCompleteMessage = StopReplay(),
     onFailureMessage = FailMsgFront.apply
   )
 

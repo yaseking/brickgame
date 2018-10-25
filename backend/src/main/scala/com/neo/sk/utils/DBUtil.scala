@@ -3,17 +3,21 @@ package com.neo.sk.utils
 import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.LoggerFactory
 import slick.jdbc.PostgresProfile.api._
-
 /**
- * User: Taoz
- * Date: 2/9/2015
- * Time: 4:33 PM
- */
-object DBUtil {
-  import com.neo.sk.carnie.common.AppSettings._
+  * User: Jason
+  * Date: 2018/10/22
+  * Time: 14:50
+  */
 
+
+
+
+
+object DBUtil {
   val log = LoggerFactory.getLogger(this.getClass)
   private val dataSource = createDataSource()
+
+  import com.neo.sk.carnie.common.AppSettings._
 
   private def createDataSource() = {
 
@@ -36,8 +40,8 @@ object DBUtil {
     hikariDS
   }
 
-  val asyncExecutor : AsyncExecutor = AsyncExecutor.apply("AsyncExecutor.default",20,-1)
-  val db = Database.forDataSource(dataSource, Some(slickMaximumPoolSize), asyncExecutor)
+
+  val db = Database.forDataSource(dataSource, Some(slickMaximumPoolSize))
 
 
 
