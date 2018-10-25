@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.http
 
+import java.io.File
+
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
@@ -10,18 +12,31 @@ import com.neo.sk.carnie.models.dao.RecordDAO
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
 import io.circe.generic.auto._
+import java.nio.file.{Files, Paths}
+
+import akka.http.scaladsl.model.headers.{CacheDirectives, Expires, `Cache-Control`}
+import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.{Directive1, Route}
+import io.circe.Error
+import io.circe.generic.auto._
+import org.slf4j.LoggerFactory
+
+import akka.stream.scaladsl.{ FileIO, Sink, Source }
 
 import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.http.scaladsl.model.HttpEntity
 import io.circe.Error
 
 import scala.collection.mutable
+//import scala.reflect.io.File
 
 
 /**
   * Created by dry on 2018/10/18.
   **/
-trait RoomApiService extends ServiceUtils with CirceSupport {
+trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService{
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -123,7 +138,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
       case Right(req) =>
         dealFutureResult{
           RecordDAO.getRecordListByPlayer(req.playerId,req.lastRecordId,req.count).map{recordL =>
-            complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+            complete(RecordListRsp(records(recordL.toList.filter(_._2.userId == req.playerId).map(_._1).distinct.map{ r =>
               val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
               recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
             })))
@@ -135,10 +150,38 @@ trait RoomApiService extends ServiceUtils with CirceSupport {
     }
   }
 
+  private val downloadRecord = (path("downloadRecord" ) & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, RecordReq]]) {
+      case Right(req) =>
+        dealFutureResult{
+          RecordDAO.getRecordPath(req.recordId).map{
+            case Some(file) =>
+              val f = new File(file)
+              println(s"getFile $file")
+              if (f.exists()) {
+                val responseEntity = HttpEntity(
+                  ContentTypes.`application/octet-stream`,
+                  f.length,
+                  FileIO.fromPath(f.toPath, chunkSize = 262144))
+                complete(responseEntity)
+              }
+              else
+                complete(ErrorRsp(1001011,"record doesn't exist."))
+            case None =>
+              complete(ErrorRsp(1001011,"record doesn't exist."))
+          }
+        }
+
+      case Left(error) =>
+        log.warn(s"some error: $error")
+        complete(ErrorRsp(0, ""))
+    }
+  }
 
 
-  val roomApiRoutes: Route = pathPrefix("roomApi") {
-    getRoomId ~ getRoomPlayerList ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ getRecordListByPlayer
+  val roomApiRoutes: Route =  {
+    getRoomId ~ getRoomPlayerList ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
+    getRecordListByPlayer ~ downloadRecord
   }
 
 

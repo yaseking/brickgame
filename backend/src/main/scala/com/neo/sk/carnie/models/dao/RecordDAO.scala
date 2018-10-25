@@ -58,7 +58,7 @@ object RecordDAO {
     if(lastRecord == 0L){
       val action = {
         tGameRecord.sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
-          (game.recordId === user.recordId) && user.userId === playerId
+          game.recordId === user.recordId
         }
       }.result
       db.run(action)
@@ -66,10 +66,14 @@ object RecordDAO {
     else{
       val action = {
         tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
-          (game.recordId === user.recordId) && user.userId === playerId
+          game.recordId === user.recordId
         }
       }.result
       db.run(action)
     }
   }
+
+  def getRecordPath(recordId: Long) = db.run(
+    tGameRecord.filter(_.recordId === recordId).map(_.filePath).result.headOption
+  )
 }
