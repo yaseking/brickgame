@@ -48,7 +48,7 @@ package object paperClient {
   case class SkDt(
                    id: String,
                    name: String,
-                   color: String,
+                   color: String,//may change to rgb(Int, Int, Int)
                    startPoint: Point,
                    header: Point,
                    direction: Point = Point(0, 0),
