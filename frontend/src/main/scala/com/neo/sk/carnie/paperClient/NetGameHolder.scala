@@ -169,7 +169,7 @@ object NetGameHolder extends js.JSApp {
 //  private var tempDraw = System.currentTimeMillis()
 
   def draw(offsetTime: Long): Unit = {
-    //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
+//        println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
     //    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       val data = grid.getGridData
@@ -182,6 +182,7 @@ object NetGameHolder extends js.JSApp {
       } else {
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
+            println(s"snake 有数据")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -364,15 +365,28 @@ object NetGameHolder extends js.JSApp {
         PerformanceTool.receivePingPackage(x)
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
-        replayEventDecode(eventsData.asInstanceOf[ArrayBuffer]) match {
-          case Protocol.EventData(events) =>
+        println(s"receive replayFrameData")
+        eventsData match {
+          case EventData(events) =>
             events.foreach (event => replayMessageHandler(event, frameIndex))
           case Protocol.DecodeError() => println("events decode error")
+          case _ =>
         }
-        replayStateDecode(stateData.asInstanceOf[ArrayBuffer])  match {
-          case msg: Snapshot => replayMessageHandler(msg, frameIndex)
-          case Protocol.DecodeError() => println("state decode error")
+        if(stateData.nonEmpty) {
+          stateData.get match {
+            case msg: Snapshot =>
+              println(s"snapshot get")
+              println(s"snapshot:$msg")
+              replayMessageHandler(msg, frameIndex)
+            case Protocol.DecodeError() => println("state decode error")
+            case _ =>
+          }
         }
+        if(grid.historyStateMap.contains(frameIndex.toLong)) {
+          grid.grid = grid.historyStateMap(frameIndex.toLong)._2
+          grid.snakes = grid.historyStateMap(frameIndex.toLong)._1
+        }
+
 
       case x@_ =>
         println(s"receive unknown msg:$x")
@@ -388,6 +402,8 @@ object NetGameHolder extends js.JSApp {
       case EncloseEvent(enclosure) =>
         newFieldInfo = Some(NewFieldInfo(frameIndex.toLong, enclosure))
       case Snapshot(gridReceive, snakes, joinOrLeftEvent) =>
+        println(s"当前帧号：${grid.frameCount}")
+        println(s"传输帧号：$frameIndex")
         if(grid.frameCount < frameIndex) { //保留
           grid.historyStateMap += frameIndex.toLong -> (snakes.toMap, gridReceive.toMap)
         } else if(grid.frameCount == frameIndex.toLong){ //重置
@@ -397,11 +413,12 @@ object NetGameHolder extends js.JSApp {
 //            case JoinEvent(id, name) =>
 //            case LeftEvent(id, name) =>
 //          }
-        }
-        if(grid.historyStateMap.contains(frameIndex.toLong)) {
+        } else if(frameIndex == 0){
+          grid.frameCount = 0
           grid.grid = gridReceive.toMap
           grid.snakes = snakes.toMap
         }
+
 
     }
   }
@@ -411,12 +428,15 @@ object NetGameHolder extends js.JSApp {
   import org.seekloud.byteobject.MiddleBufferInJs
 
   private def replayEventDecode(a:ArrayBuffer): GameEvent={
+    println(s"replayEventDecode")
+
     val middleDataInJs = new MiddleBufferInJs(a)
     if (a.byteLength > 0) {
       bytesDecode[List[GameEvent]](middleDataInJs) match {
         case Right(r) =>
           Protocol.EventData(r)
         case Left(e) =>
+          println(s"hhhhhhhh")
           println(e.message)
           Protocol.DecodeError()
       }
@@ -426,6 +446,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   private def replayStateDecode(a:ArrayBuffer): GameEvent={
+    println(s"replayStateDecode")
     val middleDataInJs = new MiddleBufferInJs(a)
     bytesDecode[Snapshot](middleDataInJs) match {
       case Right(r) =>

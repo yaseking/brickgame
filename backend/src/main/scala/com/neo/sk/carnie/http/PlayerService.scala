@@ -61,9 +61,12 @@ trait PlayerService {
             handleWebSocketMessages(webSocketChatFlow4WatchGame(rooId, playerId))
           }
         } ~ path("watchRecord") {
-        log.debug("watch Record")
-
-        handleWebSocketMessages(webSocketChatFlow4WatchRecord("", 0L))
+        parameter(
+          'recordId.as[Long],
+          'playerId.as[String]
+        ) { (recordId, playerId) =>
+          handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId))
+        }
       }
     }
   }

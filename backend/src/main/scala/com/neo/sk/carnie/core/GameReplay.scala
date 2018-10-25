@@ -68,7 +68,7 @@ object GameReplay {
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
         //todo test
-        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1001_1540365672569_0")
+        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540391535774_0")
         val info=replay.init()
         try{
           println(s"test1")
@@ -124,6 +124,7 @@ object GameReplay {
       msg match {
         case msg:InitReplay=>
           log.info("start new replay!")
+          print(s"msg.userId:::::${msg.userId}")
           timer.cancel(GameLoopKey)
           timer.cancel(BehaviorWaitKey)
           userMap.find(_._1.id == msg.userId) match {
@@ -195,7 +196,9 @@ object GameReplay {
   def dispatchByteTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
     //    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
     //    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
-    subscriber ! ReplayFrameData(msg.frameIndex, msg.eventsData, msg.stateData)
+    val events = replayEventDecode(msg.eventsData)
+    val state = if(msg.stateData.isEmpty) None else Some(replayStateDecode(msg.stateData.get))
+    subscriber ! ReplayFrameData(msg.frameIndex, events, state)
   }
 
   private def busy()(
