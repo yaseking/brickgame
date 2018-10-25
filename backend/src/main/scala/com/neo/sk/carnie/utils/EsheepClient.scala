@@ -125,10 +125,16 @@ object EsheepClient extends HttpUtil with CirceSupport {
   }
 
   def main(args: Array[String]): Unit = {
-    val gameId = AppSettings.esheepGameId
-    val gsKey = AppSettings.esheepGsKey
-    getTokenRequest(gameId, gsKey)
-    Thread.sleep(5000)
+    import com.neo.sk.carnie.ptcl.RoomApiProtocol
+    val sn = appId + System.currentTimeMillis().toString
+    val sendData = RoomApiProtocol.RoomIdReq(1000).asJson.noSpaces
+    val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, sendData), secureKey)
+    val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
+    println(params)
+    //    val gameId = AppSettings.esheepGameId
+//    val gsKey = AppSettings.esheepGsKey
+//    getTokenRequest(gameId, gsKey)
+//    Thread.sleep(5000)
 //    verifyAccessCode(gameId, "1234456asdf")
 //    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
   }
