@@ -9,16 +9,13 @@ import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
 import com.neo.sk.carnie.models.dao.RecordDAO
-import org.slf4j.LoggerFactory
-import akka.http.scaladsl.server.Directives._
-import io.circe.generic.auto._
-import java.nio.file.{Files, Paths}
+import com.neo.sk.carnie.core.TokenActor
+import com.neo.sk.carnie.core.TokenActor.AskForToken
 
 import akka.http.scaladsl.model.headers.{CacheDirectives, Expires, `Cache-Control`}
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive1, Route}
-import io.circe.Error
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
 
@@ -36,7 +33,7 @@ import scala.collection.mutable
 /**
   * Created by dry on 2018/10/18.
   **/
-trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService{
+trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService with EsheepService{
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -150,32 +147,49 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService{
     }
   }
 
-  private val downloadRecord = (path("downloadRecord" ) & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RecordReq]]) {
-      case Right(req) =>
-        dealFutureResult{
-          RecordDAO.getRecordPath(req.recordId).map{
-            case Some(file) =>
-              val f = new File(file)
-              println(s"getFile $file")
-              if (f.exists()) {
-                val responseEntity = HttpEntity(
-                  ContentTypes.`application/octet-stream`,
-                  f.length,
-                  FileIO.fromPath(f.toPath, chunkSize = 262144))
-                complete(responseEntity)
-              }
-              else
-                complete(ErrorRsp(1001011,"record doesn't exist."))
-            case None =>
-              complete(ErrorRsp(1001011,"record doesn't exist."))
-          }
-        }
+  private val downloadRecord = (path("downloadRecord" ) & post & pathEndOrSingleSlash) {parameter(
+    'token.as[String]
+  ){
+    token =>
+      dealFutureResult {
+      val msg: Future[String] = tokenActor ? AskForToken
+      msg.map {
+        nowToken =>
+          if(token == nowToken){
+            entity(as[Either[Error, RecordReq]]) {
+              case Right(req) =>
+                dealFutureResult{
+                  RecordDAO.getRecordPath(req.recordId).map{
+                    case Some(file) =>
+                      val f = new File(file)
+                      println(s"getFile $file")
+                      if (f.exists()) {
+                        val responseEntity = HttpEntity(
+                          ContentTypes.`application/octet-stream`,
+                          f.length,
+                          FileIO.fromPath(f.toPath, chunkSize = 262144))
+                        complete(responseEntity)
+                      }
+                      else
+                        complete(ErrorRsp(1001011,"record doesn't exist."))
+                    case None =>
+                      complete(ErrorRsp(1001011,"record doesn't exist."))
+                  }
+                }
 
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(0, ""))
+              case Left(error) =>
+                log.warn(s"some error: $error")
+                complete(ErrorRsp(0, ""))
+            }
+          }
+          else {
+            log.warn("token 错误")
+            complete(ErrorRsp(1100111, "token 错误"))
+          }
+      }
     }
+
+  }
   }
 
 

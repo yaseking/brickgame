@@ -79,6 +79,7 @@ object TokenActor {
           if (times < 3) {
             EsheepClient.getTokenRequest(AppSettings.esheepGameId, AppSettings.esheepGsKey).map {
               case Right(rsp) =>
+                println(s"token is ${rsp.token}")
                 val expiresAt = System.currentTimeMillis() + rsp.expireTime - 120000
                 ctx.self ! SwitchBehavior("idle", idle(AccessToken(rsp.token, expiresAt)))
 
