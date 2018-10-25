@@ -41,6 +41,7 @@ object RoomActor {
   case class LeftRoom(id: String, name: String) extends Command
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
+
   case class WatchGame(uid: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
@@ -72,16 +73,16 @@ object RoomActor {
   def create(roomId: Int): Behavior[Command] = {
     log.debug(s"Room Actor-$roomId start...")
     Behaviors.setup[Command] { ctx =>
-        Behaviors.withTimers[Command] {
-          implicit timer =>
-            val subscribersMap = mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]]()
-            val userMap = mutable.HashMap[String, String]()
-            val watcherMap = mutable.HashMap[String, String]()
-            val grid = new GridOnServer(border)
-            //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
-            idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)]())
-        }
+      Behaviors.withTimers[Command] {
+        implicit timer =>
+          val subscribersMap = mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]]()
+          val userMap = mutable.HashMap[String, String]()
+          val watcherMap = mutable.HashMap[String, String]()
+          val grid = new GridOnServer(border)
+          //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
+          timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
+          idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)]())
+      }
     }
   }
 
@@ -146,7 +147,7 @@ object RoomActor {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE) {
                 grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
-                watcherMap.filter(_._2==id).foreach{w =>
+                watcherMap.filter(_._2 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
               } else {
@@ -166,47 +167,46 @@ object RoomActor {
           Behaviors.same
 
         case Sync =>
-          val frame = grid.frameCount
-          val (actionEvent, snapshot) = grid.getEventSnapshot(frame)
-          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
-          val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
-          gameEvent --= joinOrLeftEvent
+          val frame = grid.frameCount //即将执行改帧的数据
+          val shouldNewSnake = if (grid.waitingListState) true else if (tickCount % 20 == 5) true else false
+          val finishFields = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
+          val newData = grid.getGridData
 
-          var finishFields: List[(String, List[Point])] = Nil
-          if (userMap.nonEmpty) {
-            val shouldNewSnake = if (grid.waitingListState) true else if (tickCount % 20 == 5) true else false
-            finishFields = grid.updateInService(shouldNewSnake)
-            val newData = grid.getGridData
-            newData.killHistory.foreach { i =>
-              if (i.frameCount + 1 == newData.frameCount) {
-                dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId), i.killerName))
-              }
-            }
-            if (shouldNewSnake) dispatch(subscribersMap, newData)
-            else if (finishFields.nonEmpty) {
-              val finishUsers = finishFields.map(_._1)
-              finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
-              val newField = finishFields.map { f =>
-                FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                  ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
-                }.toList)
-              }
-              userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
-            }
-            if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
-            if (grid.currentRank.nonEmpty) {
-              val maxSize = grid.currentRank.head.area
-              if ((maxSize + fullSize * 0.1) < winStandard)
-                winStandard = fullSize * (0.2 - userMap.size * 0.05)
-            }
-            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) {
-              val finalData = grid.getGridData
-              grid.cleanData()
-              dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
+          newData.killHistory.foreach { i =>
+            if (i.frameCount + 1 == newData.frameCount) {
+              dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId), i.killerName))
             }
           }
 
+          if (shouldNewSnake) dispatch(subscribersMap, newData)
+          else if (finishFields.nonEmpty) {
+            val finishUsers = finishFields.map(_._1)
+            finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
+            val newField = finishFields.map { f =>
+              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+              }.toList)
+            }
+            userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+          }
+          if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
+          if (grid.currentRank.nonEmpty) { //胜利条件的跳转
+            val maxSize = grid.currentRank.head.area
+            if ((maxSize + fullSize * 0.1) < winStandard)
+              winStandard = fullSize * (0.2 - userMap.size * 0.05)
+          }
+          if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) {
+            val finalData = grid.getGridData
+            grid.cleanData()
+            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
+          }
+
           //for gameRecorder...
+          val actionEvent = grid.getDirectionEvent(frame)
+          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
+          val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
+          gameEvent --= joinOrLeftEvent
+          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(finishFields) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
           idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent)
@@ -225,19 +225,24 @@ object RoomActor {
   }
 
   def dispatchTo(subscribers: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]], id: String, gameOutPut: Protocol.GameMessage): Unit = {
-    subscribers.get(id).foreach {_ ! gameOutPut}
+    subscribers.get(id).foreach {
+      _ ! gameOutPut
+    }
   }
 
   def dispatch(subscribers: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]], gameOutPut: Protocol.GameMessage) = {
     //    log.info(s"dispatch:::$gameOutPut")
-    subscribers.values.foreach {_ ! gameOutPut }
+    subscribers.values.foreach {
+      _ ! gameOutPut
+    }
   }
 
-  private def getGameRecorder(ctx: ActorContext[Command],roomId:Int, grid: GridOnServer):ActorRef[GameRecorder.Command] = {
+  private def getGameRecorder(ctx: ActorContext[Command], roomId: Int, grid: GridOnServer): ActorRef[GameRecorder.Command] = {
     val childName = "gameRecorder"
     ctx.child(childName).getOrElse {
-      val actor = ctx.spawn(GameRecorder.create(roomId, grid.getEventSnapshot(grid.frameCount)._2,
-        GameInformation(roomId, System.currentTimeMillis(), 0, grid.frameCount)), childName)
+      val newData = grid.getGridData
+      val actor = ctx.spawn(GameRecorder.create(roomId, Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory),
+        GameInformation(roomId, System.currentTimeMillis(), 0, grid.frameCount - 1)), childName)
       ctx.watchWith(actor, ChildDead(childName, actor))
       actor
     }.upcast[GameRecorder.Command]

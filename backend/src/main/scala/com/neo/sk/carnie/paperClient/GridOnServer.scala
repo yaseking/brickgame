@@ -188,9 +188,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
     isFinish
   }
 
-  def getEventSnapshot(frameCount: Long) = {
-    val state = historyStateMap.getOrElse(frameCount, (Map.empty, Map.empty))
-    (actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2)), Snapshot(state._2.toList, state._1.toList, Nil))
+  def getDirectionEvent(frameCount: Long): List[Protocol.DirectionEvent] = {
+    actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2))
   }
 
 //  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {

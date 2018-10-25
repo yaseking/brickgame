@@ -103,7 +103,7 @@ object Protocol {
 
   case class EncloseEvent(enclosure: List[(String, List[Point])]) extends GameEvent
 
-  case class Snapshot(grid: List[(Point, Spot)], snakes: List[(String, SkDt)], joinOrLeftEvent: List[GameEvent])
+  case class Snapshot(snakes: List[SkDt], bodyDetails: List[BodyBaseInfo], fieldDetails: List[FieldByColumn], killHistory: List[Kill])
 
   case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
 
