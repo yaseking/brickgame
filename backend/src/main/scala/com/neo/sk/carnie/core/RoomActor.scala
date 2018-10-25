@@ -167,10 +167,6 @@ object RoomActor {
 
         case Sync =>
           val frame = grid.frameCount
-          val (actionEvent, snapshot) = grid.getEventSnapshot(frame)
-          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
-          val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
-          gameEvent --= joinOrLeftEvent
 
           var finishFields: List[(String, List[Point])] = Nil
           var newField: List[FieldByColumn] = Nil
@@ -208,9 +204,11 @@ object RoomActor {
           }
 
           //for gameRecorder...
-          val recordData = if (finishFields.nonEmpty) {
-            RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot))
-          } else RecordData(frame, (baseEvent, snapshot))
+          val (actionEvent, snapshot) = grid.getEventSnapshot(frame)
+          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
+          val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
+          gameEvent --= joinOrLeftEvent
+          val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
           idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent)
 
