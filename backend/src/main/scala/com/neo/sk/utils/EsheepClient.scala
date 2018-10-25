@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.utils
+package com.neo.sk.utils
 
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.protocol.EsheepProtocol._
@@ -8,7 +8,6 @@ import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.ptcl._
-import com.neo.sk.utils.CirceSupport
 
 object EsheepClient extends HttpUtil with CirceSupport {
 
@@ -21,7 +20,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val esheepUrl = baseUrl + "/api/gameServer/gsKey2Token"
     val sendData = GetToken(gameId, gsKey).asJson.noSpaces
 
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData, isLog = false).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
         println(s"tokenStr: $str")
         decode[GetTokenRsp](str) match {
@@ -48,7 +47,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val esheepUrl = baseUrl + s"/api/gameServer/verifyAccessCode?token=$token"
     val sendData = VerifyAccCode(gameId, accessCode).asJson.noSpaces
 
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData, isLog = false).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
         println(s"str: $str")
         decode[VerifyAccCodeRsp](str) match {
@@ -87,7 +86,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val esheepUrl = baseUrl + s"/api/gameServer/addPlayerRecord?token=$token"
     val sendData = InputRecord(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime)).asJson.noSpaces
 
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData, isLog = false).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
         println(s"str: $str")
         decode[ErrorRsp](str) match {
