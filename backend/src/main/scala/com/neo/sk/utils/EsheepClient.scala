@@ -1,19 +1,17 @@
-package com.neo.sk.carnie.utils
+package com.neo.sk.utils
 
+import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.protocol.EsheepProtocol._
+import com.neo.sk.carnie.ptcl._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
-import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.http.RoomApiService
 import org.slf4j.LoggerFactory
-import com.neo.sk.carnie.ptcl._
-import com.neo.sk.utils.CirceSupport
 
 object EsheepClient extends HttpUtil with CirceSupport {
 
-  private val log = LoggerFactory.getLogger("Esheep")
+  private val log = LoggerFactory.getLogger("com.neo.sk.carnie.utils.EsheepClient")
 
   val domain = "10.1.29.250:30374"
   private val baseUrl = AppSettings.esheepProtocol + "://" + domain + "/" + AppSettings.esheepUrl
@@ -28,7 +26,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
     val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
 
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params, isLog = false).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params).map {
       case Right(str) =>
         decode[GetTokenRsp](str) match {
           case Right(rsp) =>
@@ -58,7 +56,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
     val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
 
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params, isLog = false).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params).map {
       case Right(str) =>
         println(s"str: $str")
         decode[VerifyAccCodeRsp](str) match {
@@ -102,7 +100,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
     val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
 
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params, isLog = false).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params).map {
       case Right(str) =>
         println(s"str: $str")
         decode[ErrorRsp](str) match {
@@ -126,26 +124,10 @@ object EsheepClient extends HttpUtil with CirceSupport {
   }
 
   def main(args: Array[String]): Unit = {
-    import com.neo.sk.carnie.ptcl.RoomApiProtocol
-    final case class PostEnvelope(
-      appId: String,
-      sn: String,
-      timestamp: String,
-      nonce: String,
-      data: String,
-      signature: String
-    )
-    val sn = appId + System.currentTimeMillis().toString
-    val sendData = RoomApiProtocol.RecordListReq(3,5).asJson.noSpaces
-    val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, sendData), secureKey)
-//    val params = PostEnvelope1(appId, sn, timestamp, nonce, signature).asJson.noSpaces
-    val params2 = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
-    println(params2)
-//    println(params)
-    //    val gameId = AppSettings.esheepGameId
-//    val gsKey = AppSettings.esheepGsKey
-//    getTokenRequest(gameId, gsKey)
-//    Thread.sleep(5000)
+    val gameId = AppSettings.esheepGameId
+    val gsKey = AppSettings.esheepGsKey
+    getTokenRequest(gameId, gsKey)
+    Thread.sleep(5000)
 //    verifyAccessCode(gameId, "1234456asdf")
 //    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
   }

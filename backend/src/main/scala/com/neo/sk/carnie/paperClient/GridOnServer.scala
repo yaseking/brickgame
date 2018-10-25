@@ -8,7 +8,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.carnie.utils.EsheepClient
+import com.neo.sk.utils.EsheepClient
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
 

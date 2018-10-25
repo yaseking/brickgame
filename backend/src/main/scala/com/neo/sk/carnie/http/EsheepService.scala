@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.neo.sk.carnie.common._
-import com.neo.sk.carnie.utils.EsheepClient
 import com.neo.sk.carnie.ptcl._
 import io.circe.generic.auto._
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
@@ -13,7 +12,7 @@ import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
 import io.circe.Error
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
-import com.neo.sk.utils.CirceSupport
+import com.neo.sk.utils.{CirceSupport, EsheepClient}
 
 import scala.concurrent.Future
 

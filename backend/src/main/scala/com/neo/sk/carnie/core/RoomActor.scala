@@ -11,7 +11,7 @@ import com.neo.sk.carnie.paperClient._
 import org.seekloud.byteobject._
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.core.GameRecorder.RecordData
-import com.neo.sk.carnie.utils.EsheepClient
+import com.neo.sk.utils.EsheepClient
 
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration

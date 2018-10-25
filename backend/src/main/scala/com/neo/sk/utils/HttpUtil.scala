@@ -1,15 +1,12 @@
-package com.neo.sk.carnie.utils
+package com.neo.sk.utils
 
-import java.io.File
 import java.nio.charset.Charset
 import java.security.KeyStore
 import java.security.cert.X509Certificate
-import javax.net.ssl.{ManagerFactoryParameters, TrustManager, TrustManagerFactory, X509TrustManager}
 
 import io.netty.handler.ssl.util.SimpleTrustManagerFactory
-import io.netty.handler.ssl.{SslContext, SslContextBuilder}
+import javax.net.ssl.{ManagerFactoryParameters, TrustManager, X509TrustManager}
 import org.asynchttpclient._
-import org.asynchttpclient.request.body.multipart.FilePart
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -32,16 +29,16 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 object HttpUtil {
 
   //skip ssl check.
-/*  val config: AsyncHttpClientConfig = {
-    val builder = new DefaultAsyncHttpClientConfig.Builder()
-    val sslBuilder = SslContextBuilder.forClient()
-    sslBuilder.trustManager(new TmFactory())
-    val sslContext = sslBuilder.build()
-    builder.setSslContext(sslContext)
-    builder.build()
-  }
+  /*  val config: AsyncHttpClientConfig = {
+      val builder = new DefaultAsyncHttpClientConfig.Builder()
+      val sslBuilder = SslContextBuilder.forClient()
+      sslBuilder.trustManager(new TmFactory())
+      val sslContext = sslBuilder.build()
+      builder.setSslContext(sslContext)
+      builder.build()
+    }
 
-  private val ahClientImp: DefaultAsyncHttpClient = new DefaultAsyncHttpClient(config)*/
+    private val ahClientImp: DefaultAsyncHttpClient = new DefaultAsyncHttpClient(config)*/
   private val ahClientImp: DefaultAsyncHttpClient = new DefaultAsyncHttpClient()
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -80,12 +77,14 @@ trait HttpUtil {
 
   import collection.JavaConverters._
 
-  private def parseResp(response: Response, charset: Charset, isLog: Boolean = true) = {
+  private def parseResp(response: Response, charset: Charset, needLogRsp:Boolean = true) = {
     val body = new String(response.getResponseBodyAsBytes, charset)
-    if(isLog) {
-//      log.debug("getRequestSend response headers:" + response.getHeaders)
-//      log.debug("getRequestSend response body:" + body)
+    if(needLogRsp){
+      log.debug("getRequestSend response headers:" + response.getHeaders)
+      log.debug("getRequestSend response body:" + body)
     }
+    //    log.debug("getRequestSend response headers:" + response.getHeaders)
+    //    log.debug("getRequestSend response body:" + body)
     if (response.getStatusCode != 200) {
       val uri = response.getUri
       val bodyLength = body.length
@@ -96,51 +95,49 @@ trait HttpUtil {
   }
 
   private def executeRequest(
-    methodName: String,
-    request: BoundRequestBuilder,
-    charset: Charset,
-    isLog: Boolean = true
-  )(implicit executor: ExecutionContext) = {
+                              methodName: String,
+                              request: BoundRequestBuilder,
+                              charset: Charset,
+                              needLogRsp:Boolean = true
+                            )(implicit executor: ExecutionContext) = {
     request.scalaExecute().map { response =>
-      Right(parseResp(response, charset, isLog))
+      Right(parseResp(response, charset,needLogRsp))
     }.recover { case e: Throwable => Left(e) }
   }
 
   def postJsonRequestSend(
-    methodName: String,
-    url: String,
-    parameters: List[(String, String)],
-    jsonStr: String,
-    charsetName: String = "UTF-8",
-    isLog: Boolean = true
-  )(implicit executor: ExecutionContext): Future[Either[Throwable, String]] = {
-    if(isLog) {
-      log.info("Post Request [" + methodName + "] Processing...")
-      log.debug(methodName + " url=" + url)
-      log.debug(methodName + " parameters=" + parameters)
-      log.debug(methodName + " postData=" + jsonStr)
-    }
+                           methodName: String,
+                           url: String,
+                           parameters: List[(String, String)],
+                           jsonStr: String,
+                           charsetName: String = "UTF-8",
+                           timeOut:Int = 20 * 1000,
+                           needLogRsp:Boolean = true
+                         )(implicit executor: ExecutionContext): Future[Either[Throwable, String]] = {
+    log.info("Post Request [" + methodName + "] Processing...")
+    log.debug(methodName + " url=" + url)
+    log.debug(methodName + " parameters=" + parameters)
+    log.debug(methodName + " postData=" + jsonStr)
     val cs = Charset.forName(charsetName)
     ahClient.
       preparePost(url)
     val request = ahClient.
       preparePost(url).
       setFollowRedirect(true).
-      setRequestTimeout(20 * 1000).
+      setRequestTimeout(timeOut).
       setCharset(cs).
       addQueryParams(parameters.map { kv => new Param(kv._1, kv._2) }.asJava).
       addHeader("Content-Type", "application/json").
       setBody(jsonStr)
-    executeRequest(methodName, request, cs, isLog)
+    executeRequest(methodName, request, cs, needLogRsp)
   }
 
   def getRequestSend(
-    methodName: String,
-    url: String,
-    parameters: List[(String, String)],
-    header: List[(String, String)] = Nil,
-    responseCharsetName: String = "UTF-8"
-  )(implicit executor: ExecutionContext): Future[Either[Throwable, String]] = {
+                      methodName: String,
+                      url: String,
+                      parameters: List[(String, String)],
+                      responseCharsetName: String = "UTF-8"
+                    )(implicit executor: ExecutionContext): Future[Either[Throwable, String]] = {
     log.info("Get Request [" + methodName + "] Processing...")
     log.debug(methodName + " url=" + url)
     log.debug(methodName + " parameters=" + parameters)
@@ -149,30 +146,6 @@ trait HttpUtil {
       setFollowRedirect(true).
       setRequestTimeout(20 * 1000).
       addQueryParams(parameters.map { kv => new Param(kv._1, kv._2) }.asJava)
-    header.foreach(h => request.addHeader(h._1, h._2))
-    val cs = Charset.forName(responseCharsetName)
-    executeRequest(methodName, request, cs)
-  }
-
-  def postFileRequestSend(
-                           methodName: String,
-                           url: String,
-                           parameters: List[(String, String)],
-                           file: File,
-                           fileName: String,
-                           responseCharsetName: String = "UTF-8"
-                         )(implicit executor: ExecutionContext): Future[Either[Throwable, String]] = {
-    log.info("Post Request [" + methodName + "] Processing...")
-    log.debug(methodName + " url=" + url)
-    log.debug(methodName + " parameters=" + parameters)
-    log.debug(methodName + " postData=" + file.getName)
-
-    val request = ahClient.
-      preparePost(url).
-      setFollowRedirect(true).
-      setRequestTimeout(20 * 1000).
-      addQueryParams(parameters.map { kv => new Param(kv._1, kv._2) }.asJava).
-      addBodyPart(new FilePart("fileUpload", file, null, null, fileName))
     val cs = Charset.forName(responseCharsetName)
     executeRequest(methodName, request, cs)
   }
