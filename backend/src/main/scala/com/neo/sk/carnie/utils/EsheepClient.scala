@@ -6,6 +6,7 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
+import com.neo.sk.carnie.http.RoomApiService
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.ptcl._
 import com.neo.sk.utils.CirceSupport
@@ -126,11 +127,21 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
   def main(args: Array[String]): Unit = {
     import com.neo.sk.carnie.ptcl.RoomApiProtocol
+    final case class PostEnvelope(
+      appId: String,
+      sn: String,
+      timestamp: String,
+      nonce: String,
+      data: String,
+      signature: String
+    )
     val sn = appId + System.currentTimeMillis().toString
-    val sendData = RoomApiProtocol.RoomIdReq(1000).asJson.noSpaces
+    val sendData = RoomApiProtocol.RecordListReq(3,5).asJson.noSpaces
     val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, sendData), secureKey)
-    val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
-    println(params)
+//    val params = PostEnvelope1(appId, sn, timestamp, nonce, signature).asJson.noSpaces
+    val params2 = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
+    println(params2)
+//    println(params)
     //    val gameId = AppSettings.esheepGameId
 //    val gsKey = AppSettings.esheepGsKey
 //    getTokenRequest(gameId, gsKey)
