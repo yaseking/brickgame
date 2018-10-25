@@ -32,9 +32,6 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[GetTokenRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
-//              println(s"before gsToken: ${KeyData.token}")
-//              KeyData.token = rsp.data.token
-//              println(s"after gsToken: ${KeyData.token}")
               Right(rsp.data)
             } else {
               log.error(s"getTokenRequest error $esheepUrl rsp.error: ${rsp.msg}")
