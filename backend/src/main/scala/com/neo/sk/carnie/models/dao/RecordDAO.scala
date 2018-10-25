@@ -76,4 +76,14 @@ object RecordDAO {
   def getRecordPath(recordId: Long) = db.run(
     tGameRecord.filter(_.recordId === recordId).map(_.filePath).result.headOption
   )
+
+  def saveGameRecorder(roomId: Int, startTime: Long, endTime: Long, filePath: String): Future[Long] = {
+    db.run{
+      tGameRecord.returning(tGameRecord.map(_.recordId)) += rGameRecord(-1l, roomId, startTime, endTime, filePath)
+    }
+  }
+
+  def saveUserInGame(users: Set[rUserInRecord]) = {
+    db.run(tUserInRecord ++= users)
+  }
 }
