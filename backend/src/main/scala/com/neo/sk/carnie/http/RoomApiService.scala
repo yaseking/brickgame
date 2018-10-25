@@ -41,46 +41,32 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
 
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, PlayerIdInfo]]) {
-      case Right(req) =>
-        dealFutureResult {
-          val msg: Future[Option[(Int, mutable.HashSet[(String, String)])]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
-          msg.map {
-            case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid._1)))
-            case _ =>
-              log.info("this player doesn't exist")
-              complete(ErrorRsp(100010, "get roomId error:this player doesn't exist"))
-          }
-        }
-
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(110000, "parse error"))
+    dealPostReq[PlayerIdInfo]{ req =>
+            val msg: Future[Option[(Int, mutable.HashSet[(String, String)])]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
+            msg.map {
+              case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid._1)))
+              case _ =>
+                log.info("this player doesn't exist")
+                complete(ErrorRsp(100010, "get roomId error:this player doesn't exist"))
+            }
     }
   }
 
   private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RoomIdReq]]) {
-      case Right(req) =>
-        val msg: Future[Option[List[(String, String)]]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-        dealFutureResult {
-          msg.map {
-            case Some(plist) =>
-              complete(PlayerListRsp(PlayerInfo(plist.map(p => PlayerIdName(p._1,p._2)))))
-            case None =>
-              log.info("get player list error")
-              complete(ErrorRsp(100001, "get player list error"))
-          }
-        }
-
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(110000, "parse error"))
+    dealPostReq[RoomIdReq]{req =>
+          val msg: Future[Option[List[(String, String)]]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+            msg.map {
+              case Some(plist) =>
+                complete(PlayerListRsp(PlayerInfo(plist.map(p => PlayerIdName(p._1,p._2)))))
+              case None =>
+                log.info("get player list error")
+                complete(ErrorRsp(100001, "get player list error"))
+            }
     }
   }
 
   private val getRoomList = (path("getRoomList") & get & pathEndOrSingleSlash) {
-    dealFutureResult {
+    dealGetReq{
       val msg: Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
       msg.map {
         allroom =>
@@ -88,9 +74,8 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
             complete(RoomListRsp(RoomListInfo(allroom)))
           else {
             log.info("get all room error")
-            complete(ErrorRsp(100000, "get all room error"))
+            complete(ErrorRsp(100000, "get all room error,there are no room"))
           }
-
       }
     }
   }
