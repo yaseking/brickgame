@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paperClient
+package com.neo.sk.carnie.common
 
 import javafx.scene.input.KeyCode
 

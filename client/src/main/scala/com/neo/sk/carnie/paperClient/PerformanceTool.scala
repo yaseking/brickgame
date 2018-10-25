@@ -1,9 +1,10 @@
 package com.neo.sk.carnie.paperClient
 
-import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
+import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.ReceivePingPacket
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
+import javafx.scene.text.{Font, Text, TextAlignment}
 
 /**
   * Created by dry on 2018/9/3.
@@ -30,25 +31,33 @@ object PerformanceTool {
   def renderFps(ctx: GraphicsContext, leftBegin: Int, lineHeight: Int) = {
     addFps()
 //    ctx.font = "14px Helvetica"
-    ctx.textAlign = "start"
+    ctx.setTextAlign(TextAlignment.LEFT)
+//    ctx.textAlign = "start"
 //    val fpsString = s"fps : $lastRenderTimes, ping: $latency"
 //    ctx.fillText(fpsString, leftBegin, lineHeight)
 
-    ctx.font = "20px Helvetica"
-    ctx.fillStyle = ColorsSetting.fontColor2
+    ctx.setFont(Font.font(20))
+    ctx.setFill(Color.rgb(0,0,0))
+//    ctx.font = "20px Helvetica"
+//    ctx.fillStyle = ColorsSetting.fontColor2
     val fpsString = "fps : "
+    val txt1 = new Text(fpsString)
+    val len1 = txt1.getLayoutBounds.getWidth.toInt
     val pingString = "ping: "
+    val txt2 = new Text(pingString)
+    val len2 = txt2.getBoundsInLocal.getWidth.toInt
     ctx.fillText(fpsString, leftBegin, lineHeight)
-    ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight)
+    ctx.fillText(pingString, leftBegin + len1 + 50, lineHeight)
     ctx.setStroke(Color.BLACK)
 //    ctx.strokeStyle = "black"
-    ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
-    ctx.fillStyle = if (lastRenderTimes < 50) ColorsSetting.redColor else ColorsSetting.greenColor
-    ctx.fillText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
-    ctx.strokeStyle = "black"
-    ctx.strokeText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
-    ctx.fillStyle = if (latency <= 100) ColorsSetting.greenColor else if (latency > 100 && latency <= 200) ColorsSetting.yellowColor else ColorsSetting.redColor
-    ctx.fillText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
+    ctx.strokeText(lastRenderTimes.toString, leftBegin + len1, lineHeight)
+    ctx.setFill() = if (lastRenderTimes < 50) Color.RED else Color.GREEN
+    ctx.fillText(lastRenderTimes.toString, leftBegin + len1, lineHeight)
+    ctx.setStroke(Color.BLACK)
+//    ctx.strokeStyle = "black"
+    ctx.strokeText(s"${latency}ms", leftBegin + len1 + len2 + 60, lineHeight)
+    ctx.setFill() = if (latency <= 100) Color.GREEN else if (latency > 100 && latency <= 200) Color.YELLOW else Color.RED
+    ctx.fillText(s"${latency}ms", leftBegin + len1 + len2 + 60, lineHeight)
 
   }
 

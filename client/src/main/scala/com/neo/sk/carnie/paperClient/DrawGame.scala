@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
-import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
+import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import javafx.geometry.VPos
 import javafx.scene.image.Image
@@ -81,10 +81,10 @@ class DrawGame(
     canvas.setWidth(windowBoundary.x.toInt)
     canvas.setHeight(windowBoundary.y.toInt)
     ctx.save()
-    ctx.setFill(Color.color(51, 51, 51))
+    ctx.setFill(Color.rgb(51, 51, 51))
 //    ctx.fillStyle = ColorsSetting.backgroundColor2(51,51,51)
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.setFill(Color.color(224,238,253))
+    ctx.setFill(Color.rgb(224,238,253))
 //    ctx.fillStyle = ColorsSetting.fontColor(224,238,253)
     ctx.setFont(Font.font(30))
 //    ctx.font = "36px Helvetica"
@@ -93,7 +93,7 @@ class DrawGame(
   }
 
   def drawCache(): Unit = { //离屏缓存的更新--缓存边界
-    borderCtx.setFill(Color.color(105,105,105))
+    borderCtx.setFill(Color.rgb(105,105,105))
 //    borderCtx.fillStyle = ColorsSetting.borderColor(105,105,105)
 
     //画边界
@@ -105,9 +105,9 @@ class DrawGame(
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
-    ctx.setFill(Color.color(51, 51, 51))
+    ctx.setFill(Color.rgb(51, 51, 51))
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.setFill(Color.color(224,238,253))
+    ctx.setFill(Color.rgb(224,238,253))
     if (firstCome) {
       ctx.setFont(Font.font(30))
       ctx.fillText("Welcome.", 150, 180)
@@ -121,9 +121,9 @@ class DrawGame(
 
   def drawGameWin(winner: String): Unit = {
     ctx.save()
-    ctx.setFill(Color.color(51, 51, 51))
+    ctx.setFill(Color.rgb(51, 51, 51))
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.setFill(Color.color(224,238,253))
+    ctx.setFill(Color.rgb(224,238,253))
     ctx.setFont(Font.font(30))
     ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
     ctx.restore()
@@ -131,10 +131,10 @@ class DrawGame(
 
   def drawGameWait(): Unit = {
     ctx.save()
-    ctx.setFill(Color.color(51, 51, 51))
+    ctx.setFill(Color.rgb(51, 51, 51))
 //    ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.setFill(Color.color(224,238,253))
+    ctx.setFill(Color.rgb(224,238,253))
     ctx.setFont(Font.font(30))
 //    ctx.fillStyle = ColorsSetting.fontColor
 //    ctx.font = "36px Helvetica"
@@ -144,11 +144,11 @@ class DrawGame(
 
   def drawGameDie(killerOpt: Option[String]): Unit = {
     rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.setFill(Color.color(51, 51, 51))
+    ctx.setFill(Color.rgb(51, 51, 51))
 //    ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     //    ctx.globalAlpha = 0.8
-    ctx.setFill(Color.color(91,196,140))
+    ctx.setFill(Color.rgb(91,196,140))
     //    ctx.fillStyle = ColorsSetting.gameNameColor(91,196,140)
     ctx.setFont(Font.font(20))
 //    ctx.font = "24px Helvetica"
@@ -174,7 +174,7 @@ class DrawGame(
     }
     ctx.fillText(text, x - 20, y) //(500,180)
     ctx.save()
-    ctx.setFill(Color.color(224,238,253))
+    ctx.setFill(Color.rgb(224,238,253))
     ctx.setFont(Font.font(20))
 //    ctx.font = "bold 24px Helvetica"
 //    ctx.fillStyle = ColorsSetting.fontColor
@@ -195,7 +195,7 @@ class DrawGame(
     ctx.drawImage(bloodImg, 670, 115, 300, 50)
     ctx.restore()
     ctx.save()
-    ctx.setFill(Color.color(255,88,9))
+    ctx.setFill(Color.rgb(255,88,9))
     ctx.setFont(Font.font(25))
 //    ctx.font = "bold 30px Microsoft YaHei"
 //    ctx.fillStyle = "#FF5809"(255,88,9)
@@ -215,7 +215,7 @@ class DrawGame(
     val height = windowBoundary.y - BorderSize.h * canvasUnit * scale
     ctx.save()
     ctx.scale(scale, scale)
-    ctx.setFill(Color.color(105,105,105))
+    ctx.setFill(Color.rgb(105,105,105))
 //    ctx.fillStyle = ColorsSetting.borderColor
     ctx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
     ctx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
@@ -225,8 +225,9 @@ class DrawGame(
       if (field.uid == myId || field.uid == winnerId) {
         val color = snakes.find(_.id == field.uid).map(_.color).get
 //        ctx.setFill(Color.color(105,105,105))
-        //todo 十六进制转换成rgb
-        ctx.fillStyle = color
+        val (r, g ,b) = hex2Rgb(color)
+        ctx.setFill(Color.color(r, g, b))
+//        ctx.fillStyle = color
         field.scanField.foreach { point =>
           point.x.foreach { x =>
             ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
@@ -241,7 +242,7 @@ class DrawGame(
 //    ctx.globalAlpha = 1
     ctx.setFont(Font.font("Microsoft YaHei", FontPosture.findByName("bold"), 25))
 //    ctx.font = "bold 30px Microsoft YaHei"
-    ctx.setFill(Color.color(0,0,0))
+    ctx.setFill(Color.rgb(0,0,0))
 //    ctx.fillStyle = "#000000"
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
@@ -288,7 +289,8 @@ class DrawGame(
     ctx.setGlobalAlpha(0.6)
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.fillStyle = color
+      val (r, g ,b) = hex2Rgb(color)
+      ctx.setFill(Color.color(r, g, b))
       val turnPoints = bds.turn.turnPoint
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
@@ -314,7 +316,8 @@ class DrawGame(
     ctx.setGlobalAlpha(1)
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.fillStyle = color
+      val (r, g ,b) = hex2Rgb(color)
+      ctx.setFill(Color.color(r, g, b))
       field.scanField.foreach { point =>
         point.x.foreach { x =>
           ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
@@ -323,7 +326,9 @@ class DrawGame(
     }
 
     snakeWithOff.foreach { s =>
-      ctx.fillStyle = s.color
+//      ctx.fillStyle = s.color
+      val (r, g ,b) = hex2Rgb(s.color)
+      ctx.setFill(Color.color(r, g, b))
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
@@ -336,7 +341,7 @@ class DrawGame(
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       ctx.setFont(Font.font(16))
-      ctx.setFill(Color.color(0,0,0))
+      ctx.setFill(Color.rgb(0,0,0))
 //      ctx.font = "16px Helvetica"
 //      ctx.fillStyle = "#000000"
       val t = new Text(s"${s.name}")
@@ -365,7 +370,7 @@ class DrawGame(
   def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
-    ctx.setFill(Color.color(192,192,192))
+    ctx.setFill(Color.rgb(192,192,192))
 //    ctx.fillStyle = ColorsSetting.mapColor
     val w = canvas.getWidth - littleMap.w * canvasUnit * 1.042
     val h = canvas.getHeight - littleMap.h * canvasUnit * 1.030
@@ -377,7 +382,9 @@ class DrawGame(
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * smallMap.x
       val y = i.header.y.toDouble / border.y * smallMap.y
-      ctx.fillStyle = i.color
+//      ctx.fillStyle = i.color
+      val (r, g ,b) = hex2Rgb(i.color)
+      ctx.setFill(Color.color(r, g, b))
       ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
     }
   }
@@ -399,7 +406,7 @@ class DrawGame(
     val mySnake = snakes.filter(_.id == uid).head
     val baseLine = 2
     rankCtx.setFont(Font.font(22))
-    rankCtx.setFill(Color.color(0,0,0))
+    rankCtx.setFill(Color.rgb(0,0,0))
 //    rankCtx.font = "22px Helvetica"
 //    rankCtx.fillStyle = ColorsSetting.fontColor2
     //    drawTextLine(s"NAME: ${mySnake.name.take(32)}", leftBegin, 0, baseLine)
@@ -417,7 +424,9 @@ class DrawGame(
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.setGlobalAlpha(0.6)
 //      rankCtx.globalAlpha = 0.6
-      rankCtx.fillStyle = color
+//      rankCtx.fillStyle = color
+      val (r, g ,b) = hex2Rgb(color)
+      ctx.setFill(Color.color(r, g, b))
       rankCtx.save()
       rankCtx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
       rankCtx.restore()
@@ -426,7 +435,7 @@ class DrawGame(
 //      rankCtx.globalAlpha = 1
       rankCtx.setFont(Font.font(22))
 //      rankCtx.font = "22px Helvetica"
-      rankCtx.setFill(Color.color(0,0,0))
+      rankCtx.setFill(Color.rgb(0,0,0))
 //      rankCtx.fillStyle = ColorsSetting.fontColor2
       drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
     }
@@ -452,7 +461,9 @@ class DrawGame(
       val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.setGlobalAlpha(0.6)
 //      rankCtx.globalAlpha = 0.6
-      rankCtx.fillStyle = color
+//      rankCtx.fillStyle = color
+      val (r, g ,b) = hex2Rgb(color)
+      ctx.setFill(Color.color(r, g, b))
       rankCtx.save()
       rankCtx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
         fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
@@ -460,7 +471,7 @@ class DrawGame(
 
       rankCtx.setGlobalAlpha(1)
 //      rankCtx.globalAlpha = 1
-      rankCtx.setFill(Color.color(0,0,0))
+      rankCtx.setFill(Color.rgb(0,0,0))
 //      rankCtx.fillStyle = ColorsSetting.fontColor2
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
@@ -483,5 +494,22 @@ class DrawGame(
     myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
   }
 
+  def hex2Rgb(hex: String) = {
+    val red = hexToDec(hex.slice(1,3))
+    val green = hexToDec(hex.slice(3,5))
+    val blue = hexToDec(hex.takeRight(2))
+    (red, green, blue)
+  }
+
+  def hexToDec(hex: String): Int ={
+    val hexString: String = "0123456789ABCDEF"
+    var target = 0
+    var base = Math.pow(16, hex.length - 1).toInt
+    for(i <- 0 until hex.length){
+      target = target + hexString.indexOf(hex(i)) * base
+      base = base / 16
+    }
+    target
+  }
 
 }
