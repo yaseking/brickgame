@@ -39,10 +39,10 @@ trait PlayerService {
 
 
   val netSnakeRoute = {
-    (pathPrefix("game") & get) {
-      pathEndOrSingleSlash {
-        getFromResource("html/netSnake.html")
-      } ~
+//    (pathPrefix("game") & get) {
+//      pathEndOrSingleSlash {
+//        getFromResource("html/netSnake.html")
+//      } ~
         path("join") {
           parameter(
             'id.as[String],
@@ -57,9 +57,10 @@ trait PlayerService {
             'playerId.as[String]
           ) { (rooId, playerId) =>
             handleWebSocketMessages(webSocketChatFlow4WatchGame(rooId, playerId))
-          }
+          } ~
+          getFromResource("html/netSnake.html")
         }
-    }
+//    }
   }
 
   def webSocketChatFlow4WatchGame(roomId: Int, playerId: String): Flow[Message, Message, Any] = {

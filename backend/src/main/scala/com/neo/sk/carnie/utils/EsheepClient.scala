@@ -12,7 +12,7 @@ import com.neo.sk.utils.CirceSupport
 
 object EsheepClient extends HttpUtil with CirceSupport {
 
-  private val log = LoggerFactory.getLogger("Esheep")
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   val domain = "10.1.29.250:30374"
   private val baseUrl = AppSettings.esheepProtocol + "://" + domain + "/" + AppSettings.esheepUrl
@@ -63,7 +63,6 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
-              println(s"nickName: ${rsp.data.nickName}")
               Right(rsp.data)
             } else {
               log.error(s"verifyAccessCode error $esheepUrl rsp.error ${rsp.msg}")
