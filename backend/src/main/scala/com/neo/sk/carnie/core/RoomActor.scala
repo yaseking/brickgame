@@ -183,7 +183,7 @@ object RoomActor {
           else if (finishFields.nonEmpty) {
             val finishUsers = finishFields.map(_._1)
             finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
-            val newField = finishFields.map { f =>
+            newField = finishFields.map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
                 ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
               }.toList)
@@ -208,7 +208,6 @@ object RoomActor {
           val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
-          val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(finishFields) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
           idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent)

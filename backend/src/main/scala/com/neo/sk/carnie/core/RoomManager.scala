@@ -97,11 +97,6 @@ object RoomManager {
           }
           Behaviors.same
 
-        case m@PreWatchGame(roomId, playerId, subscriber) =>
-          log.info(s"got $m")
-          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, subscriber)
-          Behaviors.same
-
         case StartReplay(recordId, playerId, subscriber) =>
           getGameReplay(ctx, recordId) ! GameReplay.InitReplay(subscriber, playerId, 0)
           Behaviors.same
@@ -170,6 +165,11 @@ object RoomManager {
   private def sink(actor: ActorRef[Command], id: String, name: String) = ActorSink.actorRef[Command](
     ref = actor,
     onCompleteMessage = Left(id, name),
+    onFailureMessage = FailMsgFront.apply
+  )
+  private def sink4Replay(actor: ActorRef[Command]) = ActorSink.actorRef[Command](
+    ref = actor,
+    onCompleteMessage = StopReplay(),
     onFailureMessage = FailMsgFront.apply
   )
 

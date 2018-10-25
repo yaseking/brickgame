@@ -68,7 +68,7 @@ object GameReplay {
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
         //todo test
-        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540437686192_0")
+        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540451080450_0")
         val info=replay.init()
         try{
           println(s"test1")
@@ -130,7 +130,7 @@ object GameReplay {
           userMap.find(_._1.id == msg.userId) match {
             case Some(u)=>
               //todo dispatch gameInformation
-//              dispatchTo(msg.subscriber, GameInformation)
+              dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
               log.info(s" set replay from frame=${msg.f}")
               //fixme 跳转帧数goto失效
               //              fileReader.reset()
@@ -188,10 +188,10 @@ object GameReplay {
   }
 
   import org.seekloud.byteobject.ByteObject._
-//  def dispatchTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg: Protocol.GameMessage)(implicit sendBuffer: MiddleBufferInJvm)= {
-//    //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-//    subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
-//  }
+  def dispatchTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg: Protocol.GameMessage)(implicit sendBuffer: MiddleBufferInJvm)= {
+    //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+    subscriber ! msg
+  }
 
   def dispatchByteTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
     //    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())

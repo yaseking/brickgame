@@ -45,6 +45,8 @@ object NetGameHolder extends js.JSApp {
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var play = true
+  var snapshotMap = Map.empty[Long, Snapshot]
+  var encloseMap = Map.empty[Long, NewFieldInfo]
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -180,6 +182,7 @@ object NetGameHolder extends js.JSApp {
         dom.window.cancelAnimationFrame(nextFrame)
         isContinue = false
       } else {
+        println(s"draw snakes data:::${data.snakes}")
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
             println(s"snake 有数据")
@@ -382,9 +385,18 @@ object NetGameHolder extends js.JSApp {
             case _ =>
           }
         }
-        if(grid.historyStateMap.contains(frameIndex.toLong)) {
-          grid.grid = grid.historyStateMap(frameIndex.toLong)._2
-          grid.snakes = grid.historyStateMap(frameIndex.toLong)._1
+//        if(grid.historyStateMap.contains(frameIndex.toLong)) {
+//          grid.grid = grid.historyStateMap(frameIndex.toLong)._2
+//          grid.snakes = grid.historyStateMap(frameIndex.toLong)._1
+//        }
+        if(snapshotMap.contains(grid.frameCount)) {
+          val data = snapshotMap(grid.frameCount)
+          grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+          snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+
+        }
+        if(encloseMap.contains(grid.frameCount)) {
+          grid.addNewFieldInfo(encloseMap(grid.frameCount))
         }
 
 
@@ -402,28 +414,30 @@ object NetGameHolder extends js.JSApp {
       case DirectionEvent(id, keyCode) =>
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
       case EncloseEvent(enclosure) =>
-        newFieldInfo = Some(NewFieldInfo(frameIndex.toLong, enclosure))
-      case Snapshot(gridReceive, snakes, joinOrLeftEvent) =>
         println(s"当前帧号：${grid.frameCount}")
         println(s"传输帧号：$frameIndex")
-        println(s"snapshot snakes:::$snakes")
-        if(snakes.nonEmpty && tag){
-          tag = false
-          grid.frameCount = frameIndex
-          grid.grid = gridReceive.toMap
-          grid.snakes = snakes.toMap
-          println(s"grid snakes::::::${grid.snakes}")
+        if(grid.frameCount < frameIndex.toLong) {
+          encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
+        } else if(grid.frameCount == frameIndex.toLong){
+          grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
         }
-        if(grid.frameCount < frameIndex) { //保留
-          grid.historyStateMap += frameIndex.toLong -> (snakes.toMap, gridReceive.toMap)
-        } else if(grid.frameCount == frameIndex.toLong){ //重置
-          grid.grid = gridReceive.toMap
-          grid.snakes = snakes.toMap
-//          joinOrLeftEvent.foreach {
-//            case JoinEvent(id, name) =>
-//            case LeftEvent(id, name) =>
-//          }
+
+      case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
+        println(s"当前帧号：${grid.frameCount}")
+        println(s"传输帧号：$frameIndex")
+//        if(snakes.nonEmpty && tag){
+//          tag = false
+//          grid.frameCount = frameIndex
+//          grid.grid = gridReceive.toMap
+//          grid.snakes = snakes.toMap
+//          println(s"grid snakes::::::${grid.snakes}")
+//        }
+        if(grid.frameCount < frameIndex.toLong) { //保留
+          snapshotMap += frameIndex.toLong -> msg
+        } else { //重置
+          grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
         }
+        println(s"grid snakes: ${grid.snakes}")
 
 
     }
