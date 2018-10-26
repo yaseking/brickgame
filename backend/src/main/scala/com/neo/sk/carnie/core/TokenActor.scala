@@ -76,21 +76,21 @@ object TokenActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case GetToken(times) =>
-          if (times < 3) {
-            EsheepClient.getTokenRequest(AppSettings.esheepGameId, AppSettings.esheepGsKey).map {
-              case Right(rsp) =>
-                println(s"token is ${rsp.token}")
-                val expiresAt = System.currentTimeMillis() + rsp.expireTime - 120000
-                ctx.self ! SwitchBehavior("idle", idle(AccessToken(rsp.token, expiresAt)))
-
-              case Left(e) =>
-                timer.startSingleTimer(GetTokenKey, GetToken(times + 1), 5.seconds)
-                log.info(s"Some errors happened in getToken: $e")
-            }
-          } else {
-            log.warn("get token from esheep try over times...i try it again 5 minutes...")
-            timer.startSingleTimer(GetTokenKey, GetToken(), 5.minutes)
-          }
+//          if (times < 3) {
+//            EsheepClient.getTokenRequest(AppSettings.esheepGameId, AppSettings.esheepGsKey).map {
+//              case Right(rsp) =>
+//                println(s"token is ${rsp.token}")
+//                val expiresAt = System.currentTimeMillis() + rsp.expireTime - 120000
+//                ctx.self ! SwitchBehavior("idle", idle(AccessToken(rsp.token, expiresAt)))
+//
+//              case Left(e) =>
+//                timer.startSingleTimer(GetTokenKey, GetToken(times + 1), 5.seconds)
+//                log.info(s"Some errors happened in getToken: $e")
+//            }
+//          } else {
+//            log.warn("get token from esheep try over times...i try it again 5 minutes...")
+//            timer.startSingleTimer(GetTokenKey, GetToken(), 5.minutes)
+//          }
           Behaviors.same
 
         case SwitchBehavior(name, behavior, durationOpt, timeOut) =>

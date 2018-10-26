@@ -44,6 +44,7 @@ object NetGameHolder extends js.JSApp {
   var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
   var play = true
   var snapshotMap = Map.empty[Long, Snapshot]
   var encloseMap = Map.empty[Long, NewFieldInfo]
@@ -150,8 +151,24 @@ object NetGameHolder extends js.JSApp {
     logicFrameTime = System.currentTimeMillis()
 
     if (webSocketClient.getWsState) {
+      if (syncGridData4Replay.nonEmpty) {
+        grid.initSyncGridData(syncGridData4Replay.get)
+        syncGridData4Replay = None
+        justSynced = false
+      } else if(snapshotMap.contains(grid.frameCount)) {
+        val data = snapshotMap(grid.frameCount)
+        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+        println(s"state 重置 via Map")
+        snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+      }
+      if(encloseMap.contains(grid.frameCount)) {
+        grid.addNewFieldInfo(encloseMap(grid.frameCount))
+        println(s"圈地 via Map")
+      }
+
       if (!justSynced) { //前端更新
         grid.update("f")
+
         if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
@@ -391,17 +408,17 @@ object NetGameHolder extends js.JSApp {
 //          grid.grid = grid.historyStateMap(frameIndex.toLong)._2
 //          grid.snakes = grid.historyStateMap(frameIndex.toLong)._1
 //        }
-        if(snapshotMap.contains(grid.frameCount)) {
-          val data = snapshotMap(grid.frameCount)
-          grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
-          println(s"state 重置 via Map")
-          snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
-
-        }
-        if(encloseMap.contains(grid.frameCount)) {
-          grid.addNewFieldInfo(encloseMap(grid.frameCount))
-          println(s"圈地 via Map")
-        }
+//        if(snapshotMap.contains(grid.frameCount)) {
+//          val data = snapshotMap(grid.frameCount)
+//          grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+//          println(s"state 重置 via Map")
+//          snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+//
+//        }
+//        if(encloseMap.contains(grid.frameCount)) {
+//          grid.addNewFieldInfo(encloseMap(grid.frameCount))
+//          println(s"圈地 via Map")
+//        }
 
 
       case x@_ =>
@@ -451,8 +468,11 @@ object NetGameHolder extends js.JSApp {
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
-//        println(s"当前帧号：${grid.frameCount}")
-//        println(s"传输帧号：$frameIndex")
+        println(s"当前帧号：${grid.frameCount}")
+        println(s"传输帧号：$frameIndex")
+//        if(frameIndex == 0) {
+//          grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
+//        }
 //        if(snakes.nonEmpty && tag){
 //          tag = false
 //          grid.frameCount = frameIndex
@@ -460,15 +480,14 @@ object NetGameHolder extends js.JSApp {
 //          grid.snakes = snakes.toMap
 //          println(s"grid snakes::::::${grid.snakes}")
 //        }
+        snapshotMap += frameIndex.toLong -> msg
         if(grid.frameCount < frameIndex.toLong) { //保留
-          snapshotMap += frameIndex.toLong -> msg
-        } else { //重置
-          println(s"state 重置")
-          grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
+
+        } else if(grid.frameCount >= frameIndex.toLong) { //重置
+//          grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
+          syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
+          justSynced = true
         }
-//        println(s"grid snakes: ${grid.snakes}")
-
-
     }
   }
 
