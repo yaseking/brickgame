@@ -368,20 +368,22 @@ object NetGameHolder extends js.JSApp {
         PerformanceTool.receivePingPackage(x)
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
-        println(s"receive replayFrameData")
+//        println(s"receive replayFrameData")
         eventsData match {
           case EventData(events) =>
             events.foreach (event => replayMessageHandler(event, frameIndex))
-          case Protocol.DecodeError() => println("events decode error")
+          case Protocol.DecodeError() =>
+//            println("events decode error")
           case _ =>
         }
         if(stateData.nonEmpty) {
           stateData.get match {
             case msg: Snapshot =>
-              println(s"snapshot get")
+//              println(s"snapshot get")
 //              println(s"snapshot:$msg")
               replayMessageHandler(msg, frameIndex)
-            case Protocol.DecodeError() => println("state decode error")
+            case Protocol.DecodeError() =>
+//              println("state decode error")
             case _ =>
           }
         }
@@ -392,11 +394,13 @@ object NetGameHolder extends js.JSApp {
         if(snapshotMap.contains(grid.frameCount)) {
           val data = snapshotMap(grid.frameCount)
           grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+          println(s"state 重置 via Map")
           snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
 
         }
         if(encloseMap.contains(grid.frameCount)) {
           grid.addNewFieldInfo(encloseMap(grid.frameCount))
+          println(s"圈地 via Map")
         }
 
 
@@ -432,17 +436,23 @@ object NetGameHolder extends js.JSApp {
         }
 
       case EncloseEvent(enclosure) =>
+        println(s"got enclose event")
         println(s"当前帧号：${grid.frameCount}")
         println(s"传输帧号：$frameIndex")
         if(grid.frameCount < frameIndex.toLong) {
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
         } else if(grid.frameCount == frameIndex.toLong){
+          println(s"圈地")
           grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
         }
+      case RankEvent(current) =>
+        currentRank = current
+        if (grid.getGridData.snakes.exists(_.id == myId))
+          drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
-        println(s"当前帧号：${grid.frameCount}")
-        println(s"传输帧号：$frameIndex")
+//        println(s"当前帧号：${grid.frameCount}")
+//        println(s"传输帧号：$frameIndex")
 //        if(snakes.nonEmpty && tag){
 //          tag = false
 //          grid.frameCount = frameIndex
@@ -453,9 +463,10 @@ object NetGameHolder extends js.JSApp {
         if(grid.frameCount < frameIndex.toLong) { //保留
           snapshotMap += frameIndex.toLong -> msg
         } else { //重置
+          println(s"state 重置")
           grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
         }
-        println(s"grid snakes: ${grid.snakes}")
+//        println(s"grid snakes: ${grid.snakes}")
 
 
     }
@@ -466,7 +477,7 @@ object NetGameHolder extends js.JSApp {
   import org.seekloud.byteobject.MiddleBufferInJs
 
   private def replayEventDecode(a:ArrayBuffer): GameEvent={
-    println(s"replayEventDecode")
+//    println(s"replayEventDecode")
 
     val middleDataInJs = new MiddleBufferInJs(a)
     if (a.byteLength > 0) {
@@ -474,8 +485,8 @@ object NetGameHolder extends js.JSApp {
         case Right(r) =>
           Protocol.EventData(r)
         case Left(e) =>
-          println(s"hhhhhhhh")
-          println(e.message)
+//          println(s"hhhhhhhh")
+//          println(e.message)
           Protocol.DecodeError()
       }
     }else{
@@ -484,7 +495,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   private def replayStateDecode(a:ArrayBuffer): GameEvent={
-    println(s"replayStateDecode")
+//    println(s"replayStateDecode")
     val middleDataInJs = new MiddleBufferInJs(a)
     bytesDecode[Snapshot](middleDataInJs) match {
       case Right(r) =>

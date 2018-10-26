@@ -68,7 +68,7 @@ object GameReplay {
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
         //todo test
-        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540518380133_0")
+        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540521914573_0")
         val info=replay.init()
         try{
           println(s"test1")

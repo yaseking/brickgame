@@ -26,7 +26,6 @@ object RoomActor {
   private val log = LoggerFactory.getLogger(this.getClass)
   val border = Point(BorderSize.w, BorderSize.h)
   private val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
-  private var winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.7
 
   private final case object BehaviorChangeKey
 
@@ -79,9 +78,10 @@ object RoomActor {
           val userMap = mutable.HashMap[String, String]()
           val watcherMap = mutable.HashMap[String, String]()
           val grid = new GridOnServer(border)
+          val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.7
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
-          idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)]())
+          idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
       }
     }
   }
@@ -92,7 +92,8 @@ object RoomActor {
             watcherMap: mutable.HashMap[String, String],
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long,
-            gameEvent: mutable.ArrayBuffer[(Long, GameEvent)]
+            gameEvent: mutable.ArrayBuffer[(Long, GameEvent)],
+            winStandard: Double
           )(
             implicit timer: TimerScheduler[Command]
           ): Behavior[Command] = {
@@ -194,11 +195,10 @@ object RoomActor {
             userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
           if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
-          if (grid.currentRank.nonEmpty) { //胜利条件的跳转
+          val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
-            if ((maxSize + fullSize * 0.1) < winStandard)
-              winStandard = fullSize * (0.2 - userMap.size * 0.05)
-          }
+            if ((maxSize + fullSize * 0.1) < winStandard) fullSize * (0.2 - userMap.size * 0.05) else winStandard
+          } else winStandard
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) {
             val finalData = grid.getGridData
             grid.cleanData()
@@ -213,7 +213,7 @@ object RoomActor {
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
-          idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent)
+          idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
