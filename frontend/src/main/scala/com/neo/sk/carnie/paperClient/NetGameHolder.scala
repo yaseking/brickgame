@@ -105,8 +105,6 @@ object NetGameHolder extends js.JSApp {
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if(playerMsgMap.contains("nickName")) playerMsgMap("nickName") else "unKnown"
         webSocketClient.setUp(playerId, playerName, "playGame", None)
-        val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-        webSocketClient.setUp(playerId, playerName, "playGame", None)
 
       case "watchGame" =>
         val roomId = playerMsgMap.getOrElse("roomId", "1000")
