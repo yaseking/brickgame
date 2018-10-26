@@ -107,7 +107,7 @@ class WebSocketClient (
   def getWebSocketUri4WatchRecord(replayInfo: ReplayInfo): String = {
     import replayInfo._
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/game/watchRecord?recordId=$recordId&playerId=$playerId&frame=$frame&accessCode=$accessCode"
+    s"$wsProtocol://${dom.document.location.host}/carnie/watchRecord?recordId=$recordId&playerId=$playerId&frame=$frame&accessCode=$accessCode"
   }
 
   def getWsState = wsSetup

@@ -426,12 +426,14 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-  var tag = true
+
 
   private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
     data match {
       case Protocol.JoinEvent(id, name) => //不做处理，直接获取快照
+
       case Protocol.LeftEvent(id, name) => //不做处理，直接获取快照
+
       case DirectionEvent(id, keyCode) =>
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
 

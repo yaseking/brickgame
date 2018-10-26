@@ -68,7 +68,7 @@ object GameRecorder {
 
   def idle(recorder: FrameOutputStream,
            gameInfo: GameInformation,
-           essfMap: mutable.HashMap[UserBaseInfo,UserJoinLeft] = mutable.HashMap[UserBaseInfo,UserJoinLeft](),
+           essfMap: mutable.HashMap[UserBaseInfo,List[UserJoinLeft]] = mutable.HashMap[UserBaseInfo,List[UserJoinLeft]](),
            userMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
            userHistoryMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
            eventRecorder: List[(List[Protocol.GameEvent], Option[Protocol.Snapshot])] = Nil,
@@ -91,12 +91,22 @@ object GameRecorder {
             case Protocol.JoinEvent(id, nickName) =>
               userMap.put(id, nickName)
               userHistoryMap.put(id, nickName)
-              essfMap.put(UserBaseInfo(id, nickName), UserJoinLeft(frame, -1l))
+              if(essfMap.get(UserBaseInfo(id, nickName)).nonEmpty) {
+                essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)) ::: List(UserJoinLeft(frame, -1l)))
+              } else {
+                essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(frame, -1l)))
+              }
 
             case Protocol.LeftEvent(id, nickName) =>
               userMap.put(id, nickName)
               essfMap.get(UserBaseInfo(id, nickName)) match {
-                case Some(joinInfo) => essfMap.put(UserBaseInfo(id, nickName), UserJoinLeft(joinInfo.joinFrame, frame))
+                case Some(joinOrLeftInfo) =>
+                  if(joinOrLeftInfo.lengthCompare(1) == 0)
+                  essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
+                  else {
+                    val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
+                    List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame))
+                  }
                 case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
               }
 
@@ -129,10 +139,11 @@ object GameRecorder {
         timer.cancelAll()
         log.info(s"${ctx.self.path} stopping....")
         val mapInfo = essfMap.map{ essf=>
-          essf._2.leftFrame match {
-            case -1l =>(essf._1, UserJoinLeft(essf._2.joinFrame, lastFrame))
-            case _ => essf
+          val newJoinLeft = essf._2.map {
+            case UserJoinLeft(joinFrame, -1l) => UserJoinLeft(joinFrame, lastFrame)
+            case other => other
           }
+          (essf._1, newJoinLeft)
         }.toList
         recorder.putMutableInfo(AppSettings.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
         recorder.finish()
@@ -156,7 +167,7 @@ object GameRecorder {
 
   def save(recorder: FrameOutputStream,
            gameInfo: GameInformation,
-           essfMap: mutable.HashMap[UserBaseInfo,UserJoinLeft] = mutable.HashMap[UserBaseInfo,UserJoinLeft](),
+           essfMap: mutable.HashMap[UserBaseInfo,List[UserJoinLeft]] = mutable.HashMap[UserBaseInfo,List[UserJoinLeft]](),
            userMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
            userHistoryMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
            lastFrame: Long,
@@ -167,10 +178,11 @@ object GameRecorder {
       msg match {
         case SaveInFile =>
           val mapInfo = essfMap.map{ essf=>
-            essf._2.leftFrame match {
-              case -1l =>(essf._1, UserJoinLeft(essf._2.joinFrame, lastFrame))
-              case _ => essf
+            val newJoinLeft = essf._2.map {
+              case UserJoinLeft(joinFrame, -1l) => UserJoinLeft(joinFrame, lastFrame)
+              case other => other
             }
+            (essf._1, newJoinLeft)
           }.toList
           recorder.putMutableInfo(AppSettings.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
           recorder.finish()
@@ -213,10 +225,10 @@ object GameRecorder {
           val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, frame)
           val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, gameInfo, Some(event._2))
           val newEventRecorder = List((event._1, Some(event._2)))
-          val newEssfMap = mutable.HashMap.empty[UserBaseInfo, UserJoinLeft]
+          val newEssfMap = mutable.HashMap.empty[UserBaseInfo, List[UserJoinLeft]]
 
           newUserMap.foreach { user =>
-            newEssfMap.put(UserBaseInfo(user._1, user._2), UserJoinLeft(frame, -1L))
+            newEssfMap.put(UserBaseInfo(user._1, user._2), List(UserJoinLeft(frame, -1L)))
           }
           switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newEssfMap, newUserMap, newUserMap, newEventRecorder, frame))
 

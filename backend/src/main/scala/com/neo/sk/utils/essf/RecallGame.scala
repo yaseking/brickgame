@@ -44,7 +44,7 @@ object RecallGame {
           DecodeError()
       }
     }else{
-      println(s"events None")
+//      println(s"events None")
       DecodeError()
     }
   }

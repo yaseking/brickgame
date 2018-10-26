@@ -68,7 +68,7 @@ object GameReplay {
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
         //todo test
-        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540531289476_0")
+        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540539148541_0")
         val info=replay.init()
         try{
           println(s"test1")
@@ -113,7 +113,7 @@ object GameReplay {
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
            //           initState:TankGameEvent.TankGameSnapshot,
-           userMap:List[((Protocol.UserBaseInfo, Protocol.UserJoinLeft))],
+           userMap:List[((Protocol.UserBaseInfo, List[Protocol.UserJoinLeft]))],
            userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None
           )(
             implicit stashBuffer:StashBuffer[Command],

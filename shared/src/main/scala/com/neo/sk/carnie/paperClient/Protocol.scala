@@ -119,7 +119,7 @@ object Protocol {
 
   case class UserBaseInfo(id:String, name: String)
 
-  case class EssfMapInfo(m:List[(UserBaseInfo, UserJoinLeft)])
+  case class EssfMapInfo(m:List[(UserBaseInfo, List[UserJoinLeft])])
 
   //for replay
 //  sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
