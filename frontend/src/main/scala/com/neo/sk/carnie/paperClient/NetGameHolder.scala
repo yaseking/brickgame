@@ -54,7 +54,6 @@ object NetGameHolder extends js.JSApp {
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
 
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
-  private[this] val rankCtx = rankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
 
   private var nextFrame = 0
@@ -215,8 +214,8 @@ object NetGameHolder extends js.JSApp {
   private def connectOpenSuccess(event0: Event, order: String) = {
     startGame()
     if(order=="playGame") {
-      canvas.focus()
-      canvas.onkeydown = { e: dom.KeyboardEvent => {
+      rankCanvas.focus()
+      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           println(s"onkeydown：${e.keyCode}")
           val msg: Protocol.UserAction = {
