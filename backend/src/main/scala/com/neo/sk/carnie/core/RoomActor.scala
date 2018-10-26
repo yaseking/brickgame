@@ -121,7 +121,8 @@ object RoomActor {
           dispatch(subscribersMap, gridData)
           Behaviors.same
 
-        case LeftRoom(id, name) =>
+        case m@LeftRoom(id, name) =>
+          log.info(s"got $m")
           grid.removeSnake(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
