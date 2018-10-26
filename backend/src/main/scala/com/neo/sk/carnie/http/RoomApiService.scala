@@ -2,6 +2,8 @@ package com.neo.sk.carnie.http
 
 import java.io.File
 
+import akka.http.scaladsl.server
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
@@ -14,7 +16,6 @@ import com.neo.sk.carnie.core.TokenActor.AskForToken
 
 import akka.http.scaladsl.model.headers.{CacheDirectives, Expires, `Cache-Control`}
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive1, Route}
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
@@ -41,99 +42,87 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
 
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, PlayerIdInfo]]) {
-      case Right(req) =>
-        dealFutureResult {
-          val msg: Future[Option[(Int, mutable.HashSet[(String, String)])]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
-          msg.map {
-            case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid._1)))
-            case _ =>
-              log.info("this player doesn't exist")
-              complete(ErrorRsp(100010, "get roomId error:this player doesn't exist"))
-          }
-        }
-
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(110000, "parse error"))
+    dealPostReq[PlayerIdInfo]{ req =>
+            val msg: Future[Option[(Int, mutable.HashSet[(String, String)])]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
+            msg.map {
+              case Some(rid) => complete(RoomIdRsp(RoomIdInfo(rid._1)))
+              case _ =>
+                log.info("this player doesn't exist")
+                complete(ErrorRsp(100010, "get roomId error:this player doesn't exist"))
+            }
     }
   }
 
   private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RoomIdReq]]) {
-      case Right(req) =>
-        val msg: Future[Option[List[(String, String)]]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-        dealFutureResult {
-          msg.map {
-            case Some(plist) =>
-              complete(PlayerListRsp(PlayerInfo(plist.map(p => PlayerIdName(p._1,p._2)))))
-            case None =>
-              log.info("get player list error")
-              complete(ErrorRsp(100001, "get player list error"))
-          }
-        }
-
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(110000, "parse error"))
+    dealPostReq[RoomIdReq]{req =>
+          val msg: Future[Option[List[(String, String)]]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+            msg.map {
+              case Some(plist) =>
+                complete(PlayerListRsp(PlayerInfo(plist.map(p => PlayerIdName(p._1,p._2)))))
+              case None =>
+                log.info("get player list error")
+                complete(ErrorRsp(100001, "get player list error"))
+            }
     }
   }
 
-  private val getRoomList = (path("getRoomList") & get & pathEndOrSingleSlash) {
-    dealFutureResult {
-      val msg: Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
-      msg.map {
-        allroom =>
-          if (allroom.nonEmpty)
-            complete(RoomListRsp(RoomListInfo(allroom)))
-          else {
-            log.info("get all room error")
-            complete(ErrorRsp(100000, "get all room error"))
+  final case class PostEnvelope1(
+    appId: String,
+    sn: String,
+    timestamp: String,
+    nonce: String,
+    signature: String
+  )
+  def ensurePostEnvelope1(e: PostEnvelope1)(f: => Future[server.Route]) = {
+    ensureAuth(e.appId, e.timestamp, e.nonce, e.sn, List(), e.signature)(f)
+  }
+
+  private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, PostEnvelope1]]) {
+      case Right(envelope) =>
+        ensurePostEnvelope1(envelope) {
+          val msg: Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
+            msg.map {
+              allroom =>
+                if (allroom.nonEmpty)
+                  complete(RoomListRsp(RoomListInfo(allroom)))
+                else {
+                  log.info("get all room error")
+                  complete(ErrorRsp(100000, "get all room error,there are no room"))
+                }
+            }
           }
 
-      }
+      case Left(e) =>
+        log.error(s"json parse PostEnvelope error: $e")
+        complete(ServiceUtils.JsonParseError)
     }
   }
 
   private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RecordListReq]]) {
-      case Right(req) =>
-        dealFutureResult{
-          RecordDAO.getRecordList(req.lastRecordId,req.count).map{recordL =>
-            complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
-              val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
-              recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
-            })))
-          }
-        }
-
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(110000, "parse error"))
+    dealPostReq[RecordListReq]{ req =>
+            RecordDAO.getRecordList(req.lastRecordId,req.count).map{recordL =>
+              complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+                val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
+                recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
+              })))
+            }
     }
   }
 
   private val getRecordListByTime = (path("getRecordListByTime") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RecordByTimeReq]]) {
-      case Right(req) =>
-        dealFutureResult{
-          RecordDAO.getRecordListByTime(req.startTime,req.endTime,req.lastRecordId,req.count).map{recordL =>
-            complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
-              val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
-              recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
-            })))
-          }
-        }
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(110000, "parse error"))
-    }
+   dealPostReq[RecordByTimeReq]{ req =>
+           RecordDAO.getRecordListByTime(req.startTime,req.endTime,req.lastRecordId,req.count).map{recordL =>
+             complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+               val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
+               recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
+             })))
+           }
+   }
   }
 
   private val getRecordListByPlayer = (path("getRecordListByPlayer") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RecordByPlayerReq]]) {
-      case Right(req) =>
-        dealFutureResult{
+  dealPostReq[RecordByPlayerReq]{ req =>
           RecordDAO.getRecordListByPlayer(req.playerId,req.lastRecordId,req.count).map{recordL =>
             complete(RecordListRsp(records(recordL.toList.filter(_._2.userId == req.playerId).map(_._1).distinct.map{ r =>
               val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
@@ -141,10 +130,6 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
             })))
           }
         }
-      case Left(error) =>
-        log.warn(s"some error: $error")
-        complete(ErrorRsp(110000, "parse error"))
-    }
   }
 
   private val downloadRecord = (path("downloadRecord" ) & post & pathEndOrSingleSlash) {parameter(

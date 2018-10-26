@@ -1,13 +1,13 @@
 package com.neo.sk.carnie.core
 
 import scala.concurrent.duration._
-import com.neo.sk.carnie.utils.EsheepClient
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.Boot.executor
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import org.slf4j.LoggerFactory
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
+import com.neo.sk.utils.EsheepClient
 
 /**
   * Lty 18/10/17

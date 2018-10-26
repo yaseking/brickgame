@@ -12,7 +12,6 @@ import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import io.circe.syntax._
 import io.circe.generic.auto._
-
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.typedarray.ArrayBuffer
@@ -62,7 +61,6 @@ object NetGameHolder extends js.JSApp {
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
 
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
-  private[this] val rankCtx = rankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
 
   private var nextFrame = 0
@@ -74,8 +72,10 @@ object NetGameHolder extends js.JSApp {
 
 
   def main(): Unit = {
-    val hash = dom.window.location.hash.drop(1)
-    val info = hash.split("\\?")
+    val url = dom.window.location.href.split("carnie/")(1)
+//    val hash = dom.window.location.hash.drop(1)
+    println(url)
+    val info = url.split("\\?")
     val playerMsgMap = info(1).split("&").map {
       a =>
         val b = a.split("=")
@@ -103,6 +103,8 @@ object NetGameHolder extends js.JSApp {
 //            println(s"Some err happened in apply to connect the game, e: $e")
 //        }
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+        val playerName = if(playerMsgMap.contains("nickName")) playerMsgMap("nickName") else "unKnown"
+        webSocketClient.setUp(playerId, playerName, "playGame", None)
         val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
         webSocketClient.setUp(playerId, playerName, "playGame", None)
 
@@ -188,7 +190,7 @@ object NetGameHolder extends js.JSApp {
 //  private var tempDraw = System.currentTimeMillis()
 
   def draw(offsetTime: Long): Unit = {
-//        println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
+    //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
     //    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       val data = grid.getGridData
@@ -265,8 +267,8 @@ object NetGameHolder extends js.JSApp {
   private def connectOpenSuccess(event0: Event, order: String) = {
     startGame()
     if(order=="playGame") {
-      canvas.focus()
-      canvas.onkeydown = { e: dom.KeyboardEvent => {
+      rankCanvas.focus()
+      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           println(s"onkeydown：${e.keyCode}")
           val msg: Protocol.UserAction = {
