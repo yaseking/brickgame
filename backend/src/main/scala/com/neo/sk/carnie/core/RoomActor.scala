@@ -208,7 +208,7 @@ object RoomActor {
           //for gameRecorder...
           val actionEvent = grid.getDirectionEvent(frame)
           val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
-          val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
+          val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))

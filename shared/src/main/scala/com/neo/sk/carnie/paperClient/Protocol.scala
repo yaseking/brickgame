@@ -107,6 +107,8 @@ object Protocol {
 
   case class EventData(events: List[GameEvent]) extends GameEvent
 
+  case class RankEvent(rank: List[Score]) extends GameEvent
+
   case class Snapshot(snakes: List[SkDt], bodyDetails: List[BodyBaseInfo], fieldDetails: List[FieldByColumn], killHistory: List[Kill]) extends GameEvent
 
   case class DecodeError() extends GameEvent

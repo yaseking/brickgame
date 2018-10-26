@@ -59,6 +59,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   var startTimeMap = Map.empty[String, Long]
 
   var currentRank = List.empty[Score]
+
   private[this] var historyRankMap = Map.empty[String, Score]
   var historyRankList = historyRankMap.values.toList.sortBy(_.k).reverse
 
