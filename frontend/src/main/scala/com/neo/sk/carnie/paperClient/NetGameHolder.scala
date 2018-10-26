@@ -65,8 +65,10 @@ object NetGameHolder extends js.JSApp {
 
 
   def main(): Unit = {
-    val hash = dom.window.location.hash.drop(1)
-    val info = hash.split("\\?")
+    val url = dom.window.location.href.split("carnie/")(1)
+//    val hash = dom.window.location.hash.drop(1)
+    println(url)
+    val info = url.split("\\?")
     val playerMsgMap = info(1).split("&").map {
       a =>
         val b = a.split("=")
@@ -94,7 +96,7 @@ object NetGameHolder extends js.JSApp {
 //            println(s"Some err happened in apply to connect the game, e: $e")
 //        }
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-        val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+        val playerName = if(playerMsgMap.contains("nickName")) playerMsgMap("nickName") else "unKnown"
         webSocketClient.setUp(playerId, playerName, "playGame")
 
       case "watchGame" =>

@@ -1,33 +1,28 @@
 package com.neo.sk.utils
 
-import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.protocol.EsheepProtocol._
-import com.neo.sk.carnie.ptcl._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
+import com.neo.sk.carnie.Boot.executor
 import org.slf4j.LoggerFactory
+import com.neo.sk.carnie.ptcl._
 
 object EsheepClient extends HttpUtil with CirceSupport {
 
-  private val log = LoggerFactory.getLogger("com.neo.sk.carnie.utils.EsheepClient")
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   val domain = "10.1.29.250:30374"
   private val baseUrl = AppSettings.esheepProtocol + "://" + domain + "/" + AppSettings.esheepUrl
-  private val appId = AppSettings.esheepAppId
-  private val secureKey = AppSettings.esheepSecureKey
 
   def getTokenRequest(gameId: Long, gsKey: String) = {
     val esheepUrl = baseUrl + "/api/gameServer/gsKey2Token"
-    val sn = appId + System.currentTimeMillis().toString
     val sendData = GetToken(gameId, gsKey).asJson.noSpaces
-    val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, sendData), secureKey)
 
-    val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
-
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
+        println(s"tokenStr: $str")
         decode[GetTokenRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
@@ -50,19 +45,14 @@ object EsheepClient extends HttpUtil with CirceSupport {
   def verifyAccessCode(gameId: Long, accessCode: String, token: String) = {
     println(s"got token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/verifyAccessCode?token=$token"
-    val sn = appId + System.currentTimeMillis().toString
     val sendData = VerifyAccCode(gameId, accessCode).asJson.noSpaces
-    val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, sendData), secureKey)
 
-    val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
-
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
         println(s"str: $str")
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
-              println(s"nickName: ${rsp.data.nickName}")
               Right(rsp.data)
             } else {
               log.error(s"verifyAccessCode error $esheepUrl rsp.error ${rsp.msg}")
@@ -94,13 +84,9 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val gameId = AppSettings.esheepGameId
     println(s"token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/addPlayerRecord?token=$token"
-    val sn = appId + System.currentTimeMillis().toString
     val sendData = InputRecord(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime)).asJson.noSpaces
-    val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, sendData), secureKey)
 
-    val params = SendDataReq(appId, sn, timestamp, nonce, signature, sendData).asJson.noSpaces
-
-    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, params).map {
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
         println(s"str: $str")
         decode[ErrorRsp](str) match {
@@ -127,7 +113,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val gameId = AppSettings.esheepGameId
     val gsKey = AppSettings.esheepGsKey
     getTokenRequest(gameId, gsKey)
-    Thread.sleep(5000)
+//    Thread.sleep(5000)
 //    verifyAccessCode(gameId, "1234456asdf")
 //    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
   }

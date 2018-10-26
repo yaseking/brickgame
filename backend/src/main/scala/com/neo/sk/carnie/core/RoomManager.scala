@@ -93,6 +93,11 @@ object RoomManager {
           }
           Behaviors.same
 
+        case m@PreWatchGame(roomId, playerId, subscriber) =>
+          log.info(s"got $m")
+          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, subscriber)
+          Behaviors.same
+
         case msg@Left(id, name) =>
           log.info(s"got $msg")
           val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
