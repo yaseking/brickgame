@@ -67,8 +67,6 @@ object NetGameHolder extends js.JSApp {
 
   def main(): Unit = {
     val url = dom.window.location.href.split("carnie/")(1)
-//    val hash = dom.window.location.hash.drop(1)
-    println(url)
     val info = url.split("\\?")
     val playerMsgMap = info(1).split("&").map {
       a =>
@@ -79,23 +77,6 @@ object NetGameHolder extends js.JSApp {
     println(s"sendData: $sendData")
     info(0) match {
       case "playGame" =>
-        //todo 验证接口已测试通过，后续测试其他接口先不开放验证接口
-//        val url = Esheep.playGame
-//        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
-//          case Right(rsp) =>
-//            println(s"rsp: $rsp")
-//            if(rsp.errCode==0) {
-//              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-//              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-//              println(s"playerName: $playerName")
-////              webSocketClient.setUp(playerId, playerName, "playGame")
-//            } else {
-//              drawGame.drawVerifyErr()
-//              println(s"err: ${rsp.msg}")
-//            }
-//          case Left(e) =>
-//            println(s"Some err happened in apply to connect the game, e: $e")
-//        }
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if(playerMsgMap.contains("nickName")) playerMsgMap("nickName") else "unKnown"
         webSocketClient.setUp(playerId, playerName, "playGame")
