@@ -122,6 +122,7 @@ object RoomActor {
           Behaviors.same
 
         case LeftRoom(id, name) =>
+          log.debug(s"LeftRoom:::$id")
           grid.removeSnake(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
@@ -130,6 +131,7 @@ object RoomActor {
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserLeft(actor) =>
+          log.debug(s"UserLeft:::")
           subscribersMap.find(_._2.equals(actor)).foreach { case (id, _) =>
             log.debug(s"got Terminated id = $id")
             val name = userMap.get(id).head
@@ -150,6 +152,7 @@ object RoomActor {
                 watcherMap.filter(_._2 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
+                gameEvent += ((grid.frameCount, SpaceEvent(id)))
               } else {
                 val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
                 grid.addActionWithFrame(id, keyCode, realFrame)

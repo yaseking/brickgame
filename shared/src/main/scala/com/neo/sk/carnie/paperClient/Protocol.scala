@@ -99,6 +99,8 @@ object Protocol {
 
   case class LeftEvent(id: String, nickName: String) extends GameEvent
 
+  case class SpaceEvent(id: String) extends GameEvent
+
   case class DirectionEvent(id: String, keyCode: Int) extends GameEvent
 
   case class EncloseEvent(fieldDetails: List[FieldByColumn]) extends GameEvent

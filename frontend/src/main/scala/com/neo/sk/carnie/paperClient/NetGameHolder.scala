@@ -182,10 +182,10 @@ object NetGameHolder extends js.JSApp {
         dom.window.cancelAnimationFrame(nextFrame)
         isContinue = false
       } else {
-        println(s"draw snakes data:::${data.snakes}")
+//        println(s"draw snakes data:::${data.snakes}")
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
-            println(s"snake 有数据")
+//            println(s"snake 有数据")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -413,6 +413,24 @@ object NetGameHolder extends js.JSApp {
       case Protocol.LeftEvent(id, name) => //不做处理，直接获取快照
       case DirectionEvent(id, keyCode) =>
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
+
+      case SpaceEvent(id) =>
+        if(id == myId) {
+          audio1.pause()
+          audio1.currentTime = 0
+          audioKilled.pause()
+          audioKilled.currentTime = 0
+          play = true
+          scoreFlag = true
+          firstCome = true
+          if (isWin) {
+            isWin = false
+            winnerName = "unknown"
+          }
+          nextFrame = dom.window.requestAnimationFrame(gameRender())
+          isContinue = true
+        }
+
       case EncloseEvent(enclosure) =>
         println(s"当前帧号：${grid.frameCount}")
         println(s"传输帧号：$frameIndex")
