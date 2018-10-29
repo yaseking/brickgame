@@ -181,6 +181,7 @@ object RoomManager {
     onCompleteMessage = Left(id, name),
     onFailureMessage = FailMsgFront.apply
   )
+
   private def sink4Replay(actor: ActorRef[Command]) = ActorSink.actorRef[Command](
     ref = actor,
     onCompleteMessage = StopReplay(),
