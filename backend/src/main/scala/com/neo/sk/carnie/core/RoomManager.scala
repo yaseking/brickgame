@@ -39,6 +39,8 @@ object RoomManager {
 
   case class Left(id: String, name: String) extends Command
 
+  case class WatcherLeft(roomId: Int, playerId: String) extends Command
+
   case class FindRoomId(pid: String, reply: ActorRef[Option[(Int, mutable.HashSet[(String, String)])]]) extends Command
 
   case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
@@ -105,6 +107,12 @@ object RoomManager {
           getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
           Behaviors.same
 
+        case msg@WatcherLeft(roomId, playerId) =>
+          log.info(s"got $msg")
+          //先不做任何处理
+//          getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
+          Behaviors.same
+
         case m@UserActionOnServer(id, action) =>
           action match {
             case SendPingPacket(_, createTime) => //
@@ -165,6 +173,12 @@ object RoomManager {
     onFailureMessage = FailMsgFront.apply
   )
 
+  private def sink4WatchGame(actor: ActorRef[Command], roomId: Int, playerId: String) = ActorSink.actorRef[Command](
+    ref = actor,
+    onCompleteMessage = WatcherLeft(roomId, playerId),
+    onFailureMessage = FailMsgFront.apply
+  )
+
   def joinGame(actor: ActorRef[RoomManager.Command], userId: String, name: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
@@ -198,7 +212,7 @@ object RoomManager {
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
         case _ => UnKnowAction
       }
-      .to(sink(actor, roomId.toString, playerId))
+      .to(sink4WatchGame(actor, roomId, playerId))
 
     val out =
       ActorSource.actorRef[WsSourceProtocol.WsMsgSource](

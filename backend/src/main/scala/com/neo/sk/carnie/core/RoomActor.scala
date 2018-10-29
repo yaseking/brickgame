@@ -17,6 +17,7 @@ import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
 import concurrent.duration._
+import scala.util.Random
 
 /**
   * Created by dry on 2018/10/12.
@@ -113,12 +114,14 @@ object RoomActor {
 
         case WatchGame(playerId, subscriber) =>
           val watchId = watcherIdGenerator.getAndIncrement().toString
-          val playerName = userMap.getOrElse(playerId, "unKnown")
-          watcherMap.put(watchId, playerId)
+//          val randomInt = new Random().nextInt(userMap.toList.length)
+          val truePlayerId = if(playerId == "unknown") userMap.head._1 else playerId
+          val playerName = userMap.getOrElse(truePlayerId, "unKnown")
+          watcherMap.put(watchId, truePlayerId)
           subscribersMap.put(watchId, subscriber)
-          dispatchTo(subscribersMap, watchId, Protocol.Id(playerId))
-//          ctx.watchWith(subscriber, UserLeft(subscriber)) 此行不删
-          ctx.watchWith(subscriber, LeftRoom(playerId, playerName))
+          dispatchTo(subscribersMap, watchId, Protocol.Id(truePlayerId))
+          ctx.watchWith(subscriber, UserLeft(subscriber)) //此行不删
+//          ctx.watchWith(subscriber, LeftRoom(truePlayerId, playerName))//此行不删
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           Behaviors.same
@@ -127,16 +130,25 @@ object RoomActor {
           log.info(s"got $m")
           grid.removeSnake(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
-          watcherMap.filter(_._2 == id).keySet.foreach {i =>
-            subscribersMap.get(i).foreach(r => ctx.unwatch(r))
-          }
           userMap.remove(id)
           subscribersMap.remove(id)
-          watcherMap.filter(_._2 == id).keySet.foreach {i =>
-            subscribersMap.remove(i)
-          }
           gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
+
+//        case m@UserLeftRoom(id, name) =>
+//          log.info(s"got $m")
+//          grid.removeSnake(id)
+//          subscribersMap.get(id).foreach(r => ctx.unwatch(r))
+//          //          watcherMap.filter(_._2 == id).keySet.foreach {i =>
+//          //            subscribersMap.get(i).foreach(r => ctx.unwatch(r))
+//          //          }
+//          userMap.remove(id)
+//          subscribersMap.remove(id)
+//          //          watcherMap.filter(_._2 == id).keySet.foreach {i =>
+//          //            subscribersMap.remove(i)
+//          //          }
+//          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+//          if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserLeft(actor) =>
           subscribersMap.find(_._2.equals(actor)).foreach { case (id, _) =>

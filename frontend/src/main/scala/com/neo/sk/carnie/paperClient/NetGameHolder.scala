@@ -78,12 +78,12 @@ object NetGameHolder extends js.JSApp {
     info(0) match {
       case "playGame" =>
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-        val playerName = if(playerMsgMap.contains("nickName")) playerMsgMap("nickName") else "unKnown"
+        val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
         webSocketClient.setUp(playerId, playerName, "playGame")
 
       case "watchGame" =>
         val roomId = playerMsgMap.getOrElse("roomId", "1000")
-        val playerId = playerMsgMap.getOrElse("playerId", "1000001")
+        val playerId = playerMsgMap.getOrElse("playerId", "unknown")
         println(s"Frontend-roomId: $roomId, playerId:$playerId")
         webSocketClient.setUp(roomId, playerId, "watchGame")
       case _ =>
@@ -117,9 +117,9 @@ object NetGameHolder extends js.JSApp {
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
 //    if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
-//
+//      drawGame.reSetScreen()
+//      oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 //    }
-    drawGame.reSetScreen()
 
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新

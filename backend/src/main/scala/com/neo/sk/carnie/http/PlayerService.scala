@@ -55,8 +55,8 @@ trait PlayerService {
           parameter(
             'roomId.as[Int],
             'playerId.as[String]
-          ) { (rooId, playerId) =>
-            handleWebSocketMessages(webSocketChatFlow4WatchGame(rooId, playerId))
+          ) { (roomId, playerId) =>
+            handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
           } ~
           getFromResource("html/netSnake.html")
         }

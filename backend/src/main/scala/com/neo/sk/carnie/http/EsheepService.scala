@@ -25,7 +25,7 @@ trait EsheepService extends ServiceUtils with CirceSupport {
   private val playGame = (path("playGame") & get & pathEndOrSingleSlash) {
     parameter(
       'playerId.as[String],
-      'nickName.as[String],
+      'playerName.as[String],
       'roomId.as[Int].?,
       'accessCode.as[String]
     ) {

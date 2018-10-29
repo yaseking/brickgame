@@ -31,7 +31,7 @@ class WebSocketClient (
           getWebSocketUri(playId, name)
         case "watchGame" =>
           println("set up watchGame webSocket!")
-          getWebSocketUri4WatchGame(playId, name)
+          getWebSocketUri4WatchGame(playId, name)//(roomId,playerId)
       }
       val gameStream = new WebSocket(url)
       gameStreamOpt = Some(gameStream)
