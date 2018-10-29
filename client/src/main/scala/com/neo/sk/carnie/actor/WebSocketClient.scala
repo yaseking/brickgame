@@ -18,7 +18,9 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.carnie.common.Context
+import com.neo.sk.carnie.controller.GameController
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
+import com.neo.sk.carnie.scene.GameScene
 
 /**
   * Created by dry on 2018/10/23.
@@ -39,12 +41,12 @@ object WebSocketClient {
             ): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
       Behaviors.withTimers { timer =>
-        idle(gameMessageReceiver)(timer, _system, _materializer, _executor)
+        idle(gameMessageReceiver, context)(timer, _system, _materializer, _executor)
       }
     }
   }
 
-  def idle(actor: ActorRef[WsMsgSource])
+  def idle(gameMessageReceiver: ActorRef[WsMsgSource], context: Context)
           (implicit timer: TimerScheduler[WsCommand],
            system: ActorSystem,
            materializer: Materializer,
@@ -54,13 +56,18 @@ object WebSocketClient {
         case ConnectGame(id, name, accessCode, domain) =>
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(id, name, accessCode, domain)))
           val source = getSource
+          val sink = getSink(gameMessageReceiver)
           val ((stream, response), closed) =
             source
               .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
-              .toMat(getSink(actor))(Keep.both) // also keep the Future[Done]
+              .toMat(sink)(Keep.both) // also keep the Future[Done]
               .run()
+
           val connected = response.flatMap { upgrade =>
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
+              val gameScene = new GameScene()
+              val gameController = new GameController(id, name, accessCode, context, gameScene, stream)
+              gameController.connectToGameServer
               Future.successful("connect success")
             } else {
               throw new RuntimeException(s"Connection failed: ${upgrade.response.status}")

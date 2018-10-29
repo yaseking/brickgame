@@ -14,8 +14,21 @@ class GridOnClient(override val boundary: Point) extends Grid {
   override def info(msg: String): Unit = println(msg)
 
   var myId = ""
+  var justSynced = false
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
+  var myActionHistory : Map[Int, (Int, Long)] = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
+  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
+  var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+
+  //击杀弹幕
+  var killInfo: (String, String, String) = ("", "", "")
+  var lastTime = 0
+
+  //胜利变量
+  var isWin = false
+  var winnerName = "unknown"
+  var winData: Protocol.Data4TotalSync = getGridData
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     var gridMap = grid.filter(_._2 match { case Border => true case _ => false })

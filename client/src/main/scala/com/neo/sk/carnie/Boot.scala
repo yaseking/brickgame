@@ -8,8 +8,6 @@ import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.actor.{GameMessageReceiver, WebSocketClient}
 import com.neo.sk.carnie.common.Context
-import com.neo.sk.carnie.controller.LoginController
-import com.neo.sk.carnie.scene.LoginScene
 import javafx.application.Platform
 import javafx.stage.Stage
 
