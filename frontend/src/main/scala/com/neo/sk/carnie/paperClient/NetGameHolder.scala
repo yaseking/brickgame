@@ -1,6 +1,8 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
+
+import com.neo.sk.carnie.model.ReplayInfo
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -12,6 +14,8 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
+import scala.scalajs.js.typedarray.ArrayBuffer
+
 
 /**
   * User: Taoz
@@ -39,7 +43,11 @@ object NetGameHolder extends js.JSApp {
   var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
   var play = true
+  var snapshotMap = Map.empty[Long, Snapshot]
+  var encloseMap = Map.empty[Long, NewFieldInfo]
+  var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -66,8 +74,6 @@ object NetGameHolder extends js.JSApp {
 
   def main(): Unit = {
     val url = dom.window.location.href.split("carnie/")(1)
-//    val hash = dom.window.location.hash.drop(1)
-    println(url)
     val info = url.split("\\?")
     val playerMsgMap = info(1).split("&").map {
       a =>
@@ -78,32 +84,23 @@ object NetGameHolder extends js.JSApp {
     println(s"sendData: $sendData")
     info(0) match {
       case "playGame" =>
-        //todo 验证接口已测试通过，后续测试其他接口先不开放验证接口
-//        val url = Esheep.playGame
-//        Http.postJsonAndParse[SuccessRsp](url, sendData).map {
-//          case Right(rsp) =>
-//            println(s"rsp: $rsp")
-//            if(rsp.errCode==0) {
-//              val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-//              val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-//              println(s"playerName: $playerName")
-////              webSocketClient.setUp(playerId, playerName, "playGame")
-//            } else {
-//              drawGame.drawVerifyErr()
-//              println(s"err: ${rsp.msg}")
-//            }
-//          case Left(e) =>
-//            println(s"Some err happened in apply to connect the game, e: $e")
-//        }
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-        val playerName = if(playerMsgMap.contains("nickName")) playerMsgMap("nickName") else "unKnown"
-        webSocketClient.setUp(playerId, playerName, "playGame")
+        val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+        webSocketClient.setUp(playerId, playerName, "playGame", None)
 
       case "watchGame" =>
         val roomId = playerMsgMap.getOrElse("roomId", "1000")
-        val playerId = playerMsgMap.getOrElse("playerId", "1000001")
+        val playerId = playerMsgMap.getOrElse("playerId", "unknown")
         println(s"Frontend-roomId: $roomId, playerId:$playerId")
-        webSocketClient.setUp(roomId, playerId, "watchGame")
+        webSocketClient.setUp(roomId, playerId, "watchGame", None)
+
+      case "watchRecord" =>
+        val recordId = playerMsgMap.getOrElse("recordId", "1000001")
+        val playerId = playerMsgMap.getOrElse("playerId", "1000001")
+        val frame = playerMsgMap.getOrElse("frame", "0")
+        val accessCode = playerMsgMap.getOrElse("accessCode", "abcd1000")
+        webSocketClient.setUp("", "", "watchRecord", Some(ReplayInfo(recordId, playerId, frame, accessCode)))
+
       case _ =>
         println("Unknown order!")
     }
@@ -134,10 +131,30 @@ object NetGameHolder extends js.JSApp {
 
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
+//    if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
+//      drawGame.reSetScreen()
+//      oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+//    }
 
     if (webSocketClient.getWsState) {
+      if (syncGridData4Replay.nonEmpty) {
+        grid.initSyncGridData(syncGridData4Replay.get)
+        syncGridData4Replay = None
+        justSynced = false
+      } else if(snapshotMap.contains(grid.frameCount)) {
+        val data = snapshotMap(grid.frameCount)
+        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+//        println(s"state 重置 via Map")
+        snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+      }
+      if(encloseMap.contains(grid.frameCount)) {
+        grid.addNewFieldInfo(encloseMap(grid.frameCount))
+        println(s"圈地 via Map")
+      }
+
       if (!justSynced) { //前端更新
         grid.update("f")
+
         if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
@@ -168,9 +185,10 @@ object NetGameHolder extends js.JSApp {
         dom.window.cancelAnimationFrame(nextFrame)
         isContinue = false
       } else {
+//        println(s"draw snakes data:::${data.snakes}")
         data.snakes.find(_.id == myId) match {
           case Some(snake) =>
-            //            println(s"data里有蛇：：：：：：")
+//            println(s"snake 有数据")
             firstCome = false
             if (scoreFlag) {
               drawGame.cleanMyScore
@@ -352,8 +370,148 @@ object NetGameHolder extends js.JSApp {
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
+      case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
+//        println(s"receive replayFrameData")
+        eventsData match {
+          case EventData(events) =>
+            events.foreach (event => replayMessageHandler(event, frameIndex))
+          case Protocol.DecodeError() =>
+//            println("events decode error")
+          case _ =>
+        }
+        if(stateData.nonEmpty) {
+          stateData.get match {
+            case msg: Snapshot =>
+//              println(s"snapshot get")
+//              println(s"snapshot:$msg")
+              replayMessageHandler(msg, frameIndex)
+            case Protocol.DecodeError() =>
+//              println("state decode error")
+            case _ =>
+          }
+        }
+//        if(grid.historyStateMap.contains(frameIndex.toLong)) {
+//          grid.grid = grid.historyStateMap(frameIndex.toLong)._2
+//          grid.snakes = grid.historyStateMap(frameIndex.toLong)._1
+//        }
+//        if(snapshotMap.contains(grid.frameCount)) {
+//          val data = snapshotMap(grid.frameCount)
+//          grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+//          println(s"state 重置 via Map")
+//          snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+//
+//        }
+//        if(encloseMap.contains(grid.frameCount)) {
+//          grid.addNewFieldInfo(encloseMap(grid.frameCount))
+//          println(s"圈地 via Map")
+//        }
+
+
       case x@_ =>
         println(s"receive unknown msg:$x")
+    }
+  }
+
+
+
+  private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
+    data match {
+      case Protocol.JoinEvent(id, name) => //不做处理，直接获取快照
+
+      case Protocol.LeftEvent(id, name) => //不做处理，直接获取快照
+
+      case DirectionEvent(id, keyCode) =>
+        grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
+
+      case SpaceEvent(id) =>
+        if(id == myId) {
+          audio1.pause()
+          audio1.currentTime = 0
+          audioKilled.pause()
+          audioKilled.currentTime = 0
+          play = true
+          scoreFlag = true
+          firstCome = true
+          if (isWin) {
+            isWin = false
+            winnerName = "unknown"
+          }
+          nextFrame = dom.window.requestAnimationFrame(gameRender())
+          isContinue = true
+        }
+
+      case EncloseEvent(enclosure) =>
+//        println(s"got enclose event")
+//        println(s"当前帧号：${grid.frameCount}")
+//        println(s"传输帧号：$frameIndex")
+        if(grid.frameCount < frameIndex.toLong) {
+          encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
+        } else if(grid.frameCount == frameIndex.toLong){
+//          println(s"圈地")
+          grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
+        }
+      case RankEvent(current) =>
+        currentRank = current
+        if (grid.getGridData.snakes.exists(_.id == myId))
+          drawGame.drawRank(myId, grid.getGridData.snakes, current)
+
+      case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
+//        println(s"当前帧号：${grid.frameCount}")
+//        println(s"传输帧号：$frameIndex")
+//        if(frameIndex == 0) {
+//          grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
+//        }
+//        if(snakes.nonEmpty && tag){
+//          tag = false
+//          grid.frameCount = frameIndex
+//          grid.grid = gridReceive.toMap
+//          grid.snakes = snakes.toMap
+//          println(s"grid snakes::::::${grid.snakes}")
+//        }
+        snapshotMap += frameIndex.toLong -> msg
+        if(grid.frameCount < frameIndex.toLong) { //保留
+
+        } else if(grid.frameCount >= frameIndex.toLong) { //重置
+//          grid.initSyncGridData(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
+          syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
+          justSynced = true
+        }
+
+      case _ =>
+    }
+  }
+
+  import scala.scalajs.js.typedarray.ArrayBuffer
+  import org.seekloud.byteobject.ByteObject._
+  import org.seekloud.byteobject.MiddleBufferInJs
+
+  private def replayEventDecode(a:ArrayBuffer): GameEvent={
+//    println(s"replayEventDecode")
+
+    val middleDataInJs = new MiddleBufferInJs(a)
+    if (a.byteLength > 0) {
+      bytesDecode[List[GameEvent]](middleDataInJs) match {
+        case Right(r) =>
+          Protocol.EventData(r)
+        case Left(e) =>
+//          println(s"hhhhhhhh")
+//          println(e.message)
+          Protocol.DecodeError()
+      }
+    }else{
+      Protocol.DecodeError()
+    }
+  }
+
+  private def replayStateDecode(a:ArrayBuffer): GameEvent={
+//    println(s"replayStateDecode")
+    val middleDataInJs = new MiddleBufferInJs(a)
+    bytesDecode[Snapshot](middleDataInJs) match {
+      case Right(r) =>
+        r
+      case Left(e) =>
+        println(e.message)
+        Protocol.DecodeError()
     }
   }
 
