@@ -327,7 +327,7 @@ class DrawGame(
 
     //
     //    //排行榜边界离屏
-    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
+    rankCtx.clearRect(20, textLineHeight * 4, 600, textLineHeight * 3)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     //    ctx.drawImage(rankCanvas, 0, 0)
     //    ctx.restore()
@@ -360,6 +360,7 @@ class DrawGame(
 
     rankCtx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
     rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+//    rankCtx.clearRect(0,0, rankCanvas.width, rankCanvas.height)
 
     lastRankNum = currentRank.length
 

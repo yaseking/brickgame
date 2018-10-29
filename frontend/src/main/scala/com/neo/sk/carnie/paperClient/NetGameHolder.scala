@@ -131,10 +131,10 @@ object NetGameHolder extends js.JSApp {
 
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
-//    if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
-//      drawGame.reSetScreen()
-//      oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-//    }
+    if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
+      drawGame.reSetScreen()
+      oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+    }
 
     if (webSocketClient.getWsState) {
       if (syncGridData4Replay.nonEmpty) {
