@@ -46,6 +46,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val esheepUrl = baseUrl + s"/api/gameServer/verifyAccessCode?token=$token"
     val sendData = VerifyAccCode(gameId, accessCode).asJson.noSpaces
 
+    log.info("Start verifyAccessCode!")
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
         decode[VerifyAccCodeRsp](str) match {
