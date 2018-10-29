@@ -1,10 +1,11 @@
-package com.neo.sk.carnie.paperClient
+package com.neo.sk.carnie.scene
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
+import com.neo.sk.carnie.paperClient._
 import javafx.geometry.VPos
 import javafx.scene.image.Image
-import javafx.scene.paint.{Color, Paint}
+import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 //import org.scalajs.dom
 import javafx.scene.canvas.{Canvas, GraphicsContext}

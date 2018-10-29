@@ -1,25 +1,24 @@
-package com.neo.sk.carnie.paperClient
+package com.neo.sk.carnie.actor
 
-import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
-import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
-import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.carnie.paperClient.WsSourceProtocol.{CompleteMsgServer, FailMsgServer, WsMsgSource}
-import org.seekloud.byteobject.ByteObject.bytesDecode
 import akka.actor.ActorSystem
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.ws.WebSocketRequest
+import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
 import akka.stream.{Materializer, OverflowStrategy}
-import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.stream.typed.scaladsl.ActorSink
+import akka.stream.scaladsl.{Flow, Keep}
+import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import akka.util.ByteString
+import com.neo.sk.carnie.paperClient.Protocol._
+import com.neo.sk.carnie.paperClient.WsSourceProtocol.{CompleteMsgServer, FailMsgServer, WsMsgSource}
+import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
-import org.seekloud.byteobject.ByteObject._
 import org.slf4j.LoggerFactory
+
 import scala.concurrent.{ExecutionContextExecutor, Future}
-import com.neo.sk.carnie.Boot.{executor, materializer, system}
+import com.neo.sk.carnie.common.Context
+import com.neo.sk.carnie.paperClient.WsSourceProtocol
 
 /**
   * Created by dry on 2018/10/23.
@@ -32,19 +31,24 @@ object WebSocketClient {
 
   case class ConnectGame(id: String, name: String, accessCode: String, domain: String) extends WsCommand
 
-  def create(): Behavior[WsCommand] = {
+  def create(gameMessageReceiver: ActorRef[WsSourceProtocol.WsMsgSource],
+             context: Context,
+             _system: ActorSystem,
+             _materializer: Materializer,
+             _executor: ExecutionContextExecutor
+            ): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
-      val id = "testId"
-      val name = "testName"
-      val accessCode = "testAccessCode"
-      val domain = "testDomain"
-      val gameController = ctx.spawn(NetGameHolder.running(id, name), "gameController")
-      ctx.self ! ConnectGame(id, name, accessCode, domain)
-      idle(gameController)
+      Behaviors.withTimers { timer =>
+        idle(gameMessageReceiver)(timer, _system, _materializer, _executor)
+      }
     }
   }
 
-  def idle(actor: ActorRef[WsMsgSource]): Behavior[WsCommand] = {
+  def idle(actor: ActorRef[WsMsgSource])
+          (implicit timer: TimerScheduler[WsCommand],
+           system: ActorSystem,
+           materializer: Materializer,
+           executor: ExecutionContextExecutor): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case ConnectGame(id, name, accessCode, domain) =>
