@@ -58,47 +58,6 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
-//  private val playGame = (path("playGame") & post & pathEndOrSingleSlash) {
-//    entity(as[Either[Error, PlayerMsg]]) {
-//      case Right(req) =>
-//        val playerMsg = req.playerMsg
-//        val appId = if (playerMsg.contains("appId")) playerMsg("appId") else ""
-//        val secureKey = if (playerMsg.contains("secureKey")) playerMsg("secureKey") else ""
-//        val accessCode = if (playerMsg.contains("accessCode")) playerMsg("accessCode") else ""
-//        val playerId = if (playerMsg.contains("playerId")) playerMsg("playerId") else "unKnown"
-//        val playerName = if (playerMsg.contains("playerName")) playerMsg("playerName") else ""
-//        if (AppSettings.appSecureMap.contains(appId) && (AppSettings.appSecureMap(appId) == secureKey)) {
-//          dealFutureResult {
-//            val msg: Future[String] = tokenActor ? AskForToken
-//            msg.map { token =>
-//              val gameId = AppSettings.esheepGameId
-//              dealFutureResult {
-//                println("start verifyAccessCode!")
-//                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-//                  case Right(rsp) =>
-//                    if (rsp.playerId == playerId && rsp.nickName == playerName) {
-//                      //join Game
-//                      complete(SuccessRsp())
-//                    } else {
-//                      println("end verifyAccessCode!")
-//                      complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
-//                    }
-//                  case Left(e) =>
-//                    log.error(s"playGame error. fail to verifyAccessCode err: $e")
-//                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
-//                }
-//              }
-//            }
-//          }
-//
-//        } else {
-//          complete(ErrorRsp(120003, "Wrong player applies to playGame."))
-//        }
-//      case Left(_) =>
-//        complete(ErrorRsp(120004, "Wrong player applies to playGame."))
-//    }
-//  }
-
   val esheepRoute: Route = playGame
 
 }

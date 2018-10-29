@@ -89,7 +89,7 @@ object RoomActor {
   def idle(
             roomId: Int, grid: GridOnServer,
             userMap: mutable.HashMap[String, String],
-            watcherMap: mutable.HashMap[String, String],
+            watcherMap: mutable.HashMap[String, String],//(watchId, playerId)
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long,
             gameEvent: mutable.ArrayBuffer[(Long, GameEvent)]
@@ -113,10 +113,12 @@ object RoomActor {
 
         case WatchGame(playerId, subscriber) =>
           val watchId = watcherIdGenerator.getAndIncrement().toString
+          val playerName = userMap.getOrElse(playerId, "unKnown")
           watcherMap.put(watchId, playerId)
           subscribersMap.put(watchId, subscriber)
           dispatchTo(subscribersMap, watchId, Protocol.Id(playerId))
-          ctx.watchWith(subscriber, UserLeft(subscriber))
+//          ctx.watchWith(subscriber, UserLeft(subscriber)) 此行不删
+          ctx.watchWith(subscriber, LeftRoom(playerId, playerName))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           Behaviors.same
@@ -125,8 +127,14 @@ object RoomActor {
           log.info(s"got $m")
           grid.removeSnake(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
+          watcherMap.filter(_._2 == id).keySet.foreach {i =>
+            subscribersMap.get(i).foreach(r => ctx.unwatch(r))
+          }
           userMap.remove(id)
           subscribersMap.remove(id)
+          watcherMap.filter(_._2 == id).keySet.foreach {i =>
+            subscribersMap.remove(i)
+          }
           gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
