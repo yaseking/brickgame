@@ -22,7 +22,6 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
-        println(s"tokenStr: $str")
         decode[GetTokenRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
@@ -43,13 +42,13 @@ object EsheepClient extends HttpUtil with CirceSupport {
   }
 
   def verifyAccessCode(gameId: Long, accessCode: String, token: String) = {
-    println(s"got token: $token")
+//    println(s"got token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/verifyAccessCode?token=$token"
     val sendData = VerifyAccCode(gameId, accessCode).asJson.noSpaces
 
+    log.info("Start verifyAccessCode!")
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
-        println(s"str: $str")
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
@@ -82,13 +81,11 @@ object EsheepClient extends HttpUtil with CirceSupport {
     println("start inputBatRecord!")
 //    val token = KeyData.token
     val gameId = AppSettings.esheepGameId
-    println(s"token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/addPlayerRecord?token=$token"
     val sendData = InputRecord(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime)).asJson.noSpaces
 
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
-        println(s"str: $str")
         decode[ErrorRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {

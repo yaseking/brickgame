@@ -1,4 +1,6 @@
-package com.neo.sk.carnie.paperClient
+package com.neo.sk.carnie.controller
+
+import com.neo.sk.carnie.paperClient._
 
 /**
   * User: Taoz
@@ -10,6 +12,10 @@ class GridOnClient(override val boundary: Point) extends Grid {
   override def debug(msg: String): Unit = println(msg)
 
   override def info(msg: String): Unit = println(msg)
+
+  var myId = ""
+  var currentRank = List.empty[Score]
+  var historyRank = List.empty[Score]
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     var gridMap = grid.filter(_._2 match { case Border => true case _ => false })

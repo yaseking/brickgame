@@ -25,7 +25,7 @@ trait EsheepService extends ServiceUtils with CirceSupport {
   private val playGame = (path("playGame") & get & pathEndOrSingleSlash) {
     parameter(
       'playerId.as[String],
-      'nickName.as[String],
+      'playerName.as[String],
       'roomId.as[Int].?,
       'accessCode.as[String]
     ) {
@@ -37,17 +37,13 @@ trait EsheepService extends ServiceUtils with CirceSupport {
               dealFutureResult{
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(rsp) =>
-                    println(s"rsp: $rsp")
+//                    println(s"rsp: $rsp")
                     if(rsp.playerId == playerId){
-                      //join Game
-//                      redirect()
-                      complete(SuccessRsp())
+                      getFromResource("html/netSnake.html")
                     } else {
                       complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
-//                      getFromResource("html/netSnake.html")
                     }
                   case Left(e) =>
-                    println("校验未通过")
                     log.error(s"playGame error. fail to verifyAccessCode err: $e")
                     getFromResource("html/netSnake.html")
 //                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
