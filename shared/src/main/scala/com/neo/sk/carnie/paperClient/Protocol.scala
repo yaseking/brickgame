@@ -99,11 +99,19 @@ object Protocol {
 
   case class LeftEvent(id: String, nickName: String) extends GameEvent
 
+  case class SpaceEvent(id: String) extends GameEvent
+
   case class DirectionEvent(id: String, keyCode: Int) extends GameEvent
 
-  case class EncloseEvent(enclosure: List[(String, List[Point])]) extends GameEvent
+  case class EncloseEvent(fieldDetails: List[FieldByColumn]) extends GameEvent
 
-  case class Snapshot(snakes: List[SkDt], bodyDetails: List[BodyBaseInfo], fieldDetails: List[FieldByColumn], killHistory: List[Kill])
+  case class EventData(events: List[GameEvent]) extends GameEvent
+
+  case class RankEvent(rank: List[Score]) extends GameEvent
+
+  case class Snapshot(snakes: List[SkDt], bodyDetails: List[BodyBaseInfo], fieldDetails: List[FieldByColumn], killHistory: List[Kill]) extends GameEvent
+
+  case class DecodeError() extends GameEvent
 
   case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
 
@@ -111,6 +119,15 @@ object Protocol {
 
   case class UserBaseInfo(id:String, name: String)
 
+  case class EssfMapInfo(m:List[(UserBaseInfo, List[UserJoinLeft])])
+
+  //for replay
+//  sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
+
+  /**
+    * replay-frame-msg*/
+//  case class ReplayFrameData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]]) extends GameMessage
+  case class ReplayFrameData(frameIndex: Int, eventsData: GameEvent, stateData: Option[GameEvent]) extends GameMessage
 
   val frameRate = 150
 
