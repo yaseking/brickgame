@@ -67,44 +67,47 @@ object GameReplay {
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
-        //todo test
-        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540539148541_0")
-        val info=replay.init()
-        try{
-          println(s"test1")
-          println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-          println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
-          println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
-          ctx.self ! SwitchBehavior("work",
-            work(
-              replay,
-              metaDataDecode(info.simulatorMetadata).right.get,
-              // todo mutableInfo
-              userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-            ))
-        }catch {
-          case e:Throwable=>
-            log.error("error init game replay---"+e.getMessage)
-        }
-//        RecordDAO.getRecordById(recordId).map {
-//          case Some(r)=>
-//            val replay=initInput(r.filePath)
-//            val info=replay.init()
-//            try{
-//              ctx.self ! SwitchBehavior("work",
-//                work(
-//                  replay,
-//                  metaDataDecode(info.simulatorMetadata).right.get,
-//                  // todo mutableInfo
-//                  userMapDecode(replay.getMutableInfo(KeyData.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-//                ))
-//            }catch {
-//              case e:Throwable=>
-//                log.error("error---"+e.getMessage)
-//            }
-//          case None=>
-//            log.debug(s"record--$recordId didn't exist!!")
+        //test
+//        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540539148541_0")
+//        val info=replay.init()
+//        try{
+//          println(s"test1")
+//          println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
+//          println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
+//          println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+//          ctx.self ! SwitchBehavior("work",
+//            work(
+//              replay,
+//              metaDataDecode(info.simulatorMetadata).right.get,
+//              //
+//              userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+//            ))
+//        }catch {
+//          case e:Throwable=>
+//            log.error("error init game replay---"+e.getMessage)
 //        }
+        RecordDAO.getRecordById(recordId).map {
+          case Some(r)=>
+            log.debug(s"game path ${r.filePath}")
+            val replay=initInput("../backend/" + r.filePath)
+            val info=replay.init()
+            try{
+              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
+              println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
+              println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+              ctx.self ! SwitchBehavior("work",
+                work(
+                  replay,
+                  metaDataDecode(info.simulatorMetadata).right.get,
+                  userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+                ))
+            }catch {
+              case e:Throwable=>
+                log.error("error---"+e.getMessage)
+            }
+          case None=>
+            log.debug(s"record--$recordId didn't exist!!")
+        }
         switchBehavior(ctx,"busy",busy())
       }
     }
@@ -208,6 +211,7 @@ object GameReplay {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case SwitchBehavior(name, behavior,durationOpt,timeOut) =>
+          log.debug(s"switchBehavior")
           switchBehavior(ctx,name,behavior,durationOpt,timeOut)
 
         case TimeOut(m) =>

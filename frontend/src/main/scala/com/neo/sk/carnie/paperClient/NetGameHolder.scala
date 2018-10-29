@@ -115,7 +115,7 @@ object NetGameHolder extends js.JSApp {
       case "watchRecord" =>
         val recordId = playerMsgMap.getOrElse("recordId", "1000001")
         val playerId = playerMsgMap.getOrElse("playerId", "1000001")
-        val frame = playerMsgMap.getOrElse("frame", "1000")
+        val frame = playerMsgMap.getOrElse("frame", "0")
         val accessCode = playerMsgMap.getOrElse("accessCode", "abcd1000")
         webSocketClient.setUp("", "", "watchRecord", Some(ReplayInfo(recordId, playerId, frame, accessCode)))
 
@@ -158,7 +158,7 @@ object NetGameHolder extends js.JSApp {
       } else if(snapshotMap.contains(grid.frameCount)) {
         val data = snapshotMap(grid.frameCount)
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
-        println(s"state 重置 via Map")
+//        println(s"state 重置 via Map")
         snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
       }
       if(encloseMap.contains(grid.frameCount)) {
@@ -455,13 +455,13 @@ object NetGameHolder extends js.JSApp {
         }
 
       case EncloseEvent(enclosure) =>
-        println(s"got enclose event")
-        println(s"当前帧号：${grid.frameCount}")
-        println(s"传输帧号：$frameIndex")
+//        println(s"got enclose event")
+//        println(s"当前帧号：${grid.frameCount}")
+//        println(s"传输帧号：$frameIndex")
         if(grid.frameCount < frameIndex.toLong) {
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
         } else if(grid.frameCount == frameIndex.toLong){
-          println(s"圈地")
+//          println(s"圈地")
           grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
         }
       case RankEvent(current) =>
@@ -470,8 +470,8 @@ object NetGameHolder extends js.JSApp {
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
-        println(s"当前帧号：${grid.frameCount}")
-        println(s"传输帧号：$frameIndex")
+//        println(s"当前帧号：${grid.frameCount}")
+//        println(s"传输帧号：$frameIndex")
 //        if(frameIndex == 0) {
 //          grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 //        }
@@ -490,6 +490,8 @@ object NetGameHolder extends js.JSApp {
           syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
           justSynced = true
         }
+
+      case _ =>
     }
   }
 

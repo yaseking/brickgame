@@ -39,7 +39,7 @@ object RoomManager {
 
   case class Left(id: String, name: String) extends Command
 
-  case class StartReplay(recordId: Long, playerId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class StartReplay(recordId: Long, playerId: String, frame: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   case class StopReplay() extends Command
 
@@ -97,8 +97,9 @@ object RoomManager {
           }
           Behaviors.same
 
-        case StartReplay(recordId, playerId, subscriber) =>
-          getGameReplay(ctx, recordId) ! GameReplay.InitReplay(subscriber, playerId, 0)
+        case StartReplay(recordId, playerId, frame, subscriber) =>
+          log.info(s"got $msg")
+          getGameReplay(ctx, recordId) ! GameReplay.InitReplay(subscriber, playerId, frame)
           Behaviors.same
 
         case m@PreWatchGame(roomId, playerId, subscriber) =>
@@ -228,7 +229,7 @@ object RoomManager {
     Flow.fromSinkAndSource(in, out)
   }
 
-  def replayGame(actor: ActorRef[RoomManager.Command], recordId: Long, userId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+  def replayGame(actor: ActorRef[RoomManager.Command], recordId: Long, userId: String, frame: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
@@ -248,7 +249,7 @@ object RoomManager {
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! StartReplay(recordId, userId, outActor))
+      ).mapMaterializedValue(outActor => actor ! StartReplay(recordId, userId, frame, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }

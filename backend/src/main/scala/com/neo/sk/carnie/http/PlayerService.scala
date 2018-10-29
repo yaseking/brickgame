@@ -63,9 +63,10 @@ trait PlayerService {
         } ~ path("watchRecord") {
         parameter(
           'recordId.as[Long],
-          'playerId.as[String]
-        ) { (recordId, playerId) =>
-          handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId))
+          'playerId.as[String],
+          'frame.as[Int]
+        ) { (recordId, playerId, frame) =>
+          handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame))
         } ~ getFromResource("html/netSnake.html")
 
       }
@@ -162,7 +163,7 @@ trait PlayerService {
       }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
   }
 
-  def webSocketChatFlow4WatchRecord(playedId: String, recordId: Long): Flow[Message, Message, Any] = {
+  def webSocketChatFlow4WatchRecord(playedId: String, recordId: Long, frame: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
     import org.seekloud.byteobject.MiddleBufferInJvm
@@ -190,7 +191,7 @@ trait PlayerService {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(RoomManager.replayGame(roomManager, recordId, playedId))
+      .via(RoomManager.replayGame(roomManager, recordId, playedId, frame))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
