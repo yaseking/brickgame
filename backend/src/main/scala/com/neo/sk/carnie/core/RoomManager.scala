@@ -118,8 +118,7 @@ object RoomManager {
 
         case msg@WatcherLeft(roomId, playerId) =>
           log.info(s"got $msg")
-          //先不做任何处理
-//          getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
+//          getRoomActor(ctx, roomId) ! RoomActor.WatcherLeftRoom(playerId)
           Behaviors.same
 
         case m@UserActionOnServer(id, action) =>

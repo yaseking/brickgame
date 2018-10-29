@@ -39,6 +39,8 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
+//  case class WatcherLeftRoom(playerId: String) extends Command
+
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   case class WatchGame(uid: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
@@ -132,23 +134,11 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
+          watcherMap.filter(_._2 == id).keySet.foreach {i =>
+            subscribersMap.remove(i)
+          }
           gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
-
-//        case m@UserLeftRoom(id, name) =>
-//          log.info(s"got $m")
-//          grid.removeSnake(id)
-//          subscribersMap.get(id).foreach(r => ctx.unwatch(r))
-//          //          watcherMap.filter(_._2 == id).keySet.foreach {i =>
-//          //            subscribersMap.get(i).foreach(r => ctx.unwatch(r))
-//          //          }
-//          userMap.remove(id)
-//          subscribersMap.remove(id)
-//          //          watcherMap.filter(_._2 == id).keySet.foreach {i =>
-//          //            subscribersMap.remove(i)
-//          //          }
-//          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
-//          if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserLeft(actor) =>
           log.debug(s"UserLeft:::")
