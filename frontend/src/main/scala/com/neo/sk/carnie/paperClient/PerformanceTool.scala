@@ -38,7 +38,7 @@ object PerformanceTool {
     val fpsString = "fps : "
     val pingString = "ping: "
     ctx.fillText(fpsString, leftBegin, lineHeight)
-    ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight)
+    ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight)//50
     ctx.strokeStyle = "black"
     ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
     ctx.fillStyle = if (lastRenderTimes < 50) ColorsSetting.redColor else ColorsSetting.greenColor

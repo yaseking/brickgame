@@ -120,7 +120,7 @@ object RoomActor {
           watcherMap.put(watchId, truePlayerId)
           subscribersMap.put(watchId, subscriber)
           dispatchTo(subscribersMap, watchId, Protocol.Id(truePlayerId))
-          ctx.watchWith(subscriber, UserLeft(subscriber)) //此行不删
+//          ctx.watchWith(subscriber, UserLeft(subscriber)) //此行不删
 //          ctx.watchWith(subscriber, LeftRoom(truePlayerId, playerName))//此行不删
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
