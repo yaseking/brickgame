@@ -14,10 +14,10 @@ class DrawGame(
               canvas: Canvas
               ) {
 
-  private val windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+  private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val window = Point(Window.w, Window.h)
-  private val canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
+  private var canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val canvasSize = (border.x - 2) * (border.y - 2)
 
@@ -47,10 +47,20 @@ class DrawGame(
   private var maxArea: Int = 0
   private var scale = 1.0
   private var lastRankNum = 0
-  private var tickCount = 0
+
+  def reSetScreen(): Unit = {
+    windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+    canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
+    canvas.width = windowBoundary.x.toInt
+    canvas.height = windowBoundary.y.toInt
+    borderCanvas.width = canvasUnit * Boundary.w
+    borderCanvas.height = canvasUnit * Boundary.h
+    rankCanvas.width = dom.window.innerWidth.toInt
+    rankCanvas.height = dom.window.innerHeight.toInt
+    drawCache()
+  }
 
   def drawGameOn(): Unit = {
-    //    bodyAttribute.setAttribute("background-color", ColorsSetting.backgroundColor)
     bodyAttribute.style_=("background-color:#F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
 
     canvas.width = windowBoundary.x.toInt
@@ -67,10 +77,6 @@ class DrawGame(
 
     drawCache()
 
-//    println("Now we set backgroundColor!")
-
-    //    backCtx.fillStyle = ColorsSetting.backgroundColor
-    //    backCtx.fillRect(0, 0, background.width, background.height)
   }
 
   def drawVerifyErr(): Unit = {

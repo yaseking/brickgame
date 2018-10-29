@@ -40,6 +40,7 @@ object NetGameHolder extends js.JSApp {
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var play = true
+  var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -115,6 +116,10 @@ object NetGameHolder extends js.JSApp {
 
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
+//    if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
+//
+//    }
+    drawGame.reSetScreen()
 
     if (webSocketClient.getWsState) {
       if (!justSynced) { //前端更新
