@@ -230,7 +230,7 @@ object NetGameHolder extends js.JSApp {
         }
       }
     } else {
-      drawGame.drawGameOff(firstCome)
+      drawGame.drawGameOff(firstCome, None)
     }
   }
 
@@ -287,7 +287,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   private def connectError(e: Event) = {
-    drawGame.drawGameOff(firstCome)
+    drawGame.drawGameOff(firstCome, None)
     e
   }
 
@@ -369,6 +369,10 @@ object NetGameHolder extends js.JSApp {
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
+
+      case x@Protocol.ReplayFinish() =>
+        drawGame.drawGameOff(firstCome, Some(true))
+
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
 //        println(s"receive replayFrameData")
