@@ -54,6 +54,38 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
-  val esheepRoute: Route = playGame
+  private val watchRecord = (path("watchRecord") & get & pathEndOrSingleSlash) {
+    parameter(
+      'recordId.as[Long],
+      'playerId.as[String],
+      'frame.as[Int],
+      'accessCode.as[String]
+    ) {
+      case (recordId, playerId, frame, accessCode) =>
+        val gameId = AppSettings.esheepGameId
+        dealFutureResult{
+          val msg: Future[String] = tokenActor ? AskForToken
+          msg.map {token =>
+            dealFutureResult{
+              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+                case Right(rsp) =>
+                  //                    println(s"rsp: $rsp")
+                  if(rsp.playerId == playerId){
+                    getFromResource("html/netSnake.html")
+                  } else {
+                    complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
+                  }
+                case Left(e) =>
+                  log.error(s"playGame error. fail to verifyAccessCode err: $e")
+                  getFromResource("html/netSnake.html")
+                //                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+              }
+            }
+          }
+        }
+    }
+  }
+
+  val esheepRoute: Route = playGame ~ watchRecord
 
 }

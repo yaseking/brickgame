@@ -60,7 +60,7 @@ trait PlayerService {
           ) { (roomId, playerId) =>
             handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
           } ~ getFromResource("html/netSnake.html")
-        } ~ path("watchRecord") {
+        } ~ path("joinWatchRecord") {
         parameter(
           'recordId.as[Long],
           'playerId.as[String],

@@ -43,7 +43,7 @@ object RoomManager {
 
   case class StartReplay(recordId: Long, playerId: String, frame: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
-  case class StopReplay() extends Command
+  case class StopReplay(recordId: Long) extends Command
 
   case class FindRoomId(pid: String, reply: ActorRef[Option[(Int, mutable.HashSet[(String, String)])]]) extends Command
 
@@ -102,6 +102,10 @@ object RoomManager {
         case StartReplay(recordId, playerId, frame, subscriber) =>
           log.info(s"got $msg")
           getGameReplay(ctx, recordId) ! GameReplay.InitReplay(subscriber, playerId, frame)
+          Behaviors.same
+
+        case StopReplay(recordId) =>
+          getGameReplay(ctx, recordId) ! GameReplay.StopReplay()
           Behaviors.same
 
         case m@PreWatchGame(roomId, playerId, subscriber) =>
@@ -182,9 +186,9 @@ object RoomManager {
     onFailureMessage = FailMsgFront.apply
   )
 
-  private def sink4Replay(actor: ActorRef[Command]) = ActorSink.actorRef[Command](
+  private def sink4Replay(actor: ActorRef[Command], recordId: Long) = ActorSink.actorRef[Command](
     ref = actor,
-    onCompleteMessage = StopReplay(),
+    onCompleteMessage = StopReplay(recordId),
     onFailureMessage = FailMsgFront.apply
   )
 
@@ -252,7 +256,7 @@ object RoomManager {
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
         case _ => UnKnowAction
       }
-      .to(sink4Replay(actor))
+      .to(sink4Replay(actor, recordId))
 
     val out =
       ActorSource.actorRef[WsSourceProtocol.WsMsgSource](

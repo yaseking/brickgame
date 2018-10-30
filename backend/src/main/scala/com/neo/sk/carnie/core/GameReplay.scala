@@ -41,6 +41,8 @@ object GameReplay {
 
   case class Left() extends Command
 
+  case class StopReplay() extends Command
+
   final case class SwitchBehavior(
                                    name: String,
                                    behavior: Behavior[Command],
@@ -167,9 +169,14 @@ object GameReplay {
             Behaviors.same
           }else{
             timer.cancel(GameLoopKey)
+
             timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
             Behaviors.same
           }
+
+        case StopReplay() =>
+          Behaviors.stopped
+
 
 //        case msg:GetRecordFrameMsg=>
 //          msg.replyTo ! GetRecordFrameRsp(RecordFrameInfo(fileReader.getFramePosition))
