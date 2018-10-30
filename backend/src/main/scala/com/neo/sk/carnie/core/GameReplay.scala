@@ -90,7 +90,7 @@ object GameReplay {
 //        }
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
-            log.debug(s"game path ${r.filePath}")
+//            log.debug(s"game path ${r.filePath}")
 //            val replay=initInput("../backend/" + r.filePath)
             val replay=initInput(r.filePath)
             val info=replay.init()
@@ -169,6 +169,7 @@ object GameReplay {
             )
             Behaviors.same
           }else{
+            log.debug(s"has not more frame")
             timer.cancel(GameLoopKey)
             userOpt.foreach(u => dispatchTo(u, Protocol.ReplayFinish("")))
 
