@@ -377,6 +377,7 @@ object NetGameHolder extends js.JSApp {
         PerformanceTool.receivePingPackage(x)
 
       case x@Protocol.ReplayFinish() =>
+        println("get mesage replay finish")
         replayFinish = true
 
 

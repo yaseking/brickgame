@@ -53,7 +53,7 @@ object RecallGame {
     val buffer = new MiddleBufferInJvm(a)
     bytesDecode[Snapshot](buffer) match {
       case Right(r) =>
-        println(s"states decode success")
+//        println(s"states decode success")
         r
       case Left(e) =>
         println(s"decode states error:")
