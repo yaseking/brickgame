@@ -8,6 +8,8 @@ import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.actor.{GameMessageReceiver, WebSocketClient}
 import com.neo.sk.carnie.common.Context
+import com.neo.sk.carnie.controller.LoginController
+import com.neo.sk.carnie.scene.LoginScene
 import javafx.application.Platform
 import javafx.stage.Stage
 
@@ -29,16 +31,17 @@ object Boot {
   }
 }
 
-class ClientBoot extends javafx.application.Application {
+class Boot extends javafx.application.Application {
 
   import Boot._
 
   override def start(mainStage: Stage): Unit = {
     val context = new Context(mainStage)
     val wsClient = system.spawn(WebSocketClient.create(gameMessageReceiver, context, system, materializer, executor), "wsClient")
-    //    val loginScene = new LoginScene()
-    //    val loginController = new LoginController(wsClient, loginScene, context)
-    //    loginController.showScene()
+
+    val loginScene = new LoginScene()
+    val loginController = new LoginController(wsClient, loginScene, context)
+    loginController.showScene()
 
 
     //		val gameViewScene = new GameScene()

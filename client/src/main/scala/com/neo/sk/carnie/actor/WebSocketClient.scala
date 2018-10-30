@@ -33,6 +33,8 @@ object WebSocketClient {
 
   case class ConnectGame(id: String, name: String, accessCode: String, domain: String) extends WsCommand
 
+  case class EstablishConnection2Es(wsUrl: String) extends WsCommand
+
   def create(gameMessageReceiver: ActorRef[WsSourceProtocol.WsMsgSource],
              context: Context,
              _system: ActorSystem,
@@ -75,6 +77,10 @@ object WebSocketClient {
           } //链接建立时
 
           connected.onComplete(i => log.info(i.toString))
+          Behaviors.same
+
+        case EstablishConnection2Es(wsUrl: String) =>
+
           Behaviors.same
       }
     }
