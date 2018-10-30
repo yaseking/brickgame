@@ -1,34 +1,26 @@
 package com.neo.sk.carnie.http
 
 import java.io.File
-
 import akka.http.scaladsl.server
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.stream.Materializer
+import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
+import akka.http.scaladsl.server.{Directive1, Route}
+import akka.stream.scaladsl.{FileIO, Sink, Source }
+import akka.actor.typed.scaladsl.AskPattern._
+import akka.http.scaladsl.model.HttpEntity
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
-import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
+import com.neo.sk.carnie.Boot.scheduler
 import com.neo.sk.carnie.models.dao.RecordDAO
-import com.neo.sk.carnie.core.TokenActor
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 
-import akka.http.scaladsl.model.headers.{CacheDirectives, Expires, `Cache-Control`}
-import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
-import akka.http.scaladsl.server.{Directive1, Route}
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
-
-import akka.stream.scaladsl.{ FileIO, Sink, Source }
-
 import scala.concurrent.Future
-import akka.actor.typed.scaladsl.AskPattern._
-import akka.http.scaladsl.model.HttpEntity
 import io.circe.Error
 
 import scala.collection.mutable
-//import scala.reflect.io.File
 
 
 /**
@@ -66,36 +58,20 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
-  final case class PostEnvelope1(
-    appId: String,
-    sn: String,
-    timestamp: String,
-    nonce: String,
-    signature: String
-  )
-  def ensurePostEnvelope1(e: PostEnvelope1)(f: => Future[server.Route]) = {
-    ensureAuth(e.appId, e.timestamp, e.nonce, e.sn, List(), e.signature)(f)
-  }
+
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, PostEnvelope1]]) {
-      case Right(envelope) =>
-        ensurePostEnvelope1(envelope) {
-          val msg: Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
-            msg.map {
-              allroom =>
-                if (allroom.nonEmpty)
-                  complete(RoomListRsp(RoomListInfo(allroom)))
-                else {
-                  log.info("get all room error")
-                  complete(ErrorRsp(100000, "get all room error,there are no room"))
-                }
-            }
+    dealPostReq[AllRoomReq] { req =>
+      val msg: Future[List[Int]] = roomManager ? (RoomManager.FindAllRoom(_))
+      msg.map {
+        allRoom =>
+          if (allRoom.nonEmpty)
+            complete(RoomListRsp(RoomListInfo(allRoom)))
+          else {
+            log.info("get all room error,there are no rooms")
+            complete(ErrorRsp(100000, "get all room error,there are no rooms"))
           }
-
-      case Left(e) =>
-        log.error(s"json parse PostEnvelope error: $e")
-        complete(ServiceUtils.JsonParseError)
+      }
     }
   }
 
@@ -158,7 +134,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
                       else
                         complete(ErrorRsp(1001011,"record doesn't exist."))
                     case None =>
-                      complete(ErrorRsp(1001011,"record doesn't exist."))
+                      complete(ErrorRsp(1001011,"record id failed."))
                   }
                 }
 
@@ -168,8 +144,8 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
             }
           }
           else {
-            log.warn("token 错误")
-            complete(ErrorRsp(1100111, "token 错误"))
+            log.warn("token error")
+            complete(ErrorRsp(1100111, "token error"))
           }
       }
     }

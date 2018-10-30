@@ -68,6 +68,9 @@ object RoomApiProtocol {
   case class RoomIdReq(
                         roomId: Int
                       )
+  case class AllRoomReq(
+                        data: String
+  )
 
   case class RoomIdRsp(
                         data: RoomIdInfo,
