@@ -49,7 +49,7 @@ class GameScene {
   def draw(myId: String, data: Protocol.Data4TotalSync, currentRank: List[Score]): Unit = {
 //    view.drawSnake(myId, data)
 //    background.drawMap(myId, data)
-//    rank.drawInfo(myId, data, currentRank)
+    rank.drawRank(myId, data.snakes, currentRank)
   }
 
   def setGameSceneListener(listener: GameSceneListener) {

@@ -13,9 +13,9 @@ import javafx.scene.image.Image
   **/
 class RankCanvas(canvas: Canvas)  {
 
-  private val windowWidth = canvas.getWidth
-  private val windowHeight = canvas.getHeight
-  private val windowBoundary = Point(windowWidth.toFloat, windowHeight.toFloat)
+  private val realWindowWidth = canvas.getWidth
+  private val realWindowHeight = canvas.getHeight
+  private val windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val goldImg = new Image("/carnie/static/img/gold.png")
   private val silverImg = new Image("/carnie/static/img/silver.png")
@@ -54,10 +54,9 @@ class RankCanvas(canvas: Canvas)  {
 //      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
 //      if (myScore.area > maxArea)
 //        maxArea = myScore.area
-      val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setGlobalAlpha(0.6)
-      val (r, g ,b) = Constant.hex2Rgb(color)
-      ctx.setFill(Color.color(r, g, b))
+      ctx.setFill(color)
       ctx.save()
       ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
       ctx.restore()
@@ -86,10 +85,9 @@ class RankCanvas(canvas: Canvas)  {
       ctx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
     }
     currentRank.foreach { score =>
-      val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setGlobalAlpha(0.6)
-      val (r, g ,b) = Constant.hex2Rgb(color)
-      ctx.setFill(Color.color(r, g, b))
+      ctx.setFill(color)
       ctx.save()
       ctx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
         fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)

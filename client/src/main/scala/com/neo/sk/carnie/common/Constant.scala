@@ -1,7 +1,9 @@
 package com.neo.sk.carnie.common
 
 import java.awt.event.KeyEvent
+
 import javafx.scene.input.KeyCode
+import javafx.scene.paint.Color
 
 /**
   * Created by dry on 2018/9/3.
@@ -17,17 +19,17 @@ object Constant {
   )
 
   object ColorsSetting {
-    val backgroundColor = "#F5F5F5"
-    val fontColor2 = "#000000"//(0,0,0)
-    val gameNameColor = "#5BC48C"//(91,196,140)
-    val fontColor = "#E0EEFD"//(224,238,253)
-    val defaultColor = "#000080"
-    val borderColor = "#696969"//(105,105,105)
-    val mapColor = "#C0C0C0"//192,192,192
-    val redColor = "#FF0000"
-    val greenColor = "#00FF00"
-    val yellowColor = "#FFFF00"
-    val backgroundColor2 = "#333333"//(51,51,51)
+    val backgroundColor: Color = Color.rgb(245, 245, 245)
+    val fontColor2: Color = Color.BLACK
+    val gameNameColor: Color = Color.rgb(91, 196, 140)
+    val defaultColor: Color = Color.rgb(0, 0, 128)
+    val borderColor: Color = Color.rgb(105, 105, 105)
+    val mapColor: Color = Color.rgb(192, 192, 192)
+    val redColor: Color = Color.RED
+    val greenColor: Color = Color.GREEN
+    val yellowColor: Color = Color.YELLOW
+    val dieInfoBackgroundColor: Color = Color.rgb(51, 51, 51)
+    val dieInfoFontColor: Color = Color.rgb(224, 238, 253)
   }
 
   def keyCode2Int(c: KeyCode): Int = {
@@ -46,7 +48,7 @@ object Constant {
     val red = Constant.hexToDec(hex.slice(1,3))
     val green = hexToDec(hex.slice(3,5))
     val blue = hexToDec(hex.takeRight(2))
-    (red, green, blue)
+    Color.color(red, green, blue)
   }
 
   def hexToDec(hex: String): Int ={

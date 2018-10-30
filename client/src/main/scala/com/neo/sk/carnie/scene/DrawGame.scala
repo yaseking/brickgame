@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.scene
 
+import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import com.neo.sk.carnie.paperClient._
@@ -289,9 +290,8 @@ class DrawGame(
 
     ctx.setGlobalAlpha(0.6)
     data.bodyDetails.foreach { bds =>
-      val color = snakes.find(_.id == bds.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      val (r, g ,b) = hex2Rgb(color)
-      ctx.setFill(Color.color(r, g, b))
+      val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      ctx.setFill(color)
       val turnPoints = bds.turn.turnPoint
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
@@ -313,12 +313,10 @@ class DrawGame(
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
 
-
     ctx.setGlobalAlpha(1)
     fieldInWindow.foreach { field => //按行渲染
-      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      val (r, g ,b) = hex2Rgb(color)
-      ctx.setFill(Color.color(r, g, b))
+      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      ctx.setFill(color)
       field.scanField.foreach { point =>
         point.x.foreach { x =>
           ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
@@ -327,9 +325,7 @@ class DrawGame(
     }
 
     snakeWithOff.foreach { s =>
-//      ctx.fillStyle = s.color
-      val (r, g ,b) = hex2Rgb(s.color)
-      ctx.setFill(Color.color(r, g, b))
+      ctx.setFill(Constant.hex2Rgb(s.color))
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
@@ -342,9 +338,9 @@ class DrawGame(
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       ctx.setFont(Font.font(16))
-      ctx.setFill(Color.rgb(0,0,0))
-//      ctx.font = "16px Helvetica"
-//      ctx.fillStyle = "#000000"
+      ctx.setFill(Color.rgb(0, 0, 0))
+      //      ctx.font = "16px Helvetica"
+      //      ctx.fillStyle = "#000000"
       val t = new Text(s"${s.name}")
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
@@ -390,96 +386,96 @@ class DrawGame(
     }
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
-
-    val leftBegin = 20
-    val rightBegin = windowBoundary.x - 230
-
-    rankCtx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
-
-    lastRankNum = currentRank.length
-
-    rankCtx.setGlobalAlpha(1.0)
-//    rankCtx.textAlign = "left"
-    rankCtx.setTextBaseline(VPos.TOP)
-
-    val mySnake = snakes.filter(_.id == uid).head
-    val baseLine = 2
-    rankCtx.setFont(Font.font(22))
-    rankCtx.setFill(Color.rgb(0,0,0))
-//    rankCtx.font = "22px Helvetica"
-//    rankCtx.fillStyle = ColorsSetting.fontColor2
-    //    drawTextLine(s"NAME: ${mySnake.name.take(32)}", leftBegin, 0, baseLine)
-    drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
-    rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
-    drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
-    //    rankCtx.fillStyle = ColorsSetting.fontColor2
-    //    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
-
-    val myRankBaseLine = 4
-    currentRank.filter(_.id == uid).foreach { score =>
-      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-      if (myScore.area > maxArea)
-        maxArea = myScore.area
-      val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      rankCtx.setGlobalAlpha(0.6)
-//      rankCtx.globalAlpha = 0.6
-//      rankCtx.fillStyle = color
-      val (r, g ,b) = hex2Rgb(color)
-      ctx.setFill(Color.color(r, g, b))
-      rankCtx.save()
-      rankCtx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
-      rankCtx.restore()
-
-      rankCtx.setGlobalAlpha(1)
-//      rankCtx.globalAlpha = 1
-      rankCtx.setFont(Font.font(22))
-//      rankCtx.font = "22px Helvetica"
-      rankCtx.setFill(Color.rgb(0,0,0))
-//      rankCtx.fillStyle = ColorsSetting.fontColor2
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
-    }
-    //    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
-    val currentRankBaseLine = 2
-    var index = 0
-    rankCtx.setFont(Font.font(14))
-//    rankCtx.font = "14px Helvetica"
-    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
-    if (currentRank.lengthCompare(3) >= 0) {
-      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
-      rankCtx.drawImage(bronzeImg, rightBegin - 5 - textLineHeight, textLineHeight * 4, textLineHeight, textLineHeight)
-    }
-    else if (currentRank.lengthCompare(2) == 0) {
-      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
-    }
-    else {
-      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-    }
-    currentRank.foreach { score =>
-      val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      rankCtx.setGlobalAlpha(0.6)
-//      rankCtx.globalAlpha = 0.6
-//      rankCtx.fillStyle = color
-      val (r, g ,b) = hex2Rgb(color)
-      ctx.setFill(Color.color(r, g, b))
-      rankCtx.save()
-      rankCtx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
-        fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
-      rankCtx.restore()
-
-      rankCtx.setGlobalAlpha(1)
-//      rankCtx.globalAlpha = 1
-      rankCtx.setFill(Color.rgb(0,0,0))
-//      rankCtx.fillStyle = ColorsSetting.fontColor2
-      index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
-      drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
-      drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
-    }
-  }
+//  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
+//
+//    val leftBegin = 20
+//    val rightBegin = windowBoundary.x - 230
+//
+//    rankCtx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
+//    rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+//
+//    lastRankNum = currentRank.length
+//
+//    rankCtx.setGlobalAlpha(1.0)
+////    rankCtx.textAlign = "left"
+//    rankCtx.setTextBaseline(VPos.TOP)
+//
+//    val mySnake = snakes.filter(_.id == uid).head
+//    val baseLine = 2
+//    rankCtx.setFont(Font.font(22))
+//    rankCtx.setFill(Color.rgb(0,0,0))
+////    rankCtx.font = "22px Helvetica"
+////    rankCtx.fillStyle = ColorsSetting.fontColor2
+//    //    drawTextLine(s"NAME: ${mySnake.name.take(32)}", leftBegin, 0, baseLine)
+//    drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
+//    rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
+//    drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
+//    //    rankCtx.fillStyle = ColorsSetting.fontColor2
+//    //    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
+//
+//    val myRankBaseLine = 4
+//    currentRank.filter(_.id == uid).foreach { score =>
+//      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+//      if (myScore.area > maxArea)
+//        maxArea = myScore.area
+//      val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+//      rankCtx.setGlobalAlpha(0.6)
+////      rankCtx.globalAlpha = 0.6
+////      rankCtx.fillStyle = color
+//      val (r, g ,b) = hex2Rgb(color)
+//      ctx.setFill(Color.color(r, g, b))
+//      rankCtx.save()
+//      rankCtx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
+//      rankCtx.restore()
+//
+//      rankCtx.setGlobalAlpha(1)
+////      rankCtx.globalAlpha = 1
+//      rankCtx.setFont(Font.font(22))
+////      rankCtx.font = "22px Helvetica"
+//      rankCtx.setFill(Color.rgb(0,0,0))
+////      rankCtx.fillStyle = ColorsSetting.fontColor2
+//      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
+//    }
+//    //    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+//    val currentRankBaseLine = 2
+//    var index = 0
+//    rankCtx.setFont(Font.font(14))
+////    rankCtx.font = "14px Helvetica"
+//    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+//    if (currentRank.lengthCompare(3) >= 0) {
+//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+//      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+//      rankCtx.drawImage(bronzeImg, rightBegin - 5 - textLineHeight, textLineHeight * 4, textLineHeight, textLineHeight)
+//    }
+//    else if (currentRank.lengthCompare(2) == 0) {
+//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+//      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+//    }
+//    else {
+//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+//    }
+//    currentRank.foreach { score =>
+//      val color = snakes.find(_.id == score.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+//      rankCtx.setGlobalAlpha(0.6)
+////      rankCtx.globalAlpha = 0.6
+////      rankCtx.fillStyle = color
+//      val (r, g ,b) = hex2Rgb(color)
+//      ctx.setFill(Color.color(r, g, b))
+//      rankCtx.save()
+//      rankCtx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (score.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
+//        fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight)
+//      rankCtx.restore()
+//
+//      rankCtx.setGlobalAlpha(1)
+////      rankCtx.globalAlpha = 1
+//      rankCtx.setFill(Color.rgb(0,0,0))
+////      rankCtx.fillStyle = ColorsSetting.fontColor2
+//      index += 1
+//      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
+//      drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
+//      drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
+//    }
+//  }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
     rankCtx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)

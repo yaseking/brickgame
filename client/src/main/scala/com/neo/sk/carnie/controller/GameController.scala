@@ -47,7 +47,7 @@ class GameController(id: String,
     }
     val timeline = new Timeline()
     timeline.setCycleCount(Animation.INDEFINITE)
-    val keyFrame = new KeyFrame(Duration.millis(100), { _ =>
+    val keyFrame = new KeyFrame(Duration.millis( Protocol.frameRate), { _ =>
       logicLoop()
     })
 

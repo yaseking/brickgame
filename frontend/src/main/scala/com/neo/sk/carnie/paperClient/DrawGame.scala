@@ -311,21 +311,12 @@ class DrawGame(
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
-      //      ctx.strokeStyle = "#000000"
-      //      ctx.strokeText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
-
     }
 
-    //    //边界离屏
+    //边界离屏
     ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
     ctx.restore()
 
-    //    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
-    //    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
-    //    ctx.fillRect(offx * canvasUnit, BorderSize.h * canvasUnit + offy * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    //    ctx.fillRect(BorderSize.w * canvasUnit + offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
-
-    //
     //    //排行榜边界离屏
     rankCtx.clearRect(20, textLineHeight * 4, 600, textLineHeight * 3)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
