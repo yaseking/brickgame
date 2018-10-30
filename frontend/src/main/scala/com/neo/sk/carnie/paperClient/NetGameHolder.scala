@@ -210,7 +210,7 @@ object NetGameHolder extends js.JSApp {
                   }
               }
               if (fieldNum < num && snake.id == myId) {
-                audioFinish.play()
+//                audioFinish.play()
               }
               fieldNum = num
               drawGameImage(myId, data, offsetTime)
@@ -376,8 +376,8 @@ object NetGameHolder extends js.JSApp {
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
-      case x@Protocol.ReplayFinish() =>
-        println("get mesage replay finish")
+      case x@Protocol.ReplayFinish(_) =>
+        println("get message replay finish")
         replayFinish = true
 
 

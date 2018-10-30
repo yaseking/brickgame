@@ -170,7 +170,7 @@ object GameReplay {
             Behaviors.same
           }else{
             timer.cancel(GameLoopKey)
-            userOpt.foreach(u => dispatchTo(u, Protocol.ReplayFinish()))
+            userOpt.foreach(u => dispatchTo(u, Protocol.ReplayFinish("")))
 
             timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
             Behaviors.same
