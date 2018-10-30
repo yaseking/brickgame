@@ -29,7 +29,7 @@ object Boot {
   }
 }
 
-class ClientBoot extends javafx.application.Application {
+class Boot extends javafx.application.Application {
 
   import Boot._
 
