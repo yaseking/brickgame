@@ -171,7 +171,7 @@ object GameReplay {
           }else{
             log.debug(s"has not more frame")
             timer.cancel(GameLoopKey)
-            userOpt.foreach(u => dispatchTo(u, Protocol.ReplayFinish("")))
+            userOpt.foreach(u => dispatchTo(u, Protocol.ReplayFinish("userId")))
 
             timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
             Behaviors.same
