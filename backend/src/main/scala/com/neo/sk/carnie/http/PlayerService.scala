@@ -67,7 +67,7 @@ trait PlayerService {
           'frame.as[Int]
         ) { (recordId, playerId, frame) =>
           handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame))
-        } ~ getFromResource("html/netSnake.html")
+        }
 
       }
 //    }
