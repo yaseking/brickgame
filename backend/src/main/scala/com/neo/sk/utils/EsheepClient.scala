@@ -49,6 +49,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     log.info("Start verifyAccessCode!")
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
+//        println(s"str in verifyAccessCode: $str")
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
@@ -109,9 +110,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
   def main(args: Array[String]): Unit = {
     val gameId = AppSettings.esheepGameId
     val gsKey = AppSettings.esheepGsKey
-    getTokenRequest(gameId, gsKey)
-//    Thread.sleep(5000)
-//    verifyAccessCode(gameId, "1234456asdf")
+//    getTokenRequest(gameId, gsKey)
+    verifyAccessCode(gameId, "1234456asdf", "B7t1GwR7P7CoMErvlU1XCjRvkvmDVIoM")
 //    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
   }
 
