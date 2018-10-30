@@ -96,11 +96,11 @@ trait EsheepService extends ServiceUtils with CirceSupport {
               EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                 case Right(rsp) =>
                   //                    println(s"rsp: $rsp")
-                  if(rsp.playerId == playerId){
+//                  if(rsp.playerId == playerId){
                     getFromResource("html/netSnake.html")
-                  } else {
-                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
-                  }
+//                  } else {
+//                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
+//                  }
                 case Left(e) =>
                   log.error(s"playGame error. fail to verifyAccessCode err: $e")
 //                  getFromResource("html/netSnake.html")

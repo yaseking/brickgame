@@ -94,9 +94,9 @@ object GameReplay {
             val replay=initInput("../backend/" + r.filePath)
             val info=replay.init()
             try{
-              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-              println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
-              println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+//              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
+//              println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
+              log.debug(s"userInfo:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
               ctx.self ! SwitchBehavior("work",
                 work(
                   replay,
