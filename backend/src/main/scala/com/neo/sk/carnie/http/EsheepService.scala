@@ -45,8 +45,8 @@ trait EsheepService extends ServiceUtils with CirceSupport {
                     }
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode err: $e")
-                    getFromResource("html/netSnake.html")
-//                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+//                    getFromResource("html/netSnake.html")
+                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
                 }
               }
           }
@@ -71,8 +71,8 @@ trait EsheepService extends ServiceUtils with CirceSupport {
                   getFromResource("html/netSnake.html")
                 case Left(e) =>
                   log.error(s"watchGame error. fail to verifyAccessCode err: $e")
-                  getFromResource("html/netSnake.html")
-//                  complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
+//                  getFromResource("html/netSnake.html")
+                  complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
               }
             }
           }
@@ -99,12 +99,12 @@ trait EsheepService extends ServiceUtils with CirceSupport {
                   if(rsp.playerId == playerId){
                     getFromResource("html/netSnake.html")
                   } else {
-                    complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
+                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
                   }
                 case Left(e) =>
                   log.error(s"playGame error. fail to verifyAccessCode err: $e")
-                  getFromResource("html/netSnake.html")
-                //                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+//                  getFromResource("html/netSnake.html")
+                  complete(ErrorRsp(120005, "Some errors happened in parse verifyAccessCode."))
               }
             }
           }
