@@ -6,8 +6,13 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
+import com.neo.sk.carnie.Boot.{tokenActor, scheduler, timeout}
+import com.neo.sk.carnie.core.TokenActor.AskForToken
+import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.ptcl._
+
+import scala.concurrent.Future
 
 object EsheepClient extends HttpUtil with CirceSupport {
 
@@ -109,9 +114,13 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
   def main(args: Array[String]): Unit = {
     val gameId = AppSettings.esheepGameId
-    val gsKey = AppSettings.esheepGsKey
-//    getTokenRequest(gameId, gsKey)
-    verifyAccessCode(gameId, "1234456asdf", "B7t1GwR7P7CoMErvlU1XCjRvkvmDVIoM")
+//    val gsKey = AppSettings.esheepGsKey
+    val msg: Future[String] = tokenActor ? AskForToken
+    msg.map {token =>
+      println(s"token: $token")
+      verifyAccessCode(gameId, "1234456asdf", token)
+    }
+    //    getTokenRequest(gameId, gsKey)
 //    inputBatRecord("1", "asdtest", 1, 1, 10, "", 1L, 2L)
   }
 

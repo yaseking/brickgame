@@ -80,7 +80,6 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
-  val esheepRoute: Route = playGame ~ watchGame
   private val watchRecord = (path("watchRecord") & get & pathEndOrSingleSlash) {
     parameter(
       'recordId.as[Long],
@@ -113,6 +112,6 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
-  val esheepRoute: Route = playGame ~ watchRecord
+  val esheepRoute: Route = playGame ~ watchRecord ~ watchGame
 
 }
