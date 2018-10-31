@@ -33,7 +33,7 @@ object WebSocketClient {
 
   sealed trait WsCommand
 
-  case class ConnectGame(id: String, name: String, accessCode: String, domain: String) extends WsCommand
+  case class ConnectGame(id: String, name: String, accessCode: String) extends WsCommand
 
   case class EstablishConnection2Es(wsUrl: String) extends WsCommand
 
@@ -57,8 +57,8 @@ object WebSocketClient {
            executor: ExecutionContextExecutor): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
-        case ConnectGame(id, name, accessCode, domain) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(id, name, accessCode, domain)))
+        case ConnectGame(id, name, accessCode) =>
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(id, name, accessCode)))
           val source = getSource
           val sink = getSink(gameMessageReceiver)
           val ((stream, response), closed) =
@@ -109,10 +109,10 @@ object WebSocketClient {
     Sink.foreach{
       case TextMessage.Strict(msg) =>
         import io.circe.generic.auto._
-        import scala.concurrent.ExecutionContext.Implicits.global
         import io.circe.parser.decode
         import com.neo.sk.carnie.protocol.Protocol4Agent._
         import com.neo.sk.carnie.controller.Api4GameAgent.linkGameAgent
+        import com.neo.sk.carnie.Boot.executor
 
         log.debug(s"msg from webSocket: $msg")
         val gameId = AppSetting.esheepGameId
@@ -120,11 +120,12 @@ object WebSocketClient {
           case Right(res) =>
             println("res:   "+res)
             val playerId = "user" + res.Ws4AgentRsp.data.userId.toString
+            val playerName = res.Ws4AgentRsp.data.nickname
             linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
               case Right(r) =>
                 log.info("accessCode: "+r.accessCode)
                 log.info("prepare to join carnie!")
-//                self ! ConnectGame(playerId,"",resl.accessCode)
+//                self ! ConnectGame(playerId, playerName, r.accessCode)
               case Left(_) =>
                 log.debug("link error!")
             }
@@ -182,8 +183,9 @@ object WebSocketClient {
 
   }
 
-  def getWebSocketUri(domain: String, playerId: String, playerName: String, accessCode: String): String = {
+  def getWebSocketUri(playerId: String, playerName: String, accessCode: String): String = {
     val wsProtocol = "ws"
+    val domain = "localhost:30368"
     s"$wsProtocol://$domain/carnie/joinGameClient?playerId=$playerId&playerName=$playerName&accessCode=$accessCode"
   }
 }

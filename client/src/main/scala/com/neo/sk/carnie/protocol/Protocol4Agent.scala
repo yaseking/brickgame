@@ -21,7 +21,7 @@ object Protocol4Agent {
 
   case class LinkGameAgentData(
                               accessCode: String,
-                              gameServerInfo: GameServerInfo
+                              gsPrimaryInfo: GameServerInfo
                               )
 
   case class LinkGameAgentRsp(
