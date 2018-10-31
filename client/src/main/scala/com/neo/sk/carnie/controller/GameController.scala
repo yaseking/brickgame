@@ -12,7 +12,7 @@ import javafx.scene.input.KeyCode
 import javafx.util.Duration
 import akka.actor.typed.scaladsl.adapter._
 import org.slf4j.LoggerFactory
-import com.neo.sk.carnie.actor.WebSocketClient
+import com.neo.sk.carnie.actor.PlayGameWebSocket
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 
 /**
@@ -25,7 +25,7 @@ class GameController(player: PlayerInfoInClient,
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
-  private val serverActor = Boot.system.spawn(WebSocketClient.create(this), "serverActor")
+  private val playActor = Boot.system.spawn(PlayGameWebSocket.create(this), "playActor")
 
   val bounds = Point(Boundary.w, Boundary.h)
   var grid = new GridOnClient(bounds)
@@ -51,7 +51,7 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def start(): Unit = {
-    serverActor ! WebSocketClient.ConnectGame(player, "")
+    playActor ! PlayGameWebSocket.ConnectGame(player, "")
     startGameLoop()
   }
 
@@ -74,7 +74,7 @@ class GameController(player: PlayerInfoInClient,
         if (newFieldInfo.get.frameCount == grid.frameCount) {
           grid.addNewFieldInfo(newFieldInfo.get)
         } else { //主动要求同步数据
-          serverActor ! WebSocketClient.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+          playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
         }
         newFieldInfo = None
       }
@@ -192,7 +192,7 @@ class GameController(player: PlayerInfoInClient,
         } else {
           //数据重置
         }
-        serverActor ! WebSocketClient.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(key), frame, actionId))
+        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(key), frame, actionId))
       }
     }
   })
