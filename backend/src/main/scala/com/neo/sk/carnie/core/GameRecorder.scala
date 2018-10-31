@@ -155,11 +155,11 @@ object GameRecorder {
               case Success(_) =>
 
               case Failure(e) =>
-                log.warn(s"save the detail of UserInGame in db fail...$e")
+                log.warn(s"save the detail of UserInGame in db fail...$e while PostStop")
             }
 
           case Failure(e) =>
-            log.warn(s"save the detail of GameRecorder in db fail...$e")
+            log.warn(s"save the detail of GameRecorder in db fail...$e while PostStop")
         }
         Behaviors.stopped
     }

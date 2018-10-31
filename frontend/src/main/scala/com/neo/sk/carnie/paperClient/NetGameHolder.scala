@@ -49,6 +49,8 @@ object NetGameHolder extends js.JSApp {
   var encloseMap = Map.empty[Long, NewFieldInfo]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
+  var replayFinish = false
+
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
 
@@ -177,60 +179,64 @@ object NetGameHolder extends js.JSApp {
     //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
     //    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
-      val data = grid.getGridData
-      if (isWin) {
-        ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-        drawGame.drawWin(myId, winnerName, winData)
-        audio1.play()
-        dom.window.cancelAnimationFrame(nextFrame)
-        isContinue = false
+      if(replayFinish) {
+        drawGame.drawGameOff(firstCome, Some(true))
       } else {
-//        println(s"draw snakes data:::${data.snakes}")
-        data.snakes.find(_.id == myId) match {
-          case Some(snake) =>
-//            println(s"snake 有数据")
-            firstCome = false
-            if (scoreFlag) {
-              drawGame.cleanMyScore
-              scoreFlag = false
-            }
-            data.killHistory.foreach {
-              i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
-            }
-            var num = 0
-            data.fieldDetails.find(_.uid == myId).get.scanField.foreach {
-              row =>
-                row.x.foreach {
-                  x => num += (x._2 - x._1)
-                }
-            }
-            if (fieldNum < num && snake.id == myId) {
-              audioFinish.play()
-            }
-            fieldNum = num
-            drawGameImage(myId, data, offsetTime)
-            if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
-              drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
-              lastTime -= 1
-              if (lastTime == 0) {
-                killInfo = ("", "", "")
+        val data = grid.getGridData
+        if (isWin) {
+          ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+          drawGame.drawWin(myId, winnerName, winData)
+          audio1.play()
+          dom.window.cancelAnimationFrame(nextFrame)
+          isContinue = false
+        } else {
+          //        println(s"draw snakes data:::${data.snakes}")
+          data.snakes.find(_.id == myId) match {
+            case Some(snake) =>
+              //            println(s"snake 有数据")
+              firstCome = false
+              if (scoreFlag) {
+                drawGame.cleanMyScore
+                scoreFlag = false
               }
-            }
+              data.killHistory.foreach {
+                i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
+              }
+              var num = 0
+              data.fieldDetails.find(_.uid == myId).get.scanField.foreach {
+                row =>
+                  row.x.foreach {
+                    x => num += (x._2 - x._1)
+                  }
+              }
+              if (fieldNum < num && snake.id == myId) {
+//                audioFinish.play()
+              }
+              fieldNum = num
+              drawGameImage(myId, data, offsetTime)
+              if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
+                drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
+                lastTime -= 1
+                if (lastTime == 0) {
+                  killInfo = ("", "", "")
+                }
+              }
 
-          case None =>
-            if (firstCome) drawGame.drawGameWait()
-            else {
-              if (play) audioKilled.play()
-              play = false
-              drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
-              killInfo = ("", "", "")
-              dom.window.cancelAnimationFrame(nextFrame)
-              isContinue = false
-            }
+            case None =>
+              if (firstCome) drawGame.drawGameWait()
+              else {
+                if (play) audioKilled.play()
+                play = false
+                drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
+                killInfo = ("", "", "")
+                dom.window.cancelAnimationFrame(nextFrame)
+                isContinue = false
+              }
+          }
         }
       }
     } else {
-      drawGame.drawGameOff(firstCome)
+      drawGame.drawGameOff(firstCome, None)
     }
   }
 
@@ -287,7 +293,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   private def connectError(e: Event) = {
-    drawGame.drawGameOff(firstCome)
+    drawGame.drawGameOff(firstCome, None)
     e
   }
 
@@ -369,6 +375,11 @@ object NetGameHolder extends js.JSApp {
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
+
+      case x@Protocol.ReplayFinish(_) =>
+        println("get message replay finish")
+        replayFinish = true
+
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
 //        println(s"receive replayFrameData")

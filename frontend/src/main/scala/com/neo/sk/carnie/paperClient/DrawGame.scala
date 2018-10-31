@@ -99,17 +99,23 @@ class DrawGame(
     borderCtx.fillRect(BorderSize.w * canvasUnit, 0, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
-  def drawGameOff(firstCome: Boolean): Unit = {
+  def drawGameOff(firstCome: Boolean, replayFinish: Option[Boolean]): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
-    if (firstCome) {
-      ctx.font = "36px Helvetica"
-      ctx.fillText("Welcome.", 150, 180)
-    } else {
+    if (replayFinish.nonEmpty && replayFinish.get) {
       rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
-      ctx.fillText("Ops, connection lost.", 150, 180)
+      ctx.fillText("Replay ends.", 150, 180)
+    } else {
+      if (firstCome) {
+        ctx.font = "36px Helvetica"
+        ctx.fillText("Welcome.", 150, 180)
+      } else {
+        rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+        ctx.font = "36px Helvetica"
+        ctx.fillText("Ops, connection lost.", 150, 180)
+      }
     }
   }
 

@@ -90,13 +90,14 @@ object GameReplay {
 //        }
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
-            log.debug(s"game path ${r.filePath}")
-            val replay=initInput("../backend/" + r.filePath)
+//            log.debug(s"game path ${r.filePath}")
+//            val replay=initInput("../backend/" + r.filePath)
+            val replay=initInput(r.filePath)
             val info=replay.init()
             try{
-              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-              println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
-              println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+//              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
+//              println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
+              log.debug(s"userInfo:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
               ctx.self ! SwitchBehavior("work",
                 work(
                   replay,
@@ -168,7 +169,9 @@ object GameReplay {
             )
             Behaviors.same
           }else{
+            log.debug(s"has not more frame")
             timer.cancel(GameLoopKey)
+            userOpt.foreach(u => dispatchTo(u, Protocol.ReplayFinish("userId")))
 
             timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
             Behaviors.same

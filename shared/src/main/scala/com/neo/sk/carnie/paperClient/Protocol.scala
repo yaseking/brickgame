@@ -66,6 +66,8 @@ object Protocol {
 
   case class SnakeLeft(id: String, name: String) extends GameMessage
 
+  case class ReplayFinish(id: String) extends GameMessage
+
   //  case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
   case class Ranks(currentRank: List[Score]) extends GameMessage
 
