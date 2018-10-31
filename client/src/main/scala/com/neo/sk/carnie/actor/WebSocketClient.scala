@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.actor
 
+import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
@@ -7,7 +8,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
 import akka.stream.{Materializer, OverflowStrategy}
-import akka.stream.scaladsl.{Flow, Keep}
+import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import akka.util.ByteString
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -17,9 +18,10 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
-import com.neo.sk.carnie.common.Context
+import com.neo.sk.carnie.common.{AppSetting, Context}
 import com.neo.sk.carnie.controller.GameController
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
+import com.neo.sk.carnie.protocol.Protocol4Agent.WsRsp
 import com.neo.sk.carnie.scene.GameScene
 
 /**
@@ -80,9 +82,67 @@ object WebSocketClient {
           Behaviors.same
 
         case EstablishConnection2Es(wsUrl: String) =>
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(wsUrl))
 
-          Behaviors.same
+          val source = getSource
+          val sink = getSink4EstablishConnection(ctx.self)
+          val response =
+            source
+              .viaMat(webSocketFlow)(Keep.right)
+              .toMat(sink)(Keep.left)
+              .run()
+          val connected = response.flatMap { upgrade =>
+            if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
+
+              Future.successful("WsClient connect success. EstablishConnectionEs!")
+            } else {
+              throw new RuntimeException(s"WSClient connection failed: ${upgrade.response.status}")
+            }
+          } //链接建立时
+          connected.onComplete(i => log.info(i.toString))
+          Behavior.same
       }
+    }
+  }
+
+  def getSink4EstablishConnection(self: ActorRef[WsCommand]):Sink[Message,Future[Done]] = {
+    Sink.foreach{
+      case TextMessage.Strict(msg) =>
+        import io.circe.generic.auto._
+        import scala.concurrent.ExecutionContext.Implicits.global
+        import io.circe.parser.decode
+        import com.neo.sk.carnie.protocol.Protocol4Agent._
+        import com.neo.sk.carnie.controller.Api4GameAgent.linkGameAgent
+
+        log.debug(s"msg from webSocket: $msg")
+        val gameId = AppSetting.esheepGameId
+        decode[WsRsp](msg) match {
+          case Right(res) =>
+            println("res:   "+res)
+            val playerId = res.Ws4AgentRsp.data.userId.toString
+            linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
+              case Right(r) =>
+                log.info("accessCode: "+r.accessCode)
+                log.info("prepare to join carnie!")
+//                self ! ConnectGame(playerId,"",resl.accessCode)
+              case Left(l) =>
+                log.debug("link error!")
+            }
+          case Left(le) =>
+            log.debug(s"decode esheep webmsg error! Error information:${le}")
+        }
+
+      case BinaryMessage.Strict(bMsg) =>
+        //decode process.
+        val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
+        val msg =
+          bytesDecode[WsRsp](buffer) match {
+            case Right(v) => v
+            case Left(e) =>
+              println(s"decode error: ${e.message}")
+              TextMsg("decode error")
+          }
+        msg
     }
   }
 

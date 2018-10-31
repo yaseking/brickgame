@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.controller
 
-import com.neo.sk.carnie.protocol.Protocol4Agent.{LoginRsp, UrlData}
+import com.neo.sk.carnie.protocol.Protocol4Agent._
 import com.neo.sk.carnie.utils.HttpUtil
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -29,6 +29,26 @@ object Api4GameAgent extends HttpUtil{
         log.info(s"$e")
         Left("error")
     }
+  }
+
+  //fixme 尚未添加bot玩家
+  def linkGameAgent(gameId:Long,playerId:String,token:String) ={
+    val data = LinkGameAgentReq(gameId,playerId).asJson.noSpaces
+    val url  = "http://flowdev.neoap.com/esheep/api/gameAgent/joinGame?token="+token
+
+    postJsonRequestSend("post",url,Nil,data).map{
+      case Right(jsonStr) =>
+        println(s"linkGameAgent: $jsonStr")
+        decode[LinkGameAgentRsp](jsonStr) match {
+          case Right(res) =>
+            Right(LinkGameAgentData(res.data.accessCode,res.data.gameServerInfo))
+          case Left(le) =>
+            Left("decode error: "+le)
+        }
+      case Left(erStr) =>
+        Left("get return error:"+erStr)
+    }
+
   }
 
   def main(args: Array[String]): Unit = {
