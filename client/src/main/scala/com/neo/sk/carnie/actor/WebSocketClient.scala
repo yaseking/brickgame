@@ -119,13 +119,13 @@ object WebSocketClient {
         decode[WsRsp](msg) match {
           case Right(res) =>
             println("res:   "+res)
-            val playerId = res.Ws4AgentRsp.data.userId.toString
+            val playerId = "user" + res.Ws4AgentRsp.data.userId.toString
             linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
               case Right(r) =>
                 log.info("accessCode: "+r.accessCode)
                 log.info("prepare to join carnie!")
 //                self ! ConnectGame(playerId,"",resl.accessCode)
-              case Left(l) =>
+              case Left(_) =>
                 log.debug("link error!")
             }
           case Left(le) =>
