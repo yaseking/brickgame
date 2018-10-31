@@ -20,7 +20,6 @@ class GameViewCanvas(canvas: Canvas) {
   private val windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
-
   private val championHeaderImg = new Image("/carnie/static/img/champion.png")
   private val myHeaderImg = new Image("/carnie/static/img/girl.png")
   private val otherHeaderImg = new Image("/carnie/static/img/boy.png")
@@ -28,6 +27,7 @@ class GameViewCanvas(canvas: Canvas) {
   private val crownImg = new Image("/carnie/static/img/crown.png")
   private val canvasUnit = (realWindowWidth / window.x).toInt
   private var scale = 1.0
+  private val smallMap = Point(littleMap.w, littleMap.h)
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -87,16 +87,6 @@ class GameViewCanvas(canvas: Canvas) {
     ctx.restore()
   }
 
-  def drawGameWait(): Unit = {
-    ctx.save()
-    ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.setFill(ColorsSetting.dieInfoFontColor)
-    ctx.setFont(Font.font(30))
-    ctx.fillText("Please wait.", 150, 180)
-    ctx.restore()
-  }
-
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
@@ -152,7 +142,26 @@ class GameViewCanvas(canvas: Canvas) {
     ctx.restore()
   }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, myField: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
+    val offx = myHeader.x.toDouble / border.x * smallMap.x
+    val offy = myHeader.y.toDouble / border.y * smallMap.y
+    ctx.setFill(ColorsSetting.mapColor)
+    val w = realWindowWidth - littleMap.w * canvasUnit * 1.042
+    val h = realWindowHeight - littleMap.h * canvasUnit * 1.030
+    ctx.save()
+    ctx.setGlobalAlpha(0.5)
+    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
+    ctx.restore()
+    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
+    otherSnakes.foreach { i =>
+      val x = i.header.x.toDouble / border.x * smallMap.x
+      val y = i.header.y.toDouble / border.y * smallMap.y
+      ctx.setFill(Constant.hex2Rgb(i.color))
+      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
+    }
+  }
+
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -244,7 +253,6 @@ class GameViewCanvas(canvas: Canvas) {
 
     ctx.restore()
   }
-
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {
     ctx.translate(x, y)

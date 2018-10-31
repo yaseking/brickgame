@@ -12,6 +12,7 @@ import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import io.circe.syntax._
 import io.circe.generic.auto._
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.typedarray.ArrayBuffer
@@ -173,11 +174,8 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-//  private var tempDraw = System.currentTimeMillis()
 
   def draw(offsetTime: Long): Unit = {
-    //    println(s"drawDraw time:${System.currentTimeMillis() - tempDraw}")
-    //    tempDraw = System.currentTimeMillis()
     if (webSocketClient.getWsState) {
       if(replayFinish) {
         drawGame.drawGameOff(firstCome, Some(true))
@@ -190,10 +188,8 @@ object NetGameHolder extends js.JSApp {
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
         } else {
-          //        println(s"draw snakes data:::${data.snakes}")
           data.snakes.find(_.id == myId) match {
             case Some(snake) =>
-              //            println(s"snake 有数据")
               firstCome = false
               if (scoreFlag) {
                 drawGame.cleanMyScore
@@ -210,7 +206,7 @@ object NetGameHolder extends js.JSApp {
                   }
               }
               if (fieldNum < num && snake.id == myId) {
-//                audioFinish.play()
+                audioFinish.play()
               }
               fieldNum = num
               drawGameImage(myId, data, offsetTime)
@@ -240,18 +236,10 @@ object NetGameHolder extends js.JSApp {
     }
   }
 
-
-  private var temp = System.currentTimeMillis()
-
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    val starTime = System.currentTimeMillis()
-    //    println(s"draw time:${starTime - temp}")
-    temp = starTime
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), currentRank.filter(_.id == uid).map(_.area).headOption.getOrElse(0))
-    //    drawGame.drawRank(uid, data.snakes, currentRank)
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
-    //    println(s"drawGame time:${System.currentTimeMillis() - starTime}")
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {

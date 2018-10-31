@@ -1,21 +1,20 @@
 package com.neo.sk.carnie.controller
 
 import java.io.ByteArrayInputStream
-
 import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
-import com.neo.sk.carnie.actor.WebSocketClient
-import com.neo.sk.carnie.actor.WebSocketClient.{ConnectGame, EstablishConnection2Es}
+import com.neo.sk.carnie.actor.LoginSocketClient
+import com.neo.sk.carnie.actor.LoginSocketClient.EstablishConnection2Es
 import com.neo.sk.carnie.scene.LoginScene
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.controller.Api4GameAgent._
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import com.neo.sk.carnie.Boot.executor
 
 /**
   * Created by dry on 2018/10/26.
   **/
-class LoginController(wsClient:  ActorRef[WebSocketClient.WsCommand], loginScene: LoginScene, context: Context) {
+
+class LoginController(wsClient:  ActorRef[LoginSocketClient.WsCommand], loginScene: LoginScene, context: Context) {
 
   loginScene.setLoginSceneListener(new LoginScene.LoginSceneListener {
     override def onButtonConnect(): Unit = {
