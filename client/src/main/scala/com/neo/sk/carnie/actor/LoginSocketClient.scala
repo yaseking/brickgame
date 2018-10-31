@@ -33,6 +33,8 @@ object LoginSocketClient {
 
   sealed trait WsCommand
 
+  case class ConnectGame(id: String, name: String, accessCode: String) extends WsCommand
+
   case class EstablishConnection2Es(wsUrl: String) extends WsCommand
 
   def create(context: Context,
@@ -81,23 +83,24 @@ object LoginSocketClient {
     Sink.foreach {
       case TextMessage.Strict(msg) =>
         import io.circe.generic.auto._
-        import scala.concurrent.ExecutionContext.Implicits.global
         import io.circe.parser.decode
         import com.neo.sk.carnie.protocol.Protocol4Agent._
-        import com.neo.sk.carnie.controller.Api4GameAgent.linkGameAgent
+        import com.neo.sk.carnie.utils.Api4GameAgent.linkGameAgent
+        import com.neo.sk.carnie.Boot.executor
 
         log.debug(s"msg from webSocket: $msg")
         val gameId = AppSetting.esheepGameId
         decode[WsRsp](msg) match {
           case Right(res) =>
-            println("res:   " + res)
-            val playerId = res.Ws4AgentRsp.data.userId.toString
-            linkGameAgent(gameId, playerId, res.Ws4AgentRsp.data.token).map {
+            println("res:   "+res)
+            val playerId = "user" + res.Ws4AgentRsp.data.userId.toString
+            val playerName = res.Ws4AgentRsp.data.nickname
+            linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
               case Right(r) =>
-                log.info("accessCode: " + r.accessCode)
+                log.info("accessCode: "+r.accessCode)
                 log.info("prepare to join carnie!")
-              //                self ! ConnectGame(playerId,"",resl.accessCode)
-              case Left(l) =>
+//                self ! ConnectGame(playerId, playerName, r.accessCode)
+              case Left(_) =>
                 log.debug("link error!")
             }
           case Left(le) =>

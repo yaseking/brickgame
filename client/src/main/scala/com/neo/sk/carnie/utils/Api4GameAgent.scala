@@ -1,13 +1,12 @@
-package com.neo.sk.carnie.controller
+package com.neo.sk.carnie.utils
 
 import com.neo.sk.carnie.protocol.Protocol4Agent._
-import com.neo.sk.carnie.utils.HttpUtil
+import org.slf4j.LoggerFactory
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
-import org.slf4j.LoggerFactory
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import com.neo.sk.carnie.Boot.executor
 
 object Api4GameAgent extends HttpUtil{
 
@@ -41,7 +40,7 @@ object Api4GameAgent extends HttpUtil{
         println(s"linkGameAgent: $jsonStr")
         decode[LinkGameAgentRsp](jsonStr) match {
           case Right(res) =>
-            Right(LinkGameAgentData(res.data.accessCode,res.data.gameServerInfo))
+            Right(LinkGameAgentData(res.data.accessCode,res.data.gsPrimaryInfo))
           case Left(le) =>
             Left("decode error: "+le)
         }

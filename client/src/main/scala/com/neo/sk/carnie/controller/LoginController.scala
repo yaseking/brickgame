@@ -7,7 +7,7 @@ import com.neo.sk.carnie.actor.LoginSocketClient
 import com.neo.sk.carnie.actor.LoginSocketClient.EstablishConnection2Es
 import com.neo.sk.carnie.scene.LoginScene
 import com.neo.sk.carnie.common.Context
-import com.neo.sk.carnie.controller.Api4GameAgent._
+import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.executor
 
 /**
@@ -18,9 +18,6 @@ class LoginController(wsClient:  ActorRef[LoginSocketClient.WsCommand], loginSce
 
   loginScene.setLoginSceneListener(new LoginScene.LoginSceneListener {
     override def onButtonConnect(): Unit = {
-//      val id = System.currentTimeMillis().toString
-//      val name = "name" + System.currentTimeMillis().toString
-//      val accessCode = "jgfkldpwer"
       getLoginRspFromEs().map {
         case Right(r) =>
           val wsUrl = r.wsUrl
@@ -30,7 +27,6 @@ class LoginController(wsClient:  ActorRef[LoginSocketClient.WsCommand], loginSce
         case Left(_) =>
           //不做处理
       }
-//      wsClient ! ConnectGame(id, name, accessCode)
     }
   })
 
