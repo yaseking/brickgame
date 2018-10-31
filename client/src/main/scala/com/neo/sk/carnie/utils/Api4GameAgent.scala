@@ -1,11 +1,10 @@
-package com.neo.sk.carnie.controller
+package com.neo.sk.carnie.utils
 
 import com.neo.sk.carnie.protocol.Protocol4Agent._
-import com.neo.sk.carnie.utils.HttpUtil
+import org.slf4j.LoggerFactory
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
-import org.slf4j.LoggerFactory
 
 import com.neo.sk.carnie.Boot.executor
 

@@ -83,10 +83,9 @@ object LoginSocketClient {
     Sink.foreach {
       case TextMessage.Strict(msg) =>
         import io.circe.generic.auto._
-        import scala.concurrent.ExecutionContext.Implicits.global
         import io.circe.parser.decode
         import com.neo.sk.carnie.protocol.Protocol4Agent._
-        import com.neo.sk.carnie.controller.Api4GameAgent.linkGameAgent
+        import com.neo.sk.carnie.utils.Api4GameAgent.linkGameAgent
         import com.neo.sk.carnie.Boot.executor
 
         log.debug(s"msg from webSocket: $msg")
