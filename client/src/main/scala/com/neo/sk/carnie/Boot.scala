@@ -6,8 +6,8 @@ import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.actor.LoginSocketClient
 import com.neo.sk.carnie.common.Context
-import com.neo.sk.carnie.controller.LoginController
-import com.neo.sk.carnie.scene.LoginScene
+import com.neo.sk.carnie.controller.{GameController, LoginController}
+import com.neo.sk.carnie.scene.{GameScene, LoginScene}
 import javafx.application.Platform
 import javafx.stage.Stage
 import akka.actor.typed.scaladsl.adapter._
@@ -31,22 +31,20 @@ object Boot {
 
 class Boot extends javafx.application.Application {
 
-  import Boot._
-
   override def start(mainStage: Stage): Unit = {
     val context = new Context(mainStage)
 
-    val loginSocketClient = system.spawn(LoginSocketClient.create(context, system, materializer, executor), "loginSocketClient")
+//    val loginSocketClient = system.spawn(LoginSocketClient.create(context, system, materializer, executor), "loginSocketClient")
+//
+//    val loginScene = new LoginScene()
+//    val loginController = new LoginController(loginSocketClient, loginScene, context)
+//    loginController.showScene()
 
-    val loginScene = new LoginScene()
-    val loginController = new LoginController(loginSocketClient, loginScene, context)
-    loginController.showScene()
 
-
-    //		val gameViewScene = new GameScene()
-    //		mainStage.setMaximized(true)
-    //		context.switchScene(gameViewScene.GameViewScene,"Medusa")
-
+    val playGameScreen = new GameScene()
+    context.switchScene(playGameScreen.getScene)
+    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start()
 
   }
 }

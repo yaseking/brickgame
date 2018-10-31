@@ -20,11 +20,11 @@ class GameViewCanvas(canvas: Canvas) {
   private val windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
-  private val championHeaderImg = new Image("/carnie/static/img/champion.png")
-  private val myHeaderImg = new Image("/carnie/static/img/girl.png")
-  private val otherHeaderImg = new Image("/carnie/static/img/boy.png")
-  private val bloodImg = new Image("/carnie/static/img/blood.png")
-  private val crownImg = new Image("/carnie/static/img/crown.png")
+  private val championHeaderImg = new Image("champion.png")
+  private val myHeaderImg = new Image("girl.png")
+  private val otherHeaderImg = new Image("boy.png")
+  private val bloodImg = new Image("blood.png")
+  private val crownImg = new Image("crown.png")
   private val canvasUnit = (realWindowWidth / window.x).toInt
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)

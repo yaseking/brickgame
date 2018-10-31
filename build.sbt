@@ -75,6 +75,10 @@ lazy val frontend = (project in file("frontend"))
 //client
 lazy val client = (project in file("client")).enablePlugins(PackPlugin)
   .settings(commonSettings: _*)
+  .settings(
+    mainClass in reStart := Some("com.neo.sk.carnie.Boot"),
+    javaOptions in reStart += "-Xmx2g"
+  )
   .settings(name := "client")
   .settings(
     libraryDependencies ++= Dependencies.backendDependencies

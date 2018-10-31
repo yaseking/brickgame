@@ -17,10 +17,10 @@ class RankCanvas(canvas: Canvas)  {
   private val realWindowHeight = canvas.getHeight
   private val windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
-  private val goldImg = new Image("/carnie/static/img/gold.png")
-  private val silverImg = new Image("/carnie/static/img/silver.png")
-  private val bronzeImg = new Image("/carnie/static/img/bronze.png")
-  private val killImg = new Image("/carnie/static/img/kill.png")
+  private val goldImg = new Image("gold.png")
+  private val silverImg = new Image("silver.png")
+  private val bronzeImg = new Image("bronze.png")
+  private val killImg = new Image("kill.png")
   private val border = Point(BorderSize.w, BorderSize.h)
   private val canvasSize = (border.x - 2) * (border.y - 2)
 

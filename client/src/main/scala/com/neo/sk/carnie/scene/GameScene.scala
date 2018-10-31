@@ -28,14 +28,21 @@ class GameScene {
   val viewHeight = 600
   val rankWidth = 250
   val rankHeight = 300
-  val group = new Group
-  val backgroundCanvas = new Canvas(viewWidth, viewHeight)
-  val viewCanvas = new Canvas(viewWidth, viewHeight)
-  val rankCanvas = new Canvas(rankWidth, rankHeight)
-  rankCanvas.setStyle("z-index = 100")
-  viewCanvas.setStyle("z-index = 120")
+  val group = new Group()
+  val backgroundCanvas = new Canvas()
+  val viewCanvas = new Canvas()
+  val rankCanvas = new Canvas()
+//  rankCanvas.setStyle("z-index = 100")
+//  viewCanvas.setStyle("z-index = 120")
+  backgroundCanvas.setHeight(viewHeight)
+  backgroundCanvas.setWidth(viewWidth)
 
-  val scene = new Scene(group)
+  viewCanvas.setHeight(viewHeight)
+  viewCanvas.setWidth(viewWidth)
+
+  rankCanvas.setHeight(rankHeight)
+  rankCanvas.setWidth(rankWidth)
+
   group.getChildren.add(backgroundCanvas)
   group.getChildren.add(viewCanvas)
   group.getChildren.add(rankCanvas)
@@ -51,7 +58,7 @@ class GameScene {
 
   private val viewCtx = viewCanvas.getGraphicsContext2D
 
-  def getScene: Scene = new Scene(group)
+  val getScene: Scene = new Scene(group)
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
     view.drawGrid(uid, data, offsetTime, grid, championId)
