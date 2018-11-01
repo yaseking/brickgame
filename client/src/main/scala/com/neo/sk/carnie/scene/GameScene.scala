@@ -47,17 +47,18 @@ class GameScene {
   group.getChildren.add(backgroundCanvas)
   group.getChildren.add(rankCanvas)
 
-  val view = new GameViewCanvas(viewCanvas)
   val background = new BackgroundCanvas(backgroundCanvas)
+  val view = new GameViewCanvas(viewCanvas,background)
   val rank = new RankCanvas(rankCanvas)
 
-//  background.drawCache()
+
 
   private val viewCtx = viewCanvas.getGraphicsContext2D
 
   val getScene: Scene = new Scene(group)
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
+    background.drawCache(view.offXY(uid, data, offsetTime, grid)._1 , view.offXY(uid, data, offsetTime, grid)._2)
     view.drawGrid(uid, data, offsetTime, grid, championId)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
@@ -92,6 +93,7 @@ class GameScene {
   }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore = BaseScore(0,0,0,0), maxArea: Int = 0): Unit = {
+    rank.drawClearRank()
     view.drawGameDie(killerOpt, myScore, maxArea)
   }
 

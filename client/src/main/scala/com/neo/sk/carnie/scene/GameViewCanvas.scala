@@ -12,12 +12,10 @@ import com.neo.sk.carnie.common.Constant.ColorsSetting
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas) {
+class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
-  private val realWindowWidth = canvas.getWidth
-  private val realWindowHeight = canvas.getHeight
-  private val windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
+  private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val championHeaderImg = new Image("champion.png")
@@ -25,7 +23,7 @@ class GameViewCanvas(canvas: Canvas) {
   private val otherHeaderImg = new Image("boy.png")
   private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
-  private val canvasUnit = (realWindowWidth / window.x).toInt
+  private val canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
 
@@ -146,8 +144,8 @@ class GameViewCanvas(canvas: Canvas) {
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
-    val w = realWindowWidth - littleMap.w * canvasUnit * 1.042
-    val h = realWindowHeight - littleMap.h * canvasUnit * 1.030
+    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.042
+    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.030
     ctx.save()
     ctx.setGlobalAlpha(0.5)
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
@@ -159,6 +157,24 @@ class GameViewCanvas(canvas: Canvas) {
       ctx.setFill(Constant.hex2Rgb(i.color))
       ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
     }
+  }
+
+  def offXY(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid)= {
+    val snakes = data.snakes
+
+    val lastHeader = snakes.find(_.id == uid) match {
+      case Some(s) =>
+        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+        s.header + direction * offsetTime.toFloat / Protocol.frameRate
+
+      case None =>
+        Point(border.x / 2, border.y / 2)
+    }
+
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+    (offx, offy)
   }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
@@ -240,14 +256,12 @@ class GameViewCanvas(canvas: Canvas) {
 
       ctx.setFont(Font.font(16))
       ctx.setFill(Color.rgb(0, 0, 0))
-      //      ctx.font = "16px Helvetica"
-      //      ctx.fillStyle = "#000000"
       val t = new Text(s"${s.name}")
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
 
 
-//    ctx.drawImage(borderCanvas.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
+//    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
 

@@ -102,6 +102,12 @@ class RankCanvas(canvas: Canvas)  {
     }
   }
 
+  def drawClearRank(): Unit = {
+    val rightBegin = windowBoundary.x - 230
+    ctx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
+    ctx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+  }
+
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
     ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
   }
