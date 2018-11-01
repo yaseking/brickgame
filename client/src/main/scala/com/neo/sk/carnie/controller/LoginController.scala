@@ -11,6 +11,7 @@ import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
 import akka.actor.typed.scaladsl.adapter._
+import org.slf4j.LoggerFactory
 
 /**
   * Created by dry on 2018/10/26.
@@ -19,6 +20,8 @@ import akka.actor.typed.scaladsl.adapter._
 class LoginController(loginScene: LoginScene, context: Context) {
 
   val loginSocketClient = system.spawn(LoginSocketClient.create(context, this), "loginSocketClient")
+
+  private[this] val log = LoggerFactory.getLogger(this.getClass)
 
   loginScene.setLoginSceneListener(new LoginScene.LoginSceneListener {
     override def onButtonConnect(): Unit = {
@@ -31,6 +34,7 @@ class LoginController(loginScene: LoginScene, context: Context) {
 
         case Left(_) =>
           //不做处理
+          log.debug("failed to getLoginRspFromEs.")
       }
     }
   })
