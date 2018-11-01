@@ -12,7 +12,7 @@ import com.neo.sk.carnie.common.Constant.ColorsSetting
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas) {
+class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
@@ -159,6 +159,24 @@ class GameViewCanvas(canvas: Canvas) {
     }
   }
 
+  def offXY(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid)= {
+    val snakes = data.snakes
+
+    val lastHeader = snakes.find(_.id == uid) match {
+      case Some(s) =>
+        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+        s.header + direction * offsetTime.toFloat / Protocol.frameRate
+
+      case None =>
+        Point(border.x / 2, border.y / 2)
+    }
+
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+    (offx, offy)
+  }
+
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
@@ -243,7 +261,7 @@ class GameViewCanvas(canvas: Canvas) {
     }
 
 
-//    ctx.drawImage(borderCanvas.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
+//    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
 
