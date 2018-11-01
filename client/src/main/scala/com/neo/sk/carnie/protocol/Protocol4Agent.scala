@@ -35,25 +35,21 @@ object Protocol4Agent {
                                playerId: String
                              )
 
-  sealed trait MsgFromLogin
+  sealed trait WsData
 
-  case object HeartBeat extends MsgFromLogin
+  case class Ws4AgentRsp(
+                          data: UserInfo,
+                          errCode: Int,
+                          msg: String
+                        ) extends WsData
 
-  case class WsRsp(
-                    Ws4AgentRsp: Ws4AgentResponse
-                  ) extends MsgFromLogin
+  case object HeartBeat extends WsData
 
-  case class Ws4AgentResponse(
-                               data: WsData,
-                               errCode: Int,
-                               msg: String
-                             )
-
-  case class WsData(
-                     userId: Long,
-                     nickname: String,
-                     token: String,
-                     tokenExpireTime: Int
-                   )
+  case class UserInfo(
+                       userId: Long,
+                       nickname: String,
+                       token: String,
+                       tokenExpireTime: Long
+                     )
 
 }
