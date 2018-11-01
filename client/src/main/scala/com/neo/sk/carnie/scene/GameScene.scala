@@ -24,9 +24,9 @@ class GameScene {
 
   var gameSceneListener: GameSceneListener = _
 
-  val viewWidth = 1200
-  val viewHeight = 600
-  val rankWidth = 250
+  val viewWidth = 1800
+  val viewHeight = 900
+  val rankWidth = 1800
   val rankHeight = 300
   val group = new Group()
   val backgroundCanvas = new Canvas()
@@ -43,18 +43,15 @@ class GameScene {
   rankCanvas.setHeight(rankHeight)
   rankCanvas.setWidth(rankWidth)
 
-  group.getChildren.add(backgroundCanvas)
   group.getChildren.add(viewCanvas)
+  group.getChildren.add(backgroundCanvas)
   group.getChildren.add(rankCanvas)
 
   val view = new GameViewCanvas(viewCanvas)
   val background = new BackgroundCanvas(backgroundCanvas)
   val rank = new RankCanvas(rankCanvas)
 
-  viewCanvas.requestFocus()
-  viewCanvas.setOnKeyPressed(event => gameSceneListener.onKeyPressed(event.getCode))
-
-  background.drawCache()
+//  background.drawCache()
 
   private val viewCtx = viewCanvas.getGraphicsContext2D
 

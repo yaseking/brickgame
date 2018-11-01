@@ -51,9 +51,9 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def start(): Unit = {
-    log.info("start the carnie!")
-//    playActor ! PlayGameWebSocket.ConnectGame(player, "")
-//    startGameLoop()
+    playActor ! PlayGameWebSocket.ConnectGame(player, "")
+    addUserActionListen()
+    startGameLoop()
   }
 
   def startGameLoop(): Unit = { //渲染帧
@@ -101,6 +101,9 @@ class GameController(player: PlayerInfoInClient,
 
   def gameMessageReceiver(msg: WsSourceProtocol.WsMsgSource): Unit = {
     msg match {
+      case Protocol.Id(id) =>
+        log.debug(s"i receive my id:$id")
+
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         Boot.addToPlatform {
           if (grid.snakes.exists(_._1 == id)) {
@@ -180,8 +183,11 @@ class GameController(player: PlayerInfoInClient,
     }
   }
 
-  gameScene.setGameSceneListener(new GameScene.GameSceneListener {
-    override def onKeyPressed(key: KeyCode): Unit = {
+  def addUserActionListen() = {
+    gameScene.viewCanvas.requestFocus()
+
+    gameScene.viewCanvas.setOnKeyPressed{ event =>
+      val key = event.getCode
       if (Constant.watchKeys.contains(key)) {
         val frame = grid.frameCount + 2
         val actionId = idGenerator.getAndIncrement()
@@ -196,7 +202,7 @@ class GameController(player: PlayerInfoInClient,
         playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(key), frame, actionId))
       }
     }
-  })
 
+  }
 
 }

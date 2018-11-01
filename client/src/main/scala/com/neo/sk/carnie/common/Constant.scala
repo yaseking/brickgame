@@ -48,7 +48,7 @@ object Constant {
     val red = hexToDec(hex.slice(1,3))
     val green = hexToDec(hex.slice(3,5))
     val blue = hexToDec(hex.takeRight(2))
-    Color.color(red, green, blue)
+    Color.rgb(red, green, blue)
   }
 
   def hexToDec(hex: String): Int ={
