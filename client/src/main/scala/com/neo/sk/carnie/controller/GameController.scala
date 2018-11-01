@@ -51,8 +51,9 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def start(): Unit = {
-    playActor ! PlayGameWebSocket.ConnectGame(player, "")
-    startGameLoop()
+    log.info("start the carnie!")
+//    playActor ! PlayGameWebSocket.ConnectGame(player, "")
+//    startGameLoop()
   }
 
   def startGameLoop(): Unit = { //渲染帧

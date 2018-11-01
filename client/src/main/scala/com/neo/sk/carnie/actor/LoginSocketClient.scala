@@ -22,7 +22,7 @@ import com.neo.sk.carnie.common.{AppSetting, Context}
 import com.neo.sk.carnie.controller.GameController
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
 import com.neo.sk.carnie.protocol.Protocol4Agent.WsRsp
-import com.neo.sk.carnie.scene.GameScene
+import com.neo.sk.carnie.scene.{GameScene, LoginScene}
 
 /**
   * Created by dry on 2018/10/23.
@@ -59,7 +59,7 @@ object LoginSocketClient {
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(wsUrl))
 
           val source = getSource
-          val sink = getSink4EstablishConnection(ctx.self)
+          val sink = getSink4EstablishConnection(ctx.self, context)
           val response =
             source
               .viaMat(webSocketFlow)(Keep.right)
@@ -79,13 +79,14 @@ object LoginSocketClient {
     }
   }
 
-  def getSink4EstablishConnection(self: ActorRef[WsCommand]):Sink[Message,Future[Done]] = {
+  def getSink4EstablishConnection(self: ActorRef[WsCommand], context: Context):Sink[Message,Future[Done]] = {
     Sink.foreach {
       case TextMessage.Strict(msg) =>
         import io.circe.generic.auto._
         import io.circe.parser.decode
         import com.neo.sk.carnie.protocol.Protocol4Agent._
         import com.neo.sk.carnie.utils.Api4GameAgent.linkGameAgent
+        import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
         import com.neo.sk.carnie.Boot.executor
 
         log.debug(s"msg from webSocket: $msg")
@@ -100,6 +101,13 @@ object LoginSocketClient {
                 log.info("accessCode: "+r.accessCode)
                 log.info("prepare to join carnie!")
 //                self ! ConnectGame(playerId, playerName, r.accessCode)
+//                println("33333")
+                val gameViewScene = new GameScene()
+//                val loginScene = new LoginScene()
+                println("11111")
+                val gameController = new GameController(PlayerInfoInClient(playerId, playerName, r.accessCode), context, gameViewScene)
+                println("22222")
+                gameController.start()
               case Left(_) =>
                 log.debug("link error!")
             }

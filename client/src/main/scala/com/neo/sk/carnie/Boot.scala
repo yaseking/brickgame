@@ -2,12 +2,13 @@ package com.neo.sk.carnie
 
 import akka.actor.{ActorSystem, Scheduler}
 import akka.stream.ActorMaterializer
+
 import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.actor.LoginSocketClient
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.controller.LoginController
-import com.neo.sk.carnie.scene.LoginScene
+import com.neo.sk.carnie.scene.{GameScene, LoginScene}
 import javafx.application.Platform
 import javafx.stage.Stage
 import akka.actor.typed.scaladsl.adapter._
@@ -42,8 +43,7 @@ class Boot extends javafx.application.Application {
     val loginController = new LoginController(loginSocketClient, loginScene, context)
     loginController.showScene()
 
-
-    //		val gameViewScene = new GameScene()
+//    val gameViewScene = new GameScene()
     //		mainStage.setMaximized(true)
     //		context.switchScene(gameViewScene.GameViewScene,"Medusa")
 
