@@ -43,10 +43,10 @@ class LoginScene {
   button.setOnAction(_ => loginSceneListener.onButtonConnect())
 
   def drawScanUrl(imageStream: ByteArrayInputStream) = {
-    Boot.addToPlatform{
+    Boot.addToPlatform {
       group.getChildren.remove(button)
       val img = new Image(imageStream)
-      canvasCtx.drawImage(img,0,0)
+      canvasCtx.drawImage(img, 0, 0)
     }
   }
 

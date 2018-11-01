@@ -8,42 +8,46 @@ object Protocol4Agent {
                     )
 
   case class LoginRsp(
-                     data: UrlData,
-                     errCode: Int,
-                     msg: String
+                       data: UrlData,
+                       errCode: Int,
+                       msg: String
                      )
 
   case class GameServerInfo(
-                           ip: String,
-                           port: Int,
-                           domain: String
+                             ip: String,
+                             port: Int,
+                             domain: String
                            )
 
   case class LinkGameAgentData(
-                              accessCode: String,
-                              gsPrimaryInfo: GameServerInfo
+                                accessCode: String,
+                                gsPrimaryInfo: GameServerInfo
                               )
 
   case class LinkGameAgentRsp(
-                             data: LinkGameAgentData,
-                             errCode: Int,
-                             msg: String
+                               data: LinkGameAgentData,
+                               errCode: Int,
+                               msg: String
                              )
 
   case class LinkGameAgentReq(
-                             gameId: Long,
-                             playerId: String
+                               gameId: Long,
+                               playerId: String
                              )
+
+  sealed trait MsgFromLogin
+
+  case object HeartBeat extends MsgFromLogin
 
   case class WsRsp(
                     Ws4AgentRsp: Ws4AgentResponse
-                  )
+                  ) extends MsgFromLogin
 
   case class Ws4AgentResponse(
-                  data: WsData,
-                  errCode: Int,
-                  msg: String
-                  )
+                               data: WsData,
+                               errCode: Int,
+                               msg: String
+                             )
 
   case class WsData(
                      userId: Long,
