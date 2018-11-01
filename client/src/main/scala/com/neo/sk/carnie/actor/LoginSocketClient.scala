@@ -76,49 +76,54 @@ object LoginSocketClient {
         import com.neo.sk.carnie.Boot.executor
 
         val gameId = AppSetting.esheepGameId
-//        decode[MsgFromLogin](msg) match {
-//          case Right(res) =>
-//            res match {
-//              case WsRsp(ws4AgentRsp) =>
-//                if (ws4AgentRsp.errCode != 0) {
-//                  log.debug(s"receive responseRsp error....${ws4AgentRsp.msg}")
-//                } else {
-//                  val data = ws4AgentRsp.data
-//                  val playerId = "user" + data.userId.toString
-//                  val playerName = data.nickname
-//                  linkGameAgent(gameId, playerId, data.token).map {
-//                    case Right(r) =>
-//                      loginController.switchToGaming()
-//
-//                    case Left(e) =>
-//                      log.debug(s"linkGameAgent..$e")
-//                  }
-//                }
-//
-//              case HeartBeat =>
-//            }
-//
-//          case Left(e) =>
-//            log.debug(s"decode esheep webmsg error! Error information:$e")
-//        }
-
-        decode[WsRsp](msg) match {
+        decode[MsgFromLogin](msg) match {
           case Right(res) =>
-            println("res:   "+res)
-            val playerId = "user" + res.Ws4AgentRsp.data.userId.toString
-            val playerName = res.Ws4AgentRsp.data.nickname
-            linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
-              case Right(r) =>
-                log.info("accessCode: "+r.accessCode)
-                log.info("prepare to join carnie!")
-                loginController.switchToGaming()
+            res match {
+              case WsRsp(ws4AgentRsp) =>
+                if (ws4AgentRsp.errCode != 0) {
+                  log.debug(s"receive responseRsp error....${ws4AgentRsp.msg}")
+                } else {
+                  val data = ws4AgentRsp.data
+                  val playerId = "user" + data.userId.toString
+                  val playerName = data.nickname
+                  linkGameAgent(gameId, playerId, data.token).map {
+                    case Right(r) =>
+                      loginController.switchToGaming()
 
-              case Left(_) =>
-                log.debug("link error!")
+                    case Left(e) =>
+                      log.debug(s"linkGameAgent..$e")
+                  }
+                }
+
+              case HeartBeat =>
+                println(s"HeartBeat: $res")
+                //每5s收到一次心跳消息，不做处理
+//                log.info("i receive a HeartBeat msg.")
             }
-          case Left(le) =>
-            log.debug(s"decode esheep webmsg error! Error information:${le}")
+
+          case Left(e) =>
+            println(s"msg: $msg")
+            log.debug(s"decode esheep webmsg error! Error information:$e")
         }
+
+//        decode[WsRsp](msg) match {
+//          case Right(res) =>
+//            println(s"msg: $msg")
+//            println("res:   "+res)
+//            val playerId = "user" + res.Ws4AgentRsp.data.userId.toString
+//            val playerName = res.Ws4AgentRsp.data.nickname
+//            linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
+//              case Right(r) =>
+//                log.info("accessCode: "+r.accessCode)
+//                log.info("prepare to join carnie!")
+//                loginController.switchToGaming()
+//
+//              case Left(_) =>
+//                log.debug("link error!")
+//            }
+//          case Left(le) =>
+//            log.debug(s"decode esheep webmsg error! Error information:${le}")
+//        }
 
       case unknown@_ =>
         log.debug(s"i receive an unknown msg:$unknown")

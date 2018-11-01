@@ -11,6 +11,7 @@ import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
 import akka.actor.typed.scaladsl.adapter._
+import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import org.slf4j.LoggerFactory
 
 /**
@@ -62,7 +63,6 @@ class LoginController(loginScene: LoginScene, context: Context) {
     Boot.addToPlatform {
       val playGameScreen = new GameScene()
       context.switchScene(playGameScreen.getScene)
-      import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
       new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start()
     }
   }
