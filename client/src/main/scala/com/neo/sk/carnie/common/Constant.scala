@@ -45,7 +45,7 @@ object Constant {
   }
 
   def hex2Rgb(hex: String) = {
-    val red = Constant.hexToDec(hex.slice(1,3))
+    val red = hexToDec(hex.slice(1,3))
     val green = hexToDec(hex.slice(3,5))
     val blue = hexToDec(hex.takeRight(2))
     Color.color(red, green, blue)

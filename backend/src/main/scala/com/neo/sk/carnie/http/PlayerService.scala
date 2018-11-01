@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.http
 
 import akka.actor.ActorSystem
-import akka.actor.typed.ActorRef
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.{ActorAttributes, Materializer, Supervision}
@@ -12,7 +11,6 @@ import com.neo.sk.carnie.core.{GameReplay, RoomManager}
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.Boot.{roomManager, system}
-import akka.actor.typed.scaladsl.adapter._
 import scala.concurrent.ExecutionContextExecutor
 
 /**
@@ -22,9 +20,6 @@ import scala.concurrent.ExecutionContextExecutor
   */
 trait PlayerService {
 
-//  import com.neo.sk.util.byteObject.ByteObject.
-
-
   implicit val system: ActorSystem
 
   implicit def executor: ExecutionContextExecutor
@@ -33,45 +28,35 @@ trait PlayerService {
 
   implicit val timeout: Timeout
 
-//  lazy val playGround = PlayGround.create(system)
-
-//  val idGenerator = new AtomicInteger(1000000)
-
   private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.SnakeService")
 
 
   val netSnakeRoute = {
-//    (pathPrefix("game") & get) {
-//      pathEndOrSingleSlash {
-//        getFromResource("html/netSnake.html")
-//      } ~
-        path("join") {
-          parameter(
-            'id.as[String],
-            'name.as[String]
-          ) { (id, name) =>
-            handleWebSocketMessages(webSocketChatFlow(id, sender = name))
-          }
-        } ~
-        path("watchGame") {
-          parameter(
-            'roomId.as[Int],
-            'playerId.as[String]
-          ) { (roomId, playerId) =>
-            handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
-          }
-        } ~ path("joinWatchRecord") {
-        parameter(
-          'recordId.as[Long],
-          'playerId.as[String],
-          'frame.as[Int]
-        ) { (recordId, playerId, frame) =>
-          handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame))
-        }
-
+    path("join") {
+      parameter(
+        'id.as[String],
+        'name.as[String]
+      ) { (id, name) =>
+        handleWebSocketMessages(webSocketChatFlow(id, sender = name))
       }
-//    }
-//    }
+    } ~
+      path("watchGame") {
+        parameter(
+          'roomId.as[Int],
+          'playerId.as[String]
+        ) { (roomId, playerId) =>
+          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+        }
+      } ~ path("joinWatchRecord") {
+      parameter(
+        'recordId.as[Long],
+        'playerId.as[String],
+        'frame.as[Int]
+      ) { (recordId, playerId, frame) =>
+        handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame))
+      }
+
+    }
   }
 
   def webSocketChatFlow4WatchGame(roomId: Int, playerId: String): Flow[Message, Message, Any] = {
