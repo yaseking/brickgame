@@ -248,7 +248,7 @@ class DrawGame(
         Point(border.x / 2, border.y / 2)
     }
 
-    val offx = window.x / 2 - lastHeaader.x //新的框的x偏移量
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
     val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
     val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
