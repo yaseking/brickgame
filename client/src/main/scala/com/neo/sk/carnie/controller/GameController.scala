@@ -29,7 +29,6 @@ class GameController(player: PlayerInfoInClient,
 
   val bounds = Point(Boundary.w, Boundary.h)
   var grid = new GridOnClient(bounds)
-  var basicTime = 0l
   var firstCome = true
   val idGenerator = new AtomicInteger(1)
 
@@ -59,7 +58,7 @@ class GameController(player: PlayerInfoInClient,
   def startGameLoop(): Unit = { //渲染帧
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
-    val keyFrame = new KeyFrame(Duration.millis( Protocol.frameRate), { _ =>
+    val keyFrame = new KeyFrame(Duration.millis(Protocol.frameRate), { _ =>
       logicLoop()
     })
     timeline.getKeyFrames.add(keyFrame)
@@ -68,7 +67,7 @@ class GameController(player: PlayerInfoInClient,
   }
 
   private def logicLoop(): Unit = { //逻辑帧
-    basicTime = System.currentTimeMillis()
+    logicFrameTime = System.currentTimeMillis()
     if (!justSynced) {
       grid.update("f")
       if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
