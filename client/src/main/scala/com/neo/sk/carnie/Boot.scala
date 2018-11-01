@@ -32,6 +32,8 @@ object Boot {
 
 class Boot extends javafx.application.Application {
 
+  import Boot._
+
   override def start(mainStage: Stage): Unit = {
     val context = new Context(mainStage)
 
@@ -42,10 +44,10 @@ class Boot extends javafx.application.Application {
     loginController.showScene()
 
 
-    val playGameScreen = new GameScene()
-    context.switchScene(playGameScreen.getScene)
-    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start()
+//    val playGameScreen = new GameScene()
+//    context.switchScene(playGameScreen.getScene)
+//    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+//    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start()
 
   }
 }

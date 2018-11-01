@@ -33,7 +33,7 @@ object LoginSocketClient {
 
   sealed trait WsCommand
 
-  case class ConnectGame(id: String, name: String, accessCode: String) extends WsCommand
+//  case class ConnectGame(id: String, name: String, accessCode: String) extends WsCommand
 
   case class EstablishConnection2Es(wsUrl: String) extends WsCommand
 

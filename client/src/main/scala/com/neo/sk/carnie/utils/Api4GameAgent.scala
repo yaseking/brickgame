@@ -15,11 +15,12 @@ object Api4GameAgent extends HttpUtil{
   def getLoginRspFromEs() = {
     val methodName = "GET"
     val url = "http://flowdev.neoap.com/esheep/api/gameAgent/login"
+    log.info("start getLoginRspFromEs.")
     getRequestSend(methodName,url,Nil,"UTF-8").map{
       case Right(r) =>
         decode[LoginRsp](r) match {
           case Right(rsp) =>
-            println(s"rsp: $rsp")
+            log.info("end getLoginRspFromEs.")
             Right(UrlData(rsp.data.wsUrl,rsp.data.scanUrl.replaceFirst("data:image/png;base64,","")))
           case Left(e) =>
             Left(s"error:$e")
