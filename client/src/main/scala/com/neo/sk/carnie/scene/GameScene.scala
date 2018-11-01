@@ -32,8 +32,12 @@ class GameScene {
   val backgroundCanvas = new Canvas(viewWidth, viewHeight)
   val viewCanvas = new Canvas(viewWidth, viewHeight)
   val rankCanvas = new Canvas(rankWidth, rankHeight)
-  rankCanvas.setStyle("z-index = 100")
-  viewCanvas.setStyle("z-index = 120")
+//  rankCanvas.setStyle("z-index = 100")
+//  viewCanvas.setStyle("z-index = 120")
+  //十一月 01, 2018 10:02:09 上午 com.sun.javafx.css.parser.CSSParser declaration
+  //WARNING: CSS Error parsing '*{z-index = 120}: Expected COLON at [1,10]
+  //十一月 01, 2018 10:02:09 上午 com.sun.javafx.css.parser.CSSParser declaration
+  //WARNING: CSS Error parsing '*{z-index = 100}: Expected COLON at [1,10]
 
   val scene = new Scene(group)
   group.getChildren.add(backgroundCanvas)

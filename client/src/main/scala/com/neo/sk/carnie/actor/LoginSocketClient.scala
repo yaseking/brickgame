@@ -103,11 +103,11 @@ object LoginSocketClient {
 //                self ! ConnectGame(playerId, playerName, r.accessCode)
 //                println("33333")
                 val gameViewScene = new GameScene()
+                context.switchScene(gameViewScene.getScene)
 //                val loginScene = new LoginScene()
                 println("11111")
-                val gameController = new GameController(PlayerInfoInClient(playerId, playerName, r.accessCode), context, gameViewScene)
+                new GameController(PlayerInfoInClient(playerId, playerName, r.accessCode), context, gameViewScene).start()
                 println("22222")
-                gameController.start()
               case Left(_) =>
                 log.debug("link error!")
             }
