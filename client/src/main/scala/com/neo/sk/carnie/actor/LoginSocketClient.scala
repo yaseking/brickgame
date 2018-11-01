@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.actor
 
 import akka.Done
-import akka.actor.ActorSystem
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
 import akka.http.scaladsl.Http
@@ -12,17 +11,13 @@ import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import akka.util.ByteString
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.carnie.paperClient.WsSourceProtocol.{CompleteMsgServer, FailMsgServer, WsMsgSource}
 import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
-
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.carnie.common.{AppSetting, Context}
-import com.neo.sk.carnie.controller.GameController
-import com.neo.sk.carnie.paperClient.WsSourceProtocol
-import com.neo.sk.carnie.protocol.Protocol4Agent.WsRsp
-import com.neo.sk.carnie.scene.{GameScene, LoginScene}
+import com.neo.sk.carnie.controller.{GameController, LoginController}
+import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
 
 /**
   * Created by dry on 2018/10/23.
@@ -33,33 +28,24 @@ object LoginSocketClient {
 
   sealed trait WsCommand
 
-//  case class ConnectGame(id: String, name: String, accessCode: String) extends WsCommand
-
   case class EstablishConnection2Es(wsUrl: String) extends WsCommand
 
-  def create(context: Context,
-             _system: ActorSystem,
-             _materializer: Materializer,
-             _executor: ExecutionContextExecutor
-            ): Behavior[WsCommand] = {
+  def create(context: Context, loginController: LoginController): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
-      Behaviors.withTimers { timer =>
-        idle(context)(timer, _system, _materializer, _executor)
+      Behaviors.withTimers { implicit timer =>
+        idle(context, loginController)(timer)
       }
     }
   }
 
-  def idle(context: Context)(implicit timer: TimerScheduler[WsCommand],
-           system: ActorSystem,
-           materializer: Materializer,
-           executor: ExecutionContextExecutor): Behavior[WsCommand] = {
+  def idle(context: Context, loginController: LoginController)(implicit timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case EstablishConnection2Es(wsUrl: String) =>
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(wsUrl))
 
           val source = getSource
-          val sink = getSink4EstablishConnection(ctx.self, context)
+          val sink = getSink4EstablishConnection(ctx.self, context, loginController)
           val response =
             source
               .viaMat(webSocketFlow)(Keep.right)
@@ -73,13 +59,13 @@ object LoginSocketClient {
               throw new RuntimeException(s"WSClient connection failed: ${upgrade.response.status}")
             }
           } //链接建立时
-          connected.onComplete(i => log.info(i.toString))
+//          connected.onComplete(i => log.info(i.toString))
           Behavior.same
       }
     }
   }
 
-  def getSink4EstablishConnection(self: ActorRef[WsCommand], context: Context):Sink[Message,Future[Done]] = {
+  def getSink4EstablishConnection(self: ActorRef[WsCommand], context: Context, loginController: LoginController):Sink[Message,Future[Done]] = {
     Sink.foreach {
       case TextMessage.Strict(msg) =>
         import io.circe.generic.auto._
@@ -89,8 +75,33 @@ object LoginSocketClient {
         import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
         import com.neo.sk.carnie.Boot.executor
 
-        log.debug(s"msg from webSocket: $msg")
         val gameId = AppSetting.esheepGameId
+//        decode[MsgFromLogin](msg) match {
+//          case Right(res) =>
+//            res match {
+//              case WsRsp(ws4AgentRsp) =>
+//                if (ws4AgentRsp.errCode != 0) {
+//                  log.debug(s"receive responseRsp error....${ws4AgentRsp.msg}")
+//                } else {
+//                  val data = ws4AgentRsp.data
+//                  val playerId = "user" + data.userId.toString
+//                  val playerName = data.nickname
+//                  linkGameAgent(gameId, playerId, data.token).map {
+//                    case Right(r) =>
+//                      loginController.switchToGaming()
+//
+//                    case Left(e) =>
+//                      log.debug(s"linkGameAgent..$e")
+//                  }
+//                }
+//
+//              case HeartBeat =>
+//            }
+//
+//          case Left(e) =>
+//            log.debug(s"decode esheep webmsg error! Error information:$e")
+//        }
+
         decode[WsRsp](msg) match {
           case Right(res) =>
             println("res:   "+res)
@@ -100,29 +111,13 @@ object LoginSocketClient {
               case Right(r) =>
                 log.info("accessCode: "+r.accessCode)
                 log.info("prepare to join carnie!")
-//                self ! ConnectGame(playerId, playerName, r.accessCode)
-//                println("33333")
-                val gameViewScene = new GameScene()
-                context.switchScene(gameViewScene.getScene)
-//                val loginScene = new LoginScene()
-                println("11111")
-                new GameController(PlayerInfoInClient(playerId, playerName, r.accessCode), context, gameViewScene).start()
-                println("22222")
+                loginController.switchToGaming()
+
               case Left(_) =>
                 log.debug("link error!")
             }
           case Left(le) =>
             log.debug(s"decode esheep webmsg error! Error information:${le}")
-        }
-
-      case BinaryMessage.Strict(bMsg) =>
-        //decode process.
-        val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
-        bytesDecode[WsRsp](buffer) match {
-          case Right(_) =>
-          case Left(e) =>
-            println(s"decode error: ${e.message}")
-            TextMsg("decode error")
         }
 
       case unknown@_ =>

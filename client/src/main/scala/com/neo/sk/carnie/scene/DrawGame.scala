@@ -350,12 +350,6 @@ class DrawGame(
     ctx.drawImage(borderCanvas.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit)//canvas2image ?
     ctx.restore()
 
-    //    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
-    //    ctx.fillRect(offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
-    //    ctx.fillRect(offx * canvasUnit, BorderSize.h * canvasUnit + offy * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    //    ctx.fillRect(BorderSize.w * canvasUnit + offx * canvasUnit, offy * canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
-
-    //
     //    //排行榜边界离屏
     rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
 //    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)

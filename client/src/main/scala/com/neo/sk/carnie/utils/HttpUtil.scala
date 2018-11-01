@@ -1,12 +1,6 @@
 package com.neo.sk.carnie.utils
 
 import java.nio.charset.Charset
-import java.security.KeyStore
-import java.security.cert.X509Certificate
-import javax.net.ssl.{ManagerFactoryParameters, TrustManager, TrustManagerFactory, X509TrustManager}
-
-import io.netty.handler.ssl.util.SimpleTrustManagerFactory
-import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import org.asynchttpclient._
 import org.slf4j.LoggerFactory
 
