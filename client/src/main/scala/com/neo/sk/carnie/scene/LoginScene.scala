@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.scene
 
 import com.neo.sk.carnie.Boot
-
 import java.io.ByteArrayInputStream
 
 import javafx.scene.{Group, Scene}
