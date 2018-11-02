@@ -33,10 +33,11 @@ object RoomApiProtocol {
                           count: Int
   )
   case class RecordListRsp(
-                          data:records,
+                          data:List[recordInfo],
                           errCode: Int = 0,
                           msg: String = "ok"
   )
+
   case class recordInfo(
                           recordId: Long,
                           roomId: Long,
@@ -44,9 +45,6 @@ object RoomApiProtocol {
                           endTime: Long,
                           userCounts: Int,
                           userList: Seq[String]
-  )
-  case class records(
-                    recordList:List[recordInfo]
   )
 
   case class RecordInfoReq(
