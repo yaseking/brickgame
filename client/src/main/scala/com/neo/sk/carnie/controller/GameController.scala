@@ -49,8 +49,8 @@ class GameController(player: PlayerInfoInClient,
     animationTimer.stop()
   }
 
-  def start(): Unit = {
-    playActor ! PlayGameWebSocket.ConnectGame(player, "")
+  def start(domain: String): Unit = {
+    playActor ! PlayGameWebSocket.ConnectGame(player, domain)
     addUserActionListen()
     startGameLoop()
   }

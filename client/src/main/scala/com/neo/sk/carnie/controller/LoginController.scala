@@ -58,11 +58,11 @@ class LoginController(loginScene: LoginScene, context: Context) {
     }
   }
 
-  def switchToGaming():Unit = {
+  def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
     Boot.addToPlatform {
       val playGameScreen = new GameScene()
       context.switchScene(playGameScreen.getScene)
-      new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start()
+      new GameController(playerInfoInClient, context, playGameScreen).start(domain)
     }
   }
 

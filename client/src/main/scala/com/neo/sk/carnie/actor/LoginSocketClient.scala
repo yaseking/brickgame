@@ -87,7 +87,7 @@ object LoginSocketClient {
                   val playerName = data.nickname
                   linkGameAgent(gameId, playerId, data.token).map {
                     case Right(r) =>
-                      loginController.switchToGaming()
+                      loginController.switchToGaming(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)
 
                     case Left(e) =>
                       log.debug(s"linkGameAgent..$e")
@@ -95,29 +95,12 @@ object LoginSocketClient {
                 }
 
               case HeartBeat =>
+                //收到心跳消息不做处理
             }
 
           case Left(e) =>
             log.debug(s"decode esheep webmsg error! Error information:$e")
         }
-
-//        decode[WsRsp](msg) match {
-//          case Right(res) =>
-//            println("res:   "+res)
-//            val playerId = "user" + res.Ws4AgentRsp.data.userId.toString
-//            val playerName = res.Ws4AgentRsp.data.nickname
-//            linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
-//              case Right(r) =>
-//                log.info("accessCode: "+r.accessCode)
-//                log.info("prepare to join carnie!")
-//                loginController.switchToGaming()
-//
-//              case Left(_) =>
-//                log.debug("link error!")
-//            }
-//          case Left(le) =>
-//            log.debug(s"decode esheep webmsg error! Error information:${le}")
-//        }
 
       case unknown@_ =>
         log.debug(s"i receive an unknown msg:$unknown")
