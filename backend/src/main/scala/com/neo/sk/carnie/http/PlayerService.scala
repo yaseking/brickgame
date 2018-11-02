@@ -219,21 +219,22 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       import com.neo.sk.carnie.Boot.scheduler
 
       val gameId = AppSettings.esheepGameId
-      dealFutureResult{
-        val msg: Future[String] = tokenActor ? AskForToken
-        msg.map {token =>
-          dealFutureResult{
-            EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-              case Right(_) =>
-                handleWebSocketMessages(webSocketChatFlow(id, sender = name))
-              case Left(e) =>
-                log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
-//                complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
-                handleWebSocketMessages(webSocketChatFlow(id, sender = name))
-            }
-          }
-        }
-      }
+      handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+//      dealFutureResult{
+//        val msg: Future[String] = tokenActor ? AskForToken
+//        msg.map {token =>
+//          dealFutureResult{
+//            EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+//              case Right(_) =>
+//                handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+//              case Left(e) =>
+//                log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
+////                complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+//                handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+//            }
+//          }
+//        }
+//      }
     }
   }
 
