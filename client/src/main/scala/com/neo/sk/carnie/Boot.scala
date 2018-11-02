@@ -6,7 +6,7 @@ import akka.stream.ActorMaterializer
 import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.common.Context
-import com.neo.sk.carnie.controller.LoginController
+import com.neo.sk.carnie.controller.{GameController, LoginController}
 import com.neo.sk.carnie.scene.{GameScene, LoginScene}
 import javafx.application.Platform
 import javafx.stage.Stage
@@ -35,15 +35,15 @@ class Boot extends javafx.application.Application {
   override def start(mainStage: Stage): Unit = {
     val context = new Context(mainStage)
 
-    val loginScene = new LoginScene()
-    val loginController = new LoginController(loginScene, context)
-    loginController.showScene()
+//    val loginScene = new LoginScene()
+//    val loginController = new LoginController(loginScene, context)
+//    loginController.showScene()
 
 
-//    val playGameScreen = new GameScene()
-//    context.switchScene(playGameScreen.getScene)
-//    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-//    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start()
+    val playGameScreen = new GameScene()
+    context.switchScene(playGameScreen.getScene)
+    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start("/10.1.29.250:30368")
 
   }
 }
