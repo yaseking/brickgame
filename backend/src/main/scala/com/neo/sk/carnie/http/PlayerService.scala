@@ -11,7 +11,7 @@ import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.core.{GameReplay, RoomManager, TokenActor}
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.slf4j.LoggerFactory
-import com.neo.sk.carnie.Boot.{roomManager, tokenActor}
+import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import com.neo.sk.carnie.ptcl.ErrorRsp
@@ -33,6 +33,8 @@ trait PlayerService extends ServiceUtils with CirceSupport {
   implicit val system: ActorSystem
 
   implicit def executor: ExecutionContextExecutor
+
+  val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
 
   implicit val materializer: Materializer
 
@@ -79,6 +81,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             val msg: Future[String] = tokenActor ? AskForToken
             msg.map {token =>
               dealFutureResult{
+                log.info("start to verifyAccessCode4Client.")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
                     handleWebSocketMessages(webSocketChatFlow(id, sender = name))
@@ -168,6 +171,50 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
       .via(RoomManager.joinGame(roomManager, playedId, sender))
+      .map {
+        case msg:Protocol.GameMessage =>
+          val sendBuffer = new MiddleBufferInJvm(409600)
+          BinaryMessage.Strict(ByteString(
+            //encoded process
+            msg.fillMiddleBuffer(sendBuffer).result()
+
+          ))
+
+        case x =>
+          TextMessage.apply("")
+
+      }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
+  }
+
+  def webSocketChatFlow4Client(playedId: String, sender: String, accessCode: String): Flow[Message, Message, Any] = {
+    import scala.language.implicitConversions
+    import org.seekloud.byteobject.ByteObject._
+    import org.seekloud.byteobject.MiddleBufferInJvm
+    import io.circe.generic.auto._
+    import io.circe.parser._
+    Flow[Message]
+      .collect {
+        case TextMessage.Strict(msg) =>
+          log.debug(s"msg from webSocket: $msg")
+          TextInfo(msg)
+
+        case BinaryMessage.Strict(bMsg) =>
+          //decode process.
+          val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
+          val msg =
+            bytesDecode[UserAction](buffer) match {
+              case Right(v) => v
+              case Left(e) =>
+                println(s"decode error: ${e.message}")
+                TextInfo("decode error")
+            }
+          msg
+        // unpack incoming WS text messages...
+        // This will lose (ignore) messages not received in one chunk (which is
+        // unlikely because chat messages are small) but absolutely possible
+        // FIXME: We need to handle TextMessage.Streamed as well.
+      }
+      .via(RoomManager.joinGame4Client(roomManager, playedId, sender ,accessCode))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
