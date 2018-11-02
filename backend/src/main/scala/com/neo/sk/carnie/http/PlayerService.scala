@@ -209,7 +209,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       Supervision.Resume
   }
 
-  private val joinGame4Client = path("joinGame4Client") {
+  private def joinGame4Client = path("joinGame4Client") {
     parameter(
       'id.as[String],
       'name.as[String],
