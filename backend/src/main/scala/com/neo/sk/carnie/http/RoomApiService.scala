@@ -77,13 +77,15 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
   private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
     println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! getRecordList")
-    dealPostReq[RecordListReq]{ req =>
-            RecordDAO.getRecordList(req.lastRecordId,req.count).map{recordL =>
-              complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
-                val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
-                recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
-              })))
-            }
+    dealPostReq[RecordListReq] { req =>
+      println("???????????????????????????????? getRecordList")
+      RecordDAO.getRecordList(req.lastRecordId, req.count).map { recordL =>
+        println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& getRecordList")
+        complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map { r =>
+          val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
+          recordInfo(r.recordId, r.roomId, r.startTime, r.endTime, userList.length, userList)
+        })))
+      }
     }
 //    entity(as[Either[Error, RecordListReq]]) {
 //      case Right(req) =>
