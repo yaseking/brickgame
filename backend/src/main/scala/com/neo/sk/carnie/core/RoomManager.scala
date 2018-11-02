@@ -14,6 +14,7 @@ import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.carnie.core.RoomManager.PreWatchGame
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.RecordFrameInfo
 
 
 /**
@@ -50,6 +51,8 @@ object RoomManager {
   case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
+
+  case class GetRecordFrame(recordId: Long, playerId: String, replyTo: ActorRef[RecordFrameInfo]) extends Command
 
   case object CompleteMsgFront extends Command
 
@@ -102,6 +105,10 @@ object RoomManager {
         case StartReplay(recordId, playerId, frame, subscriber) =>
           log.info(s"got $msg")
           getGameReplay(ctx, recordId) ! GameReplay.InitReplay(subscriber, playerId, frame)
+          Behaviors.same
+
+        case GetRecordFrame(recordId, playerId, replyTo) =>
+          getGameReplay(ctx, recordId) ! GameReplay.GetRecordFrame(playerId, replyTo)
           Behaviors.same
 
         case StopReplay(recordId) =>

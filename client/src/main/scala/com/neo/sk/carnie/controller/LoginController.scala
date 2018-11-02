@@ -11,6 +11,7 @@ import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
 import akka.actor.typed.scaladsl.adapter._
+import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import org.slf4j.LoggerFactory
 
 /**
@@ -33,7 +34,6 @@ class LoginController(loginScene: LoginScene, context: Context) {
           loginSocketClient ! EstablishConnection2Es(wsUrl)
 
         case Left(_) =>
-          //不做处理
           log.debug("failed to getLoginRspFromEs.")
       }
     }
@@ -46,7 +46,7 @@ class LoginController(loginScene: LoginScene, context: Context) {
     val decoder = new BASE64Decoder
     val bytes:Array[Byte]= decoder.decodeBuffer(base64Str)
     bytes.indices.foreach{ i =>
-      if(bytes(i) < 0) bytes(i)=(bytes(i).+(256)).toByte
+      if(bytes(i) < 0) bytes(i)=(bytes(i)+256).toByte
     }
     val  b = new ByteArrayInputStream(bytes)
     b
@@ -58,12 +58,11 @@ class LoginController(loginScene: LoginScene, context: Context) {
     }
   }
 
-  def switchToGaming():Unit = {
+  def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
     Boot.addToPlatform {
       val playGameScreen = new GameScene()
       context.switchScene(playGameScreen.getScene)
-      import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-      new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen).start()
+      new GameController(playerInfoInClient, context, playGameScreen).start(domain)
     }
   }
 

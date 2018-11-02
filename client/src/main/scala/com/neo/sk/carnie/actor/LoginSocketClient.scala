@@ -76,48 +76,30 @@ object LoginSocketClient {
         import com.neo.sk.carnie.Boot.executor
 
         val gameId = AppSetting.esheepGameId
-//        decode[MsgFromLogin](msg) match {
-//          case Right(res) =>
-//            res match {
-//              case WsRsp(ws4AgentRsp) =>
-//                if (ws4AgentRsp.errCode != 0) {
-//                  log.debug(s"receive responseRsp error....${ws4AgentRsp.msg}")
-//                } else {
-//                  val data = ws4AgentRsp.data
-//                  val playerId = "user" + data.userId.toString
-//                  val playerName = data.nickname
-//                  linkGameAgent(gameId, playerId, data.token).map {
-//                    case Right(r) =>
-//                      loginController.switchToGaming()
-//
-//                    case Left(e) =>
-//                      log.debug(s"linkGameAgent..$e")
-//                  }
-//                }
-//
-//              case HeartBeat =>
-//            }
-//
-//          case Left(e) =>
-//            log.debug(s"decode esheep webmsg error! Error information:$e")
-//        }
-
-        decode[WsRsp](msg) match {
+        decode[WsData](msg) match {
           case Right(res) =>
-            println("res:   "+res)
-            val playerId = "user" + res.Ws4AgentRsp.data.userId.toString
-            val playerName = res.Ws4AgentRsp.data.nickname
-            linkGameAgent(gameId,playerId,res.Ws4AgentRsp.data.token).map{
-              case Right(r) =>
-                log.info("accessCode: "+r.accessCode)
-                log.info("prepare to join carnie!")
-                loginController.switchToGaming()
+            res match {
+              case Ws4AgentRsp(data, errCode, errMsg) =>
+                if (errCode != 0) {
+                  log.debug(s"receive responseRsp error....$errMsg")
+                } else {
+                  val playerId = "user" + data.userId.toString
+                  val playerName = data.nickname
+                  linkGameAgent(gameId, playerId, data.token).map {
+                    case Right(r) =>
+                      loginController.switchToGaming(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)
 
-              case Left(_) =>
-                log.debug("link error!")
+                    case Left(e) =>
+                      log.debug(s"linkGameAgent..$e")
+                  }
+                }
+
+              case HeartBeat =>
+                //收到心跳消息不做处理
             }
-          case Left(le) =>
-            log.debug(s"decode esheep webmsg error! Error information:${le}")
+
+          case Left(e) =>
+            log.debug(s"decode esheep webmsg error! Error information:$e")
         }
 
       case unknown@_ =>
