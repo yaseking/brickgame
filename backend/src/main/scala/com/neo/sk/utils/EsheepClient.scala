@@ -18,7 +18,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  val domain = "10.1.29.250:30374"
+  val domain = AppSettings.esheepDomain
   private val baseUrl = AppSettings.esheepProtocol + "://" + domain + "/" + AppSettings.esheepUrl
 
   def getTokenRequest(gameId: Long, gsKey: String) = {
