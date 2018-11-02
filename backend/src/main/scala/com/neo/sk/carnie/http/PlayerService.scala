@@ -65,7 +65,15 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame))
       }
     } ~
-      joinGame4Client
+      path("joinGame4Client") {
+        parameter(
+          'id.as[String],
+          'name.as[String],
+          'accessCode.as[String]
+        ) { (id, name, accessCode) =>
+          handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+        }
+      }
   }
 
   def webSocketChatFlow4WatchGame(roomId: Int, playerId: String): Flow[Message, Message, Any] = {

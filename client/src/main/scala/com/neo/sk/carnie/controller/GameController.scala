@@ -177,7 +177,6 @@ class GameController(player: PlayerInfoInClient,
 
       case x@Protocol.ReceivePingPacket(_) =>
         Boot.addToPlatform{
-          log.info(s"fpsTask: i received $x")
           PerformanceTool.receivePingPackage(x)
         }
 
