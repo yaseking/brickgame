@@ -16,7 +16,7 @@ object PerformanceTool {
   private var renderTimes = 0
   private var tempTime = System.currentTimeMillis()
 
-  private def addFps() = {
+  private def addFps(): Unit = {
     val time = System.currentTimeMillis()
     renderTimes += 1
 //    println(s"addFps time:${time - tempTime}")
@@ -28,7 +28,7 @@ object PerformanceTool {
     }
   }
 
-  def renderFps(ctx: GraphicsContext, leftBegin: Int, lineHeight: Int) = {
+  def renderFps(ctx: GraphicsContext, leftBegin: Int, lineHeight: Int): Unit = {
     addFps()
     ctx.setTextAlign(TextAlignment.LEFT)
 
