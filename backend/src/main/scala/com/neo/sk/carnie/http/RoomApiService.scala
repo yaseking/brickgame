@@ -76,6 +76,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   }
 
   private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
+    println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! getRecordList")
     dealPostReq[RecordListReq]{ req =>
             RecordDAO.getRecordList(req.lastRecordId,req.count).map{recordL =>
               complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
