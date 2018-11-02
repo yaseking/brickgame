@@ -76,6 +76,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
           'name.as[String],
           'accessCode.as[String]
         ) { (id, name, accessCode) =>
+//          handleWebSocketMessages(webSocketChatFlow(id, sender = name))
           val gameId = AppSettings.esheepGameId
           dealFutureResult{
             val msg: Future[String] = tokenActor ? AskForToken
@@ -88,6 +89,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
 //                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+                    //todo 目前验证失败也建立连接，便于测试
                     handleWebSocketMessages(webSocketChatFlow(id, sender = name))
                 }
               }
