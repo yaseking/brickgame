@@ -49,7 +49,7 @@ object RoomApiProtocol {
                     recordList:List[recordInfo]
   )
 
-  case class RecordFrameReq(
+  case class RecordInfoReq(
                            recordId: Long,
                            playerId: String
                            )
@@ -58,6 +58,23 @@ object RoomApiProtocol {
                             frame: Int,
                             frameNum: Int
                             )
+
+  case class RecordPlayerList(
+                               totalFrame: Int,
+                               playerList: List[RecordPlayerInfo]
+                             )
+
+  case class ExistTime(
+                           startFrame: Long,
+                           endFrame: Long
+                         )
+
+  case class RecordPlayerInfo(
+                             playerId: String,
+                             nickName: String,
+                             existTime: List[ExistTime]
+                             )
+
   case class PlayerIdInfo(
                            playerId: String
                          )
@@ -109,6 +126,12 @@ object RoomApiProtocol {
                         errCode: Int = 0,
                         msg: String = "ok"
                       )
+
+  case class RecordPlayerInfoRsp(
+                                data: RecordPlayerList,
+                                errCode: Int = 0,
+                                msg: String = "ok"
+                                )
 
   final case class ErrorRsp(
                              errCode: Int,
