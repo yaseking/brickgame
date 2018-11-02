@@ -79,7 +79,6 @@ object PlayGameWebSocket {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case m@MsgToService(sendMsg) =>
-          log.info(s"send msg: $m to service.")
           actor ! sendMsg
           Behaviors.same
 
