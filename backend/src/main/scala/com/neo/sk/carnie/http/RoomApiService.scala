@@ -85,27 +85,12 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
               })))
             }
     }
-//    entity(as[Either[Error, RecordListReq]]) {
-//      case Right(req) =>
-//        dealFutureResult{
-//          RecordDAO.getRecordList(req.lastRecordId,req.count).map{recordL =>
-//            complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
-//                              val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
-//                              recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
-//            })))
-//          }
-//        }
-//
-//      case Left(error) =>
-//        log.warn(s"some error: $error")
-//        complete(ErrorRsp(110000, "parse error"))
-//    }
   }
 
   private val getRecordListByTime = (path("getRecordListByTime") & post & pathEndOrSingleSlash) {
    dealPostReq[RecordByTimeReq]{ req =>
            RecordDAO.getRecordListByTime(req.startTime,req.endTime,req.lastRecordId,req.count).map{recordL =>
-             complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+             complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.sortWith((a,b) => a.recordId > b.recordId).take(req.count).map{ r =>
                val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
                recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
              })))
@@ -116,7 +101,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   private val getRecordListByPlayer = (path("getRecordListByPlayer") & post & pathEndOrSingleSlash) {
   dealPostReq[RecordByPlayerReq]{ req =>
           RecordDAO.getRecordListByPlayer(req.playerId,req.lastRecordId,req.count).map{recordL =>
-            complete(RecordListRsp(records(recordL.toList.filter(_._2.userId == req.playerId).map(_._1).distinct.map{ r =>
+            complete(RecordListRsp(records(recordL.toList.filter(_._2.userId == req.playerId).map(_._1).distinct.sortWith((a,b) => a.recordId > b.recordId).take(req.count).map{ r =>
               val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
               recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
             })))

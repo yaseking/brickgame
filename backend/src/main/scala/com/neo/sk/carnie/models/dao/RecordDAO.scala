@@ -37,7 +37,7 @@ object RecordDAO {
   def getRecordListByTime(startTime: Long,endTime: Long,lastRecord: Long,count: Int) = {
     if(lastRecord == 0L){
       val action = {
-        tGameRecord.sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
+        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
           (game.recordId === user.recordId) && game.startTime >= startTime && game.endTime <= endTime
         }
       }.result
@@ -45,7 +45,7 @@ object RecordDAO {
     }
     else{
       val action = {
-        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
+        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
           game.recordId === user.recordId && game.startTime >= startTime && game.endTime <= endTime
         }
       }.result
@@ -57,7 +57,7 @@ object RecordDAO {
   def getRecordListByPlayer(playerId: String,lastRecord: Long,count: Int) = {
     if(lastRecord == 0L){
       val action = {
-        tGameRecord.sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
+        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
           game.recordId === user.recordId
         }
       }.result
@@ -65,7 +65,7 @@ object RecordDAO {
     }
     else{
       val action = {
-        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
+        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
           game.recordId === user.recordId
         }
       }.result
