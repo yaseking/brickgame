@@ -78,7 +78,7 @@ object PlayGameWebSocket {
   def connecting(actor: ActorRef[Protocol.WsSendMsg]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
-        case MsgToService(sendMsg) =>
+        case m@MsgToService(sendMsg) =>
           actor ! sendMsg
           Behaviors.same
 
@@ -127,7 +127,7 @@ object PlayGameWebSocket {
   def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String): String = {
     val wsProtocol = "ws"
     val domain = "10.1.29.250:30368"
-    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName"
+    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName&accessCode=$accessCode"
   }
 
 }

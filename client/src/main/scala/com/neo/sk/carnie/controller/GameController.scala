@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, UserAction}
-import com.neo.sk.carnie.paperClient.{Boundary, Point, Protocol, WsSourceProtocol}
+import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.scene.GameScene
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
@@ -68,6 +68,7 @@ class GameController(player: PlayerInfoInClient,
 
   private def logicLoop(): Unit = { //逻辑帧
     logicFrameTime = System.currentTimeMillis()
+    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
     if (!justSynced) {
       grid.update("f")
       if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
@@ -175,7 +176,10 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case x@Protocol.ReceivePingPacket(_) =>
-        //          PerformanceTool.receivePingPackage(x)
+        Boot.addToPlatform{
+          PerformanceTool.receivePingPackage(x)
+        }
+
 
       case unknown@_ =>
         log.debug(s"i receive an unknown msg:$unknown")

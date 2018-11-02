@@ -1,26 +1,26 @@
 package com.neo.sk.carnie.http
 
 import java.io.File
-import akka.http.scaladsl.server
+
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.{Directive1, Route}
-import akka.stream.scaladsl.{FileIO, Sink, Source }
+import akka.stream.scaladsl.{FileIO, Sink, Source}
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.http.scaladsl.model.HttpEntity
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
-import com.neo.sk.carnie.Boot.scheduler
+import com.neo.sk.carnie.Boot.{scheduler, executor}
+import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.core.TokenActor.AskForToken
-
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
 import scala.concurrent.Future
 import io.circe.Error
-
 import scala.collection.mutable
+import com.neo.sk.utils.essf.RecallGame._
 
 
 /**
@@ -169,7 +169,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   }
 
   private val getRecordFrame = (path("getRecordFrame" ) & post & pathEndOrSingleSlash) {
-    dealPostReq[RecordFrameReq]{ req =>
+    dealPostReq[RecordInfoReq]{ req =>
       val rstF: Future[RecordFrameInfo] = roomManager ? (RoomManager.GetRecordFrame(req.recordId, req.playerId, _))
       rstF.map {info =>
         complete(RecordFrameRsp(info))
@@ -177,9 +177,28 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
+  private val getRecordPlayerList = (path("getRecordPlayerList" ) & post & pathEndOrSingleSlash) {
+    dealPostReq[RecordInfoReq]{ req =>
+      RecordDAO.getRecordById(req.recordId).map {
+        case Some(r) =>
+          val replay = initInput(r.filePath)
+          val info = replay.init()
+          val frameCount = info.frameCount
+          val playerList = userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+          val playerInfo = playerList.map { ls =>
+            val existTime = ls._2.map {f => ExistTime(f.joinFrame, f.leftFrame)}
+            RecordPlayerInfo(ls._1.id, ls._1.name, existTime)
+          }
+          complete(RecordPlayerInfoRsp(RecordPlayerList(frameCount, playerInfo)))
+        case None =>
+          complete(ErrorRsp(111000, s"can not find record-${req.recordId}"))
+      }
+    }
+  }
+
   val roomApiRoutes: Route =  {
     getRoomId ~ getRoomPlayerList ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
-    getRecordListByPlayer ~ downloadRecord ~ getRecordFrame
+    getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList
   }
 
 
