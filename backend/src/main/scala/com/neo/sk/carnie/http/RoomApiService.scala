@@ -2,7 +2,6 @@ package com.neo.sk.carnie.http
 
 import java.io.File
 
-import akka.http.scaladsl.server
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.{Directive1, Route}
@@ -12,16 +11,14 @@ import akka.http.scaladsl.model.HttpEntity
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
-import com.neo.sk.carnie.Boot.scheduler
+import com.neo.sk.carnie.Boot.{scheduler, executor}
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
-
 import scala.concurrent.Future
 import io.circe.Error
-
 import scala.collection.mutable
 import com.neo.sk.utils.essf.RecallGame._
 
