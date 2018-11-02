@@ -3,22 +3,29 @@ package com.neo.sk.carnie.http
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.{ByteString, Timeout}
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.scaladsl.Flow
-import com.neo.sk.carnie.core.{GameReplay, RoomManager}
+import com.neo.sk.carnie.core.{GameReplay, RoomManager, TokenActor}
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.slf4j.LoggerFactory
-import com.neo.sk.carnie.Boot.{roomManager, system}
-import scala.concurrent.ExecutionContextExecutor
+import com.neo.sk.carnie.Boot.{roomManager, tokenActor}
+import com.neo.sk.carnie.common.AppSettings
+import com.neo.sk.carnie.core.TokenActor.AskForToken
+import com.neo.sk.carnie.ptcl.ErrorRsp
+import com.neo.sk.utils.{CirceSupport, EsheepClient}
+import io.circe.generic.auto._
+
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /**
   * User: Taoz
   * Date: 9/1/2016
   * Time: 4:13 PM
   */
-trait PlayerService {
+trait PlayerService extends ServiceUtils with CirceSupport {
 
   implicit val system: ActorSystem
 
@@ -27,6 +34,8 @@ trait PlayerService {
   implicit val materializer: Materializer
 
   implicit val timeout: Timeout
+
+//  val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
 
   private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.SnakeService")
 
@@ -55,8 +64,8 @@ trait PlayerService {
       ) { (recordId, playerId, frame) =>
         handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame))
       }
-
-    }
+    } ~
+      joinGame4Client
   }
 
   def webSocketChatFlow4WatchGame(roomId: Int, playerId: String): Flow[Message, Message, Any] = {
@@ -200,6 +209,32 @@ trait PlayerService {
       Supervision.Resume
   }
 
+  private val joinGame4Client = path("joinGame4Client") {
+    parameter(
+      'id.as[String],
+      'name.as[String],
+      'accessCode.as[String]
+    ) { (id, name, accessCode) =>
+      import akka.actor.typed.scaladsl.AskPattern._
+      import com.neo.sk.carnie.Boot.scheduler
+
+      val gameId = AppSettings.esheepGameId
+      dealFutureResult{
+        val msg: Future[String] = tokenActor ? AskForToken
+        msg.map {token =>
+          dealFutureResult{
+            EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+              case Right(_) =>
+                handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+              case Left(e) =>
+                log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
+                complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+            }
+          }
+        }
+      }
+    }
+  }
 
 
 
