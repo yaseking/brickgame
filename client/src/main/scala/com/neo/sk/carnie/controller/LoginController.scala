@@ -34,7 +34,6 @@ class LoginController(loginScene: LoginScene, context: Context) {
           loginSocketClient ! EstablishConnection2Es(wsUrl)
 
         case Left(_) =>
-          //不做处理
           log.debug("failed to getLoginRspFromEs.")
       }
     }
@@ -47,7 +46,7 @@ class LoginController(loginScene: LoginScene, context: Context) {
     val decoder = new BASE64Decoder
     val bytes:Array[Byte]= decoder.decodeBuffer(base64Str)
     bytes.indices.foreach{ i =>
-      if(bytes(i) < 0) bytes(i)=(bytes(i).+(256)).toByte
+      if(bytes(i) < 0) bytes(i)=(bytes(i)+256).toByte
     }
     val  b = new ByteArrayInputStream(bytes)
     b
