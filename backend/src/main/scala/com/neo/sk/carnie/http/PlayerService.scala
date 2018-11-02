@@ -79,6 +79,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             val msg: Future[String] = tokenActor ? AskForToken
             msg.map {token =>
               dealFutureResult{
+                log.info("start to verifyAccessCode4Client.")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
                     handleWebSocketMessages(webSocketChatFlow(id, sender = name))
