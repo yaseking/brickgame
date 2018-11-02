@@ -48,7 +48,7 @@ class GameScene {
   group.getChildren.add(rankCanvas)
 
   val background = new BackgroundCanvas(backgroundCanvas)
-  val view = new GameViewCanvas(viewCanvas,background)
+  val view = new GameViewCanvas(viewCanvas, rankCanvas, background)
   val rank = new RankCanvas(rankCanvas)
 
 
@@ -58,7 +58,7 @@ class GameScene {
   val getScene: Scene = new Scene(group)
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
-    background.drawCache(view.offXY(uid, data, offsetTime, grid)._1 , view.offXY(uid, data, offsetTime, grid)._2)
+//    background.drawCache(view.offXY(uid, data, offsetTime, grid)._1 , view.offXY(uid, data, offsetTime, grid)._2)
     view.drawGrid(uid, data, offsetTime, grid, championId)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }

@@ -1,26 +1,26 @@
 package com.neo.sk.carnie.http
 
 import java.io.File
-import akka.http.scaladsl.server
+
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.{Directive1, Route}
-import akka.stream.scaladsl.{FileIO, Sink, Source }
+import akka.stream.scaladsl.{FileIO, Sink, Source}
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.http.scaladsl.model.HttpEntity
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
 import com.neo.sk.carnie.Boot.{scheduler, executor}
+import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.core.TokenActor.AskForToken
-
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
 import scala.concurrent.Future
 import io.circe.Error
-
 import scala.collection.mutable
+import com.neo.sk.utils.essf.RecallGame._
 
 
 /**
@@ -76,23 +76,23 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   }
 
   private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
-    dealPostReq[RecordListReq]{ req =>
-            RecordDAO.getRecordList(req.lastRecordId,req.count).map{recordL =>
-              complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
-                val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
-                recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
-              })))
-            }
+    dealPostReq[RecordListReq] { req =>
+      RecordDAO.getRecordList(req.lastRecordId, req.count).map { recordL =>
+        complete(RecordListRsp(recordL.toList.map(_._1).distinct.map { r =>
+          val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
+          recordInfo(r.recordId, r.roomId, r.startTime, r.endTime, userList.length, userList)
+        }))
+      }
     }
   }
 
   private val getRecordListByTime = (path("getRecordListByTime") & post & pathEndOrSingleSlash) {
    dealPostReq[RecordByTimeReq]{ req =>
            RecordDAO.getRecordListByTime(req.startTime,req.endTime,req.lastRecordId,req.count).map{recordL =>
-             complete(RecordListRsp(records(recordL.toList.map(_._1).distinct.map{ r =>
+             complete(RecordListRsp(recordL.toList.map(_._1).distinct.sortWith((a,b) => a.recordId > b.recordId).take(req.count).map{ r =>
                val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
                recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
-             })))
+             }))
            }
    }
   }
@@ -100,10 +100,10 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   private val getRecordListByPlayer = (path("getRecordListByPlayer") & post & pathEndOrSingleSlash) {
   dealPostReq[RecordByPlayerReq]{ req =>
           RecordDAO.getRecordListByPlayer(req.playerId,req.lastRecordId,req.count).map{recordL =>
-            complete(RecordListRsp(records(recordL.toList.filter(_._2.userId == req.playerId).map(_._1).distinct.map{ r =>
+            complete(RecordListRsp(recordL.toList.filter(_._2.userId == req.playerId).map(_._1).distinct.sortWith((a,b) => a.recordId > b.recordId).take(req.count).map{ r =>
               val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
               recordInfo(r.recordId,r.roomId,r.startTime,r.endTime,userList.length,userList)
-            })))
+            }))
           }
         }
   }
@@ -153,10 +153,37 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   }
   }
 
+  private val getRecordFrame = (path("getRecordFrame" ) & post & pathEndOrSingleSlash) {
+    dealPostReq[RecordInfoReq]{ req =>
+      val rstF: Future[RecordFrameInfo] = roomManager ? (RoomManager.GetRecordFrame(req.recordId, req.playerId, _))
+      rstF.map {info =>
+        complete(RecordFrameRsp(info))
+      }
+    }
+  }
+
+  private val getRecordPlayerList = (path("getRecordPlayerList" ) & post & pathEndOrSingleSlash) {
+    dealPostReq[RecordInfoReq]{ req =>
+      RecordDAO.getRecordById(req.recordId).map {
+        case Some(r) =>
+          val replay = initInput(r.filePath)
+          val info = replay.init()
+          val frameCount = info.frameCount
+          val playerList = userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+          val playerInfo = playerList.map { ls =>
+            val existTime = ls._2.map {f => ExistTime(f.joinFrame, f.leftFrame)}
+            RecordPlayerInfo(ls._1.id, ls._1.name, existTime)
+          }
+          complete(RecordPlayerInfoRsp(RecordPlayerList(frameCount, playerInfo)))
+        case None =>
+          complete(ErrorRsp(111000, s"can not find record-${req.recordId}"))
+      }
+    }
+  }
 
   val roomApiRoutes: Route =  {
     getRoomId ~ getRoomPlayerList ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
-    getRecordListByPlayer ~ downloadRecord
+    getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList
   }
 
 

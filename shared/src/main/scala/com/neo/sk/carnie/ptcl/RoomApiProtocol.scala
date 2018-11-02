@@ -33,10 +33,11 @@ object RoomApiProtocol {
                           count: Int
   )
   case class RecordListRsp(
-                          data:records,
+                          data:List[recordInfo],
                           errCode: Int = 0,
                           msg: String = "ok"
   )
+
   case class recordInfo(
                           recordId: Long,
                           roomId: Long,
@@ -45,9 +46,33 @@ object RoomApiProtocol {
                           userCounts: Int,
                           userList: Seq[String]
   )
-  case class records(
-                    recordList:List[recordInfo]
-  )
+
+  case class RecordInfoReq(
+                           recordId: Long,
+                           playerId: String
+                           )
+
+  case class RecordFrameInfo(
+                            frame: Int,
+                            frameNum: Int
+                            )
+
+  case class RecordPlayerList(
+                               totalFrame: Int,
+                               playerList: List[RecordPlayerInfo]
+                             )
+
+  case class ExistTime(
+                           startFrame: Long,
+                           endFrame: Long
+                         )
+
+  case class RecordPlayerInfo(
+                             playerId: String,
+                             nickName: String,
+                             existTime: List[ExistTime]
+                             )
+
   case class PlayerIdInfo(
                            playerId: String
                          )
@@ -93,6 +118,18 @@ object RoomApiProtocol {
   case class RoomListInfo(
                            roomList: List[Int]
                          )
+
+  case class RecordFrameRsp(
+                        data: RecordFrameInfo,
+                        errCode: Int = 0,
+                        msg: String = "ok"
+                      )
+
+  case class RecordPlayerInfoRsp(
+                                data: RecordPlayerList,
+                                errCode: Int = 0,
+                                msg: String = "ok"
+                                )
 
   final case class ErrorRsp(
                              errCode: Int,

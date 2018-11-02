@@ -12,11 +12,12 @@ import com.neo.sk.carnie.common.Constant.ColorsSetting
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
+class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundCanvas) {
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
+  private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = new Image("girl.png")
@@ -26,6 +27,8 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
   private val canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
+
+  private val textLineHeight = 15
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -177,6 +180,17 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     (offx, offy)
   }
 
+  def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
+//    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
+    ctx.setFill(Color.rgb(105,105,105))
+
+    //画边界
+    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+  }
+
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
@@ -204,7 +218,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-
+    drawCache(offx , offy)
     ctx.setGlobalAlpha(0.6)
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
@@ -264,8 +278,10 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
 //    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
-
     ctx.restore()
+
+    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
+    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {

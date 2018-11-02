@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.scene
 
 import com.neo.sk.carnie.Boot
-
 import java.io.ByteArrayInputStream
 
 import javafx.scene.{Group, Scene}
@@ -20,7 +19,7 @@ object LoginScene {
 }
 
 class LoginScene {
-
+//todo 修改前端页面
   import LoginScene._
 
   val width = 500
@@ -34,7 +33,7 @@ class LoginScene {
   button.setLayoutX(230)
   button.setLayoutY(240)
 
-  canvasCtx.setFill(Color.rgb(153, 255, 153))
+  canvasCtx.setFill(Color.rgb(255, 255, 255))
   canvasCtx.fillRect(0, 0, width, height)
   group.getChildren.add(canvas)
   group.getChildren.add(button)
@@ -46,7 +45,7 @@ class LoginScene {
     Boot.addToPlatform {
       group.getChildren.remove(button)
       val img = new Image(imageStream)
-      canvasCtx.drawImage(img, 0, 0)
+      canvasCtx.drawImage(img,100,80)
     }
   }
 
