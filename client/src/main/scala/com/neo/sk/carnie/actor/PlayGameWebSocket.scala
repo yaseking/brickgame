@@ -78,7 +78,8 @@ object PlayGameWebSocket {
   def connecting(actor: ActorRef[Protocol.WsSendMsg]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
-        case MsgToService(sendMsg) =>
+        case m@MsgToService(sendMsg) =>
+          log.info(s"send msg: $m to service.")
           actor ! sendMsg
           Behaviors.same
 
