@@ -13,6 +13,7 @@ class BackgroundCanvas(canvas: Canvas) {
   private val canvasUnit = 20
 
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
+    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
     ctx.setFill(Color.rgb(105,105,105))
 
     //画边界

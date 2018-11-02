@@ -177,6 +177,17 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     (offx, offy)
   }
 
+  def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
+//    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
+    ctx.setFill(Color.rgb(105,105,105))
+
+    //画边界
+    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+  }
+
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
@@ -204,7 +215,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-
+    drawCache(offx , offy)
     ctx.setGlobalAlpha(0.6)
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
@@ -264,7 +275,6 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
 //    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
-
     ctx.restore()
   }
 
