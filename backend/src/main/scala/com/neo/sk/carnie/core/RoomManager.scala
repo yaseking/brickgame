@@ -11,7 +11,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
-import com.neo.sk.carnie.core.RoomManager.PreWatchGame
+import com.neo.sk.carnie.core.RoomManager.{Join4Client, PreWatchGame}
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
 import com.neo.sk.carnie.ptcl.RoomApiProtocol.RecordFrameInfo
@@ -37,6 +37,8 @@ object RoomManager {
   case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
 
   case class Join(id: String, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+
+  case class Join4Client(id: String, name: String, accessCode: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   case class Left(id: String, name: String) extends Command
 
@@ -90,6 +92,19 @@ object RoomManager {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg@Join(id, name, subscriber) =>
+          log.info(s"got $msg")
+          if (roomMap.nonEmpty && roomMap.exists(_._2.size < limitNum)) {
+            val roomId = roomMap.filter(_._2.size < limitNum).head._1
+            roomMap.put(roomId, roomMap(roomId) += ((id, name)))
+            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
+          } else {
+            val roomId = roomIdGenerator.getAndIncrement()
+            roomMap.put(roomId, mutable.HashSet((id, name)))
+            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
+          }
+          Behaviors.same
+
+        case msg@Join4Client(id, name, accessCode, subscriber) =>
           log.info(s"got $msg")
           if (roomMap.nonEmpty && roomMap.exists(_._2.size < limitNum)) {
             val roomId = roomMap.filter(_._2.size < limitNum).head._1
@@ -225,6 +240,31 @@ object RoomManager {
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
       ).mapMaterializedValue(outActor => actor ! Join(userId, name, outActor))
+
+    Flow.fromSinkAndSource(in, out)
+  }
+
+  def joinGame4Client(actor: ActorRef[RoomManager.Command], userId: String, name: String, accessCode: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+    val in = Flow[Protocol.UserAction]
+      .map {
+        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
+        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case _ => UnKnowAction
+      }
+      .to(sink(actor, userId, name))
+
+    val out =
+      ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
+        completionMatcher = {
+          case WsSourceProtocol.CompleteMsgServer ⇒
+        },
+        failureMatcher = {
+          case WsSourceProtocol.FailMsgServer(e) ⇒ e
+        },
+        bufferSize = 64,
+        overflowStrategy = OverflowStrategy.dropHead
+      ).mapMaterializedValue(outActor => actor ! Join4Client(userId, name, accessCode, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }
