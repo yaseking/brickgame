@@ -2,20 +2,11 @@ package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.carnie.model.ReplayInfo
-import com.neo.sk.carnie.ptcl.EsheepPtcl._
-import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.html.{Document => _, _}
+import org.scalajs.dom.html.{Canvas, Document => _}
 import org.scalajs.dom.raw._
-import io.circe.syntax._
-import io.circe.generic.auto._
-
-import scala.scalajs.js
-import scala.scalajs.js.annotation.JSExportTopLevel
-import scala.scalajs.js.typedarray.ArrayBuffer
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 
 /**
@@ -24,7 +15,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Time: 12:45 PM
   */
 //@JSExportTopLevel("paperClient.NetGameHolder")
-class NetGameHolder(order: String, webSocketPara: WebSocketPara){
+class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -42,15 +33,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   var winData: Protocol.Data4TotalSync = grid.getGridData
   var fieldNum = 1
   var snakeNum = 1
-  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
   var play = true
+  var snapshotMap = Map.empty[Long, Snapshot]
+  var encloseMap = Map.empty[Long, NewFieldInfo]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
   var replayFinish = false
-
-  val idGenerator = new AtomicInteger(1)
-  private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
 
 //  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
 //  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
@@ -61,9 +51,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
 
-  private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
-
-
   private var nextFrame = 0
   private var isContinue = true
   private var logicFrameTime = System.currentTimeMillis()
@@ -73,7 +60,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
 
   def init(): Unit = {
-    webSocketClient.setUp(order, webSocketPara)
+    webSocketClient.setUp("watchRecord", webSocketPara)
   }
 
 
@@ -108,21 +95,24 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
     }
 
     if (webSocketClient.getWsState) {
+      if (syncGridData4Replay.nonEmpty) {
+        grid.initSyncGridData(syncGridData4Replay.get)
+        syncGridData4Replay = None
+        justSynced = false
+      } else if(snapshotMap.contains(grid.frameCount)) {
+        val data = snapshotMap(grid.frameCount)
+        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+//        println(s"state 重置 via Map")
+        snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+      }
+      if(encloseMap.contains(grid.frameCount)) {
+        grid.addNewFieldInfo(encloseMap(grid.frameCount))
+//        println(s"圈地 via Map")
+      }
+
       if (!justSynced) { //前端更新
         grid.update("f")
 
-        if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
-          if (newFieldInfo.get.frameCount == grid.frameCount) {
-            grid.addNewFieldInfo(newFieldInfo.get)
-          } else { //主动要求同步数据
-            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
-          }
-          newFieldInfo = None
-        }
-      } else if (syncGridData.nonEmpty) {
-        grid.initSyncGridData(syncGridData.get)
-        syncGridData = None
-        justSynced = false
       }
     }
   }
@@ -197,39 +187,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
   private def connectOpenSuccess(event0: Event, order: String) = {
     startGame()
-    if(order=="playGame") {
-      rankCanvas.focus()
-      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
-        if (Constant.watchKeys.contains(e.keyCode)) {
-          println(s"onkeydown：${e.keyCode}")
-          val msg: Protocol.UserAction = {
-            val frame = grid.frameCount + 2
-            val actionId = idGenerator.getAndIncrement()
-            grid.addActionWithFrame(myId, e.keyCode, frame)
-            if (e.keyCode != KeyCode.Space) {
-              myActionHistory += actionId -> (e.keyCode, frame)
-            } else { //重新开始游戏
-              audio1.pause()
-              audio1.currentTime = 0
-              audioKilled.pause()
-              audioKilled.currentTime = 0
-              play = true
-              scoreFlag = true
-              firstCome = true
-              if (isWin) {
-                isWin = false
-                winnerName = "unknown"
-              }
-              nextFrame = dom.window.requestAnimationFrame(gameRender())
-              isContinue = true
-            }
-            Key(myId, e.keyCode, frame, actionId)
-          }
-          webSocketClient.sendMessage(msg)
-          e.preventDefault()
-        }
-      }}
-    }
     event0
   }
 
@@ -242,87 +199,129 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
     data match {
       case Protocol.Id(id) => myId = id
 
-      case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        if (grid.snakes.exists(_._1 == id)) {
-          if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-            if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
-              grid.addActionWithFrame(id, keyCode, frame)
-              if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                val oldGrid = grid
-                oldGrid.recallGrid(frame, grid.frameCount)
-                grid = oldGrid
-              }
-            } else {
-              if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-                grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
-                grid.addActionWithFrame(id, keyCode, frame)
-                val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                  val oldGrid = grid
-                  oldGrid.recallGrid(miniFrame, grid.frameCount)
-                  grid = oldGrid
-                }
-              }
-              myActionHistory -= actionId
-            }
-          } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-            grid.addActionWithFrame(id, keyCode, frame)
-            if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-              val oldGrid = grid
-              oldGrid.recallGrid(frame, grid.frameCount)
-              grid = oldGrid
-            }
-          }
-        }
-
-      case ReStartGame =>
-        println("Now in reStartGame order!")
-        audio1.pause()
-        audio1.currentTime = 0
-        audioKilled.pause()
-        audioKilled.currentTime = 0
-        play = true
-        scoreFlag = true
-        firstCome = true
-        if (isWin) {
-          isWin = false
-          winnerName = "unknown"
-        }
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
-        isContinue = true
-
       case Protocol.SomeOneWin(winner, finalData) =>
         isWin = true
         winnerName = winner
         winData = finalData
         grid.cleanData()
 
-      case Protocol.Ranks(current) =>
-        currentRank = current
-        if (grid.getGridData.snakes.exists(_.id == myId))
-          drawGame.drawRank(myId, grid.getGridData.snakes, current)
-
-      case data: Protocol.Data4TotalSync =>
-        //        println(s"receive data========================")
-        syncGridData = Some(data)
-        justSynced = true
-
-      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-        killInfo = (killedId, killedName, killerName)
-        lastTime = 100
-
-      case data: Protocol.NewFieldInfo =>
-        newFieldInfo = Some(data)
-
-      case x@Protocol.ReceivePingPacket(_) =>
-        PerformanceTool.receivePingPackage(x)
-
       case x@Protocol.ReplayFinish(_) =>
         println("get message replay finish")
         replayFinish = true
+
+      case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
+//        println(s"receive replayFrameData")
+        eventsData match {
+          case EventData(events) =>
+            events.foreach (event => replayMessageHandler(event, frameIndex))
+          case Protocol.DecodeError() =>
+//            println("events decode error")
+          case _ =>
+        }
+        if(stateData.nonEmpty) {
+          stateData.get match {
+            case msg: Snapshot =>
+//              println(s"snapshot get")
+//              println(s"snapshot:$msg")
+              replayMessageHandler(msg, frameIndex)
+            case Protocol.DecodeError() =>
+//              println("state decode error")
+            case _ =>
+          }
+        }
 
       case x@_ =>
         println(s"receive unknown msg:$x")
     }
   }
+
+
+
+  private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
+    data match {
+      case Protocol.JoinEvent(id, name) => //不做处理，直接获取快照
+
+      case Protocol.LeftEvent(id, name) => //不做处理，直接获取快照
+
+      case DirectionEvent(id, keyCode) =>
+        grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
+
+      case SpaceEvent(id) =>
+        if(id == myId) {
+          audio1.pause()
+          audio1.currentTime = 0
+          audioKilled.pause()
+          audioKilled.currentTime = 0
+          play = true
+          scoreFlag = true
+          firstCome = true
+          if (isWin) {
+            isWin = false
+            winnerName = "unknown"
+          }
+          nextFrame = dom.window.requestAnimationFrame(gameRender())
+          isContinue = true
+        }
+
+//      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
+//        killInfo = (killedId, killedName, killerName)
+//        lastTime = 100
+
+      case EncloseEvent(enclosure) =>
+//        println(s"got enclose event")
+//        println(s"当前帧号：${grid.frameCount}")
+//        println(s"传输帧号：$frameIndex")
+        if(grid.frameCount < frameIndex.toLong) {
+          encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
+        } else if(grid.frameCount == frameIndex.toLong){
+//          println(s"圈地")
+          grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
+        }
+      case RankEvent(current) =>
+        currentRank = current
+        if (grid.getGridData.snakes.exists(_.id == myId))
+          drawGame.drawRank(myId, grid.getGridData.snakes, current)
+
+      case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
+        snapshotMap += frameIndex.toLong -> msg
+        if(grid.frameCount >= frameIndex.toLong) { //重置
+          syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
+          justSynced = true
+        }
+
+      case _ =>
+    }
+  }
+
+  import org.seekloud.byteobject.ByteObject._
+  import org.seekloud.byteobject.MiddleBufferInJs
+
+  import scala.scalajs.js.typedarray.ArrayBuffer
+
+  private def replayEventDecode(a:ArrayBuffer): GameEvent={
+    val middleDataInJs = new MiddleBufferInJs(a)
+    if (a.byteLength > 0) {
+      bytesDecode[List[GameEvent]](middleDataInJs) match {
+        case Right(r) =>
+          Protocol.EventData(r)
+        case Left(e) =>
+          Protocol.DecodeError()
+      }
+    }else{
+      Protocol.DecodeError()
+    }
+  }
+
+  private def replayStateDecode(a:ArrayBuffer): GameEvent={
+    val middleDataInJs = new MiddleBufferInJs(a)
+    bytesDecode[Snapshot](middleDataInJs) match {
+      case Right(r) =>
+        r
+      case Left(e) =>
+        println(e.message)
+        Protocol.DecodeError()
+    }
+  }
+
+
 }
