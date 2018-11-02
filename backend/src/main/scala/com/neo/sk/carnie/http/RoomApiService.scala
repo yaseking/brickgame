@@ -153,10 +153,18 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   }
   }
 
+  private val getRecordFrame = (path("getRecordFrame" ) & post & pathEndOrSingleSlash) {
+    dealPostReq[RecordFrameReq]{ req =>
+      val rstF: Future[RecordFrameInfo] = roomManager ? (RoomManager.GetRecordFrame(req.recordId, req.playerId, _))
+      rstF.map {info =>
+        complete(RecordFrameRsp(info))
+      }
+    }
+  }
 
   val roomApiRoutes: Route =  {
     getRoomId ~ getRoomPlayerList ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
-    getRecordListByPlayer ~ downloadRecord
+    getRecordListByPlayer ~ downloadRecord ~ getRecordFrame
   }
 
 
