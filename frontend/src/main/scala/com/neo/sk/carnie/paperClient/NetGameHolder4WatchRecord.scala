@@ -241,6 +241,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
     data match {
       case Protocol.JoinEvent(id, snakeInfo) =>
+        println(s"receive data: $data")
         grid.snakes += (id -> snakeInfo.get)
 
       case Protocol.LeftEvent(id, name) =>
