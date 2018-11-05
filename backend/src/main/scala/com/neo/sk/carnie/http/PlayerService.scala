@@ -57,9 +57,26 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       path("watchGame") {
         parameter(
           'roomId.as[Int],
-          'playerId.as[String]
-        ) { (roomId, playerId) =>
-          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+          'playerId.as[String],
+          'accessCode.as[String]
+        ) { (roomId, playerId, accessCode) =>
+          val gameId = AppSettings.esheepGameId
+          dealFutureResult{
+            val msg: Future[String] = tokenActor ? AskForToken
+            msg.map {token =>
+              dealFutureResult{
+                log.info("Start to watchGame.")
+                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+                  case Right(data) =>
+                    log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}")
+                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+                  case Left(e) =>
+                    log.error(s"watchGame error. fail to verifyAccessCode err: $e")
+                    complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
+                }
+              }
+            }
+          }
         }
       } ~ path("joinWatchRecord") {
       parameter(

@@ -55,30 +55,30 @@ trait EsheepService extends ServiceUtils with CirceSupport {
   }
 
   private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
-    parameter(
-      'roomId.as[String],
-      'playerId.as[String].?,
-      'accessCode.as[String]
-    ) {
-      case (roomId, playerId, accessCode) =>
-        val gameId = AppSettings.esheepGameId
-        dealFutureResult{
-          val msg: Future[String] = tokenActor ? AskForToken
-          msg.map {token =>
-            dealFutureResult{
-              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-                case Right(data) =>
-                  log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}")
-                  getFromResource("html/netSnake.html")
-                case Left(e) =>
-                  log.error(s"watchGame error. fail to verifyAccessCode err: $e")
+    getFromResource("html/netSnake.html")
+//    parameter(
+//      'roomId.as[String],
+//      'playerId.as[String].?,
+//      'accessCode.as[String]
+//    ) {
+//      case (roomId, playerId, accessCode) =>
+//        val gameId = AppSettings.esheepGameId
+//        dealFutureResult{
+//          val msg: Future[String] = tokenActor ? AskForToken
+//          msg.map {token =>
+//            dealFutureResult{
+//              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+//                case Right(data) =>
+//                  log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}")
 //                  getFromResource("html/netSnake.html")
-                  complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
-              }
-            }
-          }
-        }
-    }
+//                case Left(e) =>
+//                  log.error(s"watchGame error. fail to verifyAccessCode err: $e")
+//                  complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
+//              }
+//            }
+//          }
+//        }
+//    }
   }
 
   private val watchRecord = (path("watchRecord") & get & pathEndOrSingleSlash) {
