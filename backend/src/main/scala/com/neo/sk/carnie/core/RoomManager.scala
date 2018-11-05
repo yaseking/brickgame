@@ -170,6 +170,7 @@ object RoomManager {
             case Some(p) => Some(p.toList)
             case _ => None
           }
+          log.debug(s"replyMsg is $replyMsg")
           reply ! replyMsg
           Behaviors.same
 
