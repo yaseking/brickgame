@@ -56,6 +56,7 @@ object TokenActor {
       msg match {
         case AskForToken(reply) =>
           if (token.isOutOfTime) {
+            log.debug("time to refresh token...")
             switchBehavior(ctx, "updateToken", updateToken(List(reply)))
           } else {
             reply ! token.token
