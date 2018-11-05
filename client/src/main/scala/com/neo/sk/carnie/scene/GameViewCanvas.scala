@@ -159,23 +159,6 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     }
   }
 
-  def offXY(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid)= {
-    val snakes = data.snakes
-
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-    (offx, offy)
-  }
 
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
 //    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
