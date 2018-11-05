@@ -45,8 +45,8 @@ trait EsheepService extends ServiceUtils with CirceSupport {
                     }
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode err: $e")
-                    getFromResource("html/netSnake.html")
-//                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+//                    getFromResource("html/netSnake.html")
+                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
                 }
               }
           }
