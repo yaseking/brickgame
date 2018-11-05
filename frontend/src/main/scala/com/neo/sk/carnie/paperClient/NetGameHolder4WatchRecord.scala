@@ -33,7 +33,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var winData: Protocol.Data4TotalSync = grid.getGridData
   var fieldNum = 1
   var snakeNum = 1
-  var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
   var play = true
   var snapshotMap = Map.empty[Long, Snapshot]
@@ -222,8 +221,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         if(stateData.nonEmpty) {
           stateData.get match {
             case msg: Snapshot =>
-              println(s"snapshot get")
-//              println(s"snapshot:$msg")
+//              println(s"snapshot get")
+              println(s"snapshot:$msg")
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() =>
 //              println("state decode error")
