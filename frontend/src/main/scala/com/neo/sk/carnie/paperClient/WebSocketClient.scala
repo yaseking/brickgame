@@ -31,7 +31,7 @@ class WebSocketClient (
       val url = setupInfo match {
         case p: PlayGamePara => getWebSocketUri(p.playerId, p.playerName)
         case p: WatchGamePara => getWebSocketUri4WatchGame(p.roomId, p.playerId)
-        case p: WatchRecordPara => getWebSocketUri4WatchRecord(p.recordId, p.playerId, p.frame)
+        case p: WatchRecordPara => getWebSocketUri4WatchRecord(p.recordId, p.playerId, p.frame, p.accessCode)
 //        case _ =>
 
       }
@@ -112,9 +112,9 @@ class WebSocketClient (
     s"$wsProtocol://${dom.document.location.host}/carnie/watchGame?roomId=$roomId&playerId=$playerId"
   }
 
-  def getWebSocketUri4WatchRecord(recordId: String, playerId: String, frame: String): String = {
+  def getWebSocketUri4WatchRecord(recordId: String, playerId: String, frame: String, accessCode: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/joinWatchRecord?recordId=$recordId&playerId=$playerId&frame=$frame"
+    s"$wsProtocol://${dom.document.location.host}/carnie/joinWatchRecord?recordId=$recordId&playerId=$playerId&frame=$frame&accessCode=$accessCode"
   }
 
   def getWsState = wsSetup

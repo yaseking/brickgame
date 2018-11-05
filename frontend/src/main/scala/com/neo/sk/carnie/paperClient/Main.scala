@@ -40,7 +40,8 @@ object Main extends js.JSApp {
         val recordId = playerMsgMap.getOrElse("recordId", "1000001")
         val playerId = playerMsgMap.getOrElse("playerId", "1000001")
         val frame = playerMsgMap.getOrElse("frame", "0")
-        new NetGameHolder4WatchRecord(WatchRecordPara(recordId, playerId, frame)).init()
+        val accessCode = playerMsgMap.getOrElse("accessCode", "abc")
+        new NetGameHolder4WatchRecord(WatchRecordPara(recordId, playerId, frame, accessCode)).init()
 
       case _ =>
         println("Unknown order!")

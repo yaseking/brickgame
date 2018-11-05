@@ -49,7 +49,7 @@ object RoomApiProtocol {
 
   case class RecordInfoReq(
                            recordId: Long,
-                           playerId: String
+                           playerId: String //正在观看玩家的ID
                            )
 
   case class RecordFrameInfo(
