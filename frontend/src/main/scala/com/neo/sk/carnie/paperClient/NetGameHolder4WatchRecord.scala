@@ -198,6 +198,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id(id) => myId = id
+        println(s"receive ID = $id")
 
       case Protocol.SomeOneWin(winner, finalData) =>
         isWin = true
@@ -221,7 +222,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         if(stateData.nonEmpty) {
           stateData.get match {
             case msg: Snapshot =>
-//              println(s"snapshot get")
+              println(s"snapshot get")
 //              println(s"snapshot:$msg")
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() =>
