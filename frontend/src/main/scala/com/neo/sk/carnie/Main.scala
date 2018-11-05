@@ -34,7 +34,7 @@ object Main extends js.JSApp {
         val roomId = playerMsgMap.getOrElse("roomId", "1000")
         val playerId = playerMsgMap.getOrElse("playerId", "unknown")
         val accessCode = playerMsgMap.getOrElse("accessCode", "test123")
-        println(s"Frontend-roomId: $roomId, playerId:$playerId")
+        println(s"Frontend-roomId: $roomId, playerId:$playerId, accessCode: $accessCode")
         new NetGameHolder("watchGame", WatchGamePara(roomId, playerId, accessCode)).init()
 
       case "watchRecord" =>
