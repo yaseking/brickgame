@@ -23,4 +23,5 @@ class BackgroundCanvas(canvas: Canvas) {
     ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
+
 }

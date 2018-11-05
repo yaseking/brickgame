@@ -85,6 +85,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         'frame.as[Int],
         'accessCode.as[String]
       ) { (recordId, playerId, frame, accessCode) =>
+        log.debug(s"receive accessCode:$accessCode:")
         val gameId = AppSettings.esheepGameId
         dealFutureResult {
           val msg: Future[String] = tokenActor ? AskForToken
@@ -99,8 +100,6 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             }
           }
         }
-
-
       }
     } ~
       (path("joinGame4Client") & get ) {

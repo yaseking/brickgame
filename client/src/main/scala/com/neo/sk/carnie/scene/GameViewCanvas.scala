@@ -12,12 +12,11 @@ import com.neo.sk.carnie.common.Constant.ColorsSetting
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundCanvas) {
+class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
-  private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = new Image("girl.png")
@@ -27,8 +26,6 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
   private val canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
-
-  private val textLineHeight = 15
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -162,23 +159,6 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
     }
   }
 
-  def offXY(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid)= {
-    val snakes = data.snakes
-
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-    (offx, offy)
-  }
 
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
 //    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
@@ -279,9 +259,6 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
-
-    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
-    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {
