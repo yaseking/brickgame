@@ -83,7 +83,7 @@ trait EsheepService extends ServiceUtils with CirceSupport {
   private val watchRecord = (path("watchRecord") & get & pathEndOrSingleSlash) {
     parameter(
       'recordId.as[Long],
-      'playerId.as[String],
+      'playerId.as[String], //
       'frame.as[Int],
       'accessCode.as[String]
     ) {

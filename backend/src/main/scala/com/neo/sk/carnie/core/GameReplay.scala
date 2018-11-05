@@ -58,31 +58,12 @@ object GameReplay {
   case class InitReplay(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], userId:String, f:Int) extends Command
 
 
-  def create(recordId:Long): Behavior[Command] = {
+  def create(recordId:Long, playerId: String): Behavior[Command] = {
     Behaviors.setup[Command]{ ctx=>
       log.info(s"${ctx.self.path} is starting..")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
-        //test
-//        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540539148541_0")
-//        val info=replay.init()
-//        try{
-//          println(s"test1")
-//          println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-//          println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
-//          println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
-//          ctx.self ! SwitchBehavior("work",
-//            work(
-//              replay,
-//              metaDataDecode(info.simulatorMetadata).right.get,
-//              //
-//              userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-//            ))
-//        }catch {
-//          case e:Throwable=>
-//            log.error("error init game replay---"+e.getMessage)
-//        }
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
 //            log.debug(s"game path ${r.filePath}")
