@@ -86,7 +86,7 @@ object GameRecorder {
               case Protocol.EncloseEvent(_) => false
               case Protocol.RankEvent(_) => false
               case _ => true} ||
-              tickCount % 50 == 0) Some(event._2) else None //是否做快照
+              tickCount % 50 == 1) Some(event._2) else None //是否做快照
 
 //          log.debug(s"${event._1.exists{case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true}}")
 //          log.debug(s"做快照::tickcount:$tickCount, snapshot:$snapshot")
