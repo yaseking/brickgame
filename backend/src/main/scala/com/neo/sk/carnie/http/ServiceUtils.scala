@@ -116,7 +116,18 @@ trait ServiceUtils {
         complete(JsonParseError)
     }
   }
+  def dealPostReqWithoutData[A](f:  => Future[server.Route])(implicit decoder: Decoder[A]): server.Route = {
+    entity(as[Either[Error, PostEnvelope]]) {
+      case Right(envelope) =>
+        ensurePostEnvelope(envelope) {
+          f
+        }
 
+      case Left(e) =>
+        log.error(s"json parse PostEnvelope error: $e")
+        complete(JsonParseError)
+    }
+  }
   def dealGetReq(f: => Future[server.Route]): server.Route = {
     entity(as[Either[Error, PostEnvelope]]) {
       case Right(envelope) =>
