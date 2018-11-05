@@ -252,19 +252,29 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     data match {
       case Protocol.JoinEvent(id, snakeInfo) =>
         println(s"receive data: $data")
-        if(joinOrLeftMap.get(frameIndex).nonEmpty) {
-          joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+        if (grid.frameCount < frameIndex) {
+          if(joinOrLeftMap.get(frameIndex).nonEmpty) {
+            joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+          } else {
+            joinOrLeftMap += ((frameIndex, List(data)))
+          }
         } else {
-          joinOrLeftMap += ((frameIndex, List(data)))
+          grid.snakes += (id -> snakeInfo)
         }
+
 
 
       case Protocol.LeftEvent(id, name) =>
-        if(joinOrLeftMap.get(frameIndex).nonEmpty) {
-          joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+        if (grid.frameCount < frameIndex) {
+          if(joinOrLeftMap.get(frameIndex).nonEmpty) {
+            joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+          } else {
+            joinOrLeftMap += ((frameIndex, List(data)))
+          }
         } else {
-          joinOrLeftMap += ((frameIndex, List(data)))
+          grid.snakes -= id
         }
+
 
 
       case DirectionEvent(id, keyCode) =>
