@@ -1,21 +1,13 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
-
-import com.neo.sk.carnie.model.ReplayInfo
-import com.neo.sk.carnie.ptcl.EsheepPtcl._
+import com.neo.sk.carnie.common.Constant
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
-import io.circe.syntax._
-import io.circe.generic.auto._
-
-import scala.scalajs.js
-import scala.scalajs.js.annotation.JSExportTopLevel
-import scala.scalajs.js.typedarray.ArrayBuffer
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 
 /**
@@ -23,7 +15,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Date: 9/1/2016
   * Time: 12:45 PM
   */
-//@JSExportTopLevel("paperClient.NetGameHolder")
+
 class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
   var currentRank = List.empty[Score]
@@ -51,9 +43,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
-
-//  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
-//  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
