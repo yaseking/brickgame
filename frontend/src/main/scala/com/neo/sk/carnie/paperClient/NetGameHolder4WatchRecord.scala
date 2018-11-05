@@ -259,7 +259,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
             joinOrLeftMap += ((frameIndex, List(data)))
           }
         } else {
-          grid.snakes += (id -> snakeInfo)
+          grid.snakes += (id -> snakeInfo.get)
         }
 
 
