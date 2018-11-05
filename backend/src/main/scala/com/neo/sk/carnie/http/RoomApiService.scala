@@ -59,7 +59,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
-    dealPostReq[AllRoomReq] { req =>
+    dealPostReqWithoutData {
       val msg: Future[List[Int]] = roomManager ? RoomManager.FindAllRoom
       msg.map {
         allRoom =>
