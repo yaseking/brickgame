@@ -60,24 +60,24 @@ trait PlayerService extends ServiceUtils with CirceSupport {
           'playerId.as[String],
           'accessCode.as[String]
         ) { (roomId, playerId, accessCode) =>
-          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
-//          val gameId = AppSettings.esheepGameId
-//          dealFutureResult{
-//            val msg: Future[String] = tokenActor ? AskForToken
-//            msg.map {token =>
-//              dealFutureResult{
-//                log.info("Start to watchGame.")
-//                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-//                  case Right(data) =>
-//                    log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}")
-//                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
-//                  case Left(e) =>
-//                    log.error(s"watchGame error. fail to verifyAccessCode err: $e")
-//                    complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
-//                }
-//              }
-//            }
-//          }
+//          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+          val gameId = AppSettings.esheepGameId
+          dealFutureResult{
+            val msg: Future[String] = tokenActor ? AskForToken
+            msg.map {token =>
+              dealFutureResult{
+                log.info("Start to watchGame.")
+                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+                  case Right(data) =>
+                    log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}}")
+                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+                  case Left(e) =>
+                    log.error(s"watchGame error. fail to verifyAccessCode err: $e")
+                    complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
+                }
+              }
+            }
+          }
         }
       } ~ path("joinWatchRecord") {
       parameter(
@@ -96,7 +96,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 case Right(rsp) =>
                   handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame, rsp.playerId))
                 case Left(e) =>
-                  complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+                  complete(ErrorRsp(120006, "Some errors happened in parse verifyAccessCode."))
               }
             }
           }

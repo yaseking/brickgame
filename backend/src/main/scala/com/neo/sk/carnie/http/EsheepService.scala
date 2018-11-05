@@ -37,7 +37,6 @@ trait EsheepService extends ServiceUtils with CirceSupport {
               dealFutureResult{
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(rsp) =>
-//                    println(s"rsp: $rsp")
                     if(rsp.playerId == playerId){
                       getFromResource("html/netSnake.html")
                     } else {
