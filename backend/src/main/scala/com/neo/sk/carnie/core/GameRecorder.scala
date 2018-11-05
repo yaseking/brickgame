@@ -82,7 +82,9 @@ object GameRecorder {
         case RecordData(frame, event) => //记录数据
           val snapshot =
             if(event._1.exists{
-              case JoinEvent(_, _) => true
+              case JoinEvent(_, info) =>
+                println(s"add joinEvent: $info")
+                true
               case LeftEvent(_, _) => true
               case SpaceEvent(_) => true
               case _ => false} ||
