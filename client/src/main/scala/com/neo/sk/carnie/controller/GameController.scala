@@ -31,11 +31,14 @@ class GameController(player: PlayerInfoInClient,
   var grid = new GridOnClient(bounds)
   var firstCome = true
   val idGenerator = new AtomicInteger(1)
-
+  var scoreFlag = true
+  var isWin = false
+  var winnerName = "unknown"
+  var play = true
   var justSynced = false
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
-
+  private var isContinue = true
   private val timeline = new Timeline()
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
@@ -142,10 +145,20 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.ReStartGame =>
         Boot.addToPlatform {
           firstCome = true
+          scoreFlag = true
+          if(isWin){
+            isWin = false
+            winnerName = "unknown"
+          }
+          animationTimer.start()
+          isContinue = true
+
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
+          isWin = true
+          winnerName = winner
           gameScene.drawGameWin(player.id, winner, finalData)
           grid.cleanData()
           animationTimer.stop()

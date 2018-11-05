@@ -21,6 +21,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
   val domain = AppSettings.esheepDomain
   private val baseUrl = AppSettings.esheepProtocol + "://" + domain + "/" + AppSettings.esheepUrl
 
+//  private val baseUrl1 = "http://flowdev.neoap.com" + "/" + AppSettings.esheepUrl
+
   def getTokenRequest(gameId: Long, gsKey: String) = {
     val esheepUrl = baseUrl + "/api/gameServer/gsKey2Token"
     val sendData = GetToken(gameId, gsKey).asJson.noSpaces
@@ -85,7 +87,6 @@ object EsheepClient extends HttpUtil with CirceSupport {
                       token: String
                     ) = {
     println("start inputBatRecord!")
-//    val token = KeyData.token
     val gameId = AppSettings.esheepGameId
     val esheepUrl = baseUrl + s"/api/gameServer/addPlayerRecord?token=$token"
     val sendData = InputRecord(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime)).asJson.noSpaces
