@@ -6,13 +6,14 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
+import javafx.scene.SnapshotParameters
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
+class GameViewCanvas(canvas: Canvas,background: Canvas) {
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
@@ -159,33 +160,16 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     }
   }
 
-  def offXY(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid)= {
-    val snakes = data.snakes
-
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-    (offx, offy)
-  }
 
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
 //    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
     ctx.setFill(Color.rgb(105,105,105))
 
     //画边界
-    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
@@ -215,7 +199,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-    drawCache(offx , offy)
+
     ctx.setGlobalAlpha(0.6)
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
@@ -273,8 +257,13 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
 
 
 //    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
+    drawCache(offx , offy)
+//    val params = new SnapshotParameters
+//    params.setFill(Color.GREY)
+//    background.getGraphicsContext2D.moveTo(offx * canvasUnit, offy * canvasUnit)
+//    ctx.drawImage(background.snapshot(params,null),  offx * canvasUnit, offy * canvasUnit)
 
-//    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
+    //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
   }
 
