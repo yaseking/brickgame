@@ -109,6 +109,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         joinOrLeftMap.filter(_._1 == grid.frameCount).head._2.foreach {
           case JoinEvent(id, Some(snakeInfo)) => grid.snakes += ((id, snakeInfo))
           case LeftEvent(id, name) => grid.snakes -= id
+          case _ =>
         }
         joinOrLeftMap -= grid.frameCount
       }
