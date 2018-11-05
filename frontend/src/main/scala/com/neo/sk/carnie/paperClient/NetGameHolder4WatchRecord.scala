@@ -38,6 +38,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var snapshotMap = Map.empty[Long, Snapshot]
   var encloseMap = Map.empty[Long, NewFieldInfo]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+  var joinOrLeftMap = Map.empty[Long, List[GameEvent]]
 
   var replayFinish = false
 
@@ -103,6 +104,13 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
 //        println(s"state 重置 via Map")
         snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+      }
+      if(joinOrLeftMap.contains(grid.frameCount)) {
+        joinOrLeftMap.filter(_._1 == grid.frameCount).head._2.foreach {
+          case JoinEvent(id, Some(snakeInfo)) => grid.snakes += ((id, snakeInfo))
+          case LeftEvent(id, name) => grid.snakes -= id
+        }
+        joinOrLeftMap -= grid.frameCount
       }
       if(encloseMap.contains(grid.frameCount)) {
         grid.addNewFieldInfo(encloseMap(grid.frameCount))
@@ -215,7 +223,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           stateData.get match {
             case msg: Snapshot =>
 //              println(s"snapshot get")
-              println(s"snapshot:$msg")
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() =>
 //              println("state decode error")
@@ -241,10 +248,20 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     data match {
       case Protocol.JoinEvent(id, snakeInfo) =>
         println(s"receive data: $data")
-        grid.snakes += (id -> snakeInfo.get)
+        if(joinOrLeftMap.get(frameIndex).nonEmpty) {
+          joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+        } else {
+          joinOrLeftMap += ((frameIndex, List(data)))
+        }
+
 
       case Protocol.LeftEvent(id, name) =>
-        grid.snakes -= id
+        if(joinOrLeftMap.get(frameIndex).nonEmpty) {
+          joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+        } else {
+          joinOrLeftMap += ((frameIndex, List(data)))
+        }
+
 
       case DirectionEvent(id, keyCode) =>
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
@@ -286,6 +303,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
+
         snapshotMap += frameIndex.toLong -> msg
         if(grid.frameCount >= frameIndex.toLong) { //重置
           syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong, snakes, bodyDetails, fieldDetails, killHistory))
