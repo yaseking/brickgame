@@ -83,7 +83,7 @@ object RoomApiProtocol {
 
   case class PlayerIdName(
                         playerId: String,
-                        nickName: String
+                        nickname: String
   )
 
   case class RoomIdInfo(

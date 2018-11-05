@@ -84,6 +84,20 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.drawImage(crownImg, 705 + length, 110, 50, 50)
     ctx.restore()
   }
+  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+    ctx.save()
+//    ctx.globalAlpha = 0.6
+    ctx.drawImage(bloodImg, 670, 115, 300, 50)
+    ctx.restore()
+    ctx.save()
+    ctx.setFont(Font.font(30))
+    ctx.setFill(ColorsSetting.gameNameColor)
+    val txt = s"$killedName is killed by $killerName"
+    val length = 100
+    val offx = (270 - length) / 2
+    ctx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
+    ctx.restore()
+  }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
