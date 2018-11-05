@@ -69,7 +69,7 @@ object RoomApiProtocol {
 
   case class RecordPlayerInfo(
                              playerId: String,
-                             nickName: String,
+                             nickname: String,
                              existTime: List[ExistTime]
                              )
 
