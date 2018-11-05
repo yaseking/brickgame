@@ -211,23 +211,23 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
 //        println(s"receive replayFrameData")
-        eventsData match {
-          case EventData(events) =>
-            events.foreach (event => replayMessageHandler(event, frameIndex))
-          case Protocol.DecodeError() =>
-//            println("events decode error")
-          case _ =>
-        }
         if(stateData.nonEmpty) {
           stateData.get match {
             case msg: Snapshot =>
 //              println(s"snapshot get")
-//              println(s"snapshot:$msg")
+              println(s"snapshot:$msg")
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() =>
 //              println("state decode error")
             case _ =>
           }
+        }
+        eventsData match {
+          case EventData(events) =>
+            events.foreach (event => replayMessageHandler(event, frameIndex))
+          case Protocol.DecodeError() =>
+          //            println("events decode error")
+          case _ =>
         }
 
       case x@_ =>
@@ -239,9 +239,12 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
   private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
     data match {
-      case Protocol.JoinEvent(id, name) => //不做处理，直接获取快照
+      case Protocol.JoinEvent(id, snakeInfo) =>
+        println(s"receive data: $data")
+        grid.snakes += (id -> snakeInfo.get)
 
-      case Protocol.LeftEvent(id, name) => //不做处理，直接获取快照
+      case Protocol.LeftEvent(id, name) =>
+        grid.snakes -= id
 
       case DirectionEvent(id, keyCode) =>
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
