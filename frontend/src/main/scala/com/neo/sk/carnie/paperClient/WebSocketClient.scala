@@ -109,7 +109,7 @@ class WebSocketClient (
 
   def getWebSocketUri4WatchGame(roomId: String, playerId: String, accessCode: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/watchGame?roomId=$roomId&playerId=$playerId&accessCode=$accessCode"
+    s"$wsProtocol://${dom.document.location.host}/carnie/observeGame?roomId=$roomId&playerId=$playerId&accessCode=$accessCode"
   }
 
   def getWebSocketUri4WatchRecord(recordId: String, playerId: String, frame: String, accessCode: String): String = {

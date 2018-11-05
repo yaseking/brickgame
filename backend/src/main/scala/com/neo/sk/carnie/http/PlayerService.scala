@@ -54,13 +54,14 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         handleWebSocketMessages(webSocketChatFlow(id, sender = name))
       }
     } ~
-      path("watchGame") {
+      path("observeGame") {
         parameter(
           'roomId.as[Int],
           'playerId.as[String],
           'accessCode.as[String]
         ) { (roomId, playerId, accessCode) =>
 //          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+          log.info(s"i received accessCode: $accessCode.")
           val gameId = AppSettings.esheepGameId
           dealFutureResult{
             val msg: Future[String] = tokenActor ? AskForToken
