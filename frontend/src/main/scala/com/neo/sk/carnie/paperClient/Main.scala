@@ -12,6 +12,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 /**
   * Created by haoshuhan on 2018/11/2.
   */
+
 @JSExportTopLevel("paperClient.Main")
 object Main extends js.JSApp {
   def main(): Unit = {
