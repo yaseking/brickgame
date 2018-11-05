@@ -222,7 +222,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           stateData.get match {
             case msg: Snapshot =>
 //              println(s"snapshot get")
-//              println(s"snapshot:$msg")
+              println(s"snapshot:$msg")
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() =>
 //              println("state decode error")
