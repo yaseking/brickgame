@@ -79,7 +79,7 @@ object TokenActor {
               case Right(rsp) =>
                 println(s"token is ${rsp.token}")
                 tokenWaiter.foreach(r => r ! rsp.token)
-                val expiresAt = System.currentTimeMillis() + 7200*1000 - 3*1000
+                val expiresAt = System.currentTimeMillis() + 7200*1000 - 10*1000
                 ctx.self ! SwitchBehavior("idle", idle(AccessToken(rsp.token, expiresAt)))
 
               case Left(e) =>
