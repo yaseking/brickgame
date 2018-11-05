@@ -39,8 +39,6 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-//  case class WatcherLeftRoom(playerId: String) extends Command
-
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   case class WatchGame(uid: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
@@ -116,14 +114,10 @@ object RoomActor {
 
         case WatchGame(playerId, subscriber) =>
           val watchId = watcherIdGenerator.getAndIncrement().toString
-//          val randomInt = new Random().nextInt(userMap.toList.length)
           val truePlayerId = if(playerId == "unknown") userMap.head._1 else playerId
-          val playerName = userMap.getOrElse(truePlayerId, "unKnown")
           watcherMap.put(watchId, truePlayerId)
           subscribersMap.put(watchId, subscriber)
           dispatchTo(subscribersMap, watchId, Protocol.Id(truePlayerId))
-//          ctx.watchWith(subscriber, UserLeft(subscriber)) //此行不删
-//          ctx.watchWith(subscriber, LeftRoom(truePlayerId, playerName))//此行不删
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           Behaviors.same
@@ -213,6 +207,7 @@ object RoomActor {
             val finalData = grid.getGridData
             grid.cleanData()
             dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
+            gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
           }
 
           //for gameRecorder...

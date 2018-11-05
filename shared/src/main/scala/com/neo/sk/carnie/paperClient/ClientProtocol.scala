@@ -6,5 +6,4 @@ package com.neo.sk.carnie.paperClient
 object ClientProtocol {
 
   case class PlayerInfoInClient(id: String, name: String, accessCode: String)
-
 }

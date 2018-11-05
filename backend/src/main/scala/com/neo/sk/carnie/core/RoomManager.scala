@@ -11,9 +11,9 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
-import com.neo.sk.carnie.core.RoomManager.PreWatchGame
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.RecordFrameInfo
 
 
 /**
@@ -41,15 +41,17 @@ object RoomManager {
 
   case class WatcherLeft(roomId: Int, playerId: String) extends Command
 
-  case class StartReplay(recordId: Long, playerId: String, frame: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class StartReplay(recordId: Long, playedId: String, frame: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource], playerId: String) extends Command
 
-  case class StopReplay(recordId: Long) extends Command
+  case class StopReplay(recordId: Long, playerId: String) extends Command
 
   case class FindRoomId(pid: String, reply: ActorRef[Option[(Int, mutable.HashSet[(String, String)])]]) extends Command
 
   case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
+
+  case class GetRecordFrame(recordId: Long, playerId: String, replyTo: ActorRef[RecordFrameInfo]) extends Command
 
   case object CompleteMsgFront extends Command
 
@@ -99,13 +101,17 @@ object RoomManager {
           }
           Behaviors.same
 
-        case StartReplay(recordId, playerId, frame, subscriber) =>
+        case StartReplay(recordId, playedId, frame, subscriber, playerId) =>
           log.info(s"got $msg")
-          getGameReplay(ctx, recordId) ! GameReplay.InitReplay(subscriber, playerId, frame)
+          getGameReplay(ctx, recordId, playerId) ! GameReplay.InitReplay(subscriber, playedId, frame)
           Behaviors.same
 
-        case StopReplay(recordId) =>
-          getGameReplay(ctx, recordId) ! GameReplay.StopReplay()
+        case GetRecordFrame(recordId, playerId, replyTo) =>
+          getGameReplay(ctx, recordId, playerId) ! GameReplay.GetRecordFrame(playerId, replyTo)
+          Behaviors.same
+
+        case StopReplay(recordId, playerId) =>
+          getGameReplay(ctx, recordId, playerId) ! GameReplay.StopReplay()
           Behaviors.same
 
         case m@PreWatchGame(roomId, playerId, subscriber) =>
@@ -185,9 +191,9 @@ object RoomManager {
     onFailureMessage = FailMsgFront.apply
   )
 
-  private def sink4Replay(actor: ActorRef[Command], recordId: Long) = ActorSink.actorRef[Command](
+  private def sink4Replay(actor: ActorRef[Command], recordId: Long, playerId: String) = ActorSink.actorRef[Command](
     ref = actor,
-    onCompleteMessage = StopReplay(recordId),
+    onCompleteMessage = StopReplay(recordId, playerId),
     onFailureMessage = FailMsgFront.apply
   )
 
@@ -247,7 +253,7 @@ object RoomManager {
     Flow.fromSinkAndSource(in, out)
   }
 
-  def replayGame(actor: ActorRef[RoomManager.Command], recordId: Long, userId: String, frame: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+  def replayGame(actor: ActorRef[RoomManager.Command], recordId: Long, playedId: String, frame: Int, playerId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
@@ -255,7 +261,7 @@ object RoomManager {
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
         case _ => UnKnowAction
       }
-      .to(sink4Replay(actor, recordId))
+      .to(sink4Replay(actor, recordId, playerId))
 
     val out =
       ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
@@ -267,7 +273,7 @@ object RoomManager {
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! StartReplay(recordId, userId, frame, outActor))
+      ).mapMaterializedValue(outActor => actor ! StartReplay(recordId, playedId, frame, outActor, playerId))
 
     Flow.fromSinkAndSource(in, out)
   }
@@ -282,10 +288,10 @@ object RoomManager {
     }.upcast[RoomActor.Command]
   }
 
-  private def getGameReplay(ctx: ActorContext[Command], recordId:Long) = {
+  private def getGameReplay(ctx: ActorContext[Command], recordId:Long, playerId: String) = {
     val childName = s"gameReplay--$recordId"
     ctx.child(childName).getOrElse {
-      val actor = ctx.spawn(GameReplay.create(recordId), childName)
+      val actor = ctx.spawn(GameReplay.create(recordId, playerId), childName)
       actor
     }.upcast[GameReplay.Command]
   }

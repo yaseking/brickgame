@@ -46,7 +46,7 @@ object TokenActor {
       implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
         ctx.self ! GetToken()
-        updateToken()
+        updateToken(Nil)
       }
     }
   }
@@ -56,9 +56,8 @@ object TokenActor {
       msg match {
         case AskForToken(reply) =>
           if (token.isOutOfTime) {
-            reply ! token.token
-            ctx.self ! GetToken()
-            switchBehavior(ctx, "updateToken", updateToken())
+            log.debug("time to refresh token...")
+            switchBehavior(ctx, "updateToken", updateToken(List(reply)))
           } else {
             reply ! token.token
             Behaviors.same
@@ -72,7 +71,7 @@ object TokenActor {
     }
   }
 
-  def updateToken()(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+  def updateToken(tokenWaiter: List[ActorRef[String]])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case GetToken(times) =>
@@ -80,7 +79,8 @@ object TokenActor {
             EsheepClient.getTokenRequest(AppSettings.esheepGameId, AppSettings.esheepGsKey).map {
               case Right(rsp) =>
                 println(s"token is ${rsp.token}")
-                val expiresAt = System.currentTimeMillis() + 7200*1000 - 180*1000
+                tokenWaiter.foreach(r => r ! rsp.token)
+                val expiresAt = System.currentTimeMillis() + 7200*1000 - 10*1000
                 ctx.self ! SwitchBehavior("idle", idle(AccessToken(rsp.token, expiresAt)))
 
               case Left(e) =>
@@ -92,6 +92,9 @@ object TokenActor {
             timer.startSingleTimer(GetTokenKey, GetToken(), 5.minutes)
           }
           Behaviors.same
+
+        case AskForToken(reply) =>
+          updateToken(reply :: tokenWaiter)
 
         case SwitchBehavior(name, behavior, durationOpt, timeOut) =>
           switchBehavior(ctx, name, behavior, durationOpt, timeOut)

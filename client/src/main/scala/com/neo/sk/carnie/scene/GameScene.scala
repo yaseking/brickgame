@@ -48,8 +48,7 @@ class GameScene {
   group.getChildren.add(rankCanvas)
 
   val background = new BackgroundCanvas(backgroundCanvas)
-//  background.drawCache1()
-  val view = new GameViewCanvas(viewCanvas,backgroundCanvas)
+  val view = new GameViewCanvas(viewCanvas,background)
   val rank = new RankCanvas(rankCanvas)
 
 

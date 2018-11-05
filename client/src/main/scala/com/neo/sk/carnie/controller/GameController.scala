@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, UserAction}
-import com.neo.sk.carnie.paperClient.{Boundary, Point, Protocol, WsSourceProtocol}
+import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.scene.GameScene
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
@@ -31,11 +31,14 @@ class GameController(player: PlayerInfoInClient,
   var grid = new GridOnClient(bounds)
   var firstCome = true
   val idGenerator = new AtomicInteger(1)
-
+  var scoreFlag = true
+  var isWin = false
+  var winnerName = "unknown"
+  var play = true
   var justSynced = false
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
-
+  private var isContinue = true
   private val timeline = new Timeline()
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
@@ -68,6 +71,7 @@ class GameController(player: PlayerInfoInClient,
 
   private def logicLoop(): Unit = { //逻辑帧
     logicFrameTime = System.currentTimeMillis()
+    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
     if (!justSynced) {
       grid.update("f")
       if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
@@ -141,10 +145,20 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.ReStartGame =>
         Boot.addToPlatform {
           firstCome = true
+          scoreFlag = true
+          if(isWin){
+            isWin = false
+            winnerName = "unknown"
+          }
+          animationTimer.start()
+          isContinue = true
+
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
+          isWin = true
+          winnerName = winner
           gameScene.drawGameWin(player.id, winner, finalData)
           grid.cleanData()
           animationTimer.stop()
@@ -175,7 +189,10 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case x@Protocol.ReceivePingPacket(_) =>
-        //          PerformanceTool.receivePingPackage(x)
+        Boot.addToPlatform{
+          PerformanceTool.receivePingPackage(x)
+        }
+
 
       case unknown@_ =>
         log.debug(s"i receive an unknown msg:$unknown")

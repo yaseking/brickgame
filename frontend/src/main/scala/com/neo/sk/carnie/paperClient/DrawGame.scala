@@ -357,7 +357,6 @@ class DrawGame(
 
     rankCtx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
     rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
-//    rankCtx.clearRect(0,0, rankCanvas.width, rankCanvas.height)
 
     lastRankNum = currentRank.length
 

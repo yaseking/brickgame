@@ -4,22 +4,17 @@ import akka.actor.typed.{ActorRef, Behavior, PostStop}
 import com.neo.sk.carnie.paperClient.{Protocol, WsSourceProtocol}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.carnie.common.AppSettings
-import com.neo.sk.carnie.models.SlickTables
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.utils.essf.RecordGame.getRecorder
 import org.seekloud.byteobject.MiddleBufferInJvm
-import org.seekloud.byteobject.ByteObject._
 import org.seekloud.essf.io.{FrameData, FrameInputStream, FrameOutputStream}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 import org.slf4j.LoggerFactory
-
-import scala.collection.mutable
-import scala.util.{Failure, Success}
 import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.core.RoomManager.{Command, FailMsgFront, Left}
+import com.neo.sk.carnie.ptcl.RoomApiProtocol
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.RecordFrameInfo
 import com.neo.sk.utils.essf.RecallGame._
 
 /**
@@ -40,7 +35,7 @@ object GameReplay {
   case object GameLoop extends Command
 
   case class Left() extends Command
-
+  case class GetRecordFrame(playerId: String, replyTo: ActorRef[RecordFrameInfo]) extends Command
   case class StopReplay() extends Command
 
   final case class SwitchBehavior(
@@ -63,31 +58,12 @@ object GameReplay {
   case class InitReplay(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], userId:String, f:Int) extends Command
 
 
-  def create(recordId:Long): Behavior[Command] = {
+  def create(recordId:Long, playerId: String): Behavior[Command] = {
     Behaviors.setup[Command]{ ctx=>
       log.info(s"${ctx.self.path} is starting..")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
-        //test
-//        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540539148541_0")
-//        val info=replay.init()
-//        try{
-//          println(s"test1")
-//          println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-//          println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
-//          println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
-//          ctx.self ! SwitchBehavior("work",
-//            work(
-//              replay,
-//              metaDataDecode(info.simulatorMetadata).right.get,
-//              //
-//              userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-//            ))
-//        }catch {
-//          case e:Throwable=>
-//            log.error("error init game replay---"+e.getMessage)
-//        }
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
 //            log.debug(s"game path ${r.filePath}")
@@ -102,6 +78,7 @@ object GameReplay {
                 work(
                   replay,
                   metaDataDecode(info.simulatorMetadata).right.get,
+                  info.frameCount,
                   userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
                 ))
             }catch {
@@ -118,7 +95,7 @@ object GameReplay {
 
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
-           //           initState:TankGameEvent.TankGameSnapshot,
+           frameCount: Int,
            userMap:List[((Protocol.UserBaseInfo, List[Protocol.UserJoinLeft]))],
            userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None
           )(
@@ -149,7 +126,7 @@ object GameReplay {
               log.info(s"replay from frame=${fileReader.getFramePosition}")
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
-                work(fileReader,metaData,userMap,Some(msg.subscriber))
+                work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber))
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
                 Behaviors.same
@@ -176,6 +153,10 @@ object GameReplay {
             timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
             Behaviors.same
           }
+
+        case GetRecordFrame(playerId, replyTo) =>
+          replyTo ! RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount)
+          Behaviors.same
 
         case StopReplay() =>
           Behaviors.stopped

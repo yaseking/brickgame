@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.model.ReplayInfo
+import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.bytesDecode
 import org.seekloud.byteobject.decoder
@@ -25,18 +26,25 @@ class WebSocketClient (
   private var wsSetup = false
   private var gameStreamOpt: Option[WebSocket] = None
 
-  def setUp(playId: String, name: String, order: String, replayInfo: Option[ReplayInfo]): Unit = {
+  def setUp(order: String, setupInfo: WebSocketPara): Unit = {
     if (!wsSetup) {
-      val url = order match {
-        case "playGame" =>
-          getWebSocketUri(playId, name)
-        case "watchGame" =>
-          println("set up watchGame webSocket!")
-          getWebSocketUri4WatchGame(playId, name)
-        case "watchRecord" =>
-          val info = replayInfo.getOrElse(ReplayInfo("1000001", "1000001", "1000", "abcd1000"))
-          getWebSocketUri4WatchRecord(info)
+      val url = setupInfo match {
+        case p: PlayGamePara => getWebSocketUri(p.playerId, p.playerName)
+        case p: WatchGamePara => getWebSocketUri4WatchGame(p.roomId, p.playerId)
+        case p: WatchRecordPara => getWebSocketUri4WatchRecord(p.recordId, p.playerId, p.frame, p.accessCode)
+//        case _ =>
+
       }
+//      val url = order match {
+//        case "playGame" =>
+//          getWebSocketUri(playId, name)
+//        case "watchGame" =>
+//          println("set up watchGame webSocket!")
+//          getWebSocketUri4WatchGame(playId, name)
+//        case "watchRecord" =>
+//          val info = replayInfo.getOrElse(ReplayInfo("1000001", "1000001", "1000", "abcd1000"))
+//          getWebSocketUri4WatchRecord(info)
+//      }
       val gameStream = new WebSocket(url)
       gameStreamOpt = Some(gameStream)
 
@@ -99,13 +107,12 @@ class WebSocketClient (
     s"$wsProtocol://${dom.document.location.host}/carnie/join?id=$idOfChatParticipant&name=$nameOfChatParticipant"
   }
 
-  def getWebSocketUri4WatchGame(idOfChatParticipant: String, nameOfChatParticipant: String): String = {
+  def getWebSocketUri4WatchGame(roomId: String, playerId: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/watchGame?roomId=$idOfChatParticipant&playerId=$nameOfChatParticipant"
+    s"$wsProtocol://${dom.document.location.host}/carnie/watchGame?roomId=$roomId&playerId=$playerId"
   }
 
-  def getWebSocketUri4WatchRecord(replayInfo: ReplayInfo): String = {
-    import replayInfo._
+  def getWebSocketUri4WatchRecord(recordId: String, playerId: String, frame: String, accessCode: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     s"$wsProtocol://${dom.document.location.host}/carnie/joinWatchRecord?recordId=$recordId&playerId=$playerId&frame=$frame&accessCode=$accessCode"
   }
