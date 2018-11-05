@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
-import com.neo.sk.carnie.paperClient.Constant.ColorsSetting
+import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D

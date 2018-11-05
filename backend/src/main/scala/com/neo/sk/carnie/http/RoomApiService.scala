@@ -49,6 +49,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
       val msg: Future[Option[List[(String, String)]]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
       msg.map {
         case Some(plist) =>
+          println("!!!!!!!!")
           complete(PlayerListRsp(PlayerInfo(plist.map(p => PlayerIdName(p._1, p._2)))))
         case None =>
           log.info("get player list error")
@@ -59,7 +60,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
-    dealPostReq[AllRoomReq] { req =>
+    dealPostReqWithoutData {
       val msg: Future[List[Int]] = roomManager ? RoomManager.FindAllRoom
       msg.map {
         allRoom =>
