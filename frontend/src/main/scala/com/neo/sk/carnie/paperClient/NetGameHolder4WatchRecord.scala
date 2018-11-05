@@ -221,14 +221,13 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 //              println("state decode error")
             case _ =>
           }
-        } else {
-          eventsData match {
-            case EventData(events) =>
-              events.foreach (event => replayMessageHandler(event, frameIndex))
-            case Protocol.DecodeError() =>
-            //            println("events decode error")
-            case _ =>
-          }
+        }
+        eventsData match {
+          case EventData(events) =>
+            events.foreach (event => replayMessageHandler(event, frameIndex))
+          case Protocol.DecodeError() =>
+          //            println("events decode error")
+          case _ =>
         }
 
       case x@_ =>
