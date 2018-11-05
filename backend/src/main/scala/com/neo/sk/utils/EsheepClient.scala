@@ -87,7 +87,6 @@ object EsheepClient extends HttpUtil with CirceSupport {
                       token: String
                     ) = {
     println("start inputBatRecord!")
-//    val token = KeyData.token
     val gameId = AppSettings.esheepGameId
     val esheepUrl = baseUrl1 + s"/api/gameServer/addPlayerRecord?token=$token"
     val sendData = InputRecord(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime)).asJson.noSpaces

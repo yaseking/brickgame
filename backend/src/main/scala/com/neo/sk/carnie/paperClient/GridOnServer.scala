@@ -374,10 +374,9 @@ class GridOnServer(override val boundary: Point) extends Grid {
     //    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
 
     finalDie.foreach { sid =>
-      val score = grid.filter(_._2 match { case Body(id, _) if id == sid => true case _ => false }).toList.length
+      val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length
       val killing = if (snakes.contains(sid)) snakes(sid).kill else 0
       val nickname = if (snakes.contains(sid)) snakes(sid).name else "Unknown"
-      println(s"score: $score, killing: $killing, nickname: $nickname")
       val startTime = startTimeMap(sid)
       val endTime = System.currentTimeMillis()
       val msg: Future[String] = tokenActor ? AskForToken
