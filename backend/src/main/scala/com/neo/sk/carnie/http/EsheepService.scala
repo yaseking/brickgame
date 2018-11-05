@@ -67,7 +67,8 @@ trait EsheepService extends ServiceUtils with CirceSupport {
           msg.map {token =>
             dealFutureResult{
               EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-                case Right(_) =>
+                case Right(data) =>
+                  log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}")
                   getFromResource("html/netSnake.html")
                 case Left(e) =>
                   log.error(s"watchGame error. fail to verifyAccessCode err: $e")

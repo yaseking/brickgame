@@ -86,7 +86,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
 
       }
     } ~
-      path("joinGame4Client") {
+      (path("joinGame4Client") & get ) {
         parameter(
           'id.as[String],
           'name.as[String],
