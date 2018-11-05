@@ -73,7 +73,7 @@ object Protocol {
 
   case object ReStartGame extends GameMessage
 
-  case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage
+  case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage with GameEvent
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage
 
@@ -95,7 +95,7 @@ object Protocol {
 
 
   //essf
-  sealed trait GameEvent
+  sealed trait GameEvent extends GameMessage
 
   case class JoinEvent(id: String, nickName: String) extends GameEvent
 

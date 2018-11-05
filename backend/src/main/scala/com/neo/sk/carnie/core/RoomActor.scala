@@ -207,6 +207,7 @@ object RoomActor {
             val finalData = grid.getGridData
             grid.cleanData()
             dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
+            gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
           }
 
           //for gameRecorder...
