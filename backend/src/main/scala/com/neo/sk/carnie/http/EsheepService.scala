@@ -88,27 +88,27 @@ trait EsheepService extends ServiceUtils with CirceSupport {
       'accessCode.as[String]
     ) {
       case (recordId, playerId, frame, accessCode) =>
-        val gameId = AppSettings.esheepGameId
-        dealFutureResult{
-          val msg: Future[String] = tokenActor ? AskForToken
-          msg.map {token =>
-            dealFutureResult{
-              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-                case Right(rsp) =>
-                  //                    println(s"rsp: $rsp")
-//                  if(rsp.playerId == playerId){
+//        val gameId = AppSettings.esheepGameId
+//        dealFutureResult{
+//          val msg: Future[String] = tokenActor ? AskForToken
+//          msg.map {token =>
+//            dealFutureResult{
+//              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+//                case Right(rsp) =>
+//                  //                    println(s"rsp: $rsp")
+////                  if(rsp.playerId == playerId){
                     getFromResource("html/netSnake.html")
-//                  } else {
-//                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
-//                  }
-                case Left(e) =>
-                  log.error(s"playGame error. fail to verifyAccessCode err: $e")
-//                  getFromResource("html/netSnake.html")
-                  complete(ErrorRsp(120005, "Some errors happened in parse verifyAccessCode."))
-              }
-            }
-          }
-        }
+////                  } else {
+////                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
+////                  }
+//                case Left(e) =>
+//                  log.error(s"playGame error. fail to verifyAccessCode err: $e")
+////                  getFromResource("html/netSnake.html")
+//                  complete(ErrorRsp(120005, "Some errors happened in parse verifyAccessCode."))
+//              }
+//            }
+//          }
+//        }
     }
   }
 
