@@ -54,7 +54,7 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
-  private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
+  private val watchGame = (path("watchGame") & get) {
     log.info("success to render watchGame page.")
     getFromResource("html/netSnake.html")
 //    parameter(
