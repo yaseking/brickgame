@@ -118,9 +118,7 @@ object GameRecorder {
             case _ =>
           }
 
-          var newEventRecorder = if(snapshot.nonEmpty) {
-            (Nil, snapshot) :: eventRecorder
-          } else (event._1, snapshot) :: eventRecorder
+          var newEventRecorder =  (event._1, snapshot) :: eventRecorder
 
           if (newEventRecorder.lengthCompare(maxRecordNum) > 0) { //每一百帧写入一次
             newEventRecorder.reverse.foreach {

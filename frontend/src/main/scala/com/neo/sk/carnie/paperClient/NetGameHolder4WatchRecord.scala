@@ -211,13 +211,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
 //        println(s"receive replayFrameData")
-        eventsData match {
-          case EventData(events) =>
-            events.foreach (event => replayMessageHandler(event, frameIndex))
-          case Protocol.DecodeError() =>
-//            println("events decode error")
-          case _ =>
-        }
         if(stateData.nonEmpty) {
           stateData.get match {
             case msg: Snapshot =>
@@ -226,6 +219,14 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() =>
 //              println("state decode error")
+            case _ =>
+          }
+        } else {
+          eventsData match {
+            case EventData(events) =>
+              events.foreach (event => replayMessageHandler(event, frameIndex))
+            case Protocol.DecodeError() =>
+            //            println("events decode error")
             case _ =>
           }
         }
