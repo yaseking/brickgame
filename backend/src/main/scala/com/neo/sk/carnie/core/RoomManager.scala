@@ -165,12 +165,11 @@ object RoomManager {
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
-          log.debug(s"got roomId = $roomId")
+          log.debug(s"${ctx.self.path} got roomId = $roomId")
           val replyMsg = roomMap.get(roomId) match {
             case Some(p) => Some(p.toList)
             case _ => None
           }
-          log.debug(s"replyMsg is $replyMsg")
           reply ! replyMsg
           Behaviors.same
 
