@@ -109,7 +109,8 @@ object RoomActor {
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
-          gameEvent += ((grid.frameCount, JoinEvent(id, name)))
+          idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
+          gameEvent += ((grid.frameCount, JoinEvent(id, None)))
           Behaviors.same
 
         case WatchGame(playerId, subscriber) =>
@@ -212,7 +213,10 @@ object RoomActor {
 
           //for gameRecorder...
           val actionEvent = grid.getDirectionEvent(frame)
-          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
+          val joinOrLeftEvent = gameEvent.filter(_._1 == frame).map {
+            case (f, JoinEvent(id, None)) => (f, JoinEvent(id, grid.snakes.get(id)))
+            case other => other
+          }
           val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
           val snapshot = Snapshot(snapshotData.snakes, snapshotData.bodyDetails, snapshotData.fieldDetails, snapshotData.killHistory)

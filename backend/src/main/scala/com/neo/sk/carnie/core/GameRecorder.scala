@@ -92,13 +92,13 @@ object GameRecorder {
 //          log.debug(s"做快照::tickcount:$tickCount, snapshot:$snapshot")
 
           event._1.foreach {
-            case Protocol.JoinEvent(id, nickName) =>
-              userMap.put(id, nickName)
-              userHistoryMap.put(id, nickName)
-              if(essfMap.get(UserBaseInfo(id, nickName)).nonEmpty) {
-                essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)) ::: List(UserJoinLeft(frame, -1l)))
+            case Protocol.JoinEvent(id, info) =>
+              userMap.put(id, info.get.name)
+              userHistoryMap.put(id, info.get.name)
+              if(essfMap.get(UserBaseInfo(id, info.get.name)).nonEmpty) {
+                essfMap.put(UserBaseInfo(id, info.get.name), essfMap(UserBaseInfo(id, info.get.name)) ::: List(UserJoinLeft(frame, -1l)))
               } else {
-                essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(frame, -1l)))
+                essfMap.put(UserBaseInfo(id, info.get.name), List(UserJoinLeft(frame, -1l)))
               }
 
             case Protocol.LeftEvent(id, nickName) =>

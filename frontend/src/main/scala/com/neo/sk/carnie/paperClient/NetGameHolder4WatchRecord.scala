@@ -240,10 +240,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
   private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
     data match {
-      case Protocol.JoinEvent(id, name, snakeInfo) => //不做处理，直接获取快照
-        grid.snakes += (id -> snakeInfo)
+      case Protocol.JoinEvent(id, snakeInfo) =>
+        grid.snakes += (id -> snakeInfo.get)
 
-      case Protocol.LeftEvent(id, name) => //不做处理，直接获取快照
+      case Protocol.LeftEvent(id, name) =>
         grid.snakes -= id
 
       case DirectionEvent(id, keyCode) =>
