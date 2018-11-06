@@ -24,10 +24,10 @@ class GameScene {
 
   var gameSceneListener: GameSceneListener = _
 
-  val viewWidth = 1800
-  val viewHeight = 900
-  val rankWidth = 1800
-  val rankHeight = 300
+  val viewWidth = 1200//1800
+  val viewHeight = 600//900
+  val rankWidth = 1200//1800
+  val rankHeight = 300//300
   val group = new Group()
   val backgroundCanvas = new Canvas()
   val viewCanvas = new Canvas()
