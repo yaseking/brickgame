@@ -60,8 +60,6 @@ trait PlayerService extends ServiceUtils with CirceSupport {
           'playerId.as[String],
           'accessCode.as[String]
         ) { (roomId, playerId, accessCode) =>
-//          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
-          log.info(s"i received accessCode: $accessCode.")
           val gameId = AppSettings.esheepGameId
           dealFutureResult{
             val msg: Future[String] = tokenActor ? AskForToken
@@ -71,7 +69,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(data) =>
                     log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}}")
-                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId, data.playerId))
                   case Left(e) =>
                     log.error(s"watchGame error. fail to verifyAccessCode err: $e")
                     complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
@@ -132,7 +130,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       }
   }
 
-  def webSocketChatFlow4WatchGame(roomId: Int, playerId: String): Flow[Message, Message, Any] = {
+  def webSocketChatFlow4WatchGame(roomId: Int, playerId: String, userId: String): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
     import org.seekloud.byteobject.MiddleBufferInJvm
@@ -160,7 +158,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(RoomManager.watchGame(roomManager, roomId, playerId))
+      .via(RoomManager.watchGame(roomManager, roomId, playerId, userId))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)

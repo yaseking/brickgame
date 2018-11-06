@@ -10,6 +10,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
+import javafx.scene.SnapshotParameters
 
 /**
   * Created by dry on 2018/10/29.
@@ -43,6 +44,12 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
     ctx.restore()
+  }
+
+  def drawBackground(): Unit = {
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+    ctx.drawImage(background.getBackgroundCanvas.snapshot(params, null), 0, 0)
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {

@@ -41,14 +41,13 @@ object RoomActor {
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
-  case class WatchGame(uid: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class WatchGame(playerId: String, userId:String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+
+  case class WatcherLeftRoom(userId: String) extends Command
 
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
 
   private case object Sync extends Command
-
-  private val watcherIdGenerator = new AtomicInteger(100)
-
 
   final case class SwitchBehavior(
                                    name: String,
@@ -113,12 +112,11 @@ object RoomActor {
           gameEvent += ((grid.frameCount, JoinEvent(id, None)))
           Behaviors.same
 
-        case WatchGame(playerId, subscriber) =>
-          val watchId = watcherIdGenerator.getAndIncrement().toString
+        case WatchGame(playerId, userId, subscriber) =>
           val truePlayerId = if(playerId == "unknown") userMap.head._1 else playerId
-          watcherMap.put(watchId, truePlayerId)
-          subscribersMap.put(watchId, subscriber)
-          dispatchTo(subscribersMap, watchId, Protocol.Id(truePlayerId))
+          watcherMap.put(userId, truePlayerId)
+          subscribersMap.put(userId, subscriber)
+          dispatchTo(subscribersMap, userId, Protocol.Id(truePlayerId))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           Behaviors.same
@@ -134,6 +132,12 @@ object RoomActor {
           }
           gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
+
+        case WatcherLeftRoom(uid) =>
+          log.debug(s"WatcherLeftRoom:::$uid")
+          subscribersMap.remove(uid)
+          watcherMap.remove(uid)
+          Behaviors.same
 
         case UserLeft(actor) =>
           log.debug(s"UserLeft:::")
