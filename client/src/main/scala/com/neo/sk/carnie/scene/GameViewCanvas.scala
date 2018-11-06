@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.scene
 
+import java.awt.Graphics
+
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import javafx.scene.canvas.Canvas
@@ -84,6 +86,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.drawImage(crownImg, 705 + length, 110, 50, 50)
     ctx.restore()
   }
+  import javafx.scene.text.Text
   def drawUserDieInfo(killedName: String, killerName: String): Unit = {
     ctx.save()
 //    ctx.globalAlpha = 0.6
@@ -93,7 +96,11 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.setFont(Font.font(30))
     ctx.setFill(ColorsSetting.gameNameColor)
     val txt = s"$killedName is killed by $killerName"
-    val length = 100
+    val text = new Text(txt)
+    text.setFont(Font.font(30))
+    text.setFill(ColorsSetting.gameNameColor)
+
+    val length = text.getLayoutBounds.getWidth
     val offx = (270 - length) / 2
     ctx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
     ctx.restore()
