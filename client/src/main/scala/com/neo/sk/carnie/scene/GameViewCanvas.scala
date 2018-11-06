@@ -99,7 +99,6 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     val text = new Text(txt)
     text.setFont(Font.font(30))
     text.setFill(ColorsSetting.gameNameColor)
-
     val length = text.getLayoutBounds.getWidth
     val offx = (270 - length) / 2
     ctx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
