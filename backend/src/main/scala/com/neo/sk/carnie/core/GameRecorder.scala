@@ -157,6 +157,12 @@ object GameRecorder {
           (essf._1, newJoinLeft)
         }.toList
         recorder.putMutableInfo(AppSettings.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
+        eventRecorder.reverse.foreach {
+          case (events, Some(state)) if events.nonEmpty =>
+            recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
+          case (events, None) if events.nonEmpty => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
+          case _ => recorder.writeEmptyFrame()
+        }
         recorder.finish()
         val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
