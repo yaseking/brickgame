@@ -6,6 +6,7 @@ import com.neo.sk.carnie.paperClient._
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
 import javafx.scene.input.KeyCode
+import javafx.scene.media.AudioClip
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import javafx.stage.Screen
 
@@ -59,6 +60,9 @@ class GameScene {
   val view = new GameViewCanvas(viewCanvas,rankCanvas,background)
   val rank = new RankCanvas(rankCanvas)
 
+  //music
+//  val audioWin = new AudioClip("/mp3/win.mp3")
+//  val audioDie = new AudioClip("/mp3/killed.mp3")
 
 
   private val viewCtx = viewCanvas.getGraphicsContext2D
@@ -99,6 +103,7 @@ class GameScene {
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
     view.drawGameWin(myId: String, winner: String, data: Data4TotalSync)
+//    audioWin.play()
   }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore = BaseScore(0,0,0,0), maxArea: Int = 0): Unit = {

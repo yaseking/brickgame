@@ -11,6 +11,7 @@ import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 import javafx.scene.SnapshotParameters
+import javafx.scene.media.AudioClip
 
 /**
   * Created by dry on 2018/10/29.
@@ -31,6 +32,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
+  private var fieldNum = 1
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -223,6 +225,11 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+
+    if(grid.getMyFieldCount(uid, maxPoint, minPoint)>fieldNum){
+      audioFinish.play()
+      fieldNum = grid.getMyFieldCount(uid, maxPoint, minPoint)
+    }
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
