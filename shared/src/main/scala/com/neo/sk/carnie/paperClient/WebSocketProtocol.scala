@@ -8,7 +8,7 @@ object WebSocketProtocol {
 
   case class PlayGamePara(playerId: String, playerName: String) extends WebSocketPara
 
-  case class WatchGamePara(roomId: String, playerId: String) extends WebSocketPara
+  case class WatchGamePara(roomId: String, playerId: String, accessCode: String) extends WebSocketPara
 
   case class WatchRecordPara(recordId: String, playerId: String, frame: String, accessCode: String) extends WebSocketPara
 

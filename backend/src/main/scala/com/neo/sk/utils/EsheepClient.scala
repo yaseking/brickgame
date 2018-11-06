@@ -47,14 +47,12 @@ object EsheepClient extends HttpUtil with CirceSupport {
   }
 
   def verifyAccessCode(gameId: Long, accessCode: String, token: String) = {
-//    println(s"got token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/verifyAccessCode?token=$token"
     val sendData = VerifyAccCode(gameId, accessCode).asJson.noSpaces
 
     log.info("Start verifyAccessCode!")
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
-//        println(s"str in verifyAccessCode: $str")
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
@@ -97,7 +95,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
               println("finish inputBatRecord!")
               Right(rsp)
             } else {
-              log.error(s"inputBatRecord error $esheepUrl rsp.error${rsp.msg}")
+              log.error(s"inputBatRecord errorCode $esheepUrl rsp.error${rsp.msg}")
               Left("error.")
             }
           case Left(e) =>
@@ -108,8 +106,8 @@ object EsheepClient extends HttpUtil with CirceSupport {
         log.error(s"inputBatRecord error $esheepUrl rsp.error$e")
         Left("error.")
     }
-
   }
+
   def main(args: Array[String]): Unit = {
     import com.neo.sk.utils.SecureUtil._
     val appId = AppSettings.esheepGameId.toString

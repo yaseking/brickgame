@@ -54,12 +54,31 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         handleWebSocketMessages(webSocketChatFlow(id, sender = name))
       }
     } ~
-      path("watchGame") {
+      path("observeGame") {
         parameter(
           'roomId.as[Int],
-          'playerId.as[String]
-        ) { (roomId, playerId) =>
-          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+          'playerId.as[String],
+          'accessCode.as[String]
+        ) { (roomId, playerId, accessCode) =>
+//          handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+          log.info(s"i received accessCode: $accessCode.")
+          val gameId = AppSettings.esheepGameId
+          dealFutureResult{
+            val msg: Future[String] = tokenActor ? AskForToken
+            msg.map {token =>
+              dealFutureResult{
+                log.info("Start to watchGame.")
+                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+                  case Right(data) =>
+                    log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}}")
+                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId))
+                  case Left(e) =>
+                    log.error(s"watchGame error. fail to verifyAccessCode err: $e")
+                    complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
+                }
+              }
+            }
+          }
         }
       } ~ path("joinWatchRecord") {
       parameter(
@@ -78,14 +97,14 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 case Right(rsp) =>
                   handleWebSocketMessages(webSocketChatFlow4WatchRecord(playerId, recordId, frame, rsp.playerId))
                 case Left(e) =>
-                  complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+                  complete(ErrorRsp(120006, "Some errors happened in parse verifyAccessCode."))
               }
             }
           }
         }
       }
     } ~
-      path("joinGame4Client") {
+      (path("joinGame4Client") & get ) {
         parameter(
           'id.as[String],
           'name.as[String],

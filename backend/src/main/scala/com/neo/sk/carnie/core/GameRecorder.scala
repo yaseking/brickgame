@@ -82,23 +82,25 @@ object GameRecorder {
         case RecordData(frame, event) => //记录数据
           val snapshot =
             if(event._1.exists{
-              case Protocol.DirectionEvent(_,_) => false
-              case Protocol.EncloseEvent(_) => false
-              case Protocol.RankEvent(_) => false
-              case _ => true} ||
+              case JoinEvent(_, info) =>
+                println(s"add joinEvent: $info")
+                true
+              case LeftEvent(_, _) => true
+              case SpaceEvent(_) => true
+              case _ => false} ||
               tickCount % 50 == 0) Some(event._2) else None //是否做快照
 
 //          log.debug(s"${event._1.exists{case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true}}")
 //          log.debug(s"做快照::tickcount:$tickCount, snapshot:$snapshot")
 
           event._1.foreach {
-            case Protocol.JoinEvent(id, nickName) =>
-              userMap.put(id, nickName)
-              userHistoryMap.put(id, nickName)
-              if(essfMap.get(UserBaseInfo(id, nickName)).nonEmpty) {
-                essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)) ::: List(UserJoinLeft(frame, -1l)))
+            case Protocol.JoinEvent(id, info) =>
+              userMap.put(id, info.get.name)
+              userHistoryMap.put(id, info.get.name)
+              if(essfMap.get(UserBaseInfo(id, info.get.name)).nonEmpty) {
+                essfMap.put(UserBaseInfo(id, info.get.name), essfMap(UserBaseInfo(id, info.get.name)) ::: List(UserJoinLeft(frame, -1l)))
               } else {
-                essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(frame, -1l)))
+                essfMap.put(UserBaseInfo(id, info.get.name), List(UserJoinLeft(frame, -1l)))
               }
 
             case Protocol.LeftEvent(id, nickName) =>
@@ -118,7 +120,8 @@ object GameRecorder {
             case _ =>
           }
 
-          var newEventRecorder = (event._1, snapshot) :: eventRecorder
+          var newEventRecorder =  (event._1, snapshot) :: eventRecorder
+
           if (newEventRecorder.lengthCompare(maxRecordNum) > 0) { //每一百帧写入一次
             newEventRecorder.reverse.foreach {
               case (events, Some(state)) if events.nonEmpty =>
