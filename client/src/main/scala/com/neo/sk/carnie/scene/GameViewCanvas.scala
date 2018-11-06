@@ -267,6 +267,9 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
+
+//    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
+//    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {
