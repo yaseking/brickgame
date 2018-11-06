@@ -78,7 +78,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
                       nickname: String,
                       killing: Int,
                       killed: Int,
-                      score: Int,
+                      score: Float,
                       gameExtent: String = "",
                       startTime: Long,
                       endTime: Long,
