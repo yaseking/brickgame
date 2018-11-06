@@ -232,7 +232,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               println(s"snapshot get:$msg")
               replayMessageHandler(msg, frameIndex)
             case Protocol.DecodeError() =>
-            //              println("state decode error")
+              println("state decode error")
             case _ =>
           }
         }
