@@ -124,6 +124,16 @@ object GameReplay {
               //              }
               fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
+
+//              for(_ <- 0 until (msg.f - fileReader.getFramePosition)){
+//                if(fileReader.hasMoreFrame){
+//                  fileReader.readFrame().foreach { f => dispatchByteTo(msg.subscriber, f)}
+//                }else{
+//                  log.debug(s"${ctx.self.path} file reader has no frame, reply finish")
+//                  dispatchTo(msg.subscriber, Protocol.ReplayFinish(msg.userId))
+//                }
+//              }
+
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
                 work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber))
