@@ -14,6 +14,7 @@ import akka.actor.typed.scaladsl.adapter._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+import javafx.scene.media.AudioClip
 
 /**
   * Created by dry on 2018/10/29.
@@ -34,8 +35,10 @@ class GameController(player: PlayerInfoInClient,
   var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
-  var play = true
+  var isContinues = true
   var justSynced = false
+  val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
+  val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   private var isContinue = true
@@ -104,7 +107,11 @@ class GameController(player: PlayerInfoInClient,
         }
       case None =>
         if (firstCome) gameScene.drawGameWait()
-        else gameScene.drawGameDie(grid.getKiller(player.id).map(_._2))
+        else {
+          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2))
+          if(isContinue) audioDie.play()
+          isContinue = false
+        }
     }
   }
 
@@ -163,6 +170,7 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
+          audioWin.play()
           isWin = true
           winnerName = winner
           gameScene.drawGameWin(player.id, winner, finalData)
@@ -221,6 +229,16 @@ class GameController(player: PlayerInfoInClient,
           grid.myActionHistory += actionId -> (keyCode, frame)
         } else {
           //数据重置
+          audioWin.stop()
+          audioDie.stop()
+          firstCome = true
+          scoreFlag = true
+          if(isWin){
+            isWin = false
+            winnerName = "unknown"
+          }
+          animationTimer.start()
+          isContinue = true
         }
         playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(key), frame, actionId))
       }

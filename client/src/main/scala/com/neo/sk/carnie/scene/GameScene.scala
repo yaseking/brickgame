@@ -61,8 +61,8 @@ class GameScene {
   val rank = new RankCanvas(rankCanvas)
 
   //music
-//  val audioWin = new AudioClip("/mp3/win.mp3")
-//  val audioDie = new AudioClip("/mp3/killed.mp3")
+//  val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
+//  val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
 
 
   private val viewCtx = viewCanvas.getGraphicsContext2D
@@ -103,7 +103,6 @@ class GameScene {
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
     view.drawGameWin(myId: String, winner: String, data: Data4TotalSync)
-//    audioWin.play()
   }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore = BaseScore(0,0,0,0), maxArea: Int = 0): Unit = {
