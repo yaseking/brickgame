@@ -141,6 +141,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
         } else {
+          println(s"data.snakes:::${data.snakes}")
           data.snakes.find(_.id == myId) match {
             case Some(snake) =>
               firstCome = false
