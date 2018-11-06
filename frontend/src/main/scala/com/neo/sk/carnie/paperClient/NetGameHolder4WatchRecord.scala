@@ -261,6 +261,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     data match {
       case Protocol.JoinEvent(id, snakeInfo) =>
         println(s"receive data: $data")
+        println(s"grid.frameCount:${grid.frameCount}")
         if (grid.frameCount < frameIndex) {
           if(joinOrLeftMap.get(frameIndex).nonEmpty) {
             joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
