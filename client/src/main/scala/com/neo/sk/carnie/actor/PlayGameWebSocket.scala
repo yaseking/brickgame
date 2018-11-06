@@ -115,7 +115,7 @@ object PlayGameWebSocket {
     }, failureMatcher = {
       case WsSendFailed(ex) ⇒ ex
     },
-    bufferSize = 8,
+    bufferSize = 16,
     overflowStrategy = OverflowStrategy.fail
   ).collect {
     case message: UserAction =>

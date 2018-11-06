@@ -58,7 +58,7 @@ class GameScene {
   val getScene: Scene = new Scene(group)
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
-//    background.drawCache(view.offXY(uid, data, offsetTime, grid)._1 , view.offXY(uid, data, offsetTime, grid)._2)
+    //    background.drawCache(view.offXY(uid, data, offsetTime, grid)._1 , view.offXY(uid, data, offsetTime, grid)._2)
     view.drawGrid(uid, data, offsetTime, grid, championId)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
 //    view.drawBackground()
@@ -103,6 +103,9 @@ class GameScene {
     rank.drawRank(myId, snakes, currentRank)
   }
 
+  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+    view.drawUserDieInfo(killedName,killerName)
+  }
 
   def setGameSceneListener(listener: GameSceneListener) {
     gameSceneListener = listener

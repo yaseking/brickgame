@@ -21,8 +21,6 @@ object EsheepClient extends HttpUtil with CirceSupport {
   val domain = AppSettings.esheepDomain
   private val baseUrl = AppSettings.esheepProtocol + "://" + domain + "/" + AppSettings.esheepUrl
 
-//  private val baseUrl1 = "http://flowdev.neoap.com" + "/" + AppSettings.esheepUrl
-
   def getTokenRequest(gameId: Long, gsKey: String) = {
     val esheepUrl = baseUrl + "/api/gameServer/gsKey2Token"
     val sendData = GetToken(gameId, gsKey).asJson.noSpaces
@@ -114,7 +112,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     import com.neo.sk.utils.SecureUtil._
     val appId = AppSettings.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
-    val data = RoomApiProtocol.RecordListReq(0,50).asJson.noSpaces
+    val data = RoomApiProtocol.RoomIdReq(1000).asJson.noSpaces
     val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), AppSettings.esheepGsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
 

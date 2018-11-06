@@ -93,10 +93,16 @@ class GameController(player: PlayerInfoInClient,
   def draw(offsetTime: Long): Unit = {
     val data = grid.getGridData
     data.snakes.find(_.id == player.id) match {
-      case Some(_) =>
+      case Some(snake) =>
         firstCome = false
         gameScene.draw(player.id, data, offsetTime, grid, grid.currentRank.headOption.map(_.id).getOrElse(player.id))
-
+        if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
+          gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
+          grid.lastTime -= 1
+          if (grid.lastTime == 0) {
+            grid.killInfo = ("", "", "")
+          }
+        }
       case None =>
         if (firstCome) gameScene.drawGameWait()
         else gameScene.drawGameDie(grid.getKiller(player.id).map(_._2))

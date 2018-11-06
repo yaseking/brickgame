@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.scene
 
+import java.awt.Graphics
+
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import javafx.scene.canvas.Canvas
@@ -91,6 +93,24 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.drawImage(crownImg, 705 + length, 110, 50, 50)
     ctx.restore()
   }
+  import javafx.scene.text.Text
+  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+    ctx.save()
+//    ctx.globalAlpha = 0.6
+    ctx.drawImage(bloodImg, 670, 115, 300, 50)
+    ctx.restore()
+    ctx.save()
+    ctx.setFont(Font.font(30))
+    ctx.setFill(ColorsSetting.gameNameColor)
+    val txt = s"$killedName is killed by $killerName"
+    val text = new Text(txt)
+    text.setFont(Font.font(30))
+    text.setFill(ColorsSetting.gameNameColor)
+    val length = text.getLayoutBounds.getWidth
+    val offx = (270 - length) / 2
+    ctx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
+    ctx.restore()
+  }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -172,10 +192,10 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.setFill(Color.rgb(105,105,105))
 
     //画边界
-    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心

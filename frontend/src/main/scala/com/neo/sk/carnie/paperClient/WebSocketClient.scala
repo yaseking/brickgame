@@ -32,8 +32,6 @@ class WebSocketClient (
         case p: PlayGamePara => getWebSocketUri(p.playerId, p.playerName)
         case p: WatchGamePara => getWebSocketUri4WatchGame(p.roomId, p.playerId, p.accessCode)
         case p: WatchRecordPara => getWebSocketUri4WatchRecord(p.recordId, p.playerId, p.frame, p.accessCode)
-//        case _ =>
-
       }
 //      val url = order match {
 //        case "playGame" =>

@@ -97,19 +97,6 @@ trait ServiceUtils {
 
   private def getSecureKey(appId: String) = AppSettings.appSecureMap.get(appId)
 
-  def dealPostReqWithoutData(f: => Future[server.Route]): server.Route = {
-    entity(as[Either[Error, PostEnvelope]]) {
-      case Right(envelope) =>
-        ensurePostEnvelope(envelope) {
-          f
-        }
-
-      case Left(e) =>
-        log.error(s"json parse PostEnvelope error: $e")
-        complete(JsonParseError)
-    }
-  }
-
   def dealPostReq[A](f: A => Future[server.Route])(implicit decoder: Decoder[A]): server.Route = {
     entity(as[Either[Error, PostEnvelope]]) {
       case Right(envelope) =>
@@ -122,6 +109,19 @@ trait ServiceUtils {
               log.error(s"json parse detail type error: $e")
               Future.successful(complete(JsonParseError))
           }
+        }
+
+      case Left(e) =>
+        log.error(s"json parse PostEnvelope error: $e")
+        complete(JsonParseError)
+    }
+  }
+
+  def dealPostReqWithoutData(f:  => Future[server.Route]): server.Route = {
+    entity(as[Either[Error, PostEnvelope]]) {
+      case Right(envelope) =>
+        ensurePostEnvelope(envelope) {
+          f
         }
 
       case Left(e) =>
