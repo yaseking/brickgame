@@ -179,10 +179,10 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.setFill(Color.rgb(105,105,105))
 
     //画边界
-    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
