@@ -1,7 +1,5 @@
 package com.neo.sk.carnie.scene
 
-import java.awt.Graphics
-
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import javafx.scene.canvas.Canvas
@@ -27,6 +25,8 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
   private val crownImg = new Image("crown.png")
   private val canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
+  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
 
   def drawGameOff(firstCome: Boolean): Unit = {
@@ -106,8 +106,13 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.restore()
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
+  def drawGameDie(killerOpt: Option[String], currentRank: List[Score], myId: String,startTime: Long): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+    currentRank.filter(_.id == myId).foreach { score =>
+      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+      if (myScore.area > maxArea)
+        maxArea = myScore.area
+    }
     ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.setFill(ColorsSetting.gameNameColor)
@@ -123,7 +128,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     val x = (windowBoundary.x / 2).toInt - 145
     val y = (windowBoundary.y / 2).toInt - 180
 
-    val gameTime = (myScore.endTime - myScore.startTime) / 1000
+    val gameTime = (myScore.endTime - startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
     val time = {
       val tempM = gameTime / 60
@@ -287,6 +292,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
   }
+
 
 
 

@@ -92,9 +92,9 @@ class GameScene {
     view.drawGameWin(myId: String, winner: String, data: Data4TotalSync)
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore = BaseScore(0,0,0,0), maxArea: Int = 0): Unit = {
+  def drawGameDie(killerOpt: Option[String], currentRank: List[Score], myId: String,startTime: Long): Unit = {
     rank.drawClearRank()
-    view.drawGameDie(killerOpt, myScore, maxArea)
+    view.drawGameDie(killerOpt, currentRank, myId,startTime)
   }
 
 

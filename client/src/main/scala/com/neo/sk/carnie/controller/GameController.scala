@@ -104,10 +104,12 @@ class GameController(player: PlayerInfoInClient,
         }
       case None =>
         if (firstCome) gameScene.drawGameWait()
-        else gameScene.drawGameDie(grid.getKiller(player.id).map(_._2))
+        else gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),grid.currentRank,player.id,System.currentTimeMillis())
     }
   }
-
+  def cleanMyScore: Unit = {
+    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+  }
   def gameMessageReceiver(msg: WsSourceProtocol.WsMsgSource): Unit = {
     msg match {
       case Protocol.Id(id) =>
