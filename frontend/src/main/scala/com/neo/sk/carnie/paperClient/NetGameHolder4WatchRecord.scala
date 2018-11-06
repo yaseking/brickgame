@@ -141,6 +141,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
         } else {
+          println(s"data.snakes:::${data.snakes}")
           data.snakes.find(_.id == myId) match {
             case Some(snake) =>
               firstCome = false
@@ -224,6 +225,19 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         println(s"receive replayFrameData")
         println(s"grid.frameCount:${grid.frameCount}")
         println(s"frameIndex:$frameIndex")
+        if(frameIndex == 0) grid.frameCount = 0
+        if(stateData.nonEmpty) {
+          stateData.get match {
+            case msg: Snapshot =>
+              println(s"snapshot get:$msg")
+              replayMessageHandler(msg, frameIndex)
+            case Protocol.DecodeError() =>
+              println("state decode error")
+            case _ =>
+          }
+        }
+
+
         eventsData match {
           case EventData(events) =>
             println(s"eventsData:$eventsData")
@@ -233,16 +247,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           case _ =>
         }
 
-        if(stateData.nonEmpty) {
-          stateData.get match {
-            case msg: Snapshot =>
-              println(s"snapshot get")
-              replayMessageHandler(msg, frameIndex)
-            case Protocol.DecodeError() =>
-//              println("state decode error")
-            case _ =>
-          }
-        }
+
 
 
       case x@_ =>
