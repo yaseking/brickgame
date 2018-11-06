@@ -61,7 +61,7 @@ class GameScene {
 //    background.drawCache(view.offXY(uid, data, offsetTime, grid)._1 , view.offXY(uid, data, offsetTime, grid)._2)
     view.drawGrid(uid, data, offsetTime, grid, championId)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    view.drawBackground()
+//    view.drawBackground()
   }
 
   def drawGameWait(): Unit = {

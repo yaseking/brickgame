@@ -44,10 +44,10 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.restore()
   }
 
-  def drawBackground(): Unit = {
+  def drawBackground(offx: Float, offy: Float): Unit = {
     val params = new SnapshotParameters
     params.setFill(Color.TRANSPARENT)
-    ctx.drawImage(background.getBackgroundCanvas.snapshot(params, null), 0, 0)
+    ctx.drawImage(background.getBackgroundCanvas.snapshot(params, null), offx * canvasUnit, offy * canvasUnit)
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
@@ -205,7 +205,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-    drawCache(offx , offy)
+//    drawCache(offx , offy)
     ctx.setGlobalAlpha(0.6)
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
@@ -262,6 +262,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     }
 
 
+//    drawBackground(offx, offy)
 //    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)

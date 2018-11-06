@@ -55,6 +55,7 @@ class GameController(player: PlayerInfoInClient,
   def start(domain: String): Unit = {
     playActor ! PlayGameWebSocket.ConnectGame(player, domain)
     addUserActionListen()
+    gameScene.background.drawCache()
     startGameLoop()
   }
 

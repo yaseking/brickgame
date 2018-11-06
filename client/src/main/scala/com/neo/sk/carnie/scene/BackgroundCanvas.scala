@@ -14,15 +14,25 @@ class BackgroundCanvas(canvas: Canvas) {
 
   def getBackgroundCanvas = canvas
 
-  def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
-    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
+//  def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
+//    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
+//    ctx.setFill(Color.rgb(105,105,105))
+//
+//    //画边界
+//    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
+//    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
+//    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+//    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+//  }
+
+  def drawCache(): Unit = { //离屏缓存的更新--缓存边界
     ctx.setFill(Color.rgb(105,105,105))
 
     //画边界
-    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    ctx.fillRect(0, 0, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(0, 0, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(0, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect(BorderSize.w * canvasUnit, 0, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
 
