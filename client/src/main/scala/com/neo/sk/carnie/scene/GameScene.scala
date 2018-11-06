@@ -7,6 +7,7 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
 import javafx.scene.input.KeyCode
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
+import javafx.stage.Screen
 
 /**
   * Created by dry on 2018/10/29.
@@ -24,10 +25,17 @@ class GameScene {
 
   var gameSceneListener: GameSceneListener = _
 
-  val viewWidth = 1200//1800
-  val viewHeight = 600//900
-  val rankWidth = 1200//1800
-  val rankHeight = 300//300
+  val screen= Screen.getPrimary.getVisualBounds
+  println(s"----width--${screen.getMaxX.toInt}")
+  println(s"----height--${screen.getMaxY.toInt}")
+  protected val viewWidth = screen.getMaxX.toInt
+  protected val viewHeight = screen.getMaxY.toInt
+//  val viewWidth = 1200//1800
+//  val viewHeight = 600//900
+//  val rankWidth = 1200//1800
+//  val rankHeight = 300//300
+  val rankWidth = viewWidth
+  val rankHeight = viewHeight/2
   val group = new Group()
   val backgroundCanvas = new Canvas()
   val viewCanvas = new Canvas()
