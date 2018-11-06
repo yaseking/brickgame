@@ -15,11 +15,12 @@ import javafx.scene.SnapshotParameters
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
+class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCanvas) {
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
+  private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = new Image("girl.png")
@@ -29,6 +30,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
   private val canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
+  private val textLineHeight = 15
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -225,7 +227,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-//    drawCache(offx , offy)
+    drawCache(offx , offy)
     ctx.setGlobalAlpha(0.6)
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
@@ -288,8 +290,8 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
 
-//    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
-//    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
+    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {
