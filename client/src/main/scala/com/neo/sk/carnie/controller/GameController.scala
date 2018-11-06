@@ -178,6 +178,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
+        log.debug(s"i receive Data4TotalSync!!${System.currentTimeMillis()}")
         Boot.addToPlatform{
           syncGridData = Some(data)
           justSynced = true
