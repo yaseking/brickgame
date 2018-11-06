@@ -152,10 +152,13 @@ object RoomManager {
 
         case UserLeft(id) =>
           log.debug(s"got Terminated id = $id")
-          val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
-          val filterUserInfo = roomMap(roomId).find(_._1 == id)
-          if (filterUserInfo.nonEmpty) {
-            roomMap.update(roomId, roomMap(roomId).-(filterUserInfo.get))
+          val roomInfoOpt = roomMap.find(r => r._2.exists(u => u._1 == id))
+          if(roomInfoOpt.nonEmpty) {
+            val roomId = roomInfoOpt.get._1
+            val filterUserInfo = roomMap(roomId).find(_._1 == id)
+            if (filterUserInfo.nonEmpty) {
+              roomMap.update(roomId, roomMap(roomId).-(filterUserInfo.get))
+            }
           }
           Behaviors.same
 
