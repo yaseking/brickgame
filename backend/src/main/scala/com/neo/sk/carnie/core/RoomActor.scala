@@ -41,7 +41,7 @@ object RoomActor {
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
-  case class WatchGame(playerId: String, userId:String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class WatchGame(playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   case class WatcherLeftRoom(userId: String) extends Command
 
@@ -88,7 +88,7 @@ object RoomActor {
   def idle(
             roomId: Int, grid: GridOnServer,
             userMap: mutable.HashMap[String, String],
-            watcherMap: mutable.HashMap[String, String],//(watchId, playerId)
+            watcherMap: mutable.HashMap[String, String], //(watchId, playerId)
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long,
             gameEvent: mutable.ArrayBuffer[(Long, GameEvent)],
@@ -113,7 +113,7 @@ object RoomActor {
           Behaviors.same
 
         case WatchGame(playerId, userId, subscriber) =>
-          val truePlayerId = if(playerId == "unknown") userMap.head._1 else playerId
+          val truePlayerId = if (playerId == "unknown") userMap.head._1 else playerId
           watcherMap.put(userId, truePlayerId)
           subscribersMap.put(userId, subscriber)
           dispatchTo(subscribersMap, userId, Protocol.Id(truePlayerId))
@@ -127,7 +127,7 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
-          watcherMap.filter(_._2 == id).keySet.foreach {i =>
+          watcherMap.filter(_._2 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
           gameEvent += ((grid.frameCount, LeftEvent(id, name)))
@@ -181,8 +181,6 @@ object RoomActor {
         case Sync =>
           val frame = grid.frameCount //即将执行改帧的数据
           val shouldNewSnake = if (grid.waitingListState) true else if (tickCount % 20 == 5) true else false
-          val snapshotData = grid.getGridData
-//          println(s"snapshotData=========$snapshotData")
           val finishFields = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
@@ -224,8 +222,8 @@ object RoomActor {
           }
           val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
-          val snapshot = Snapshot(snapshotData.snakes, snapshotData.bodyDetails, snapshotData.fieldDetails, snapshotData.killHistory)
-//          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
+          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
+          //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
           idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard)
