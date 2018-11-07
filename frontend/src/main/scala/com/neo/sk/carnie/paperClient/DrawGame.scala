@@ -11,7 +11,11 @@ import org.scalajs.dom.html.{Canvas, Image}
   **/
 class DrawGame(
               ctx: CanvasRenderingContext2D,
-              canvas: Canvas
+              canvas: Canvas,
+              var myScore: BaseScore,
+              var maxArea: Int,
+              var scale: Double,
+              var lastRankNum: Int
               ) {
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -29,8 +33,6 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //离屏canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  //  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
-  //  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
@@ -40,13 +42,12 @@ class DrawGame(
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
   private val bloodImg = dom.document.getElementById("bloodImg").asInstanceOf[Image]
-  //private val fireImg=dom.document.getElementById("fireImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
 
-  private var myScore = BaseScore(0, 0, 0l, 0l)
-  private var maxArea: Int = 0
-  private var scale = 1.0
-  private var lastRankNum = 0
+//  private var myScore = BaseScore(0, 0, 0l, 0l)
+//  private var maxArea: Int = 0
+//  private var scale = 1.0
+//  private var lastRankNum = 0
 
   def reSetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)

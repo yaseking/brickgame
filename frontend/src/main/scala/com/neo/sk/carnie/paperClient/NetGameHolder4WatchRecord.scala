@@ -55,7 +55,12 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   private var isContinue = true
   private var logicFrameTime = System.currentTimeMillis()
 
-  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
+  private val myScore = BaseScore(0, 0, 0l, 0l)
+  private val maxArea: Int = 0
+  private val scale = 1.0
+  private val lastRankNum = 0
+
+  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas, myScore, maxArea, scale, lastRankNum)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
 
