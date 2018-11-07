@@ -60,6 +60,8 @@ object Protocol {
 
   case class Id(id: String) extends GameMessage
 
+  case object StartLoading extends GameMessage
+
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage

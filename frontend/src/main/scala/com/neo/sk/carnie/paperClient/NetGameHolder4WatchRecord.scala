@@ -65,6 +65,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
 
   def startGame(): Unit = {
+    println(s"start game======")
     drawGame.drawGameOn()
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.setInterval(() => {
@@ -205,7 +206,13 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       case Protocol.Id(id) => myId = id
         println(s"receive ID = $id")
 
+      case Protocol.StartLoading =>
+        loading = true
+
+
       case Protocol.StartReplay(firstSnapshotFrame,firstReplayFrame) =>
+        println(s"firstSnapshotFrame::$firstSnapshotFrame")
+        println(s"firstReplayFrame::$firstReplayFrame")
         for(i <- firstSnapshotFrame until firstReplayFrame)  {
           if (webSocketClient.getWsState) {
              if(snapshotMap.contains(grid.frameCount)) {
