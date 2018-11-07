@@ -190,6 +190,7 @@ class DrawGame(
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
+    rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
     val snakesFields = data.fieldDetails
