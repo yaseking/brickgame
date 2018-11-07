@@ -67,6 +67,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
     scale = 0.33
     val width = windowBoundary.x - BorderSize.w * canvasUnit * scale
     val height = windowBoundary.y - BorderSize.h * canvasUnit * scale
+    ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.save()
     ctx.scale(scale, scale)
     ctx.setFill(ColorsSetting.borderColor)
@@ -114,7 +115,6 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
     val text = new Text(txt)
     text.setFont(Font.font(30))
     text.setFill(ColorsSetting.gameNameColor)
-
     val length = text.getLayoutBounds.getWidth
     val offx = (270 - length) / 2
     ctx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
