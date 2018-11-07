@@ -124,7 +124,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
         val data = grid.getGridData
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-          drawGame.drawWin(myId, winnerName, winData)
+          drawGame.drawGameWin(myId, winnerName, winData)
           audio1.play()
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false

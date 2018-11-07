@@ -123,14 +123,6 @@ class DrawGame(
     }
   }
 
-  def drawGameWin(winner: String): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor2
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.font = "36px Helvetica"
-    ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
-  }
-
   def drawGameWait(): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -197,7 +189,8 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawWin(myId: String, winner: String, data: Data4TotalSync) = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
+    rankCtx.clearRect(20, textLineHeight * 4, 600, textLineHeight * 3)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
     val snakesFields = data.fieldDetails
