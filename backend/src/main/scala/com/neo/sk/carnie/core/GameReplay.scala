@@ -128,7 +128,7 @@ object GameReplay {
               //              }
 //              fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
-
+              log.debug(s"start loading ======")
               dispatchTo(msg.subscriber, Protocol.StartLoading)
 
               for(i <- 0 until (msg.f - fileReader.getFramePosition)){
@@ -141,6 +141,7 @@ object GameReplay {
                   dispatchTo(msg.subscriber, Protocol.ReplayFinish(msg.userId))
                 }
               }
+              log.debug(s"start replay ======")
               dispatchTo(msg.subscriber, Protocol.StartReplay(nearSnapshotIndex, fileReader.getFramePosition))
 
               if(fileReader.hasMoreFrame){
@@ -174,7 +175,7 @@ object GameReplay {
           }
 
         case GetRecordFrame(playerId, replyTo) =>
-          log.info(s"game replay got $msg")
+//          log.info(s"game replay got $msg")
           replyTo ! RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount)
           Behaviors.same
 

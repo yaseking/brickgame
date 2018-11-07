@@ -107,7 +107,7 @@ object RoomManager {
           Behaviors.same
 
         case GetRecordFrame(recordId, playerId, replyTo) =>
-          log.info(s"got $msg")
+//          log.info(s"got $msg")
           getGameReplay(ctx, recordId, playerId) ! GameReplay.GetRecordFrame(playerId, replyTo)
           Behaviors.same
 
