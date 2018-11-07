@@ -376,6 +376,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
       val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
+      log.info(s"score: $score")
       val killing = if (snakes.contains(sid)) snakes(sid).kill else 0
       val nickname = if (snakes.contains(sid)) snakes(sid).name else "Unknown"
       val startTime = startTimeMap(sid)
