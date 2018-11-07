@@ -34,7 +34,6 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
   private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
-  private var fieldNum = 1
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
