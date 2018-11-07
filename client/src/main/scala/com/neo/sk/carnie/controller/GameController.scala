@@ -108,7 +108,7 @@ class GameController(player: PlayerInfoInClient,
         }
       case None =>
         if (firstCome) gameScene.drawGameWait()
-        else gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),grid.currentRank,player.id,System.currentTimeMillis())
+        else gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),grid.currentRank,player.id)
     }
   }
 

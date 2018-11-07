@@ -106,7 +106,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.restore()
   }
 
-  def drawGameDie(killerOpt: Option[String], currentRank: List[Score], myId: String,startTime: Long): Unit = {
+  def drawGameDie(killerOpt: Option[String], currentRank: List[Score], myId: String): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
     currentRank.filter(_.id == myId).foreach { score =>
       myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
@@ -128,7 +128,7 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     val x = (windowBoundary.x / 2).toInt - 145
     val y = (windowBoundary.y / 2).toInt - 180
 
-    val gameTime = (myScore.endTime - startTime) / 1000
+    val gameTime = (myScore.endTime - myScore.startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
     val time = {
       val tempM = gameTime / 60

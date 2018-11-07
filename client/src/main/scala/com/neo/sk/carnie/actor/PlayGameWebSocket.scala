@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.actor
 
 import akka.actor.typed._
-import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
+import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
@@ -13,6 +13,7 @@ import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 import akka.stream.scaladsl.{Keep, Sink}
+
 import scala.concurrent.Future
 import com.neo.sk.carnie.controller.GameController
 import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
@@ -34,13 +35,14 @@ object PlayGameWebSocket {
 
   def create(gameController: GameController): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
+      implicit val stashBuffer: StashBuffer[WsCommand] = StashBuffer[WsCommand](Int.MaxValue)
       Behaviors.withTimers { implicit timer =>
         idle(gameController)
       }
     }
   }
 
-  def idle(gameController: GameController)(implicit timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
+  def idle(gameController: GameController)(implicit stashBuffer: StashBuffer[WsCommand], timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case ConnectGame(playerInfo, domain) =>
@@ -75,7 +77,7 @@ object PlayGameWebSocket {
     }
   }
 
-  def connecting(actor: ActorRef[Protocol.WsSendMsg]): Behavior[WsCommand] = {
+  def connecting(actor: ActorRef[Protocol.WsSendMsg])(implicit stashBuffer: StashBuffer[WsCommand], timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case m@MsgToService(sendMsg) =>
@@ -113,7 +115,7 @@ object PlayGameWebSocket {
     }, failureMatcher = {
       case WsSendFailed(ex) ⇒ ex
     },
-    bufferSize = 64,
+    bufferSize = 16,
     overflowStrategy = OverflowStrategy.fail
   ).collect {
     case message: UserAction =>
