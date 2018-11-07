@@ -115,8 +115,7 @@ object GameReplay {
               //todo dispatch gameInformation
               dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
               log.info(s" set replay from frame=${msg.f}")
-              //fixme 跳转帧数goto失效
-
+              fileReader.gotoSnapshot(msg.f)
               val indexes = fileReader.getSnapshotIndexes.map(_._1)
               val nearSnapshotIndex = indexes.filter(f => f <= msg.f).max
               log.debug(s"nearSnapshotIndex: $nearSnapshotIndex")
