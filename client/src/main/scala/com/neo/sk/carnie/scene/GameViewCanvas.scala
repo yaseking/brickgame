@@ -35,8 +35,6 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
   private var fieldNum = 1
-  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
-  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -232,15 +230,6 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-
-    data.killHistory.foreach {
-      i => if (i.frameCount + 1 == data.frameCount && i.killerId == uid) audioKill.play()
-    }
-
-    if(grid.getMyFieldCount(uid, maxPoint, minPoint)>fieldNum){
-      audioFinish.play()
-      fieldNum = grid.getMyFieldCount(uid, maxPoint, minPoint)
-    }
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
