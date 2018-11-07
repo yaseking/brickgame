@@ -42,6 +42,7 @@ class GameController(player: PlayerInfoInClient,
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   private var isContinue = true
+  private var myScore = BaseScore(0, 0, 0l, 0l)
   private val timeline = new Timeline()
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
@@ -98,7 +99,7 @@ class GameController(player: PlayerInfoInClient,
       case Some(snake) =>
         firstCome = false
         if (scoreFlag) {
-          gameScene.drawGameDieStartTime()
+          myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
           scoreFlag = false
         }
         gameScene.draw(player.id, data, offsetTime, grid, grid.currentRank.headOption.map(_.id).getOrElse(player.id))
@@ -112,7 +113,10 @@ class GameController(player: PlayerInfoInClient,
       case None =>
         if (firstCome) gameScene.drawGameWait()
         else {
-          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),grid.currentRank,player.id)
+          grid.currentRank.filter(_.id == player.id).foreach { score =>
+            myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+          }
+          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
           if(isContinue) audioDie.play()
           isContinue = false
         }
