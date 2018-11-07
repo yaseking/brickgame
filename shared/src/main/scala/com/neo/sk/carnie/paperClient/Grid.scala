@@ -443,6 +443,10 @@ trait Grid {
     }
   }
 
+  def cleanTurnPoint4Reply(sid: String) = {
+    snakeTurnPoints -= sid
+  }
+
 
 }
 
