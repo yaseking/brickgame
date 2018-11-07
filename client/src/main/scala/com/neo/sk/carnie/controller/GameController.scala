@@ -37,6 +37,9 @@ class GameController(player: PlayerInfoInClient,
   var winnerName = "unknown"
   var isContinues = true
   var justSynced = false
+  private var fieldNum = 0
+  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
+  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
@@ -102,6 +105,15 @@ class GameController(player: PlayerInfoInClient,
           myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
           scoreFlag = false
         }
+        data.killHistory.foreach {
+          i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
+        }
+        val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
+        if(myFieldCount>fieldNum){
+          audioFinish.play()
+          fieldNum = myFieldCount
+        }
+
         gameScene.draw(player.id, data, offsetTime, grid, grid.currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
           gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
@@ -165,6 +177,8 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.ReStartGame =>
         Boot.addToPlatform {
+          audioWin.stop()
+          audioDie.stop()
           firstCome = true
           scoreFlag = true
           if(isWin){
@@ -173,7 +187,7 @@ class GameController(player: PlayerInfoInClient,
           }
           animationTimer.start()
           isContinue = true
-
+          fieldNum = 0
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
@@ -245,6 +259,7 @@ class GameController(player: PlayerInfoInClient,
             isWin = false
             winnerName = "unknown"
           }
+          fieldNum = 0
           animationTimer.start()
           isContinue = true
         }

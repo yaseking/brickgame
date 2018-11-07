@@ -308,7 +308,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
 
-    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
+    rankCtx.clearRect(20, textLineHeight * 5, 650, textLineHeight * 2)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
   }
 
