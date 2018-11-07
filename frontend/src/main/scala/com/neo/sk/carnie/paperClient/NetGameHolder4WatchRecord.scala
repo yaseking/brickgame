@@ -361,6 +361,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case RankEvent(current) =>
         currentRank = current
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin)
+          drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
         snapshotMap += frameIndex.toLong + 1 -> msg

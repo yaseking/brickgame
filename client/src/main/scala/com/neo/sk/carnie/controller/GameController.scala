@@ -189,7 +189,7 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           grid.currentRank = current
-          if (grid.getGridData.snakes.exists(_.id == player.id))
+          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
             gameScene.drawRank(player.id, grid.getGridData.snakes, current)
         }
 

@@ -287,6 +287,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
       case Protocol.Ranks(current) =>
         currentRank = current
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin)
+          drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
         //        println(s"receive data========================")
