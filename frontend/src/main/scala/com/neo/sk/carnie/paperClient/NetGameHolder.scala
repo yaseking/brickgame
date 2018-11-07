@@ -35,7 +35,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
-  var play = true
+//  var play = true
+  var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
@@ -58,7 +59,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
 
   private var nextFrame = 0
-  private var isContinue = true
   private var logicFrameTime = System.currentTimeMillis()
 
 //  private val myScore = BaseScore(0, 0, 0l, 0l)
@@ -173,8 +173,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
             case None =>
               if (firstCome) drawGame.drawGameWait()
               else {
-                if (play) audioKilled.play()
-                play = false
+                if (isContinue) audioKilled.play()
                 currentRank.filter(_.id == myId).foreach { score =>
                   myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
                 }
@@ -215,7 +214,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
               audio1.currentTime = 0
               audioKilled.pause()
               audioKilled.currentTime = 0
-              play = true
               scoreFlag = true
               firstCome = true
               if (isWin) {
@@ -283,7 +281,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
         audio1.currentTime = 0
         audioKilled.pause()
         audioKilled.currentTime = 0
-        play = true
         scoreFlag = true
         firstCome = true
         if (isWin) {
