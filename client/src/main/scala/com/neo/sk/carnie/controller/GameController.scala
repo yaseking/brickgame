@@ -112,7 +112,7 @@ class GameController(player: PlayerInfoInClient,
       case None =>
         if (firstCome) gameScene.drawGameWait()
         else {
-          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2))
+          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),grid.currentRank,player.id)
           if(isContinue) audioDie.play()
           isContinue = false
         }
