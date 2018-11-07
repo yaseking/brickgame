@@ -11,11 +11,7 @@ import org.scalajs.dom.html.{Canvas, Image}
   **/
 class DrawGame(
               ctx: CanvasRenderingContext2D,
-              canvas: Canvas,
-              var myScore: BaseScore,
-              var maxArea: Int,
-              var scale: Double,
-              var lastRankNum: Int
+              canvas: Canvas
               ) {
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -44,10 +40,10 @@ class DrawGame(
   private val bloodImg = dom.document.getElementById("bloodImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
 
-//  private var myScore = BaseScore(0, 0, 0l, 0l)
-//  private var maxArea: Int = 0
-//  private var scale = 1.0
-//  private var lastRankNum = 0
+  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var maxArea: Int = 0
+  private var scale = 1.0
+  private var lastRankNum = 0
 
   def reSetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
