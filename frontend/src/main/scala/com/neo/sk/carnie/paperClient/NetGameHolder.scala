@@ -119,7 +119,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   def draw(offsetTime: Long): Unit = {
     if (webSocketClient.getWsState) {
       if(replayFinish) {
-        drawGame.drawGameOff(firstCome, Some(true))
+        drawGame.drawGameOff(firstCome, Some(true), false)
       } else {
         val data = grid.getGridData
         if (isWin) {
@@ -173,7 +173,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
         }
       }
     } else {
-      drawGame.drawGameOff(firstCome, None)
+      drawGame.drawGameOff(firstCome, None, false)
     }
   }
 
@@ -222,7 +222,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   }
 
   private def connectError(e: Event) = {
-    drawGame.drawGameOff(firstCome, None)
+    drawGame.drawGameOff(firstCome, None, false)
     e
   }
 

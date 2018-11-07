@@ -116,6 +116,9 @@ object GameReplay {
               dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
               log.info(s" set replay from frame=${msg.f}")
               //fixme 跳转帧数goto失效
+
+              val indexes = fileReader.getSnapshotIndexes.map(_._1)
+              val nearSnapshotIndex = indexes.filter(f => f <= msg.f).max
               //              fileReader.reset()
               //              for(i <- 1 to msg.f){
               //                if(fileReader.hasMoreFrame){
@@ -125,14 +128,15 @@ object GameReplay {
               fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
 
-//              for(_ <- 0 until (msg.f - fileReader.getFramePosition)){
-//                if(fileReader.hasMoreFrame){
-//                  fileReader.readFrame().foreach { f => dispatchByteTo(msg.subscriber, f)}
-//                }else{
-//                  log.debug(s"${ctx.self.path} file reader has no frame, reply finish")
-//                  dispatchTo(msg.subscriber, Protocol.ReplayFinish(msg.userId))
-//                }
-//              }
+              for(_ <- nearSnapshotIndex until (msg.f - fileReader.getFramePosition)){
+                if(fileReader.hasMoreFrame){
+                  fileReader.readFrame().foreach { f => dispatchByteTo(msg.subscriber, f)}
+                }else{
+                  log.debug(s"${ctx.self.path} file reader has no frame, reply finish")
+                  dispatchTo(msg.subscriber, Protocol.ReplayFinish(msg.userId))
+                }
+              }
+              dispatchTo(msg.subscriber, Protocol.StartReplay(nearSnapshotIndex, fileReader.getFramePosition))
 
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
