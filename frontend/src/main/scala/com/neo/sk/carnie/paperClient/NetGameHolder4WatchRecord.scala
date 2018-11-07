@@ -207,7 +207,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         println(s"receive ID = $id")
 
       case Protocol.StartLoading(frame) =>
-        grid.frameCount = frame
+        println(s"start loading  =========")
+        grid.frameCount = frame.toLong
         loading = true
 
 
