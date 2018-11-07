@@ -190,7 +190,6 @@ class DrawGame(
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
-    ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
     val snakesFields = data.fieldDetails
