@@ -42,6 +42,7 @@ class GameController(player: PlayerInfoInClient,
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   private var isContinue = true
+  private var myScore = BaseScore(0, 0, 0l, 0l)
   private val timeline = new Timeline()
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
@@ -97,6 +98,10 @@ class GameController(player: PlayerInfoInClient,
     data.snakes.find(_.id == player.id) match {
       case Some(snake) =>
         firstCome = false
+        if (scoreFlag) {
+          myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+          scoreFlag = false
+        }
         gameScene.draw(player.id, data, offsetTime, grid, grid.currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
           gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
@@ -108,7 +113,10 @@ class GameController(player: PlayerInfoInClient,
       case None =>
         if (firstCome) gameScene.drawGameWait()
         else {
-          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2))
+          grid.currentRank.filter(_.id == player.id).foreach { score =>
+            myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+          }
+          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
           if(isContinue) audioDie.play()
           isContinue = false
         }
@@ -181,7 +189,7 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           grid.currentRank = current
-          if (grid.getGridData.snakes.exists(_.id == player.id))
+          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
             gameScene.drawRank(player.id, grid.getGridData.snakes, current)
         }
 

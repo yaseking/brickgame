@@ -87,6 +87,7 @@ class GameScene {
   }
 
   def drawGameOff(firstCome: Boolean): Unit = {
+    rank.drawClearRank()
     viewCtx.save()
     viewCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
     viewCtx.fillRect(0, 0, viewWidth, viewHeight)
@@ -102,12 +103,13 @@ class GameScene {
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
+    rank.drawClearRank()
     view.drawGameWin(myId: String, winner: String, data: Data4TotalSync)
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore = BaseScore(0,0,0,0), maxArea: Int = 0): Unit = {
+  def drawGameDie(killerOpt: Option[String], myScore: BaseScore): Unit = {
     rank.drawClearRank()
-    view.drawGameDie(killerOpt, myScore, maxArea)
+    view.drawGameDie(killerOpt, myScore)
   }
 
 
@@ -118,6 +120,7 @@ class GameScene {
   def drawUserDieInfo(killedName: String, killerName: String): Unit = {
     view.drawUserDieInfo(killedName,killerName)
   }
+
 
   def setGameSceneListener(listener: GameSceneListener) {
     gameSceneListener = listener

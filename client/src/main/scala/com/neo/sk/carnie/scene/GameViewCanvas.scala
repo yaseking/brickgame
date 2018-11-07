@@ -31,6 +31,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
   private val crownImg = new Image("crown.png")
   private val canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
+  private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
   private var fieldNum = 1
@@ -66,6 +67,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
     scale = 0.33
     val width = windowBoundary.x - BorderSize.w * canvasUnit * scale
     val height = windowBoundary.y - BorderSize.h * canvasUnit * scale
+    ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.save()
     ctx.scale(scale, scale)
     ctx.setFill(ColorsSetting.borderColor)
@@ -119,8 +121,10 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
     ctx.restore()
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
+  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+    if (myScore.area > maxArea)
+      maxArea = myScore.area
     ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.setFill(ColorsSetting.gameNameColor)
@@ -313,6 +317,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
   }
+
 
 
 

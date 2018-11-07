@@ -129,7 +129,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
         val data = grid.getGridData
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-          drawGame.drawWin(myId, winnerName, winData)
+          drawGame.drawGameWin(myId, winnerName, winData)
           audio1.play()
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
@@ -292,8 +292,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
       case Protocol.Ranks(current) =>
         currentRank = current
-        if (grid.getGridData.snakes.exists(_.id == myId))
-          drawGame.drawRank(myId, grid.getGridData.snakes, current)
 
       case data: Protocol.Data4TotalSync =>
         //        println(s"receive data========================")
