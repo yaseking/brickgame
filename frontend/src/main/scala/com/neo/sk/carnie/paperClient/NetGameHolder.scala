@@ -9,7 +9,6 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-
 /**
   * User: Taoz
   * Date: 9/1/2016
@@ -120,7 +119,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   def draw(offsetTime: Long): Unit = {
     if (webSocketClient.getWsState) {
       if(replayFinish) {
-        drawGame.drawGameOff(firstCome, Some(true))
+        drawGame.drawGameOff(firstCome, Some(true), false)
       } else {
         val data = grid.getGridData
         if (isWin) {
@@ -174,7 +173,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
         }
       }
     } else {
-      drawGame.drawGameOff(firstCome, None)
+      drawGame.drawGameOff(firstCome, None, false)
     }
   }
 
@@ -223,7 +222,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   }
 
   private def connectError(e: Event) = {
-    drawGame.drawGameOff(firstCome, None)
+    drawGame.drawGameOff(firstCome, None, false)
     e
   }
 

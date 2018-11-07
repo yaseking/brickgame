@@ -115,15 +115,33 @@ object GameReplay {
               //todo dispatch gameInformation
               dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
               log.info(s" set replay from frame=${msg.f}")
-              //fixme 跳转帧数goto失效
+              val nearSnapshotIndex = fileReader.gotoSnapshot(msg.f)
+//              val indexes = fileReader.getSnapshotIndexes.map(_._1)
+//              val nearSnapshotIndex = indexes.filter(f => f <= msg.f).max
+              log.debug(s"nearSnapshotIndex: $nearSnapshotIndex")
               //              fileReader.reset()
               //              for(i <- 1 to msg.f){
               //                if(fileReader.hasMoreFrame){
               //                  fileReader.readFrame()
               //                }
               //              }
-              fileReader.gotoSnapshot(msg.f)
+//              fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
+              log.debug(s"start loading ======")
+              dispatchTo(msg.subscriber, Protocol.StartLoading(nearSnapshotIndex))
+
+              for(i <- 0 until (msg.f - fileReader.getFramePosition)){
+                if(fileReader.hasMoreFrame){
+                  fileReader.readFrame().foreach { f => dispatchByteTo(msg.subscriber, f)
+                  }
+                }else{
+                  log.debug(s"${ctx.self.path} file reader has no frame, reply finish")
+                  dispatchTo(msg.subscriber, Protocol.ReplayFinish(msg.userId))
+                }
+              }
+              log.debug(s"start replay ======")
+              dispatchTo(msg.subscriber, Protocol.StartReplay(nearSnapshotIndex, fileReader.getFramePosition))
+
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
                 work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber))
@@ -155,6 +173,7 @@ object GameReplay {
           }
 
         case GetRecordFrame(playerId, replyTo) =>
+//          log.info(s"game replay got $msg")
           replyTo ! RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount)
           Behaviors.same
 

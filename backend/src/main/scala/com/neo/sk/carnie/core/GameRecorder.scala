@@ -82,16 +82,20 @@ object GameRecorder {
         case RecordData(frame, event) => //记录数据
           val snapshot =
             if(event._1.exists{
-              case JoinEvent(_, info) =>
-                println(s"add joinEvent: $info")
-                true
-              case LeftEvent(_, _) => true
-              case SpaceEvent(_) => true
-              case _ => false} ||
-              tickCount % 50 == 0) Some(event._2) else None //是否做快照
+//              case JoinEvent(_, info) =>
+//                println(s"add joinEvent: $info")
+//                true
+//              case LeftEvent(_, _) => true
+//              case SpaceEvent(_) => true
+//              case _ => false
+              case Protocol.DirectionEvent(_,_) => false
+              case Protocol.EncloseEvent(_) => false
+              case Protocol.RankEvent(_) => false
+              case _ => true
+            } || tickCount % 50 == 0) Some(event._2) else None //是否做快照
 
 //          log.debug(s"${event._1.exists{case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true}}")
-//          log.debug(s"做快照::tickcount:$tickCount, snapshot:$snapshot")
+//          log.debug(s"快照::tickcount:$tickCount, snapshot:$snapshot")
 
           event._1.foreach {
             case Protocol.JoinEvent(id, info) =>
@@ -153,6 +157,12 @@ object GameRecorder {
           (essf._1, newJoinLeft)
         }.toList
         recorder.putMutableInfo(AppSettings.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
+        eventRecorder.reverse.foreach {
+          case (events, Some(state)) if events.nonEmpty =>
+            recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
+          case (events, None) if events.nonEmpty => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
+          case _ => recorder.writeEmptyFrame()
+        }
         recorder.finish()
         val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{

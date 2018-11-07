@@ -99,7 +99,7 @@ class DrawGame(
     borderCtx.fillRect(BorderSize.w * canvasUnit, 0, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
-  def drawGameOff(firstCome: Boolean, replayFinish: Option[Boolean]): Unit = {
+  def drawGameOff(firstCome: Boolean, replayFinish: Option[Boolean], loading: Boolean): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
@@ -107,6 +107,10 @@ class DrawGame(
       rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
       ctx.fillText("Replay ends.", 150, 180)
+    } else if (loading) {
+      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+      ctx.font = "36px Helvetica"
+      ctx.fillText("Loading......", 150, 180)
     } else {
       if (firstCome) {
         ctx.font = "36px Helvetica"

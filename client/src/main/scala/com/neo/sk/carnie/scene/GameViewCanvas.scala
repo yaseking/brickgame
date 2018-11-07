@@ -1,5 +1,8 @@
 package com.neo.sk.carnie.scene
 
+import java.awt.Graphics
+import java.io.File
+
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import javafx.scene.canvas.Canvas
@@ -8,15 +11,18 @@ import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
+import javafx.scene.SnapshotParameters
+import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
 
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
+class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCanvas) {
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
+  private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = new Image("girl.png")
@@ -28,6 +34,10 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
+  private val textLineHeight = 15
+  private var fieldNum = 1
+  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
+  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -43,6 +53,12 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
     ctx.restore()
+  }
+
+  def drawBackground(offx: Float, offy: Float): Unit = {
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+    ctx.drawImage(background.getBackgroundCanvas.snapshot(params, null), offx * canvasUnit, offy * canvasUnit)
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
@@ -221,6 +237,15 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
+    data.killHistory.foreach {
+      i => if (i.frameCount + 1 == data.frameCount && i.killerId == uid) audioKill.play()
+    }
+
+    if(grid.getMyFieldCount(uid, maxPoint, minPoint)>fieldNum){
+      audioFinish.play()
+      fieldNum = grid.getMyFieldCount(uid, maxPoint, minPoint)
+    }
+
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
@@ -281,10 +306,14 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     }
 
 
+//    drawBackground(offx, offy)
 //    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
 
 //    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
+
+    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
+    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {

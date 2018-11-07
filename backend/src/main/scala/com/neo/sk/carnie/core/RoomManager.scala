@@ -65,7 +65,7 @@ object RoomManager {
 
   case class UserLeft(id: String) extends Command
 
-  case class PreWatchGame(roomId: Int, playerId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class PreWatchGame(roomId: Int, playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   private case object UnKnowAction extends Command
 
@@ -107,6 +107,7 @@ object RoomManager {
           Behaviors.same
 
         case GetRecordFrame(recordId, playerId, replyTo) =>
+//          log.info(s"got $msg")
           getGameReplay(ctx, recordId, playerId) ! GameReplay.GetRecordFrame(playerId, replyTo)
           Behaviors.same
 
@@ -114,9 +115,9 @@ object RoomManager {
           getGameReplay(ctx, recordId, playerId) ! GameReplay.StopReplay()
           Behaviors.same
 
-        case m@PreWatchGame(roomId, playerId, subscriber) =>
+        case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")
-          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, subscriber)
+          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, userId, subscriber)
           Behaviors.same
 
         case msg@Left(id, name) =>
@@ -126,9 +127,9 @@ object RoomManager {
           getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
           Behaviors.same
 
-        case msg@WatcherLeft(roomId, playerId) =>
+        case msg@WatcherLeft(roomId, userId) =>
           log.info(s"got $msg")
-//          getRoomActor(ctx, roomId) ! RoomActor.WatcherLeftRoom(playerId)
+          getRoomActor(ctx, roomId) ! RoomActor.WatcherLeftRoom(userId)
           Behaviors.same
 
         case m@UserActionOnServer(id, action) =>
@@ -200,9 +201,9 @@ object RoomManager {
     onFailureMessage = FailMsgFront.apply
   )
 
-  private def sink4WatchGame(actor: ActorRef[Command], roomId: Int, playerId: String) = ActorSink.actorRef[Command](
+  private def sink4WatchGame(actor: ActorRef[Command], roomId: Int, userId: String) = ActorSink.actorRef[Command](
     ref = actor,
-    onCompleteMessage = WatcherLeft(roomId, playerId),
+    onCompleteMessage = WatcherLeft(roomId, userId),
     onFailureMessage = FailMsgFront.apply
   )
 
@@ -231,7 +232,7 @@ object RoomManager {
     Flow.fromSinkAndSource(in, out)
   }
 
-  def watchGame(actor: ActorRef[RoomManager.Command], roomId: Int, playerId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+  def watchGame(actor: ActorRef[RoomManager.Command], roomId: Int, playerId: String, userId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
@@ -239,7 +240,7 @@ object RoomManager {
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
         case _ => UnKnowAction
       }
-      .to(sink4WatchGame(actor, roomId, playerId))
+      .to(sink4WatchGame(actor, roomId, userId))
 
     val out =
       ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
@@ -251,7 +252,7 @@ object RoomManager {
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! PreWatchGame(roomId, playerId, outActor))
+      ).mapMaterializedValue(outActor => actor ! PreWatchGame(roomId, playerId, userId, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }

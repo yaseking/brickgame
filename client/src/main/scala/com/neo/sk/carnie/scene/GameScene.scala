@@ -6,7 +6,9 @@ import com.neo.sk.carnie.paperClient._
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
 import javafx.scene.input.KeyCode
+import javafx.scene.media.AudioClip
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
+import javafx.stage.Screen
 
 /**
   * Created by dry on 2018/10/29.
@@ -24,10 +26,17 @@ class GameScene {
 
   var gameSceneListener: GameSceneListener = _
 
-  val viewWidth = 1800
-  val viewHeight = 900
-  val rankWidth = 1800
-  val rankHeight = 300
+  val screen= Screen.getPrimary.getVisualBounds
+  println(s"----width--${screen.getMaxX.toInt}")
+  println(s"----height--${screen.getMaxY.toInt}")
+  protected val viewWidth = screen.getMaxX.toInt
+  protected val viewHeight = screen.getMaxY.toInt
+//  val viewWidth = 1200//1800
+//  val viewHeight = 600//900
+//  val rankWidth = 1200//1800
+//  val rankHeight = 300//300
+  val rankWidth = viewWidth
+  val rankHeight = viewHeight/2
   val group = new Group()
   val backgroundCanvas = new Canvas()
   val viewCanvas = new Canvas()
@@ -48,9 +57,12 @@ class GameScene {
   group.getChildren.add(rankCanvas)
 
   val background = new BackgroundCanvas(backgroundCanvas)
-  val view = new GameViewCanvas(viewCanvas,background)
+  val view = new GameViewCanvas(viewCanvas,rankCanvas,background)
   val rank = new RankCanvas(rankCanvas)
 
+  //music
+//  val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
+//  val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
 
 
   private val viewCtx = viewCanvas.getGraphicsContext2D
@@ -61,6 +73,7 @@ class GameScene {
     //    background.drawCache(view.offXY(uid, data, offsetTime, grid)._1 , view.offXY(uid, data, offsetTime, grid)._2)
     view.drawGrid(uid, data, offsetTime, grid, championId)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+//    view.drawBackground()
   }
 
   def drawGameWait(): Unit = {
