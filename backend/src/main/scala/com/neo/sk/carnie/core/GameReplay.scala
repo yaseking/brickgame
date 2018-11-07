@@ -119,6 +119,7 @@ object GameReplay {
 
               val indexes = fileReader.getSnapshotIndexes.map(_._1)
               val nearSnapshotIndex = indexes.filter(f => f <= msg.f).max
+              log.debug(s"nearSnapshotIndex: $nearSnapshotIndex")
               //              fileReader.reset()
               //              for(i <- 1 to msg.f){
               //                if(fileReader.hasMoreFrame){
@@ -130,9 +131,11 @@ object GameReplay {
 
               dispatchTo(msg.subscriber, Protocol.StartLoading)
 
-              for(_ <- nearSnapshotIndex until (msg.f - fileReader.getFramePosition)){
+              for(i <- 0 until (msg.f - fileReader.getFramePosition)){
                 if(fileReader.hasMoreFrame){
-                  fileReader.readFrame().foreach { f => dispatchByteTo(msg.subscriber, f)}
+                  fileReader.readFrame().foreach { f =>
+                    if (i >= nearSnapshotIndex) dispatchByteTo(msg.subscriber, f)
+                  }
                 }else{
                   log.debug(s"${ctx.self.path} file reader has no frame, reply finish")
                   dispatchTo(msg.subscriber, Protocol.ReplayFinish(msg.userId))
@@ -171,6 +174,7 @@ object GameReplay {
           }
 
         case GetRecordFrame(playerId, replyTo) =>
+          log.info(s"game replay got $msg")
           replyTo ! RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount)
           Behaviors.same
 
