@@ -94,6 +94,10 @@ class GameController(player: PlayerInfoInClient,
     data.snakes.find(_.id == player.id) match {
       case Some(snake) =>
         firstCome = false
+        if (scoreFlag) {
+          gameScene.drawGameDieStartTime()
+          scoreFlag = false
+        }
         gameScene.draw(player.id, data, offsetTime, grid, grid.currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
           gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
@@ -107,9 +111,7 @@ class GameController(player: PlayerInfoInClient,
         else gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),grid.currentRank,player.id,System.currentTimeMillis())
     }
   }
-  def cleanMyScore: Unit = {
-    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-  }
+
   def gameMessageReceiver(msg: WsSourceProtocol.WsMsgSource): Unit = {
     msg match {
       case Protocol.Id(id) =>

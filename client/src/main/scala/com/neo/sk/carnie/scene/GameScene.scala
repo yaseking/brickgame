@@ -106,6 +106,10 @@ class GameScene {
     view.drawUserDieInfo(killedName,killerName)
   }
 
+  def drawGameDieStartTime(): Unit = {
+    view.cleanMyScore
+  }
+
   def setGameSceneListener(listener: GameSceneListener) {
     gameSceneListener = listener
   }

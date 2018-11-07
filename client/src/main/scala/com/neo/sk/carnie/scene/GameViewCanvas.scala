@@ -293,7 +293,9 @@ class GameViewCanvas(canvas: Canvas,background: BackgroundCanvas) {
     ctx.translate(-x, -y)
   }
 
-
+  def cleanMyScore: Unit = {
+    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+  }
 
 
 }
