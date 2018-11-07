@@ -206,7 +206,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       case Protocol.Id(id) => myId = id
         println(s"receive ID = $id")
 
-      case Protocol.StartLoading =>
+      case Protocol.StartLoading(frame) =>
         loading = true
 
 

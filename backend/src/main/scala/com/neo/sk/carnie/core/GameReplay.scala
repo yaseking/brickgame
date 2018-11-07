@@ -129,7 +129,7 @@ object GameReplay {
 //              fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
               log.debug(s"start loading ======")
-              dispatchTo(msg.subscriber, Protocol.StartLoading)
+              dispatchTo(msg.subscriber, Protocol.StartLoading(nearSnapshotIndex))
 
               for(i <- 0 until (msg.f - fileReader.getFramePosition)){
                 if(fileReader.hasMoreFrame){
