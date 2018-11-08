@@ -251,6 +251,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           }
 
         }
+        firstCome = false
         loading = false
         startGame()
 //        grid.frameCount = firstReplayframe.toLong
