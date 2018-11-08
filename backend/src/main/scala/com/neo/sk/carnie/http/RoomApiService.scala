@@ -27,7 +27,7 @@ import com.neo.sk.utils.essf.RecallGame._
   **/
 trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService with EsheepService {
 
-  private val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger("com.neo.sk.carnie.http.RoomApiService")
 
   val roomManager: akka.actor.typed.ActorRef[RoomManager.Command]
 
@@ -53,8 +53,8 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
           complete(PlayerListRsp(PlayerInfo(plist.map(p => PlayerIdName(p._1, p._2)))))
         }
          else{
-          log.info("get player list error")
-          complete(ErrorRsp(100001, "get player list error"))
+          log.info("get player list error: this room doesn't exist")
+          complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
         }
 
       }
