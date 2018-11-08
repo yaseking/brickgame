@@ -186,18 +186,20 @@ object RoomActor {
               }.toList)
             }
             userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+
+            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
+              val finalData = grid.getGridData
+              grid.cleanData()
+              dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
+              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
+            }
           }
+
           if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
           val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
             if ((maxSize + fullSize * 0.1) < winStandard) fullSize * (0.2 - userMap.size * 0.05) else winStandard
           } else winStandard
-          if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) {
-            val finalData = grid.getGridData
-            grid.cleanData()
-            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
-            gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
-          }
 
           //for gameRecorder...
           val actionEvent = grid.getDirectionEvent(frame)
