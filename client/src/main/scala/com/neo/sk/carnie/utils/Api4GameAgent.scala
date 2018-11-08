@@ -8,7 +8,7 @@ import io.circe.syntax._
 
 import com.neo.sk.carnie.Boot.executor
 
-object Api4GameAgent extends HttpUtil{
+object Api4GameAgent extends HttpUtil {
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
@@ -16,12 +16,12 @@ object Api4GameAgent extends HttpUtil{
     val methodName = "GET"
     val url = "http://flowdev.neoap.com/esheep/api/gameAgent/login"
     log.info("start getLoginRspFromEs.")
-    getRequestSend(methodName,url,Nil,"UTF-8").map{
+    getRequestSend(methodName, url, Nil).map {
       case Right(r) =>
         decode[LoginRsp](r) match {
           case Right(rsp) =>
             log.info("end getLoginRspFromEs.")
-            Right(UrlData(rsp.data.wsUrl,rsp.data.scanUrl.replaceFirst("data:image/png;base64,","")))
+            Right(UrlData(rsp.data.wsUrl, rsp.data.scanUrl.replaceFirst("data:image/png;base64,", "")))
           case Left(e) =>
             Left(s"error:$e")
         }
@@ -32,21 +32,21 @@ object Api4GameAgent extends HttpUtil{
   }
 
   //fixme 尚未添加bot玩家
-  def linkGameAgent(gameId:Long,playerId:String,token:String) ={
-    val data = LinkGameAgentReq(gameId,playerId).asJson.noSpaces
-    val url  = "http://flowdev.neoap.com/esheep/api/gameAgent/joinGame?token="+token
+  def linkGameAgent(gameId: Long, playerId: String, token: String) = {
+    val data = LinkGameAgentReq(gameId, playerId).asJson.noSpaces
+    val url = "http://flowdev.neoap.com/esheep/api/gameAgent/joinGame?token=" + token
 
-    postJsonRequestSend("post",url,Nil,data).map{
+    postJsonRequestSend("post", url, Nil, data).map {
       case Right(jsonStr) =>
         println(s"linkGameAgent: $jsonStr")
         decode[LinkGameAgentRsp](jsonStr) match {
           case Right(res) =>
-            Right(LinkGameAgentData(res.data.accessCode,res.data.gsPrimaryInfo))
+            Right(LinkGameAgentData(res.data.accessCode, res.data.gsPrimaryInfo))
           case Left(le) =>
-            Left("decode error: "+le)
+            Left("decode error: " + le)
         }
       case Left(erStr) =>
-        Left("get return error:"+erStr)
+        Left("get return error:" + erStr)
     }
 
   }
@@ -54,4 +54,5 @@ object Api4GameAgent extends HttpUtil{
   def main(args: Array[String]): Unit = {
     getLoginRspFromEs()
   }
+
 }

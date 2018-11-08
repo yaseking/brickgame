@@ -31,7 +31,6 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
   val roomManager: akka.actor.typed.ActorRef[RoomManager.Command]
 
-
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
     dealPostReq[PlayerIdInfo] { req =>
       val msg: Future[Option[Int]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
@@ -158,26 +157,40 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
   private val getRecordFrame = (path("getRecordFrame") & post & pathEndOrSingleSlash) {
     dealPostReq[RecordInfoReq] { req =>
-      val rstF: Future[RecordFrameInfo] = roomManager ? (RoomManager.GetRecordFrame(req.recordId, req.playerId, _))
-      rstF.map { info =>
-        complete(RecordFrameRsp(info))
+      val rstF: Future[CommonRsp] = roomManager ? (RoomManager.GetRecordFrame(req.recordId, req.playerId, _))
+      rstF.map {
+        case rsp: RecordFrameRsp =>
+          complete(rsp)
+        case _ =>
+          complete(ErrorRsp(100001, "录像不存在或已损坏"))
+      }.recover{
+        case e:Exception =>
+          log.debug(s"获取游戏录像失败，recover error:$e")
+          complete(ErrorRsp(100001, "录像不存在或已损坏"))
+      }
       }
     }
-  }
+
 
   private val getRecordPlayerList = (path("getRecordPlayerList") & post & pathEndOrSingleSlash) {
     dealPostReq[RecordInfoReq] { req =>
       RecordDAO.getRecordById(req.recordId).map {
         case Some(r) =>
-          val replay = initInput(r.filePath)
-          val info = replay.init()
-          val frameCount = info.frameCount
-          val playerList = userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-          val playerInfo = playerList.map { ls =>
-            val existTime = ls._2.map { f => ExistTime(f.joinFrame, f.leftFrame) }
-            RecordPlayerInfo(ls._1.id, ls._1.name, existTime)
+          try{
+            val replay = initInput(r.filePath)
+            val info = replay.init()
+            val frameCount = info.frameCount
+            val playerList = userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+            val playerInfo = playerList.map { ls =>
+              val existTime = ls._2.map { f => ExistTime(f.joinFrame, f.leftFrame) }
+              RecordPlayerInfo(ls._1.id, ls._1.name, existTime)
+            }
+            complete(RecordPlayerInfoRsp(RecordPlayerList(frameCount, playerInfo)))
+          } catch {
+            case e: Exception =>
+              complete(ErrorRsp(100001,"文件不存在或已损坏"))
           }
-          complete(RecordPlayerInfoRsp(RecordPlayerList(frameCount, playerInfo)))
+
         case None =>
           complete(ErrorRsp(111000, s"can not find record-${req.recordId}"))
       }

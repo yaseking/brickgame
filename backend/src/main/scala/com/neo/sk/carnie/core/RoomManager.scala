@@ -13,7 +13,7 @@ import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
-import com.neo.sk.carnie.ptcl.RoomApiProtocol.RecordFrameInfo
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, RecordFrameInfo}
 
 
 /**
@@ -51,7 +51,7 @@ object RoomManager {
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
-  case class GetRecordFrame(recordId: Long, playerId: String, replyTo: ActorRef[RecordFrameInfo]) extends Command
+  case class GetRecordFrame(recordId: Long, playerId: String, replyTo: ActorRef[CommonRsp]) extends Command
 
   case object CompleteMsgFront extends Command
 

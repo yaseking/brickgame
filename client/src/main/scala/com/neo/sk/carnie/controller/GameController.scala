@@ -82,21 +82,9 @@ class GameController(player: PlayerInfoInClient,
 
   private def logicLoop(): Unit = { //逻辑帧
     if(!stageCtx.getStage.isFullScreen) {
-      val viewWidth = 1200//1800
-      val viewHeight = 750//900
-      val rankWidth = 1200//1800
-      val rankHeight = 250//300
-      gameScene.backgroundCanvas.setHeight(viewHeight)
-      gameScene.backgroundCanvas.setWidth(viewWidth)
-
-      gameScene.viewCanvas.setHeight(viewHeight)
-      gameScene.viewCanvas.setWidth(viewWidth)
-
-      gameScene.rankCanvas.setHeight(rankHeight)
-      gameScene.rankCanvas.setWidth(rankWidth)
-
-      stageCtx.getStage.setHeight(viewHeight)
-      stageCtx.getStage.setWidth(viewWidth)
+      gameScene.resetScreen()
+      stageCtx.getStage.setWidth(1200)
+      stageCtx.getStage.setHeight(750)
     }
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
