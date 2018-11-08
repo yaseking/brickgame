@@ -122,7 +122,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
 
   def drawGameDie(killerOpt: Option[String],  myScore :BaseScore): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    val endTime = System.currentTimeMillis()
+//    val endTime = System.currentTimeMillis()
     if (myScore.area > maxArea)
       maxArea = myScore.area
     ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
@@ -133,14 +133,14 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     ctx.scale(1, 1)
 
     val text = killerOpt match {
-      case Some(killer) => s"Ops, You Killed By $killer! Press Space Key To Revenge!"
+      case Some(killer) => s"Ops, You Are Killed By $killer! Press Space Key To Revenge!"
       case None => "Ops, Press Space Key To Restart!"
     }
 
     val x = (windowBoundary.x / 2).toInt - 145
     val y = (windowBoundary.y / 2).toInt - 180
 
-    val gameTime = (endTime - myScore.startTime) / 1000
+    val gameTime = (myScore.endTime - myScore.startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
     val time = {
       val tempM = gameTime / 60

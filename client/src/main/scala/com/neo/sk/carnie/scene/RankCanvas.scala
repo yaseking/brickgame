@@ -112,7 +112,7 @@ class RankCanvas(canvas: Canvas)  {
   def drawClearRank(): Unit = {
     val rightBegin = windowBoundary.x - 230//230
     ctx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    ctx.clearRect(rightBegin - 10 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+    ctx.clearRect(rightBegin - 10 - textLineHeight, textLineHeight, 210 + 10 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
     ctx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//玩家死亡清除fps
   }
 

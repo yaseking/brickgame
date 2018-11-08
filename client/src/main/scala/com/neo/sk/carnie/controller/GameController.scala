@@ -34,6 +34,7 @@ class GameController(player: PlayerInfoInClient,
   var firstCome = true
   val idGenerator = new AtomicInteger(1)
   var scoreFlag = true
+  var timeFlag = true
   var isWin = false
   var winnerName = "unknown"
   var isContinues = true
@@ -134,8 +135,11 @@ class GameController(player: PlayerInfoInClient,
       case None =>
         if (firstCome) gameScene.drawGameWait()
         else {
-          grid.currentRank.filter(_.id == player.id).foreach { score =>
-            myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+          if(timeFlag){
+            grid.currentRank.filter(_.id == player.id).foreach { score =>
+              myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+            }
+            timeFlag = false
           }
           gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
           if(isContinue) {
@@ -193,6 +197,7 @@ class GameController(player: PlayerInfoInClient,
           audioDie.stop()
           firstCome = true
           scoreFlag = true
+          timeFlag = true
           if(isWin){
             isWin = false
             winnerName = "unknown"
@@ -267,6 +272,7 @@ class GameController(player: PlayerInfoInClient,
           audioDie.stop()
           firstCome = true
           scoreFlag = true
+          timeFlag = true
           if(isWin){
             isWin = false
             winnerName = "unknown"
