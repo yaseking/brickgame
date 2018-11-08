@@ -61,7 +61,7 @@ class LoginController(loginScene: LoginScene, context: Context) {
   def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
     Boot.addToPlatform {
       val playGameScreen = new GameScene()
-      context.switchScene(playGameScreen.getScene, fullScreen = false)
+      context.switchScene(playGameScreen.getScene, fullScreen = true)
       new GameController(playerInfoInClient, context, playGameScreen).start(domain)
     }
   }

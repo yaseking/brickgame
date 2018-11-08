@@ -36,6 +36,7 @@ class GameController(player: PlayerInfoInClient,
   var scoreFlag = true
   var timeFlag = true
   var isWin = false
+  var exitFullScreen = false
   var winnerName = "unknown"
   var isContinues = true
   var justSynced = false
@@ -82,10 +83,11 @@ class GameController(player: PlayerInfoInClient,
   }
 
   private def logicLoop(): Unit = { //逻辑帧
-    if(!stageCtx.getStage.isFullScreen) {
+    if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
       gameScene.resetScreen()
       stageCtx.getStage.setWidth(1200)
       stageCtx.getStage.setHeight(750)
+      exitFullScreen = true
     }
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
