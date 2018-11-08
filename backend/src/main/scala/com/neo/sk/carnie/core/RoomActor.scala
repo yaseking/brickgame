@@ -101,6 +101,7 @@ object RoomActor {
           val truePlayerId = if (playerId == "unknown") userMap.head._1 else playerId
           watcherMap.put(userId, truePlayerId)
           subscribersMap.put(userId, subscriber)
+          ctx.watchWith(subscriber, WatcherLeftRoom(userId))//
           dispatchTo(subscribersMap, userId, Protocol.Id(truePlayerId))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
@@ -120,6 +121,7 @@ object RoomActor {
 
         case WatcherLeftRoom(uid) =>
           log.debug(s"WatcherLeftRoom:::$uid")
+          subscribersMap.get(uid).foreach(r => ctx.unwatch(r))//
           subscribersMap.remove(uid)
           watcherMap.remove(uid)
           Behaviors.same
