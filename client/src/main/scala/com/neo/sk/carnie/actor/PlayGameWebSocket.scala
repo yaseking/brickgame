@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.actor
 
+import java.net.URLEncoder
+
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.Http
@@ -130,7 +132,8 @@ object PlayGameWebSocket {
     val wsProtocol = "ws"
     val domain = "10.1.29.250:30368"
 //    val domain = "localhost:30368"
-    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$playerName&accessCode=$accessCode"
+    val name = URLEncoder.encode(playerName, "UTF-8")
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode"
 //    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName"
   }
 
