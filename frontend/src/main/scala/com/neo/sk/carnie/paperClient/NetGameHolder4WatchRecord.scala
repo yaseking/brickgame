@@ -46,7 +46,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
-  private var lastRankNum = 0
   private var scale = 1.0
 
 
@@ -200,7 +199,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+//    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
@@ -373,11 +372,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case RankEvent(current) =>
         currentRank = current
-        currentRank.filter(_.id == myId).foreach { score =>
-          if(maxArea<score.area)
-            maxArea = score.area
-        }
-        lastRankNum = currentRank.length
+        maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
+        if(grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
         snapshotMap += frameIndex.toLong + 1 -> msg
