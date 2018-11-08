@@ -176,9 +176,9 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     dealPostReq[RecordInfoReq] { req =>
       RecordDAO.getRecordById(req.recordId).map {
         case Some(r) =>
-          val replay = initInput(r.filePath)
-          val info = replay.init()
           try{
+            val replay = initInput(r.filePath)
+            val info = replay.init()
             val frameCount = info.frameCount
             val playerList = userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
             val playerInfo = playerList.map { ls =>
