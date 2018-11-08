@@ -45,9 +45,9 @@ object RoomManager {
 
   case class StopReplay(recordId: Long, playerId: String) extends Command
 
-  case class FindRoomId(pid: String, reply: ActorRef[Option[(Int, mutable.HashSet[(String, String)])]]) extends Command
+  case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
 
-  case class FindPlayerList(roomId: Int, reply: ActorRef[Option[List[(String, String)]]]) extends Command
+  case class FindPlayerList(roomId: Int, reply: ActorRef[List[(String, String)]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
@@ -165,15 +165,12 @@ object RoomManager {
 
         case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
-          reply ! roomMap.find(r => r._2.exists(i => i._1 == pid))
+          reply ! roomMap.find(r => r._2.exists(i => i._1 == pid)).map(_._1)
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"${ctx.self.path} got roomId = $roomId")
-          val replyMsg = roomMap.get(roomId) match {
-            case Some(p) => Some(p.toList)
-            case _ => None
-          }
+          val replyMsg = roomMap.get(roomId).map(p => (p.unzip._1.toString(),p.unzip._2.toString())).toList
           reply ! replyMsg
           Behaviors.same
 
