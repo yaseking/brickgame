@@ -113,7 +113,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             msg.map {token =>
               dealFutureResult{
                 log.info("start to verifyAccessCode4Client.")
-                val playerName = URLDecoder.decode(playerName, "UTF-8")
+                val playerName = URLDecoder.decode(name, "UTF-8")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
                     handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
