@@ -188,7 +188,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
             complete(RecordPlayerInfoRsp(RecordPlayerList(frameCount, playerInfo)))
           } catch {
             case e: Exception =>
-              println(s"get record player list error: $e")
+              log.debug(s"get record player list error: $e")
               complete(ErrorRsp(100001,"文件不存在或已损坏"))
           }
 
