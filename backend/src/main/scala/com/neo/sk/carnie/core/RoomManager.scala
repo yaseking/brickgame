@@ -117,7 +117,9 @@ object RoomManager {
 
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")
-          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(playerId, userId, subscriber)
+          val truePlayerId = if(playerId.contains("Set")) playerId.drop(4).dropRight(1) else playerId
+          log.info(s"truePlayerId: $truePlayerId")
+          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
           Behaviors.same
 
         case msg@Left(id, name) =>
