@@ -224,7 +224,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         dom.window.clearInterval(requestAnimationInterval)
         loading = true
         drawGame.drawGameOff(firstCome, Some(false), loading, false)
-        grid.frameCount = frame.toLong - 1
+        grid.frameCount = frame.toLong
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, List(), List(), List(), List()))
         snapshotMap = Map.empty[Long, Snapshot]
         encloseMap = Map.empty[Long, NewFieldInfo]
@@ -240,7 +240,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               val data = snapshotMap(grid.frameCount)
               grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
               //        println(s"state 重置 via Map")
-              snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+              snapshotMap = snapshotMap.filter(_._1 > grid.frameCount)
             }
 
             if(encloseMap.contains(grid.frameCount)) {
