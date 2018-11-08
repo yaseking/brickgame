@@ -115,7 +115,7 @@ object GameRecorder {
                   essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
                   else {
                     val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
-                    List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame))
+                    essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
                   }
                 case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
               }
