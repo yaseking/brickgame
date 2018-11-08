@@ -53,18 +53,11 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
       ctx.setFont(Font.font(30))
       ctx.fillText("Welcome.", 150, 180)
     } else {
-      //      rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
       ctx.setFont(Font.font(30))
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
     ctx.restore()
   }
-
-//  def drawBackground(offx: Float, offy: Float): Unit = {
-//    val params = new SnapshotParameters
-//    params.setFill(Color.TRANSPARENT)
-//    ctx.drawImage(background.getBackgroundCanvas.snapshot(params, null), offx * canvasUnit, offy * canvasUnit)
-//  }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
