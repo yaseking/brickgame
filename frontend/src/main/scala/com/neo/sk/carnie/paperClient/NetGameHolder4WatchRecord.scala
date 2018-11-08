@@ -243,7 +243,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               //        println(s"state 重置 via Map")
               snapshotMap = snapshotMap.filter(_._1 > grid.frameCount)
             }
-            if(spaceEvent.contains(grid.frameCount)) replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
+            if(spaceEvent.contains(grid.frameCount)) {
+              replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
+              spaceEvent -= grid.frameCount
+            }
+
             if(encloseMap.contains(grid.frameCount)) {
               grid.addNewFieldInfo(encloseMap(grid.frameCount))
               //        println(s"圈地 via Map")
@@ -252,7 +256,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           }
 
         }
-        if(firstSnapshotFrame > 0) firstCome = false
+        if(!isContinue) firstCome = false
         loading = false
         startGame()
 //        grid.frameCount = firstReplayframe.toLong
