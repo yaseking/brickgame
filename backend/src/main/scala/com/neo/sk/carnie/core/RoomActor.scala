@@ -177,7 +177,7 @@ object RoomActor {
           }
 
           if (shouldNewSnake) dispatch(subscribersMap, newData)
-          else if (finishFields.nonEmpty) { //有圈地
+          else if (finishFields.nonEmpty) {
             val finishUsers = finishFields.map(_._1)
             finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
             newField = finishFields.map { f =>
@@ -186,21 +186,18 @@ object RoomActor {
               }.toList)
             }
             userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
-
-            dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
-
-            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //分发胜利信息
-              val finalData = grid.getGridData
-              grid.cleanData()
-              dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
-              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
-            }
           }
-
-          val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的更新
+          if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
+          val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
             if ((maxSize + fullSize * 0.1) < winStandard) fullSize * (0.2 - userMap.size * 0.05) else winStandard
           } else winStandard
+          if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) {
+            val finalData = grid.getGridData
+            grid.cleanData()
+            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
+            gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
+          }
 
           //for gameRecorder...
           val actionEvent = grid.getDirectionEvent(frame)
@@ -208,11 +205,11 @@ object RoomActor {
             case (f, JoinEvent(id, None)) => (f, JoinEvent(id, grid.snakes.get(id)))
             case other => other
           }
-          val baseEvent = actionEvent ::: joinOrLeftEvent.map(_._2).toList
+          val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
-          val recordData = if (finishFields.nonEmpty) RecordData(frame, (List(RankEvent(grid.currentRank),EncloseEvent(newField)) ::: baseEvent, snapshot))
-          else RecordData(frame, (baseEvent, snapshot))
+          //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
+          val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
           idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard)
 
@@ -226,16 +223,7 @@ object RoomActor {
           Behaviors.same
       }
     }
-  }
 
-  private[this] def switchBehavior(ctx: ActorContext[Command],
-                                   behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
-                                  (implicit stashBuffer: StashBuffer[Command],
-                                   timer: TimerScheduler[Command]) = {
-    log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
-    timer.cancel(BehaviorChangeKey)
-    durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey, timeOut, _))
-    stashBuffer.unstashAll(ctx, behavior)
   }
 
   def dispatchTo(subscribers: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]], id: String, gameOutPut: Protocol.GameMessage): Unit = {
@@ -249,6 +237,16 @@ object RoomActor {
     subscribers.values.foreach {
       _ ! gameOutPut
     }
+  }
+
+  private[this] def switchBehavior(ctx: ActorContext[Command],
+                                   behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
+                                  (implicit stashBuffer: StashBuffer[Command],
+                                   timer: TimerScheduler[Command]) = {
+    log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
+    timer.cancel(BehaviorChangeKey)
+    durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey, timeOut, _))
+    stashBuffer.unstashAll(ctx, behavior)
   }
 
   private def getGameRecorder(ctx: ActorContext[Command], roomId: Int, grid: GridOnServer): ActorRef[GameRecorder.Command] = {
