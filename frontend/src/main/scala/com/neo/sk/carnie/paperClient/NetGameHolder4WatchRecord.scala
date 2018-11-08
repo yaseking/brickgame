@@ -294,7 +294,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               (event, loading) match {
                 case (EncloseEvent(_), true) => replayMessageHandler(event, frameIndex)
                 case (DirectionEvent(_, _), true) => replayMessageHandler(event, frameIndex)
-                case (SpaceEvent(_), true) => spaceEvent += (frameIndex.toLong -> event)
+                case (e@SpaceEvent(_), true) => spaceEvent += (frameIndex.toLong -> e)
                 case (_, false) => replayMessageHandler(event, frameIndex)
                 case _ =>
               }
