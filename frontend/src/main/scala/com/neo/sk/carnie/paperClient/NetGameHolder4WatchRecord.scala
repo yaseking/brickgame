@@ -132,9 +132,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   def draw(offsetTime: Long): Unit = {
     if (webSocketClient.getWsState) {
       if(replayFinish) {
-        drawGame.drawGameOff(firstCome, Some(true), false)
+        drawGame.drawGameOff(firstCome, Some(true), false, false)
       } else if (loading) {
-        drawGame.drawGameOff(firstCome, Some(false), true)
+        drawGame.drawGameOff(firstCome, Some(false), true, false)
       } else {
         val data = grid.getGridData
         if (isWin) {
@@ -193,7 +193,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         }
       }
     } else {
-      drawGame.drawGameOff(firstCome, None, false)
+      drawGame.drawGameOff(firstCome, None, false, false)
     }
   }
 
@@ -209,7 +209,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   }
 
   private def connectError(e: Event) = {
-    drawGame.drawGameOff(firstCome, None, false)
+    drawGame.drawGameOff(firstCome, None, false, false)
     e
   }
 
@@ -224,7 +224,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         dom.window.clearInterval(pingInterval)
         dom.window.clearInterval(requestAnimationInterval)
         loading = true
-        drawGame.drawGameOff(firstCome, Some(false), loading)
+        drawGame.drawGameOff(firstCome, Some(false), loading, false)
         grid.frameCount = frame.toLong - 1
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, List(), List(), List(), List()))
         snapshotMap = Map.empty[Long, Snapshot]
@@ -255,6 +255,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         loading = false
         startGame()
 //        grid.frameCount = firstReplayframe.toLong
+
+      case Protocol.InitReplayError(info) =>
+        drawGame.drawGameOff(firstCome, Some(false), loading, true)
 
       case Protocol.SomeOneWin(winner, finalData) =>
         isWin = true

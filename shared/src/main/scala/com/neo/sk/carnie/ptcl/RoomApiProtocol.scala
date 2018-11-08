@@ -123,7 +123,7 @@ object RoomApiProtocol {
                         data: RecordFrameInfo,
                         errCode: Int = 0,
                         msg: String = "ok"
-                      )
+                      ) extends CommonRsp
 
   case class RecordPlayerInfoRsp(
                                 data: RecordPlayerList,

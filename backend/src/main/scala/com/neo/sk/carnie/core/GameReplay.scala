@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.ptcl.RoomApiProtocol
-import com.neo.sk.carnie.ptcl.RoomApiProtocol.RecordFrameInfo
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, ErrorRsp, RecordFrameInfo}
 import com.neo.sk.utils.essf.RecallGame._
 
 /**
@@ -35,7 +35,7 @@ object GameReplay {
   case object GameLoop extends Command
 
   case class Left() extends Command
-  case class GetRecordFrame(playerId: String, replyTo: ActorRef[RecordFrameInfo]) extends Command
+  case class GetRecordFrame(playerId: String, replyTo: ActorRef[CommonRsp]) extends Command
   case class StopReplay() extends Command
 
   final case class SwitchBehavior(
@@ -84,9 +84,11 @@ object GameReplay {
             }catch {
               case e:Throwable=>
                 log.error("error---"+e.getMessage)
+                ctx.self ! SwitchBehavior("initError",initError)
             }
           case None=>
             log.debug(s"record--$recordId didn't exist!!")
+            ctx.self ! SwitchBehavior("initError",initError)
         }
         switchBehavior(ctx,"busy",busy())
       }
@@ -174,7 +176,7 @@ object GameReplay {
 
         case GetRecordFrame(playerId, replyTo) =>
 //          log.info(s"game replay got $msg")
-          replyTo ! RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount)
+          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount))
           Behaviors.same
 
         case StopReplay() =>
@@ -199,6 +201,27 @@ object GameReplay {
       }
     }
   }
+
+  private def initError(
+                         implicit sendBuffer: MiddleBufferInJvm
+                       ):Behavior[Command]={
+    Behaviors.receive[Command]{(ctx,msg)=>
+      msg match {
+        case msg:InitReplay =>
+          dispatchTo(msg.subscriber, InitReplayError("游戏文件不存在或者已损坏！！"))
+          Behaviors.stopped
+
+        case msg:GetRecordFrame=>
+          msg.replyTo ! ErrorRsp(10001,"init error")
+          Behaviors.stopped
+
+        case msg=>
+          Behaviors.stopped
+      }
+    }
+  }
+
+
 
   import org.seekloud.byteobject.ByteObject._
   def dispatchTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg: Protocol.GameMessage)(implicit sendBuffer: MiddleBufferInJvm)= {

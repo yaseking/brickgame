@@ -96,11 +96,15 @@ class DrawGame(
     borderCtx.fillRect(BorderSize.w * canvasUnit, 0, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
-  def drawGameOff(firstCome: Boolean, replayFinish: Option[Boolean], loading: Boolean): Unit = {
+  def drawGameOff(firstCome: Boolean, replayFinish: Option[Boolean], loading: Boolean, readFileError: Boolean): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
-    if (replayFinish.nonEmpty && replayFinish.get) {
+    if (readFileError) {
+      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+      ctx.font = "36px Helvetica"
+      ctx.fillText("文件不存在或文件已损坏...", 150, 180)
+    } else if (replayFinish.nonEmpty && replayFinish.get) {
       rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
       ctx.fillText("Replay ends.", 150, 180)
