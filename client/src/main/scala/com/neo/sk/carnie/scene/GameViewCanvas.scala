@@ -17,10 +17,10 @@ import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCanvas) {
+class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: BackgroundCanvas
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
-  private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
+  private var windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
@@ -29,11 +29,20 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
   private val otherHeaderImg = new Image("boy.png")
   private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
-  private val canvasUnit = (windowBoundary.x / window.x).toInt
+  private var canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
   private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
+
+  def resetScreen(viewWidth:Int, viewHeight:Int, rankWidth:Int, rankHeight:Int) = {
+    canvas.setWidth(viewWidth)
+    canvas.setHeight(viewHeight)
+    rankCanvas.setWidth(rankWidth)
+    rankCanvas.setHeight(rankHeight)
+    windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
+    canvasUnit = (windowBoundary.x / window.x).toInt
+  }
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -51,11 +60,11 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
     ctx.restore()
   }
 
-  def drawBackground(offx: Float, offy: Float): Unit = {
-    val params = new SnapshotParameters
-    params.setFill(Color.TRANSPARENT)
-    ctx.drawImage(background.getBackgroundCanvas.snapshot(params, null), offx * canvasUnit, offy * canvasUnit)
-  }
+//  def drawBackground(offx: Float, offy: Float): Unit = {
+//    val params = new SnapshotParameters
+//    params.setFill(Color.TRANSPARENT)
+//    ctx.drawImage(background.getBackgroundCanvas.snapshot(params, null), offx * canvasUnit, offy * canvasUnit)
+//  }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
@@ -179,8 +188,8 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
-    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.042
-    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.030
+    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.050
+    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.080
     ctx.save()
     ctx.setGlobalAlpha(0.5)
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
@@ -289,11 +298,6 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas,background: BackgroundCan
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
 
-
-//    drawBackground(offx, offy)
-//    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
-
-//    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
 
     rankCtx.clearRect(20, textLineHeight * 5, 650, textLineHeight * 2)//* 5, * 2
