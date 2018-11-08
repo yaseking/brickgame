@@ -31,7 +31,6 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
   val roomManager: akka.actor.typed.ActorRef[RoomManager.Command]
 
-
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
     dealPostReq[PlayerIdInfo] { req =>
       val msg: Future[Option[(Int, mutable.HashSet[(String, String)])]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
