@@ -38,6 +38,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var play = true
   var snapshotMap = Map.empty[Long, Snapshot]
   var encloseMap = Map.empty[Long, NewFieldInfo]
+  var spaceEvent = Map.empty[Long, SpaceEvent]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var replayFinish = false
   var gameLoopInterval = -1
@@ -242,7 +243,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               //        println(s"state 重置 via Map")
               snapshotMap = snapshotMap.filter(_._1 > grid.frameCount)
             }
-
+            if(spaceEvent.contains(grid.frameCount)) replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
             if(encloseMap.contains(grid.frameCount)) {
               grid.addNewFieldInfo(encloseMap(grid.frameCount))
               //        println(s"圈地 via Map")
@@ -293,6 +294,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               (event, loading) match {
                 case (EncloseEvent(_), true) => replayMessageHandler(event, frameIndex)
                 case (DirectionEvent(_, _), true) => replayMessageHandler(event, frameIndex)
+                case (SpaceEvent(_), true) => spaceEvent += (frameIndex.toLong -> event)
                 case (_, false) => replayMessageHandler(event, frameIndex)
                 case _ =>
               }
