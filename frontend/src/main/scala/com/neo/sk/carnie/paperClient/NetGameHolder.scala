@@ -213,6 +213,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
                 isWin = false
                 winnerName = "unknown"
               }
+              myScore = BaseScore(0, 0, 0l, 0l)
               nextFrame = dom.window.requestAnimationFrame(gameRender())
               isContinue = true
             }
@@ -276,6 +277,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
         audioKilled.currentTime = 0
         scoreFlag = true
         firstCome = true
+        myScore = BaseScore(0, 0, 0l, 0l)
         if (isWin) {
           isWin = false
           winnerName = "unknown"
