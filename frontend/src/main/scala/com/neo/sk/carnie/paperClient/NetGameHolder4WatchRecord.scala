@@ -269,9 +269,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         replayFinish = true
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
-        println(s"receive replayFrameData")
-        println(s"grid.frameCount:${grid.frameCount}")
-        println(s"frameIndex:$frameIndex")
+//        println(s"receive replayFrameData")
+//        println(s"grid.frameCount:${grid.frameCount}")
+//        println(s"frameIndex:$frameIndex")
         if(frameIndex == 0) grid.frameCount = 0
         if(stateData.nonEmpty) {
           stateData.get match {
