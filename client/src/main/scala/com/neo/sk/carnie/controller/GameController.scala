@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.controller
 
+import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.Boot
@@ -14,7 +15,7 @@ import akka.actor.typed.scaladsl.adapter._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-import javafx.scene.media.AudioClip
+import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 
 /**
   * Created by dry on 2018/10/29.
@@ -37,7 +38,13 @@ class GameController(player: PlayerInfoInClient,
   var winnerName = "unknown"
   var isContinues = true
   var justSynced = false
+  private var fieldNum = 0
+  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
+  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
+//  val dieSoundUrl = new File("/Users/litianyu/WorkSpace/EB_Projs/carnie/client/src/main/resources/mp3/killed.mp3").toURI.toString
+//  val audioDie = new AudioClip(dieSoundUrl)
+//  val audioDie = new MediaPlayer(new Media(getClass.getResource("/mp3/killed.mp3").toString))
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
@@ -74,6 +81,23 @@ class GameController(player: PlayerInfoInClient,
   }
 
   private def logicLoop(): Unit = { //逻辑帧
+    if(!stageCtx.getStage.isFullScreen) {
+      val viewWidth = 1200//1800
+      val viewHeight = 750//900
+      val rankWidth = 1200//1800
+      val rankHeight = 250//300
+      gameScene.backgroundCanvas.setHeight(viewHeight)
+      gameScene.backgroundCanvas.setWidth(viewWidth)
+
+      gameScene.viewCanvas.setHeight(viewHeight)
+      gameScene.viewCanvas.setWidth(viewWidth)
+
+      gameScene.rankCanvas.setHeight(rankHeight)
+      gameScene.rankCanvas.setWidth(rankWidth)
+
+      stageCtx.getStage.setHeight(viewHeight)
+      stageCtx.getStage.setWidth(viewWidth)
+    }
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
     if (!justSynced) {
@@ -102,6 +126,15 @@ class GameController(player: PlayerInfoInClient,
           myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
           scoreFlag = false
         }
+        data.killHistory.foreach {
+          i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
+        }
+        val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
+        if(myFieldCount>fieldNum){
+          audioFinish.play()
+          fieldNum = myFieldCount
+        }
+
         gameScene.draw(player.id, data, offsetTime, grid, grid.currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
           gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
@@ -117,7 +150,10 @@ class GameController(player: PlayerInfoInClient,
             myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
           }
           gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
-          if(isContinue) audioDie.play()
+          if(isContinue) {
+            audioDie.play()
+            log.info("play the dieSound.")
+          }
           isContinue = false
         }
     }
@@ -165,6 +201,8 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.ReStartGame =>
         Boot.addToPlatform {
+          audioWin.stop()
+          audioDie.stop()
           firstCome = true
           scoreFlag = true
           if(isWin){
@@ -173,7 +211,7 @@ class GameController(player: PlayerInfoInClient,
           }
           animationTimer.start()
           isContinue = true
-
+          fieldNum = 0
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
@@ -189,7 +227,7 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           grid.currentRank = current
-          if (grid.getGridData.snakes.exists(_.id == player.id))
+          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
             gameScene.drawRank(player.id, grid.getGridData.snakes, current)
         }
 
@@ -245,6 +283,7 @@ class GameController(player: PlayerInfoInClient,
             isWin = false
             winnerName = "unknown"
           }
+          fieldNum = 0
           animationTimer.start()
           isContinue = true
         }

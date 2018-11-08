@@ -39,8 +39,16 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var snapshotMap = Map.empty[Long, Snapshot]
   var encloseMap = Map.empty[Long, NewFieldInfo]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-
   var replayFinish = false
+  var gameLoopInterval = -1
+  var pingInterval = -1
+  var requestAnimationInterval = -1
+
+  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var maxArea: Int = 0
+  private var lastRankNum = 0
+  private var scale = 1.0
+
 
 //  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
 //  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
@@ -67,11 +75,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   def startGame(): Unit = {
     println(s"start game======")
     drawGame.drawGameOn()
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
-    dom.window.setInterval(() => {
+    gameLoopInterval = dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+    pingInterval = dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
-    dom.window.requestAnimationFrame(gameRender())
+    requestAnimationInterval = dom.window.requestAnimationFrame(gameRender())
   }
 
   private var tempRender = System.currentTimeMillis()
@@ -131,7 +139,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         val data = grid.getGridData
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-          drawGame.drawWin(myId, winnerName, winData)
+          drawGame.drawGameWin(myId, winnerName, winData)
           audio1.play()
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
@@ -141,7 +149,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
             case Some(snake) =>
               firstCome = false
               if (scoreFlag) {
-                drawGame.cleanMyScore
+                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+//                drawGame.cleanMyScore
                 scoreFlag = false
               }
               data.killHistory.foreach {
@@ -172,7 +181,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               else {
                 if (play) audioKilled.play()
                 play = false
-                drawGame.drawGameDie(grid.getKiller(myId).map(_._2))
+                currentRank.filter(_.id == myId).foreach { score =>
+                  myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+                }
+                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
                 killInfo = ("", "", "")
                 dom.window.cancelAnimationFrame(nextFrame)
                 isContinue = false
@@ -186,9 +198,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   }
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
+    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, maxArea)
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
@@ -208,8 +220,16 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case Protocol.StartLoading(frame) =>
         println(s"start loading  =========")
-        grid.frameCount = frame.toLong
+        dom.window.clearInterval(gameLoopInterval)
+        dom.window.clearInterval(pingInterval)
+        dom.window.clearInterval(requestAnimationInterval)
         loading = true
+        drawGame.drawGameOff(firstCome, Some(false), loading)
+        grid.frameCount = frame.toLong - 1
+        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, List(), List(), List(), List()))
+        snapshotMap = Map.empty[Long, Snapshot]
+        encloseMap = Map.empty[Long, NewFieldInfo]
+
 
 
       case Protocol.StartReplay(firstSnapshotFrame,firstReplayFrame) =>
@@ -350,8 +370,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case RankEvent(current) =>
         currentRank = current
-        if (grid.getGridData.snakes.exists(_.id == myId))
-          drawGame.drawRank(myId, grid.getGridData.snakes, current)
+        currentRank.filter(_.id == myId).foreach { score =>
+          if(maxArea<score.area)
+            maxArea = score.area
+        }
+        lastRankNum = currentRank.length
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
         snapshotMap += frameIndex.toLong + 1 -> msg

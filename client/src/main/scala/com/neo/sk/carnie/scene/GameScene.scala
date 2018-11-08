@@ -32,9 +32,9 @@ class GameScene {
   protected val viewWidth = screen.getMaxX.toInt
   protected val viewHeight = screen.getMaxY.toInt
 //  val viewWidth = 1200//1800
-//  val viewHeight = 600//900
+//  val viewHeight = 750//900
 //  val rankWidth = 1200//1800
-//  val rankHeight = 300//300
+//  val rankHeight = 250//300
   val rankWidth = viewWidth
   val rankHeight = viewHeight/2
   val group = new Group()

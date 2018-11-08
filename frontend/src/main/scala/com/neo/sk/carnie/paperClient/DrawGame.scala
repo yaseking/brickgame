@@ -29,8 +29,6 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //离屏canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  //  private[this] val background = dom.document.getElementById("Background").asInstanceOf[Canvas]
-  //  private[this] val backCtx = background.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
@@ -40,13 +38,12 @@ class DrawGame(
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
   private val bloodImg = dom.document.getElementById("bloodImg").asInstanceOf[Image]
-  //private val fireImg=dom.document.getElementById("fireImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
 
-  private var myScore = BaseScore(0, 0, 0l, 0l)
-  private var maxArea: Int = 0
-  private var scale = 1.0
-  private var lastRankNum = 0
+//  private var myScore = BaseScore(0, 0, 0l, 0l)
+//  private var maxArea: Int = 0
+//  private var scale = 1.0
+//  private var lastRankNum = 0
 
   def reSetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -123,14 +120,6 @@ class DrawGame(
     }
   }
 
-  def drawGameWin(winner: String): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor2
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.font = "36px Helvetica"
-    ctx.fillText(s"winner is $winner, Press Space Key To Restart!", 150, 180)
-  }
-
   def drawGameWait(): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -139,7 +128,7 @@ class DrawGame(
     ctx.fillText("Please wait.", 150, 180)
   }
 
-  def drawGameDie(killerOpt: Option[String]): Unit = {
+  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -147,7 +136,7 @@ class DrawGame(
     ctx.fillStyle = ColorsSetting.gameNameColor
 
     ctx.font = "24px Helvetica"
-    scale = 1
+//    scale = 1
     ctx.scale(1, 1)
 
     val text = killerOpt match {
@@ -197,15 +186,16 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawWin(myId: String, winner: String, data: Data4TotalSync) = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
+    rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
     val snakesFields = data.fieldDetails
-    scale = 0.33
-    val width = dom.window.innerWidth.toFloat - BorderSize.w * canvasUnit * scale
-    val height = dom.window.innerHeight.toFloat - BorderSize.h * canvasUnit * scale
+//    scale = 0.33
+    val width = dom.window.innerWidth.toFloat - BorderSize.w * canvasUnit * 0.33
+    val height = dom.window.innerHeight.toFloat - BorderSize.h * canvasUnit * 0.33
     ctx.save()
-    ctx.scale(scale, scale)
+    ctx.scale(0.33, 0.33)
     ctx.fillStyle = ColorsSetting.borderColor
     ctx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
     ctx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
@@ -239,7 +229,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double): Double = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -263,10 +253,9 @@ class DrawGame(
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
-    //scale = 1 - Math.sqrt(grid.getMyFieldCount(uid, maxPoint, minPoint)) * 0.0048
-    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    val newScale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
-    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
+    setScale(newScale, windowBoundary.x / 2, windowBoundary.y / 2)
 
     ctx.globalAlpha = 0.6
     data.bodyDetails.foreach { bds =>
@@ -332,7 +321,7 @@ class DrawGame(
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     //    ctx.drawImage(rankCanvas, 0, 0)
     //    ctx.restore()
-
+    newScale
   }
 
   def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
@@ -354,15 +343,13 @@ class DrawGame(
     }
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score],lastRankNum: Int): Unit = {
 
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
 
     rankCtx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
-
-    lastRankNum = currentRank.length
+    rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (8 + 1) + 3)//(lastRankNum + 1) + 3)
 
     rankCtx.globalAlpha = 1
     rankCtx.textAlign = "left"
@@ -381,9 +368,9 @@ class DrawGame(
 
     val myRankBaseLine = 4
     currentRank.filter(_.id == uid).foreach { score =>
-      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-      if (myScore.area > maxArea)
-        maxArea = myScore.area
+//      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+//      if (score.area > maxArea)
+//        maxArea = score.area
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.globalAlpha = 0.6
       rankCtx.fillStyle = color
@@ -441,9 +428,9 @@ class DrawGame(
     ctx.translate(-x, -y)
   }
 
-  def cleanMyScore: Unit = {
-    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-  }
+//  def cleanMyScore: Unit = {
+//    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+//  }
 
 
 }
