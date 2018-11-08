@@ -67,7 +67,7 @@ object GameReplay {
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
 //            log.debug(s"game path ${r.filePath}")
-//            val replay=initInput("../backend/" + r.filePath)
+//            val replay=initInput("../backend/" + r.filePath) //nohup
             val replay=initInput(r.filePath)
             val info=replay.init()
             try{
