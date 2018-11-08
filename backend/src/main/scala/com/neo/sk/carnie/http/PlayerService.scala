@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.http
 
+import java.net.URLDecoder
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
@@ -17,10 +18,8 @@ import com.neo.sk.carnie.core.TokenActor.AskForToken
 import com.neo.sk.carnie.ptcl.ErrorRsp
 import com.neo.sk.utils.{CirceSupport, EsheepClient}
 import io.circe.generic.auto._
-
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.Boot.scheduler
-
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /**
@@ -114,14 +113,15 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             msg.map {token =>
               dealFutureResult{
                 log.info("start to verifyAccessCode4Client.")
+                val playerName = URLDecoder.decode(playerName, "UTF-8")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
-                    handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+                    handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
                     //fixme 测试阶段验证失败也建立连接，记得修改。
 //                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
-                    handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+                    handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
                 }
               }
             }
