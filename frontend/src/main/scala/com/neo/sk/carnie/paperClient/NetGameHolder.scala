@@ -41,7 +41,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
-  private var lastRankNum = 0
   private var scale = 1.0
 
   var replayFinish = false
@@ -187,7 +186,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-//    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, maxArea)
+    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
@@ -293,8 +292,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
       case Protocol.Ranks(current) =>
         currentRank = current
         maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
-        lastRankNum = currentRank.length
-        if(grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, lastRankNum)
+//        if(grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
         syncGridData = Some(data)

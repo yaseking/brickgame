@@ -40,11 +40,6 @@ class DrawGame(
   private val bloodImg = dom.document.getElementById("bloodImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
 
-//  private var myScore = BaseScore(0, 0, 0l, 0l)
-//  private var maxArea: Int = 0
-//  private var scale = 1.0
-//  private var lastRankNum = 0
-
   def reSetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
@@ -62,9 +57,6 @@ class DrawGame(
 
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
-
-    //    background.width = windowBoundary.x.toInt
-    //    background.height = windowBoundary.y.toInt
 
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
@@ -136,11 +128,9 @@ class DrawGame(
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    //    ctx.globalAlpha = 0.8
     ctx.fillStyle = ColorsSetting.gameNameColor
 
     ctx.font = "24px Helvetica"
-//    scale = 1
     ctx.scale(1, 1)
 
     val text = killerOpt match {
@@ -195,7 +185,6 @@ class DrawGame(
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
     val snakesFields = data.fieldDetails
-//    scale = 0.33
     val width = dom.window.innerWidth.toFloat - BorderSize.w * canvasUnit * 0.33
     val height = dom.window.innerHeight.toFloat - BorderSize.h * canvasUnit * 0.33
     ctx.save()
@@ -323,8 +312,7 @@ class DrawGame(
     //    //排行榜边界离屏
     rankCtx.clearRect(20, textLineHeight * 4, 600, textLineHeight * 3)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
-    //    ctx.drawImage(rankCanvas, 0, 0)
-    //    ctx.restore()
+
     newScale
   }
 
@@ -347,13 +335,12 @@ class DrawGame(
     }
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score],lastRankNum: Int): Unit = {
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
 
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
 
-    rankCtx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    rankCtx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (8 + 1) + 3)//(lastRankNum + 1) + 3)
+    rankCtx.clearRect(0, 0, rankCanvas.width, rankCanvas.height) //绘制前清除canvas
 
     rankCtx.globalAlpha = 1
     rankCtx.textAlign = "left"
@@ -363,18 +350,13 @@ class DrawGame(
     val baseLine = 2
     rankCtx.font = "22px Helvetica"
     rankCtx.fillStyle = ColorsSetting.fontColor2
-    //    drawTextLine(s"NAME: ${mySnake.name.take(32)}", leftBegin, 0, baseLine)
     drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
     rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
-    //    rankCtx.fillStyle = ColorsSetting.fontColor2
-    //    PerformanceTool.renderFps(rankCtx, leftBegin, (baseLine + 3) * textLineHeight)
+
 
     val myRankBaseLine = 4
     currentRank.filter(_.id == uid).foreach { score =>
-//      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-//      if (score.area > maxArea)
-//        maxArea = score.area
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.globalAlpha = 0.6
       rankCtx.fillStyle = color
@@ -387,7 +369,6 @@ class DrawGame(
       rankCtx.fillStyle = ColorsSetting.fontColor2
       drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
     }
-    //    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "14px Helvetica"
