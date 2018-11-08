@@ -13,7 +13,7 @@ import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
-import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, RecordFrameInfo}
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, PlayerIdName, RecordFrameInfo}
 
 
 /**
@@ -47,7 +47,7 @@ object RoomManager {
 
   case class FindRoomId(pid: String, reply: ActorRef[Option[Int]]) extends Command
 
-  case class FindPlayerList(roomId: Int, reply: ActorRef[List[(String, String)]]) extends Command
+  case class FindPlayerList(roomId: Int, reply: ActorRef[List[PlayerIdName]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
@@ -107,7 +107,7 @@ object RoomManager {
           Behaviors.same
 
         case GetRecordFrame(recordId, playerId, replyTo) =>
-//          log.info(s"got $msg")
+          //          log.info(s"got $msg")
           getGameReplay(ctx, recordId, playerId) ! GameReplay.GetRecordFrame(playerId, replyTo)
           Behaviors.same
 
@@ -117,7 +117,7 @@ object RoomManager {
 
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")
-          val truePlayerId = if(playerId.contains("Set")) playerId.drop(4).dropRight(1) else playerId
+          val truePlayerId = if (playerId.contains("Set")) playerId.drop(4).dropRight(1) else playerId
           log.info(s"truePlayerId: $truePlayerId")
           getRoomActor(ctx, roomId) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
           Behaviors.same
@@ -156,7 +156,7 @@ object RoomManager {
         case UserLeft(id) =>
           log.debug(s"got Terminated id = $id")
           val roomInfoOpt = roomMap.find(r => r._2.exists(u => u._1 == id))
-          if(roomInfoOpt.nonEmpty) {
+          if (roomInfoOpt.nonEmpty) {
             val roomId = roomInfoOpt.get._1
             val filterUserInfo = roomMap(roomId).find(_._1 == id)
             if (filterUserInfo.nonEmpty) {
@@ -172,7 +172,10 @@ object RoomManager {
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"${ctx.self.path} got roomId = $roomId")
-          val replyMsg = roomMap.get(roomId).map(p => (p.unzip._1.toString(),p.unzip._2.toString())).toList
+          val roomInfo = roomMap.get(roomId)
+          val replyMsg = if (roomInfo.nonEmpty) {
+            roomInfo.get.toList.map { p => PlayerIdName(p._1, p._2) }
+          } else Nil
           reply ! replyMsg
           Behaviors.same
 
