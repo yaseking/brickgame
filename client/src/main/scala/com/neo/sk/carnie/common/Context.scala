@@ -8,13 +8,18 @@ import javafx.stage.Stage
   **/
 class Context(stage: Stage) {
 
+  def getStage: Stage = stage
+
   def switchScene(scene: Scene, title:String = "carnie", fullScreen: Boolean) = {
     stage.setScene(scene)
     stage.sizeToScene()
     stage.setResizable(false)
     stage.setTitle(title)
+//    stage.setIconified(fullScreen)
     stage.setFullScreen(fullScreen)
+//    stage.setMaximized(fullScreen)
     stage.show()
+//    stage.fullScreenProperty()
   }
 
 }
