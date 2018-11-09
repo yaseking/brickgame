@@ -209,6 +209,7 @@ object GameReplay {
     Behaviors.receive[Command]{(ctx,msg)=>
       msg match {
         case msg:InitReplay =>
+          log.debug(s"游戏文件不存在或已损坏")
           dispatchTo(msg.subscriber, InitReplayError("游戏文件不存在或者已损坏！！"))
           Behaviors.stopped
 
@@ -217,6 +218,7 @@ object GameReplay {
           Behaviors.stopped
 
         case msg=>
+          log.debug(s"unknown message:$msg")
           Behaviors.stopped
       }
     }
