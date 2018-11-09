@@ -444,7 +444,11 @@ trait Grid {
   }
 
   def cleanTurnPoint4Reply(sid: String) = {
-    snakeTurnPoints -= sid
+    if(snakeTurnPoints.contains(sid)) {
+//      val turnPoints = snakeTurnPoints(sid).filterNot(t => t.)
+        snakeTurnPoints -= sid
+    }
+
   }
 
 
