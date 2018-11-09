@@ -214,8 +214,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
                 winnerName = "unknown"
               }
               myScore = BaseScore(0, 0, 0l, 0l)
-              nextFrame = dom.window.requestAnimationFrame(gameRender())
               isContinue = true
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
             }
             Key(myId, e.keyCode, frame, actionId)
           }
@@ -282,8 +282,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
           isWin = false
           winnerName = "unknown"
         }
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
         isContinue = true
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case Protocol.SomeOneWin(winner, finalData) =>
         isWin = true
