@@ -39,6 +39,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var snapshotMap = Map.empty[Long, Snapshot]
   var encloseMap = Map.empty[Long, NewFieldInfo]
   var spaceEvent = Map.empty[Long, SpaceEvent]
+  var rankEvent = Map.empty[Long, RankEvent]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var replayFinish = false
   var gameLoopInterval = -1
@@ -239,13 +240,17 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
              if(snapshotMap.contains(grid.frameCount)) {
               val data = snapshotMap(grid.frameCount)
               grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
-               if(data.snakes.find(_.id == myId).nonEmpty) firstCome = false
+               if(data.snakes.exists(_.id == myId)) firstCome = false
               //        println(s"state 重置 via Map")
               snapshotMap = snapshotMap.filter(_._1 > grid.frameCount)
             }
             if(spaceEvent.contains(grid.frameCount)) {
               replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
               spaceEvent -= grid.frameCount
+            }
+            if(rankEvent.contains(grid.frameCount)) {
+              replayMessageHandler(rankEvent(grid.frameCount), grid.frameCount.toInt)
+              rankEvent -= grid.frameCount
             }
 
             if(encloseMap.contains(grid.frameCount)) {
@@ -299,6 +304,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
                 case (EncloseEvent(_), true) => replayMessageHandler(event, frameIndex)
                 case (DirectionEvent(_, _), true) => replayMessageHandler(event, frameIndex)
                 case (e@SpaceEvent(_), true) => spaceEvent += (frameIndex.toLong -> e)
+                case (e@RankEvent(_), true) => rankEvent += (frameIndex.toLong -> e)
                 case (_, false) => replayMessageHandler(event, frameIndex)
                 case _ =>
               }
