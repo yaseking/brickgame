@@ -85,9 +85,6 @@ object GameReplay {
               case e:Throwable=>
                 log.error("error---"+e.getMessage)
                 ctx.self ! SwitchBehavior("initError",initError)
-              case other =>
-                log.error("error---"+other.getMessage)
-                ctx.self ! SwitchBehavior("initError",initError)
             }
           case None=>
             log.debug(s"record--$recordId didn't exist!!")

@@ -35,7 +35,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var fieldNum = 1
   var snakeNum = 1
   var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
-  var play = true
   var snapshotMap = Map.empty[Long, Snapshot]
   var encloseMap = Map.empty[Long, NewFieldInfo]
   var spaceEvent = Map.empty[Long, SpaceEvent]
@@ -179,8 +178,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
             case None =>
               if (firstCome) drawGame.drawGameWait()
               else {
-                if (play) audioKilled.play()
-                play = false
+                if (isContinue) audioKilled.play()
                 currentRank.filter(_.id == myId).foreach { score =>
                   myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
                 }
@@ -364,7 +362,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           audio1.currentTime = 0
           audioKilled.pause()
           audioKilled.currentTime = 0
-          play = true
           scoreFlag = true
           firstCome = true
           if (isWin) {
