@@ -177,8 +177,8 @@ class DrawGame(
     ctx.fillStyle = "#FF5809"
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
-    val offx = (270 - length) / 2
-    ctx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
+    val offx = length / 2
+    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180)
     ctx.restore()
   }
 
