@@ -140,6 +140,7 @@ object GameRecorder {
         case SaveInFile =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, SaveInFile, saveTime)
+          ctx.self ! SaveInFile
           switchBehavior(ctx, "save", save(recorder, gameInfo, essfMap, userMap, userHistoryMap, lastFrame))
 
         case _ =>
