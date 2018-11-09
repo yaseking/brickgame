@@ -95,17 +95,17 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
     val length = new Text(txt1).getLayoutBounds.getWidth
-    ctx.fillText(txt1, 700, 150)
+    ctx.fillText(txt1, (windowBoundary.x - length) / 2 , 150)
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
     ctx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
-    ctx.drawImage(crownImg, 705 + length, 110, 50, 50)
+    ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, 75, 50, 50)
     ctx.restore()
   }
   import javafx.scene.text.Text
   def drawUserDieInfo(killedName: String, killerName: String): Unit = {
     ctx.save()
 //    ctx.globalAlpha = 0.6
-    ctx.drawImage(bloodImg, 670, 115, 300, 50)
+
     ctx.restore()
     ctx.save()
     ctx.setFont(Font.font(30))
@@ -115,8 +115,9 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     text.setFont(Font.font(30))
     text.setFill(ColorsSetting.gameNameColor)
     val length = text.getLayoutBounds.getWidth
-    val offx = (270 - length) / 2
-    ctx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
+    val offx = length / 2
+    ctx.drawImage(bloodImg, windowBoundary.x / 2 - offx, 115, 300, 50)
+    ctx.fillText(s"$killedName is killed by $killerName", windowBoundary.x / 2 - offx, 150)
     ctx.restore()
   }
 
