@@ -67,8 +67,11 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 log.info("Start to watchGame.")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(data) =>
-                    log.info(s"userId: ${data.playerId}, nickname: ${data.nickname}}")
-                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId, data.playerId))
+                    if(data.playerId == playerId){
+                      getFromResource("html/errPage.html")
+                    } else {
+                      handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId, data.playerId))
+                    }
                   case Left(e) =>
                     log.error(s"watchGame error. fail to verifyAccessCode err: $e")
                     complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
