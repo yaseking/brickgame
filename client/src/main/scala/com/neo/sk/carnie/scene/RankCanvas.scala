@@ -29,9 +29,9 @@ class RankCanvas(canvas: Canvas)  {
   private var lastRankNum = 0 //清屏用
   private val myRankBaseLine = 4
 
-  def getRankView = canvas
+  def getRankView: Canvas = canvas
 
-  def resetRankView(rankWidth:Int, rankHeight:Int) = {
+  def resetRankView(rankWidth:Int, rankHeight:Int): Unit = {
     canvas.setWidth(rankWidth)
     canvas.setHeight(rankHeight)
     realWindowWidth = canvas.getWidth
@@ -92,7 +92,7 @@ class RankCanvas(canvas: Canvas)  {
       ctx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
     }
     currentRank.foreach { score =>
-      val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      val color = snakes.find(_.id == score.id).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setGlobalAlpha(0.6)
       ctx.setFill(color)
       ctx.save()
