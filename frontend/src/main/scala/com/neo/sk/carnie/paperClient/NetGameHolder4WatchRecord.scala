@@ -252,6 +252,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
             }
 
             if(encloseMap.contains(grid.frameCount)) {
+              grid.cleanTurnPoint4Reply(myId)
               grid.addNewFieldInfo(encloseMap(grid.frameCount))
               //        println(s"圈地 via Map")
             }
