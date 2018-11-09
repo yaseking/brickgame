@@ -170,7 +170,6 @@ class DrawGame(
   def drawUserDieInfo(killedName: String, killerName: String) = {
     ctx.save()
     ctx.globalAlpha = 0.6
-    ctx.drawImage(bloodImg, 670, 115, 300, 50)
     ctx.restore()
     ctx.save()
     ctx.font = "bold 30px Microsoft YaHei"
@@ -178,6 +177,7 @@ class DrawGame(
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
     val offx = length / 2
+    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, 115, 300, 50)
     ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180)
     ctx.restore()
   }
