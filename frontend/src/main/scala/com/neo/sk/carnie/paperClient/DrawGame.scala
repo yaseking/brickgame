@@ -138,6 +138,8 @@ class DrawGame(
       case None => "Ops, Press Space Key To Restart!"
     }
 
+    val length = ctx.measureText(text).width
+    val offx = length / 2
     val x = (dom.window.innerWidth / 2).toInt - 145
     val y = (dom.window.innerHeight / 2).toInt - 180
 
@@ -150,7 +152,7 @@ class DrawGame(
       val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
       m + ":" + s
     }
-    ctx.fillText(text, x - 20, y) //(500,180)
+    ctx.fillText(text, dom.window.innerWidth / 2 - offx , y) //(500,180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = ColorsSetting.fontColor
