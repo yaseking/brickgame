@@ -144,7 +144,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
         } else {
-          println(s"firstCome:::$firstCome")
           data.snakes.find(_.id == myId) match {
             case Some(snake) =>
               firstCome = false
@@ -240,6 +239,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
              if(snapshotMap.contains(grid.frameCount)) {
               val data = snapshotMap(grid.frameCount)
               grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+               if(data.snakes.find(_.id == myId).nonEmpty) firstCome = false
               //        println(s"state 重置 via Map")
               snapshotMap = snapshotMap.filter(_._1 > grid.frameCount)
             }
