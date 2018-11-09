@@ -15,7 +15,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara){
+class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -35,7 +35,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
-//  var play = true
+  //  var play = true
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
@@ -94,7 +94,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
-    if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
+    if ((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.reSetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     }
@@ -122,7 +122,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
 
   def draw(offsetTime: Long): Unit = {
     if (webSocketClient.getWsState) {
-      if(replayFinish) {
+      if (replayFinish) {
         drawGame.drawGameOff(firstCome, Some(true), false, false)
       } else {
         val data = grid.getGridData
@@ -184,14 +184,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
   }
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale)
+    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), scale)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-//    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+    //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
     startGame()
-    if(order=="playGame") {
+    if (order == "playGame") {
       rankCanvas.focus()
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
@@ -222,7 +222,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
           webSocketClient.sendMessage(msg)
           e.preventDefault()
         }
-      }}
+      }
+      }
     }
     event0
   }
@@ -294,7 +295,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara){
       case Protocol.Ranks(current) =>
         currentRank = current
         maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
-        if(grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
         syncGridData = Some(data)

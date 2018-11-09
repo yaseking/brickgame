@@ -139,7 +139,6 @@ object RoomActor {
           }
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
-
         case UserActionOnServer(id, action) =>
           action match {
             case Key(_, keyCode, frameCount, actionId) =>
@@ -162,7 +161,6 @@ object RoomActor {
 
             case _ =>
           }
-
           Behaviors.same
 
         case Sync =>
