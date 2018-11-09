@@ -116,7 +116,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       }
 
       if(encloseMap.contains(grid.frameCount)) {
-        grid.cleanTurnPoint4Reply(myId)
+//        grid.cleanTurnPoint4Reply(myId)
         grid.addNewFieldInfo(encloseMap(grid.frameCount))
 //        println(s"圈地 via Map")
       }
@@ -252,7 +252,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
             }
 
             if(encloseMap.contains(grid.frameCount)) {
-              grid.cleanTurnPoint4Reply(myId)
+//              grid.cleanTurnPoint4Reply(myId)
               grid.addNewFieldInfo(encloseMap(grid.frameCount))
               //        println(s"圈地 via Map")
             }
@@ -385,7 +385,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
         } else if(grid.frameCount == frameIndex.toLong){
 //          println(s"圈地")
-          grid.cleanTurnPoint4Reply(myId)
+//          grid.cleanTurnPoint4Reply(myId)
           grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
         }
 
