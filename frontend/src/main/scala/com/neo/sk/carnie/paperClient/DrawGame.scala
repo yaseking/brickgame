@@ -312,7 +312,7 @@ class DrawGame(
     ctx.restore()
 
     //    //排行榜边界离屏
-    rankCtx.clearRect(20, textLineHeight * 3, rankCanvas.width/4, textLineHeight * 4)//* 5, * 2
+    rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
 
     newScale
