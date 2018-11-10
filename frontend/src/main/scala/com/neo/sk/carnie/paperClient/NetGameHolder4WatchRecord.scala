@@ -99,7 +99,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
     if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
-      drawGame.reSetScreen()
+      drawGame.resetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     }
 
