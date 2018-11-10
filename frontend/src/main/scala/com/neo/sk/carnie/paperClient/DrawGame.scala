@@ -40,7 +40,7 @@ class DrawGame(
   private val bloodImg = dom.document.getElementById("bloodImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
 
-  def reSetScreen(): Unit = {
+  def resetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
     canvas.width = windowBoundary.x.toInt
