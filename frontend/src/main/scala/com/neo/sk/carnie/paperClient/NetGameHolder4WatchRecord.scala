@@ -300,7 +300,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           stateData.get match {
             case msg: Snapshot =>
 //              println(s"snapshot get:$msg")
-              replayMessageHandler(msg, frameIndex)
+              replayMessageHandler(msg, frameIndex + 1)
             case Protocol.DecodeError() =>
               println("state decode error")
             case _ =>
@@ -382,6 +382,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
             audioKilled.currentTime = 0
             scoreFlag = true
             firstCome = true
+            myScore = BaseScore(0, 0, 0l, 0l)
             if (isWin) {
               isWin = false
               winnerName = "unknown"
@@ -418,8 +419,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
-        snapshotMap += frameIndex.toLong + 1 -> msg
-        if(grid.frameCount >= frameIndex.toLong + 1) { //重置
+        println(s"snapshot, frame:$frameIndex, snakes:${snakes.map(_.id)}")
+        snapshotMap += frameIndex.toLong -> msg
+        if(grid.frameCount >= frameIndex.toLong) { //重置
           syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong + 1, snakes, bodyDetails, fieldDetails, killHistory))
           justSynced = true
         }
