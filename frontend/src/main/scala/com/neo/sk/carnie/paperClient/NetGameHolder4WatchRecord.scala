@@ -374,7 +374,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         println(s"get space event:$id, frame: $frameIndex")
         if(grid.frameCount < frameIndex.toLong) {
           spaceEvent += (frameIndex.toLong -> msg)
-        } else if(grid.frameCount == frameIndex.toLong) {
+        } else {
           if (id == myId) {
             audio1.pause()
             audio1.currentTime = 0
