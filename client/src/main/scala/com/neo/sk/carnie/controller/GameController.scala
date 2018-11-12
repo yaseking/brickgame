@@ -29,6 +29,7 @@ class GameController(player: PlayerInfoInClient,
 
   private val playActor = Boot.system.spawn(PlayGameWebSocket.create(this), "playActor")
 
+  var currentRank = List.empty[Score]
   val bounds = Point(Boundary.w, Boundary.h)
   var grid = new GridOnClient(bounds)
   var firstCome = true
@@ -126,7 +127,7 @@ class GameController(player: PlayerInfoInClient,
           fieldNum = myFieldCount
         }
 
-        gameScene.draw(player.id, data, offsetTime, grid, grid.currentRank.headOption.map(_.id).getOrElse(player.id))
+        gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
           gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
           grid.lastTime -= 1
@@ -138,7 +139,7 @@ class GameController(player: PlayerInfoInClient,
         if (firstCome) gameScene.drawGameWait()
         else {
           if(timeFlag){
-            grid.currentRank.filter(_.id == player.id).foreach { score =>
+            currentRank.filter(_.id == player.id).foreach { score =>
               myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
             }
             timeFlag = false
@@ -194,23 +195,6 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case Protocol.ReStartGame =>
-        Boot.addToPlatform {
-          audioWin.stop()
-          audioDie.stop()
-          firstCome = true
-          scoreFlag = true
-          timeFlag = true
-          log.debug("timeFlag has reset")
-          if(isWin){
-            isWin = false
-            winnerName = "unknown"
-          }
-          animationTimer.start()
-          isContinue = true
-          fieldNum = 0
-        }
-
       case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
           audioWin.play()
@@ -223,7 +207,7 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
-          grid.currentRank = current
+          currentRank = current
           if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
             gameScene.drawRank(player.id, grid.getGridData.snakes, current)
         }

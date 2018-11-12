@@ -53,7 +53,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
 
@@ -62,7 +61,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
-
 
   def init(): Unit = {
     webSocketClient.setUp(order, webSocketPara)
@@ -78,13 +76,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  private var tempRender = System.currentTimeMillis()
-
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
-    //    println(s"drawRender time:${curTime - tempRender}")
-    tempRender = curTime
     draw(offsetTime)
 
     if (isContinue)
@@ -147,15 +141,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                 myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
                 scoreFlag = false
               }
-              data.killHistory.foreach {
-                i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
+              data.killHistory.foreach { i =>
+                if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
               }
               var num = 0
-              data.fieldDetails.find(_.uid == myId).get.scanField.foreach {
-                row =>
-                  row.x.foreach {
-                    x => num += (x._2 - x._1)
-                  }
+              data.fieldDetails.find(_.uid == myId).map(_.scanField).getOrElse(Nil).foreach { row =>
+                row.x.foreach { y => num += (y._2 - y._1) }
               }
               if (fieldNum < num && snake.id == myId) {
                 audioFinish.play()
@@ -304,7 +295,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
-        println(s"me!!!!!!${data.snakes.exists(_.id == myId)}")
         syncGridData = Some(data)
         justSynced = true
 
