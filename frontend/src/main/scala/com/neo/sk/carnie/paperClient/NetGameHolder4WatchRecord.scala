@@ -369,9 +369,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       case DirectionEvent(id, keyCode) =>
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
 
-      case SpaceEvent(id) =>
+      case msg@SpaceEvent(id) =>
         if(grid.frameCount < frameIndex.toLong) {
-          spaceEvent += (frameIndex.toLong -> data)
+          spaceEvent += (frameIndex.toLong -> msg)
         } else if(grid.frameCount == frameIndex.toLong) {
           if (id == myId) {
             audio1.pause()
