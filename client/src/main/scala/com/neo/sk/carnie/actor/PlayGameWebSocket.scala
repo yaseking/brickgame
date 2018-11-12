@@ -9,7 +9,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
 import akka.stream.OverflowStrategy
 import akka.stream.typed.scaladsl.ActorSource
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -105,6 +105,20 @@ object PlayGameWebSocket {
           case Right(v) => gameController.gameMessageReceiver(v)
           case Left(e) =>
             println(s"decode error: ${e.message}")
+        }
+
+      case msg:BinaryMessage.Streamed =>
+        val f = msg.dataStream.runFold(new ByteStringBuilder().result()){
+          case (s, str) => s.++(str)
+        }
+
+        f.map { bMsg =>
+          val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
+          bytesDecode[GameMessage](buffer) match {
+            case Right(v) => gameController.gameMessageReceiver(v)
+            case Left(e) =>
+              println(s"decode error: ${e.message}")
+          }
         }
 
       case unknown@_ =>

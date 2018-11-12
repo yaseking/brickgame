@@ -124,8 +124,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
   def drawGameDie(killerOpt: Option[String],  myScore :BaseScore): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 //    val endTime = System.currentTimeMillis()
-    if (myScore.area > maxArea)
-      maxArea = myScore.area
+    if (myScore.area > maxArea) maxArea = myScore.area
     ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.setFill(ColorsSetting.gameNameColor)
