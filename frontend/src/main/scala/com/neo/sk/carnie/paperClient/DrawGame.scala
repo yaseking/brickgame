@@ -217,10 +217,10 @@ class DrawGame(
     val txt2 = s"Press space to reStart"
     println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
-    ctx.fillText(txt1, 700, 150)
+    ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
-    ctx.drawImage(crownImg, 705 + length, 110, 50, 50)
+    ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2 - length / 2, 110, 50, 50)
     ctx.restore()
   }
 
