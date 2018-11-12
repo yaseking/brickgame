@@ -116,6 +116,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       }
 
       if(spaceEvent.contains(grid.frameCount)) {
+        println(s"space event exists:${spaceEvent(grid.frameCount).id}, frame: ${grid.frameCount}")
         replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
         spaceEvent -= grid.frameCount
       }
@@ -370,6 +371,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
 
       case msg@SpaceEvent(id) =>
+        println(s"get space event:$id, frame: $frameIndex")
         if(grid.frameCount < frameIndex.toLong) {
           spaceEvent += (frameIndex.toLong -> msg)
         } else if(grid.frameCount == frameIndex.toLong) {
