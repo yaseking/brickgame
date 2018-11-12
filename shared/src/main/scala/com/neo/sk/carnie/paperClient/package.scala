@@ -52,7 +52,9 @@ package object paperClient {
                    startPoint: Point,
                    header: Point,
                    direction: Point = Point(0, 0),
-                   kill: Int = 0
+                   kill: Int = 0,
+                   startTime: Long,
+                   endTime: Long
                  )
 
   case class UpdateSnakeInfo(

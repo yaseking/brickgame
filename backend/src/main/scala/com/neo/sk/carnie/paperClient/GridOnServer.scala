@@ -46,7 +46,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   var stateEveryFrame :Option[Snapshot] = None
 
-  var startTimeMap = Map.empty[String, Long]
+//  var startTimeMap = Map.empty[String, Long]
 
   var currentRank = List.empty[Score]
 
@@ -64,7 +64,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   private[this] def genWaitingSnake() = {
     waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
-      startTimeMap += (id -> System.currentTimeMillis())
+//      startTimeMap += (id -> System.currentTimeMillis())
+      val startTime = System.currentTimeMillis()
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
       (0 until indexSize).foreach { x =>
@@ -73,7 +74,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }
       }
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      snakes += id -> SkDt(id, name, bodyColor, startPoint, startPoint)
+      snakes += id -> SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime)
       killHistory -= id
     }
     waitingJoin = Map.empty[String, (String, String)]

@@ -245,7 +245,7 @@ trait Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
-    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1)))).data.header)).keySet
+    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l))).data.header)).keySet
 
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
@@ -259,6 +259,10 @@ trait Grid {
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
+//      val endTime = System.currentTimeMillis()
+//      snakes.get(sid).map{ s =>
+//        s.copy(endTime = endTime)
+//      }
       snakeTurnPoints -= sid
     }
 
