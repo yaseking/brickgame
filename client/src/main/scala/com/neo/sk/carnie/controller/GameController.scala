@@ -142,6 +142,7 @@ class GameController(player: PlayerInfoInClient,
               myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
             }
             timeFlag = false
+            log.debug("my score has been set")
           }
           gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
           if(isContinue) {
@@ -200,6 +201,7 @@ class GameController(player: PlayerInfoInClient,
           firstCome = true
           scoreFlag = true
           timeFlag = true
+          log.debug("timeFlag has reset")
           if(isWin){
             isWin = false
             winnerName = "unknown"
@@ -275,6 +277,7 @@ class GameController(player: PlayerInfoInClient,
           firstCome = true
           scoreFlag = true
           timeFlag = true
+          log.debug("timeFlag has reset")
           if(isWin){
             isWin = false
             winnerName = "unknown"

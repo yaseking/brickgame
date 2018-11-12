@@ -152,7 +152,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
       val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
       m + ":" + s
     }
-    ctx.fillText(text, windowBoundary.x / 2 - offx , y) //(500,180)
+    ctx.fillText(text, windowBoundary.x / 2 - offx - 50 , y) //(500,180)
     ctx.save()
     ctx.setFill(ColorsSetting.dieInfoFontColor)
     ctx.setFont(Font.font(20))
