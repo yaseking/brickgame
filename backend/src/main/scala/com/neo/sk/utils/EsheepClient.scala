@@ -92,6 +92,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[ErrorRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
+              log.info(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime).asJson.noSpaces)
               println("finish inputBatRecord!")
               Right(rsp)
             } else {
