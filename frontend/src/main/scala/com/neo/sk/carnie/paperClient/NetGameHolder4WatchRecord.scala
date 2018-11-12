@@ -115,8 +115,16 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
       }
 
+      if(spaceEvent.contains(grid.frameCount)) {
+        replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
+        spaceEvent -= grid.frameCount
+      }
+
       if(encloseMap.contains(grid.frameCount)) {
-        grid.cleanTurnPoint4Reply(myId)
+        encloseMap(grid.frameCount).fieldDetails.map(_.uid).foreach { id =>
+          grid.cleanTurnPoint4Reply(id)
+        }
+//        grid.cleanTurnPoint4Reply(myId)
         grid.addNewFieldInfo(encloseMap(grid.frameCount))
 //        println(s"圈地 via Map")
       }
@@ -252,8 +260,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
             }
 
             if(encloseMap.contains(grid.frameCount)) {
-//              grid.cleanTurnPoint4Reply(myId)
+              encloseMap(grid.frameCount).fieldDetails.map(_.uid).foreach { id =>
+                grid.cleanTurnPoint4Reply(id)
+              }
               grid.addNewFieldInfo(encloseMap(grid.frameCount))
+              encloseMap -= grid.frameCount
               //        println(s"圈地 via Map")
             }
               grid.update("f")
@@ -279,7 +290,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         replayFinish = true
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
-//        println(s"receive replayFrameData")
+        println(s"receive replayFrameData,grid.frameCount:${grid.frameCount},frameIndex:$frameIndex")
 //        println(s"grid.frameCount:${grid.frameCount}")
 //        println(s"frameIndex:$frameIndex")
         if(frameIndex == 0) grid.frameCount = 0
@@ -379,12 +390,15 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case EncloseEvent(enclosure) =>
 //        println(s"got enclose event")
-//        println(s"当前帧号：${grid.frameCount}")
-//        println(s"传输帧号：$frameIndex")
+        println(s"当前帧号：${grid.frameCount}")
+        println(s"传输帧号：$frameIndex")
         if(grid.frameCount < frameIndex.toLong) {
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
         } else if(grid.frameCount == frameIndex.toLong){
 //          println(s"圈地")
+          enclosure.map(_.uid).foreach { id =>
+            grid.cleanTurnPoint4Reply(id)
+          }
 //          grid.cleanTurnPoint4Reply(myId)
           grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
         }
