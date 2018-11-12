@@ -220,7 +220,7 @@ class DrawGame(
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
-    ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2 - length / 2, 110, 50, 50)
+    ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2 + length / 2 - 50, 75, 50, 50)
     ctx.restore()
   }
 
