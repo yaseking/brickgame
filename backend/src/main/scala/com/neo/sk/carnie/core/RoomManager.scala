@@ -295,7 +295,7 @@ object RoomManager {
   }
 
   private def getGameReplay(ctx: ActorContext[Command], recordId:Long, playerId: String) = {
-    val childName = s"gameReplay--$recordId"
+    val childName = s"gameReplay--$recordId--$playerId"
     ctx.child(childName).getOrElse {
       val actor = ctx.spawn(GameReplay.create(recordId, playerId), childName)
       actor
