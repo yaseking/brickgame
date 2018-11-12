@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.core
 
 import java.awt.event.KeyEvent
+
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -8,10 +9,17 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.core.GameRecorder.RecordData
+
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
 import concurrent.duration._
+import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
+import com.neo.sk.carnie.core.TokenActor.AskForToken
+import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.utils.EsheepClient
+
+import scala.concurrent.Future
 
 /**
   * Created by dry on 2018/10/12.
@@ -173,6 +181,13 @@ object RoomActor {
           newData.killHistory.foreach { i =>
             if (i.frameCount + 1 == newData.frameCount) {
               dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId), i.killerName))
+            }
+          }
+
+          val msgFuture: Future[String] = tokenActor ? AskForToken
+          msgFuture.map{token =>
+            newData.playerRecords.foreach { i =>
+              EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
             }
           }
 

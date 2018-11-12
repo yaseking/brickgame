@@ -29,6 +29,7 @@ trait Grid {
   var snakes = Map.empty[String, SkDt]
   var actionMap = Map.empty[Long, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[String, (String, String, Long)] //killedId, (killerId, killerName,frameCount)
+  var killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]//killedId, (killedId, killedName, killing, startTime, endTime)
   var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
@@ -254,15 +255,17 @@ trait Grid {
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
+    val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
-//      val endTime = System.currentTimeMillis()
-//      snakes.get(sid).map{ s =>
-//        s.copy(endTime = endTime)
-//      }
+      val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
+      val endTime = System.currentTimeMillis()
+      snakes.get(sid).foreach { s =>
+        killedSks += sid -> (sid, s.name, s.kill, score, s.startTime, endTime)
+      }
       snakeTurnPoints -= sid
     }
 
@@ -385,7 +388,8 @@ trait Grid {
       snakes.values.toList,
       bodyDetails,
       fieldDetails,
-      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
+      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList,
+      killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
     )
   }
 
@@ -398,6 +402,7 @@ trait Grid {
     actionMap = Map.empty[Long, Map[String, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
     killHistory = Map.empty[String, (String, String, Long)]
+    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
     snakeTurnPoints = snakeTurnPoints.empty
   }
 

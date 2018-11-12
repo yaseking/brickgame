@@ -27,6 +27,15 @@ package object paperClient {
 
   case class Kill(killedId: String, killerId: String, killerName: String,frameCount:Long)
 
+  case class KilledSkDt(
+                      id:String,
+                      nickname:String,
+                      killing:Int,
+                      score: Float,
+                      startTime:Long,
+                      endTime:Long
+                      )
+
   case class BaseScore(kill: Int, area: Int, startTime: Long, endTime: Long)
 
 

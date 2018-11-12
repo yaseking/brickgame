@@ -29,7 +29,8 @@ object Protocol {
                              snakes: List[SkDt],
                              bodyDetails: List[BodyBaseInfo],
                              fieldDetails: List[FieldByColumn],
-                             killHistory: List[Kill]
+                             killHistory: List[Kill],
+                             playerRecords: List[KilledSkDt]
                            ) extends GameMessage
 
   case class Point4Trans(x: Int, y: Int)
