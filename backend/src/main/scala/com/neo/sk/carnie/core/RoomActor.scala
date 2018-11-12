@@ -34,6 +34,8 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
+  case class UserDead(id: String) extends Command
+
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   case class WatchGame(playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
