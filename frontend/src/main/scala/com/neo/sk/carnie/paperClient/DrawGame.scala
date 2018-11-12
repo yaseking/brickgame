@@ -40,7 +40,7 @@ class DrawGame(
   private val bloodImg = dom.document.getElementById("bloodImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
 
-  def reSetScreen(): Unit = {
+  def resetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
     canvas.width = windowBoundary.x.toInt
@@ -312,7 +312,7 @@ class DrawGame(
     ctx.restore()
 
     //    //排行榜边界离屏
-//    rankCtx.clearRect(20, textLineHeight * 4, rankCanvas.width/2, textLineHeight * 3)//* 5, * 2
+    rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
 
     newScale

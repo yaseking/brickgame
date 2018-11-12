@@ -95,8 +95,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
     if ((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
-      drawGame.reSetScreen()
+      drawGame.resetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+      if(!isContinue) {
+        if(isWin) {
+          drawGame.drawGameWin(myId, winnerName, winData)
+        } else {
+          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+        }
+      }
     }
 
     if (webSocketClient.getWsState) {
@@ -271,7 +278,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         }
 
       case ReStartGame =>
-        println("Now in reStartGame order!")
         audio1.pause()
         audio1.currentTime = 0
         audioKilled.pause()

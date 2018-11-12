@@ -99,7 +99,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
     if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
-      drawGame.reSetScreen()
+      drawGame.resetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     }
 
@@ -112,7 +112,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         val data = snapshotMap(grid.frameCount)
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
 //        println(s"state 重置 via Map")
-        snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+        snapshotMap -= grid.frameCount
       }
 
       if(spaceEvent.contains(grid.frameCount)) {
@@ -126,6 +126,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         }
 //        grid.cleanTurnPoint4Reply(myId)
         grid.addNewFieldInfo(encloseMap(grid.frameCount))
+        encloseMap -= grid.frameCount
 //        println(s"圈地 via Map")
       }
 
@@ -290,7 +291,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         replayFinish = true
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
-//        println(s"receive replayFrameData")
+        println(s"receive replayFrameData,grid.frameCount:${grid.frameCount},frameIndex:$frameIndex")
 //        println(s"grid.frameCount:${grid.frameCount}")
 //        println(s"frameIndex:$frameIndex")
         if(frameIndex == 0) grid.frameCount = 0
@@ -368,20 +369,24 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       case DirectionEvent(id, keyCode) =>
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
 
-      case SpaceEvent(id) =>
-        if(id == myId) {
-          audio1.pause()
-          audio1.currentTime = 0
-          audioKilled.pause()
-          audioKilled.currentTime = 0
-          scoreFlag = true
-          firstCome = true
-          if (isWin) {
-            isWin = false
-            winnerName = "unknown"
+      case msg@SpaceEvent(id) =>
+        if(grid.frameCount < frameIndex.toLong) {
+          spaceEvent += (frameIndex.toLong -> msg)
+        } else if(grid.frameCount == frameIndex.toLong) {
+          if (id == myId) {
+            audio1.pause()
+            audio1.currentTime = 0
+            audioKilled.pause()
+            audioKilled.currentTime = 0
+            scoreFlag = true
+            firstCome = true
+            if (isWin) {
+              isWin = false
+              winnerName = "unknown"
+            }
+            nextFrame = dom.window.requestAnimationFrame(gameRender())
+            isContinue = true
           }
-          nextFrame = dom.window.requestAnimationFrame(gameRender())
-          isContinue = true
         }
 
 //      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
@@ -390,8 +395,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case EncloseEvent(enclosure) =>
 //        println(s"got enclose event")
-//        println(s"当前帧号：${grid.frameCount}")
-//        println(s"传输帧号：$frameIndex")
+        println(s"当前帧号：${grid.frameCount}")
+        println(s"传输帧号：$frameIndex")
         if(grid.frameCount < frameIndex.toLong) {
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
         } else if(grid.frameCount == frameIndex.toLong){
