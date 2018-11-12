@@ -386,8 +386,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               isWin = false
               winnerName = "unknown"
             }
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
             isContinue = true
+            nextFrame = dom.window.requestAnimationFrame(gameRender())
+
           }
         }
 
