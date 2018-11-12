@@ -390,8 +390,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
       case EncloseEvent(enclosure) =>
 //        println(s"got enclose event")
-//        println(s"当前帧号：${grid.frameCount}")
-//        println(s"传输帧号：$frameIndex")
+        println(s"当前帧号：${grid.frameCount}")
+        println(s"传输帧号：$frameIndex")
         if(grid.frameCount < frameIndex.toLong) {
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
         } else if(grid.frameCount == frameIndex.toLong){
