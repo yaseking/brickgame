@@ -367,7 +367,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
-    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => ""}).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
+    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
