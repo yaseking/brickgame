@@ -3,6 +3,11 @@ package com.neo.sk.carnie.paperClient
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.MiddleBufferInJvm
+import org.seekloud.byteobject.ByteObject._
+import com.neo.sk.carnie.Boot.roomManager
+import com.neo.sk.carnie.core.RoomActor.UserDead
+
+import scala.concurrent.Future
 
 /**
   * User: Taoz
