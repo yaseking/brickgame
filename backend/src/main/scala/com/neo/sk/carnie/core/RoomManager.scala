@@ -138,7 +138,8 @@ object RoomManager {
           action match {
             case SendPingPacket(_, createTime) => //
 
-            case _ => log.debug(s"receive $m...roomMap:$roomMap")
+            case _ =>
+//              log.debug(s"receive $m...roomMap:$roomMap")
           }
           if (roomMap.exists(r => r._2.exists(u => u._1 == id))) {
             val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
