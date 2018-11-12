@@ -370,19 +370,23 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
 
       case SpaceEvent(id) =>
-        if(id == myId) {
-          audio1.pause()
-          audio1.currentTime = 0
-          audioKilled.pause()
-          audioKilled.currentTime = 0
-          scoreFlag = true
-          firstCome = true
-          if (isWin) {
-            isWin = false
-            winnerName = "unknown"
+        if(grid.frameCount < frameIndex.toLong) {
+          spaceEvent += (frameIndex.toLong -> data)
+        } else if(grid.frameCount == frameIndex.toLong) {
+          if (id == myId) {
+            audio1.pause()
+            audio1.currentTime = 0
+            audioKilled.pause()
+            audioKilled.currentTime = 0
+            scoreFlag = true
+            firstCome = true
+            if (isWin) {
+              isWin = false
+              winnerName = "unknown"
+            }
+            nextFrame = dom.window.requestAnimationFrame(gameRender())
+            isContinue = true
           }
-          nextFrame = dom.window.requestAnimationFrame(gameRender())
-          isContinue = true
         }
 
 //      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
