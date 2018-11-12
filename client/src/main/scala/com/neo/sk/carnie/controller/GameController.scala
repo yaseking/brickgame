@@ -45,9 +45,6 @@ class GameController(player: PlayerInfoInClient,
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
-//  val dieSoundUrl = new File("/Users/litianyu/WorkSpace/EB_Projs/carnie/client/src/main/resources/mp3/killed.mp3").toURI.toString
-//  val audioDie = new AudioClip(dieSoundUrl)
-//  val audioDie = new MediaPlayer(new Media(getClass.getResource("/mp3/killed.mp3").toString))
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
