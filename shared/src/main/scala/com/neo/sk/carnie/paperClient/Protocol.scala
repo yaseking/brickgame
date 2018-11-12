@@ -103,7 +103,7 @@ object Protocol {
   //essf
   sealed trait GameEvent extends GameMessage
 
-  case class JoinEvent(id: String, snakeInfo: Option[SkDt]) extends GameEvent
+  case class JoinEvent(id: String, name: String) extends GameEvent
 
   case class LeftEvent(id: String, nickName: String) extends GameEvent
 

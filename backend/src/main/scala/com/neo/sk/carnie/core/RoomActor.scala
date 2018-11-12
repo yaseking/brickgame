@@ -96,7 +96,7 @@ object RoomActor {
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
-          gameEvent += ((grid.frameCount, JoinEvent(id, None)))
+          gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           Behaviors.same
 
         case WatchGame(playerId, userId, subscriber) =>
@@ -150,7 +150,7 @@ object RoomActor {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE) {
                 grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
-                gameEvent += ((grid.frameCount, JoinEvent(id, None)))
+                gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id))))
                 watcherMap.filter(_._2 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
@@ -210,10 +210,11 @@ object RoomActor {
 
           //for gameRecorder...
           val actionEvent = grid.getDirectionEvent(frame)
-          val joinOrLeftEvent = gameEvent.filter(_._1 == frame).map {
-            case (f, JoinEvent(id, None)) => (f, JoinEvent(id, grid.snakes.get(id)))
-            case other => other
-          }
+          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
+//            .map {
+//            case (f, JoinEvent(id, None)) => (f, JoinEvent(id, grid.snakes.get(id)))
+//            case other => other
+//          }
           val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
