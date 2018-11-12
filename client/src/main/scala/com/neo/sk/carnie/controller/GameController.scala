@@ -137,11 +137,14 @@ class GameController(player: PlayerInfoInClient,
       case None =>
         if (firstCome) gameScene.drawGameWait()
         else {
-          if(timeFlag){
+          if(timeFlag)
+          {
+            println("rank " + grid.currentRank)
             grid.currentRank.filter(_.id == player.id).foreach { score =>
               myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
             }
             timeFlag = false
+            println("myScore " + myScore)
             log.debug("my score has been set")
           }
           gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
@@ -201,7 +204,7 @@ class GameController(player: PlayerInfoInClient,
           firstCome = true
           scoreFlag = true
           timeFlag = true
-          log.debug("timeFlag has reset")
+//          log.debug("timeFlag has reset")
           if(isWin){
             isWin = false
             winnerName = "unknown"
@@ -277,7 +280,7 @@ class GameController(player: PlayerInfoInClient,
           firstCome = true
           scoreFlag = true
           timeFlag = true
-          log.debug("timeFlag has reset")
+//          log.debug("timeFlag has reset")
           if(isWin){
             isWin = false
             winnerName = "unknown"
