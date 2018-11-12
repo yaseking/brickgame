@@ -161,12 +161,12 @@ object GameReplay {
 
         case GameLoop=>
           if(fileReader.hasMoreFrame){
-            val joinLeftInfo = userMap.filter(_._1.id == playedId).head._2
-            val leftInfo = joinLeftInfo.map(_.leftFrame)
-            val joinInfo = joinLeftInfo.map(_.joinFrame).sorted
-            if (leftInfo.contains(fileReader.getFramePosition)) {
-              fileReader.gotoSnapshot(joinInfo.filter(f => f.toInt > fileReader.getFramePosition).head.toInt)
-            }
+//            val joinLeftInfo = userMap.filter(_._1.id == playedId).head._2
+//            val leftInfo = joinLeftInfo.map(_.leftFrame)
+//            val joinInfo = joinLeftInfo.map(_.joinFrame).sorted
+//            if (leftInfo.contains(fileReader.getFramePosition)) {
+//              fileReader.gotoSnapshot(joinInfo.filter(f => f.toInt > fileReader.getFramePosition).head.toInt)
+//            }
             userOpt.foreach(u=>
               fileReader.readFrame().foreach { f =>
                 dispatchByteTo(u, f)
