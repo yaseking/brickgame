@@ -404,7 +404,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         if(grid.frameCount < frameIndex.toLong) {
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
         } else if(grid.frameCount == frameIndex.toLong){
-//          println(s"圈地")
+          println(s"圈地")
           enclosure.map(_.uid).foreach { id =>
             grid.cleanTurnPoint4Reply(id)
           }
