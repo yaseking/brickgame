@@ -115,6 +115,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
       }
 
+      if(spaceEvent.contains(grid.frameCount)) {
+        replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
+        spaceEvent -= grid.frameCount
+      }
+
       if(encloseMap.contains(grid.frameCount)) {
         encloseMap(grid.frameCount).fieldDetails.map(_.uid).foreach { id =>
           grid.cleanTurnPoint4Reply(id)
