@@ -177,7 +177,7 @@ object GameReplay {
 
         case GetRecordFrame(playerId, replyTo) =>
 //          log.info(s"game replay got $msg")
-          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount))
+          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition - metaData.initFrame.toInt, frameCount))
           Behaviors.same
 
         case StopReplay() =>

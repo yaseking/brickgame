@@ -112,7 +112,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         val data = snapshotMap(grid.frameCount)
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
 //        println(s"state 重置 via Map")
-        snapshotMap = snapshotMap.filter(_._1 > grid.frameCount - 150)
+        snapshotMap -= grid.frameCount
       }
 
       if(spaceEvent.contains(grid.frameCount)) {
@@ -126,6 +126,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         }
 //        grid.cleanTurnPoint4Reply(myId)
         grid.addNewFieldInfo(encloseMap(grid.frameCount))
+        encloseMap -= grid.frameCount
 //        println(s"圈地 via Map")
       }
 
