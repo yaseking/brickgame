@@ -165,7 +165,7 @@ object RoomActor {
 
         case Sync =>
           val frame = grid.frameCount //即将执行改帧的数据
-          val shouldNewSnake = if (grid.waitingListState) true else if (tickCount % 20 == 5) true else false
+          val shouldNewSnake = if (grid.waitingListState) true else false
           val finishFields = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
