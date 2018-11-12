@@ -11,6 +11,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import com.neo.sk.carnie.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import com.neo.sk.carnie.core.RoomActor.UserDead
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
 import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, PlayerIdName, RecordFrameInfo}
@@ -99,6 +100,11 @@ object RoomManager {
             roomMap.put(roomId, mutable.HashSet((id, name)))
             getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
           }
+          Behaviors.same
+
+        case UserDead(id, name) =>
+          val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
+          getRoomActor(ctx, roomId) ! UserDead(id, name)
           Behaviors.same
 
         case StartReplay(recordId, playedId, frame, subscriber, playerId) =>

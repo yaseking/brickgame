@@ -34,7 +34,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(id: String) extends Command
+  case class UserDead(id: String, name: String) extends Command with RoomManager.Command
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -109,6 +109,10 @@ object RoomActor {
           dispatch(subscribersMap, gridData)
           Behaviors.same
 
+        case UserDead(id, name) =>
+          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+          Behaviors.same
+
         case LeftRoom(id, name) =>
           log.debug(s"LeftRoom:::$id")
           grid.removeSnake(id)
@@ -146,6 +150,7 @@ object RoomActor {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE) {
                 grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
+                gameEvent += ((grid.frameCount, JoinEvent(id, None)))
                 watcherMap.filter(_._2 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
