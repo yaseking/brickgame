@@ -124,7 +124,7 @@ class DrawGame(
     ctx.fillText("Please wait.", 150, 180)
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
+  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -162,8 +162,10 @@ class DrawGame(
     ctx.fillText(f"$bestScore%.2f" + "%", x + 230, y + 110)
     ctx.fillText(s"PLAYERS KILLED:", x, y + 150)
     ctx.fillText(s"${myScore.kill}", x + 230, y + 150)
-    ctx.fillText(s"TIME PLAYED:", x, y + 190)
-    ctx.fillText(s"$time", x + 230, y + 190)
+    if(!isReplay) {
+      ctx.fillText(s"TIME PLAYED:", x, y + 190)
+      ctx.fillText(s"$time", x + 230, y + 190)
+    }
     ctx.restore()
   }
 
