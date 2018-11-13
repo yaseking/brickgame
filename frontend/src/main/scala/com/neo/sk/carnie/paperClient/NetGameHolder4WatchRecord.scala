@@ -290,6 +290,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         drawGame.drawGameOff(firstCome, Some(false), loading, true)
 
       case Protocol.SomeOneWin(winner, finalData) =>
+        println(s"recv someONeWin====-=========, winner:$winner")
         isWin = true
         winnerName = winner
         winData = finalData
