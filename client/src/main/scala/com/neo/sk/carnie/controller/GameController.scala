@@ -258,7 +258,7 @@ class GameController(player: PlayerInfoInClient,
           firstCome = true
           scoreFlag = true
           timeFlag = true
-          log.debug("timeFlag has reset")
+          log.debug("timeFlag has been reset")
           if(isWin){
             isWin = false
             winnerName = "unknown"
