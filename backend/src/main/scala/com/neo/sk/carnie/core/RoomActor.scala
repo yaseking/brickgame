@@ -42,7 +42,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(id: String, name: String) extends Command with RoomManager.Command
+  case class UserDead(id: String) extends Command with RoomManager.Command
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -117,8 +117,11 @@ object RoomActor {
           dispatch(subscribersMap, gridData)
           Behaviors.same
 
-        case UserDead(id, name) =>
-          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+        case UserDead(id) =>
+          if(userMap.get(id).nonEmpty) {
+            val name = userMap(id)
+            gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+          }
           Behaviors.same
 
         case LeftRoom(id, name) =>

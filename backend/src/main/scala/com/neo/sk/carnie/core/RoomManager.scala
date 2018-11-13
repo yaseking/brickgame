@@ -103,9 +103,9 @@ object RoomManager {
           }
           Behaviors.same
 
-        case UserDead(id, name) =>
+        case UserDead(id) =>
           val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
-          getRoomActor(ctx, roomId) ! UserDead(id, name)
+          getRoomActor(ctx, roomId) ! UserDead(id)
           Behaviors.same
 
         case StartReplay(recordId, playedId, frame, subscriber, playerId) =>
