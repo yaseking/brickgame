@@ -47,14 +47,12 @@ object EsheepClient extends HttpUtil with CirceSupport {
   }
 
   def verifyAccessCode(gameId: Long, accessCode: String, token: String) = {
-//    println(s"got token: $token")
     val esheepUrl = baseUrl + s"/api/gameServer/verifyAccessCode?token=$token"
     val sendData = VerifyAccCode(gameId, accessCode).asJson.noSpaces
 
     log.info("Start verifyAccessCode!")
     postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
       case Right(str) =>
-//        println(s"str in verifyAccessCode: $str")
         decode[VerifyAccCodeRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0){
@@ -78,14 +76,13 @@ object EsheepClient extends HttpUtil with CirceSupport {
                       nickname: String,
                       killing: Int,
                       killed: Int,
-                      score: Int,
+                      score: Float,
                       gameExtent: String = "",
                       startTime: Long,
                       endTime: Long,
                       token: String
                     ) = {
     println("start inputBatRecord!")
-//    val token = KeyData.token
     val gameId = AppSettings.esheepGameId
     val esheepUrl = baseUrl + s"/api/gameServer/addPlayerRecord?token=$token"
     val sendData = InputRecord(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime)).asJson.noSpaces
@@ -95,10 +92,11 @@ object EsheepClient extends HttpUtil with CirceSupport {
         decode[ErrorRsp](str) match {
           case Right(rsp) =>
             if(rsp.errCode==0) {
+              log.info(PlayerRecord(playerId, gameId, nickname, killing, killed, score, gameExtent, startTime, endTime).asJson.noSpaces)
               println("finish inputBatRecord!")
               Right(rsp)
             } else {
-              log.error(s"inputBatRecord error $esheepUrl rsp.error${rsp.msg}")
+              log.error(s"inputBatRecord errorCode $esheepUrl rsp.error${rsp.msg}")
               Left("error.")
             }
           case Left(e) =>
@@ -109,13 +107,13 @@ object EsheepClient extends HttpUtil with CirceSupport {
         log.error(s"inputBatRecord error $esheepUrl rsp.error$e")
         Left("error.")
     }
-
   }
+
   def main(args: Array[String]): Unit = {
     import com.neo.sk.utils.SecureUtil._
     val appId = AppSettings.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
-    val data = RoomApiProtocol.RecordListReq(0,50).asJson.noSpaces
+    val data = RoomApiProtocol.RecordListReq(0,10).asJson.noSpaces
     val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), AppSettings.esheepGsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
 

@@ -1,5 +1,8 @@
 package com.neo.sk.carnie.scene
 
+import java.awt.Graphics
+import java.io.File
+
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
 import javafx.scene.canvas.Canvas
@@ -8,14 +11,16 @@ import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
+import javafx.scene.SnapshotParameters
+import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
 
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundCanvas) {
+class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: BackgroundCanvas
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
-  private val windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
+  private var windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
@@ -24,11 +29,20 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
   private val otherHeaderImg = new Image("boy.png")
   private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
-  private val canvasUnit = (windowBoundary.x / window.x).toInt
+  private var canvasUnit = (windowBoundary.x / window.x).toInt
   private var scale = 1.0
+  private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
-
   private val textLineHeight = 15
+
+  def resetScreen(viewWidth:Int, viewHeight:Int, rankWidth:Int, rankHeight:Int) = {
+    canvas.setWidth(viewWidth)
+    canvas.setHeight(viewHeight)
+    rankCanvas.setWidth(rankWidth)
+    rankCanvas.setHeight(rankHeight)
+    windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
+    canvasUnit = (windowBoundary.x / window.x).toInt
+  }
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.save()
@@ -39,7 +53,6 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
       ctx.setFont(Font.font(30))
       ctx.fillText("Welcome.", 150, 180)
     } else {
-      //      rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
       ctx.setFont(Font.font(30))
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
@@ -53,6 +66,7 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
     scale = 0.33
     val width = windowBoundary.x - BorderSize.w * canvasUnit * scale
     val height = windowBoundary.y - BorderSize.h * canvasUnit * scale
+    ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.save()
     ctx.scale(scale, scale)
     ctx.setFill(ColorsSetting.borderColor)
@@ -81,15 +95,36 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
     val length = new Text(txt1).getLayoutBounds.getWidth
-    ctx.fillText(txt1, 700, 150)
+    ctx.fillText(txt1, (windowBoundary.x - length) / 2 , 150)
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
     ctx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
-    ctx.drawImage(crownImg, 705 + length, 110, 50, 50)
+    ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, 75, 50, 50)
+    ctx.restore()
+  }
+  import javafx.scene.text.Text
+  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+    ctx.save()
+//    ctx.globalAlpha = 0.6
+
+    ctx.restore()
+    ctx.save()
+    ctx.setFont(Font.font(30))
+    ctx.setFill(ColorsSetting.gameNameColor)
+    val txt = s"$killedName is killed by $killerName"
+    val text = new Text(txt)
+    text.setFont(Font.font(30))
+    text.setFill(ColorsSetting.gameNameColor)
+    val length = text.getLayoutBounds.getWidth
+    val offx = length / 2
+    ctx.drawImage(bloodImg, windowBoundary.x / 2 - offx, 115, 300, 50)
+    ctx.fillText(s"$killedName is killed by $killerName", windowBoundary.x / 2 - offx, 150)
     ctx.restore()
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
+  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    val endTime = System.currentTimeMillis()
+    if (myScore.area > maxArea) maxArea = myScore.area
     ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.setFill(ColorsSetting.gameNameColor)
@@ -98,10 +133,12 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
     ctx.scale(1, 1)
 
     val text = killerOpt match {
-      case Some(killer) => s"Ops, You Killed By $killer! Press Space Key To Revenge!"
+      case Some(killer) => s"Ops, You Are Killed By $killer! Press Space Key To Revenge!"
       case None => "Ops, Press Space Key To Restart!"
     }
-
+    val txt =new Text(text)
+    val length = txt.getLayoutBounds.getWidth
+    val offx = length / 2
     val x = (windowBoundary.x / 2).toInt - 145
     val y = (windowBoundary.y / 2).toInt - 180
 
@@ -114,7 +151,7 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
       val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
       m + ":" + s
     }
-    ctx.fillText(text, x - 20, y) //(500,180)
+    ctx.fillText(text, windowBoundary.x / 2 - offx - 50 , y) //(500,180)
     ctx.save()
     ctx.setFill(ColorsSetting.dieInfoFontColor)
     ctx.setFont(Font.font(20))
@@ -147,8 +184,8 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
-    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.042
-    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.030
+    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.050
+    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.170
     ctx.save()
     ctx.setGlobalAlpha(0.5)
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
@@ -162,33 +199,16 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
     }
   }
 
-  def offXY(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid)= {
-    val snakes = data.snakes
-
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-    (offx, offy)
-  }
 
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
 //    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
     ctx.setFill(Color.rgb(105,105,105))
 
     //画边界
-    ctx.fillRect(offx, offy, canvasUnit * BorderSize.w, canvasUnit)
-    ctx.fillRect(offx, offy, canvasUnit, canvasUnit * BorderSize.h)
-    ctx.fillRect(offx, BorderSize.h * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    ctx.fillRect(BorderSize.w * canvasUnit, offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
@@ -274,13 +294,9 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
 
-
-//    ctx.drawImage(backGroundCanvas.getGraphicsContext2D.asInstanceOf[Image], offx * canvasUnit, offy * canvasUnit) //
-
-//    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)
     ctx.restore()
 
-    rankCtx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//* 5, * 2
+    rankCtx.clearRect(20, textLineHeight * 5, 650, textLineHeight * 2)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
   }
 
@@ -289,6 +305,7 @@ class GameViewCanvas(canvas: Canvas, rankCanvas: Canvas, background: BackgroundC
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
   }
+
 
 
 

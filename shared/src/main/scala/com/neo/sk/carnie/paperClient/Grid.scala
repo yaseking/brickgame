@@ -250,11 +250,9 @@ trait Grid {
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
-    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0.toString }).toSet.filter(_ != 0.toString) //若领地全被其它玩家圈走则死亡
+    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
-
-    //    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
 
     finalDie.foreach { sid =>
       returnBackField(sid)
@@ -441,6 +439,13 @@ trait Grid {
       }) &&
         (g._1.x < maxPoint.x && g._1.y < maxPoint.y && g._1.y > minPoint.y && g._1.x > minPoint.x)
     }
+  }
+
+  def cleanTurnPoint4Reply(sid: String) = {
+    if(snakeTurnPoints.contains(sid)) {
+      snakeTurnPoints -= sid
+    }
+
   }
 
 

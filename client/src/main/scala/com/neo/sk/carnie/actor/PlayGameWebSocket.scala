@@ -1,18 +1,21 @@
 package com.neo.sk.carnie.actor
 
+import java.net.URLEncoder
+
 import akka.actor.typed._
-import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
+import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
 import akka.stream.OverflowStrategy
 import akka.stream.typed.scaladsl.ActorSource
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 import akka.stream.scaladsl.{Keep, Sink}
+
 import scala.concurrent.Future
 import com.neo.sk.carnie.controller.GameController
 import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
@@ -34,13 +37,14 @@ object PlayGameWebSocket {
 
   def create(gameController: GameController): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
+      implicit val stashBuffer: StashBuffer[WsCommand] = StashBuffer[WsCommand](Int.MaxValue)
       Behaviors.withTimers { implicit timer =>
         idle(gameController)
       }
     }
   }
 
-  def idle(gameController: GameController)(implicit timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
+  def idle(gameController: GameController)(implicit stashBuffer: StashBuffer[WsCommand], timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case ConnectGame(playerInfo, domain) =>
@@ -75,7 +79,7 @@ object PlayGameWebSocket {
     }
   }
 
-  def connecting(actor: ActorRef[Protocol.WsSendMsg]): Behavior[WsCommand] = {
+  def connecting(actor: ActorRef[Protocol.WsSendMsg])(implicit stashBuffer: StashBuffer[WsCommand], timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case m@MsgToService(sendMsg) =>
@@ -103,6 +107,20 @@ object PlayGameWebSocket {
             println(s"decode error: ${e.message}")
         }
 
+      case msg:BinaryMessage.Streamed =>
+        val f = msg.dataStream.runFold(new ByteStringBuilder().result()){
+          case (s, str) => s.++(str)
+        }
+
+        f.map { bMsg =>
+          val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
+          bytesDecode[GameMessage](buffer) match {
+            case Right(v) => gameController.gameMessageReceiver(v)
+            case Left(e) =>
+              println(s"decode error: ${e.message}")
+          }
+        }
+
       case unknown@_ =>
         log.debug(s"i receiver an unknown message:$unknown")
     }
@@ -113,7 +131,7 @@ object PlayGameWebSocket {
     }, failureMatcher = {
       case WsSendFailed(ex) ⇒ ex
     },
-    bufferSize = 8,
+    bufferSize = 64,
     overflowStrategy = OverflowStrategy.fail
   ).collect {
     case message: UserAction =>
@@ -127,8 +145,10 @@ object PlayGameWebSocket {
   def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String): String = {
     val wsProtocol = "ws"
     val domain = "10.1.29.250:30368"
-//    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$playerName&accessCode=$accessCode"
-    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName&accessCode=$accessCode"
+//    val domain = "localhost:30368"
+    val name = URLEncoder.encode(playerName, "UTF-8")
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode"
+//    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName"
   }
 
 }

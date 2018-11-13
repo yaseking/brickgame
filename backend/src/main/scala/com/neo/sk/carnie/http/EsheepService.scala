@@ -37,7 +37,6 @@ trait EsheepService extends ServiceUtils with CirceSupport {
               dealFutureResult{
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(rsp) =>
-//                    println(s"rsp: $rsp")
                     if(rsp.playerId == playerId){
                       getFromResource("html/netSnake.html")
                     } else {
@@ -54,61 +53,40 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
-  private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
-    parameter(
-      'roomId.as[String],
-      'playerId.as[String].?,
-      'accessCode.as[String]
-    ) {
-      case (roomId, playerId, accessCode) =>
-        val gameId = AppSettings.esheepGameId
-        dealFutureResult{
-          val msg: Future[String] = tokenActor ? AskForToken
-          msg.map {token =>
-            dealFutureResult{
-              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-                case Right(_) =>
-                  getFromResource("html/netSnake.html")
-                case Left(e) =>
-                  log.error(s"watchGame error. fail to verifyAccessCode err: $e")
-//                  getFromResource("html/netSnake.html")
-                  complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
-              }
-            }
-          }
-        }
-    }
+  private val watchGame = (path("watchGame") & get) {
+    log.info("success to render watchGame page.")
+    getFromResource("html/netSnake.html")
   }
 
   private val watchRecord = (path("watchRecord") & get & pathEndOrSingleSlash) {
     parameter(
       'recordId.as[Long],
-      'playerId.as[String],
+      'playerId.as[String], //
       'frame.as[Int],
       'accessCode.as[String]
     ) {
       case (recordId, playerId, frame, accessCode) =>
-        val gameId = AppSettings.esheepGameId
-        dealFutureResult{
-          val msg: Future[String] = tokenActor ? AskForToken
-          msg.map {token =>
-            dealFutureResult{
-              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-                case Right(rsp) =>
-                  //                    println(s"rsp: $rsp")
-//                  if(rsp.playerId == playerId){
+//        val gameId = AppSettings.esheepGameId
+//        dealFutureResult{
+//          val msg: Future[String] = tokenActor ? AskForToken
+//          msg.map {token =>
+//            dealFutureResult{
+//              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+//                case Right(rsp) =>
+//                  //                    println(s"rsp: $rsp")
+////                  if(rsp.playerId == playerId){
                     getFromResource("html/netSnake.html")
-//                  } else {
-//                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
-//                  }
-                case Left(e) =>
-                  log.error(s"playGame error. fail to verifyAccessCode err: $e")
-//                  getFromResource("html/netSnake.html")
-                  complete(ErrorRsp(120005, "Some errors happened in parse verifyAccessCode."))
-              }
-            }
-          }
-        }
+////                  } else {
+////                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
+////                  }
+//                case Left(e) =>
+//                  log.error(s"playGame error. fail to verifyAccessCode err: $e")
+////                  getFromResource("html/netSnake.html")
+//                  complete(ErrorRsp(120005, "Some errors happened in parse verifyAccessCode."))
+//              }
+//            }
+//          }
+//        }
     }
   }
 
