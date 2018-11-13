@@ -177,8 +177,10 @@ class GridOnServer(override val boundary: Point) extends Grid {
     if (newSnake) genWaitingSnake()
     updateRanks()
     val deadSnakes = update._2
-    deadSnakes.foreach { sid =>
-      roomManager ! UserDead(sid, snakes(sid).name)
+    if (deadSnakes.nonEmpty) {
+      deadSnakes.foreach { sid =>
+        roomManager ! UserDead(sid, snakes(sid).name)
+      }
     }
     isFinish
   }
