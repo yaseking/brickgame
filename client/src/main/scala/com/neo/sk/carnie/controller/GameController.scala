@@ -41,6 +41,7 @@ class GameController(player: PlayerInfoInClient,
   var winnerName = "unknown"
   var isContinues = true
   var justSynced = false
+  var winnerData : Option[Protocol.SomeOneWin] = None
   private var fieldNum = 0
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
@@ -62,7 +63,7 @@ class GameController(player: PlayerInfoInClient,
 
   def loseConnect(): Unit = {
     gameScene.drawGameOff(firstCome)
-    animationTimer.stop()
+//    animationTimer.stop()
   }
 
   def start(domain: String): Unit = {
@@ -142,21 +143,27 @@ class GameController(player: PlayerInfoInClient,
           }
         }
       case None =>
-        if (firstCome) gameScene.drawGameWait()
-        else {
-          if(timeFlag){
-            currentRank.filter(_.id == player.id).foreach { score =>
-              myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+        if(!isWin){
+          if (firstCome) gameScene.drawGameWait()
+          else {
+            if(timeFlag){
+              currentRank.filter(_.id == player.id).foreach { score =>
+                myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+              }
+              timeFlag = false
+              log.debug("my score has been set")
             }
-            timeFlag = false
-            log.debug("my score has been set")
+            gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
+            if(isContinue) {
+              audioDie.play()
+              log.info("play the dieSound.")
+            }
+            isContinue = false
           }
-          gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
-          if(isContinue) {
-            audioDie.play()
-            log.info("play the dieSound.")
-          }
-          isContinue = false
+        }
+        else{
+//          animationTimer.start()
+          gameScene.drawGameWin(player.id, winnerData.get.winnerName, winnerData.get.data)
         }
     }
   }
@@ -203,12 +210,14 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
+          gameScene.drawGameWin(player.id, winner, finalData)
           audioWin.play()
           isWin = true
           winnerName = winner
+          winnerData = Some(Protocol.SomeOneWin(winner, finalData))
           gameScene.drawGameWin(player.id, winner, finalData)
           grid.cleanData()
-          animationTimer.stop()
+//          animationTimer.stop()
         }
 
       case Protocol.Ranks(current) =>

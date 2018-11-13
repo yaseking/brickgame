@@ -95,10 +95,10 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
     val length = new Text(txt1).getLayoutBounds.getWidth
-    ctx.fillText(txt1, (windowBoundary.x - length) / 2 , 150)
+    ctx.fillText(txt1, (windowBoundary.x - length) / 2 , windowBoundary.y / 5)
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
     ctx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
-    ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, 75, 50, 50)
+    ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, windowBoundary.y / 5 - 75, 50, 50)
     ctx.restore()
   }
   import javafx.scene.text.Text
