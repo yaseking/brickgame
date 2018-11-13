@@ -198,6 +198,7 @@ object RoomActor {
               EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
             }
           }
+          grid.cleanKilledSkData()
 
           if (shouldNewSnake) dispatch(subscribersMap, newData)
           else if (finishFields.nonEmpty) {
