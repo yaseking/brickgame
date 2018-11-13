@@ -289,13 +289,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       case Protocol.InitReplayError(info) =>
         drawGame.drawGameOff(firstCome, Some(false), loading, true)
 
-      case Protocol.SomeOneWin(winner, finalData) =>
-        println(s"recv someONeWin====-=========, winner:$winner")
-        isWin = true
-        winnerName = winner
-        winData = finalData
-        grid.cleanData()
-
       case x@Protocol.ReplayFinish(_) =>
         println("get message replay finish")
         replayFinish = true
@@ -373,7 +366,12 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 //        } else {
 //          grid.snakes -= id
 //        }
-
+      case Protocol.SomeOneWin(winner, finalData) =>
+        println(s"recv someONeWin====-=========, winner:$winner")
+        isWin = true
+        winnerName = winner
+        winData = finalData
+        grid.cleanData()
 
 
       case DirectionEvent(id, keyCode) =>
