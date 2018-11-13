@@ -48,6 +48,8 @@ class GameController(player: PlayerInfoInClient,
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  private var stageWidth = stageCtx.getStage.getWidth.toInt
+  private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private val timeline = new Timeline()
@@ -82,10 +84,17 @@ class GameController(player: PlayerInfoInClient,
 
   private def logicLoop(): Unit = { //逻辑帧
     if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
-      gameScene.resetScreen()
+      gameScene.resetScreen(1200,750,1200,250)
       stageCtx.getStage.setWidth(1200)
       stageCtx.getStage.setHeight(750)
       exitFullScreen = true
+    }
+    if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
+      stageWidth = stageCtx.getStage.getWidth.toInt
+      stageHeight = stageCtx.getStage.getHeight.toInt
+      gameScene.resetScreen(stageWidth,stageHeight,stageWidth,stageHeight)
+      stageCtx.getStage.setWidth(stageWidth)
+      stageCtx.getStage.setHeight(stageHeight)
     }
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))

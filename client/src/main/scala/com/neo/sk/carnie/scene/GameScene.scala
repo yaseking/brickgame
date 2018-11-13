@@ -55,20 +55,20 @@ class GameScene {
 
   val getScene: Scene = new Scene(group)
 
-  def resetScreen(): Unit = {
-    val viewWidth = 1200//1800
-    val viewHeight = 750//900
-    val rankWidth = 1200//1800
-    val rankHeight = 250//300
+  def resetScreen(viewWidth: Int,viewHeight: Int,rankWidth: Int,rankHeight: Int): Unit = {
+//    val viewWidth = 1200//1800
+//    val viewHeight = 750//900
+//    val rankWidth = 1200//1800
+//    val rankHeight = 250//300
 
     rank.resetRankView(rankWidth, rankHeight)
     view.resetScreen(viewWidth, viewHeight, rankWidth, rankHeight)
 
-    viewCanvas.setWidth(viewWidth)
-    viewCanvas.setHeight(viewHeight)
-
-    rankCanvas.setWidth(rankWidth)
-    rankCanvas.setHeight(rankHeight)
+//    viewCanvas.setWidth(viewWidth)
+//    viewCanvas.setHeight(viewHeight)
+//
+//    rankCanvas.setWidth(rankWidth)
+//    rankCanvas.setHeight(rankHeight)
   }
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
