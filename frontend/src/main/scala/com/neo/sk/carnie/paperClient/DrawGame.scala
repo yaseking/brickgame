@@ -172,13 +172,13 @@ class DrawGame(
     ctx.globalAlpha = 0.6
     ctx.restore()
     ctx.save()
-    ctx.font = "bold 20px Microsoft YaHei"
+    ctx.font = "bold 30px Microsoft YaHei"
     ctx.fillStyle = "#FF5809"
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
     val offx = length / 2
-//    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
-    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 4).toInt)
+    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
+    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180)
     ctx.restore()
   }
 
