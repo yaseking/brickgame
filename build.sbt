@@ -99,7 +99,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
     packMain := Map("carnie" -> projectMainClass),
-    packJvmOpts := Map("carnie" -> Seq("-Xmx256m", "-Xms64m")),
+    packJvmOpts := Map("carnie" -> Seq("-Xmx1024m", "-Xms128m")),
     packExtraClasspath := Map("carnie" -> Seq("."))
   )
   .settings(
