@@ -184,6 +184,7 @@ object RoomActor {
           val finishFields = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
+          val killedSkData = grid.getKilledSkData
 
           newData.killHistory.foreach { i =>
             if (i.frameCount + 1 == newData.frameCount) {
@@ -193,7 +194,7 @@ object RoomActor {
 
           val msgFuture: Future[String] = tokenActor ? AskForToken
           msgFuture.map{token =>
-            newData.playerRecords.foreach { i =>
+            killedSkData.killedSkInfo.foreach { i =>
               EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
             }
           }

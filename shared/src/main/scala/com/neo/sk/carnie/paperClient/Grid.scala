@@ -388,7 +388,13 @@ trait Grid {
       snakes.values.toList,
       bodyDetails,
       fieldDetails,
-      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList,
+      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
+      //killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
+    )
+  }
+
+  def getKilledSkData: Protocol.KilledSkData = {
+    Protocol.KilledSkData(
       killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
     )
   }
