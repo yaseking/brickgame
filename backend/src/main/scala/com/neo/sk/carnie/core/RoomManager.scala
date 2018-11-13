@@ -25,7 +25,7 @@ object RoomManager {
 
   //  private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
   private val roomMap = mutable.HashMap[Int, mutable.HashSet[(String, String)]]() //roomId->Set((userId, name))
-  private val limitNum = 8
+  private val limitNum = 15
 
   //  private val userMap = mutable.HashMap[Long, (Long, String)]() //(userId, (roomId, name))
 
