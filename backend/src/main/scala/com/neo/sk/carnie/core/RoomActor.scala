@@ -34,7 +34,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(id: String) extends Command
+  case class UserDead(id: String, name: String) extends Command with RoomManager.Command
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -96,7 +96,7 @@ object RoomActor {
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
-          gameEvent += ((grid.frameCount, JoinEvent(id, None)))
+          gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           Behaviors.same
 
         case WatchGame(playerId, userId, subscriber) =>
@@ -107,6 +107,10 @@ object RoomActor {
           dispatchTo(subscribersMap, userId, Protocol.Id(truePlayerId))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
+          Behaviors.same
+
+        case UserDead(id, name) =>
+          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           Behaviors.same
 
         case LeftRoom(id, name) =>
@@ -146,6 +150,7 @@ object RoomActor {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE) {
                 grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
+                gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id))))
                 watcherMap.filter(_._2 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
@@ -197,6 +202,20 @@ object RoomActor {
             }
           }
 
+          if(finishFields.nonEmpty && shouldNewSnake) {
+            newField = finishFields.map { f =>
+              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+              }.toList)
+            }
+
+            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
+              val finalData = grid.getGridData
+              grid.cleanData()
+              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
+            }
+          }
+
           if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
           val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
@@ -205,10 +224,11 @@ object RoomActor {
 
           //for gameRecorder...
           val actionEvent = grid.getDirectionEvent(frame)
-          val joinOrLeftEvent = gameEvent.filter(_._1 == frame).map {
-            case (f, JoinEvent(id, None)) => (f, JoinEvent(id, grid.snakes.get(id)))
-            case other => other
-          }
+          val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
+//            .map {
+//            case (f, JoinEvent(id, None)) => (f, JoinEvent(id, grid.snakes.get(id)))
+//            case other => other
+//          }
           val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
@@ -263,5 +283,6 @@ object RoomActor {
       actor
     }.upcast[GameRecorder.Command]
   }
+
 
 }

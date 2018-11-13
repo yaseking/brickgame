@@ -99,7 +99,8 @@ object GameReplay {
            metaData:GameInformation,
            frameCount: Int,
            userMap:List[((Protocol.UserBaseInfo, List[Protocol.UserJoinLeft]))],
-           userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None
+           userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None,
+           playedId: String = ""
           )(
             implicit stashBuffer:StashBuffer[Command],
             timer:TimerScheduler[Command],
@@ -147,7 +148,7 @@ object GameReplay {
 
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
-                work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber))
+                work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber), msg.userId)
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
                 Behaviors.same
@@ -160,11 +161,18 @@ object GameReplay {
 
         case GameLoop=>
           if(fileReader.hasMoreFrame){
+//            val joinLeftInfo = userMap.filter(_._1.id == playedId).head._2
+//            val leftInfo = joinLeftInfo.map(_.leftFrame)
+//            val joinInfo = joinLeftInfo.map(_.joinFrame).sorted
+//            if (leftInfo.contains(fileReader.getFramePosition)) {
+//              fileReader.gotoSnapshot(joinInfo.filter(f => f.toInt > fileReader.getFramePosition).head.toInt)
+//            }
             userOpt.foreach(u=>
               fileReader.readFrame().foreach { f =>
                 dispatchByteTo(u, f)
               }
             )
+
             Behaviors.same
           }else{
             log.debug(s"has not more frame")

@@ -11,6 +11,8 @@ import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.utils.EsheepClient
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
+import com.neo.sk.carnie.Boot.roomManager
+import com.neo.sk.carnie.core.RoomActor.UserDead
 
 import scala.concurrent.Future
 
@@ -375,6 +377,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
     val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
+      roomManager ! UserDead(sid, snakes(sid).name)
       val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
       val killing = if (snakes.contains(sid)) snakes(sid).kill else 0
       val nickname = if (snakes.contains(sid)) snakes(sid).name else "Unknown"
