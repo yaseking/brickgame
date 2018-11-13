@@ -29,7 +29,7 @@ class RankCanvas(canvas: Canvas)  {
   private var lastRankNum = 0 //清屏用
   private val myRankBaseLine = 4
 
-  def getRankView: Canvas = canvas
+//  def getRankView: Canvas = canvas
 
   def resetRankView(rankWidth:Int, rankHeight:Int): Unit = {
     canvas.setWidth(rankWidth)
@@ -44,8 +44,7 @@ class RankCanvas(canvas: Canvas)  {
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
 
-    ctx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    ctx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 230 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+    drawClearRank()//绘制前清除canvas
 
     lastRankNum = currentRank.length
 
@@ -110,10 +109,13 @@ class RankCanvas(canvas: Canvas)  {
   }
 
   def drawClearRank(): Unit = {
-    val rightBegin = windowBoundary.x - 230//230
-    ctx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    ctx.clearRect(rightBegin - 10 - textLineHeight, textLineHeight, 210 + 10 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
-    ctx.clearRect(20, textLineHeight * 5, 700, textLineHeight * 2)//玩家死亡清除fps
+    val width = canvas.getWidth
+    val height = canvas.getHeight
+    ctx.clearRect(0, 0, width, height)
+//    val rightBegin = windowBoundary.x - 230//230
+//    ctx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
+//    ctx.clearRect(rightBegin - 10 - textLineHeight, textLineHeight, 210 + 10 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+//    ctx.clearRect(20, textLineHeight * 5, 700, textLineHeight * 2)//玩家死亡清除fps
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
