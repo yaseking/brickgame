@@ -179,7 +179,7 @@ class DrawGame(
     val length = ctx.measureText(txt).width
     val offx = length / 2
 //    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
-    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 4).toInt )
+    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 5).toInt )
     ctx.restore()
   }
 
