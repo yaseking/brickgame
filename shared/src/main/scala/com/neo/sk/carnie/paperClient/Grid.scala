@@ -29,6 +29,7 @@ trait Grid {
   var snakes = Map.empty[String, SkDt]
   var actionMap = Map.empty[Long, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[String, (String, String, Long)] //killedId, (killerId, killerName,frameCount)
+  var killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]//killedId, (killedId, killedName, killing, startTime, endTime)
   var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
@@ -74,7 +75,7 @@ trait Grid {
     }
   }
 
-  def update(origin: String): List[(String, List[Point])] = {
+  def update(origin: String): (List[(String, List[Point])], List[String]) = {
     val isFinish = updateSnakes(origin)
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
@@ -108,7 +109,7 @@ trait Grid {
     p + Point(2 + random.nextInt(2), 2 + random.nextInt(2))
   }
 
-  def updateSnakes(origin: String): List[(String, List[Point])] = {
+  def updateSnakes(origin: String): (List[(String, List[Point])], List[String]) = {
     var finishFields = List.empty[(String, List[Point])]
 
     def updateASnake(snake: SkDt, actMap: Map[String, Int]): Either[String, UpdateSnakeInfo] = {
@@ -245,7 +246,7 @@ trait Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
-    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1)))).data.header)).keySet
+    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l))).data.header)).keySet
 
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
@@ -254,10 +255,16 @@ trait Grid {
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
+    val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+      }
+      val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
+      val endTime = System.currentTimeMillis()
+      snakes.get(sid).foreach { s =>
+        killedSks += sid -> (sid, s.name, s.kill, score.formatted("%.2f").toFloat, s.startTime, endTime)
       }
       snakeTurnPoints -= sid
     }
@@ -276,7 +283,7 @@ trait Grid {
 
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
-    finishFields
+    (finishFields, finalDie)
   }
 
   def enclosure(snake: SkDt, origin: String, newHeader: Point, newDirection: Point) = {
@@ -382,6 +389,13 @@ trait Grid {
       bodyDetails,
       fieldDetails,
       killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
+      //killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
+    )
+  }
+
+  def getKilledSkData: Protocol.KilledSkData = {
+    Protocol.KilledSkData(
+      killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
     )
   }
 
@@ -394,7 +408,12 @@ trait Grid {
     actionMap = Map.empty[Long, Map[String, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
     killHistory = Map.empty[String, (String, String, Long)]
+    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
     snakeTurnPoints = snakeTurnPoints.empty
+  }
+
+  def cleanKilledSkData(): Unit = {
+    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
   }
 
   def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地

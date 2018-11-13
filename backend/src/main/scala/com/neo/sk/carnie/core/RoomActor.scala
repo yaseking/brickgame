@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.core
 
 import java.awt.event.KeyEvent
+
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -8,10 +9,17 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.core.GameRecorder.RecordData
+
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
 import concurrent.duration._
+import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
+import com.neo.sk.carnie.core.TokenActor.AskForToken
+import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.utils.EsheepClient
+
+import scala.concurrent.Future
 
 /**
   * Created by dry on 2018/10/12.
@@ -34,7 +42,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(id: String, name: String) extends Command with RoomManager.Command
+  case class UserDead(id: String) extends Command with RoomManager.Command
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -45,6 +53,8 @@ object RoomActor {
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
 
   private case object Sync extends Command
+
+  case class UserInfo(name: String, startTime: Long, stopTime: Long)
 
   final case class SwitchBehavior(
                                    name: String,
@@ -61,7 +71,7 @@ object RoomActor {
       Behaviors.withTimers[Command] {
         implicit timer =>
           val subscribersMap = mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]]()
-          val userMap = mutable.HashMap[String, String]()
+          val userMap = mutable.HashMap[String, UserInfo]()
           val watcherMap = mutable.HashMap[String, String]()
           val grid = new GridOnServer(border)
           val winStandard = (BorderSize.w - 2) * (BorderSize.h - 2) * 0.7
@@ -74,7 +84,7 @@ object RoomActor {
 
   def idle(
             roomId: Int, grid: GridOnServer,
-            userMap: mutable.HashMap[String, String],
+            userMap: mutable.HashMap[String, UserInfo],
             watcherMap: mutable.HashMap[String, String], //(watchId, playerId)
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long,
@@ -88,7 +98,7 @@ object RoomActor {
         case JoinRoom(id, name, subscriber) =>
           log.info(s"got JoinRoom $msg")
           log.info(s"joinRoom roomId: $roomId")
-          userMap.put(id, name)
+          userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
           subscribersMap.put(id, subscriber)
           ctx.watchWith(subscriber, UserLeft(subscriber))
           grid.addSnake(id, roomId, name)
@@ -109,8 +119,11 @@ object RoomActor {
           dispatch(subscribersMap, gridData)
           Behaviors.same
 
-        case UserDead(id, name) =>
-          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+        case UserDead(id) =>
+          if(userMap.get(id).nonEmpty) {
+            val name = userMap(id).name
+            gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+          }
           Behaviors.same
 
         case LeftRoom(id, name) =>
@@ -136,7 +149,7 @@ object RoomActor {
           log.debug(s"UserLeft:::")
           subscribersMap.find(_._2.equals(actor)).foreach { case (id, _) =>
             log.debug(s"got Terminated id = $id")
-            val name = userMap.get(id).head
+            val name = userMap.get(id).head.name
             subscribersMap.remove(id)
             userMap.remove(id)
             grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
@@ -149,8 +162,8 @@ object RoomActor {
           action match {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE) {
-                grid.addSnake(id, roomId, userMap.getOrElse(id, "Unknown"))
-                gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id))))
+                grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name)
+                gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
@@ -176,12 +189,21 @@ object RoomActor {
           val finishFields = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
+          val killedSkData = grid.getKilledSkData
 
           newData.killHistory.foreach { i =>
             if (i.frameCount + 1 == newData.frameCount) {
-              dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId), i.killerName))
+              dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
             }
           }
+
+          val msgFuture: Future[String] = tokenActor ? AskForToken
+          msgFuture.map{token =>
+            killedSkData.killedSkInfo.foreach { i =>
+              EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
+            }
+          }
+          grid.cleanKilledSkData()
 
           if (shouldNewSnake) dispatch(subscribersMap, newData)
           else if (finishFields.nonEmpty) {
@@ -197,8 +219,9 @@ object RoomActor {
             if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
               val finalData = grid.getGridData
               grid.cleanData()
-              dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData))
-              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
+              dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData))
+              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
+              gameEvent += ((grid.frameCount, LeftEvent(grid.currentRank.head.id, userMap(grid.currentRank.head.id).name)))
             }
           }
 
@@ -212,7 +235,8 @@ object RoomActor {
             if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
               val finalData = grid.getGridData
               grid.cleanData()
-              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id), finalData)))
+              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
+              gameEvent += ((grid.frameCount, LeftEvent(grid.currentRank.head.id, userMap(grid.currentRank.head.id).name)))
             }
           }
 
