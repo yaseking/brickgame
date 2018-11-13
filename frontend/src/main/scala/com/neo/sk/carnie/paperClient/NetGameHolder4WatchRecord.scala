@@ -42,7 +42,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var replayFinish = false
   var gameLoopInterval = -1
-  var pingInterval = -1
+//  var pingInterval = -1
   var requestAnimationInterval = -1
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
@@ -76,9 +76,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     println(s"start game======")
     drawGame.drawGameOn()
     gameLoopInterval = dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
-    pingInterval = dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
-    }, 100)
+//    pingInterval = dom.window.setInterval(() => {
+//      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
+//    }, 100)
     requestAnimationInterval = dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -206,7 +206,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   }
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale)
+    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale, true)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
 //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
@@ -229,7 +229,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
       case Protocol.StartLoading(frame) =>
         println(s"start loading  =========")
         dom.window.clearInterval(gameLoopInterval)
-        dom.window.clearInterval(pingInterval)
+//        dom.window.clearInterval(pingInterval)
         dom.window.clearInterval(requestAnimationInterval)
         loading = true
         drawGame.drawGameOff(firstCome, Some(false), loading, false)

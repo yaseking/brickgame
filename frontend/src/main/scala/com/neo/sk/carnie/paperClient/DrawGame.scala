@@ -227,7 +227,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double): Double = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -315,8 +315,10 @@ class DrawGame(
     ctx.restore()
 
     //    //排行榜边界离屏
-    rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
-    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+    if(!isReplay) {
+      rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
+      PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+    }
 
     newScale
   }
