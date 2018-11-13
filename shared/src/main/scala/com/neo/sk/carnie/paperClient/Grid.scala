@@ -264,7 +264,7 @@ trait Grid {
       val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
       val endTime = System.currentTimeMillis()
       snakes.get(sid).foreach { s =>
-        killedSks += sid -> (sid, s.name, s.kill, score, s.startTime, endTime)
+        killedSks += sid -> (sid, s.name, s.kill, score.formatted("%.2f").toFloat, s.startTime, endTime)
       }
       snakeTurnPoints -= sid
     }
