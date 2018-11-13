@@ -15,6 +15,7 @@ object AppSettings {
   val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
 
   val appConfig = config.getConfig("app")
+  val limitNum = appConfig.getInt("client.limitNum")
   val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
 
   val httpInterface = appConfig.getString("http.interface")
