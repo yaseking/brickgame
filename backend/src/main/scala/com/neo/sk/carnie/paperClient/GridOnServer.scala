@@ -11,6 +11,8 @@ import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.utils.EsheepClient
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.byteobject.ByteObject._
+import com.neo.sk.carnie.Boot.roomManager
+import com.neo.sk.carnie.core.RoomActor.UserDead
 
 import scala.concurrent.Future
 
@@ -367,22 +369,23 @@ class GridOnServer(override val boundary: Point) extends Grid {
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
-    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case x@Field(uid) => uid case _ => 0.toString }).toSet.filter(_ != 0.toString) //若领地全被其它玩家圈走则死亡
+    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
 
     //    println(s"snakeInDanger:$snakesInDanger\nkilledSnaked:$killedSnaked\nnoFieldSnake:$noFieldSnake\nnoHeaderSnake:$noHeaderSnake")
 
+    val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
-      val score = grid.filter(_._2 match { case Body(id, _) if id == sid => true case _ => false }).toList.length
+      roomManager ! UserDead(sid, snakes(sid).name)
+      val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
       val killing = if (snakes.contains(sid)) snakes(sid).kill else 0
       val nickname = if (snakes.contains(sid)) snakes(sid).name else "Unknown"
-      println(s"score: $score, killing: $killing, nickname: $nickname")
       val startTime = startTimeMap(sid)
       val endTime = System.currentTimeMillis()
       val msg: Future[String] = tokenActor ? AskForToken
       msg.map { token =>
-        EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score, "", startTime, endTime, token)
+        EsheepClient.inputBatRecord(sid.toString, nickname, killing, 1, score.formatted("%.2f").toFloat, "", startTime, endTime, token)
       }
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>

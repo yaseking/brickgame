@@ -33,10 +33,11 @@ object RoomApiProtocol {
                           count: Int
   )
   case class RecordListRsp(
-                          data:records,
+                          data:List[recordInfo],
                           errCode: Int = 0,
                           msg: String = "ok"
   )
+
   case class recordInfo(
                           recordId: Long,
                           roomId: Long,
@@ -45,13 +46,10 @@ object RoomApiProtocol {
                           userCounts: Int,
                           userList: Seq[String]
   )
-  case class records(
-                    recordList:List[recordInfo]
-  )
 
   case class RecordInfoReq(
                            recordId: Long,
-                           playerId: String
+                           playerId: String //正在观看玩家的ID
                            )
 
   case class RecordFrameInfo(
@@ -71,7 +69,7 @@ object RoomApiProtocol {
 
   case class RecordPlayerInfo(
                              playerId: String,
-                             nickName: String,
+                             nickname: String,
                              existTime: List[ExistTime]
                              )
 
@@ -85,7 +83,7 @@ object RoomApiProtocol {
 
   case class PlayerIdName(
                         playerId: String,
-                        nickName: String
+                        nickname: String
   )
 
   case class RoomIdInfo(
@@ -125,7 +123,7 @@ object RoomApiProtocol {
                         data: RecordFrameInfo,
                         errCode: Int = 0,
                         msg: String = "ok"
-                      )
+                      ) extends CommonRsp
 
   case class RecordPlayerInfoRsp(
                                 data: RecordPlayerList,

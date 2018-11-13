@@ -77,14 +77,10 @@ trait HttpUtil {
 
   import collection.JavaConverters._
 
-  private def parseResp(response: Response, charset: Charset, needLogRsp:Boolean = true) = {
+  private def parseResp(response: Response, charset: Charset) = {
     val body = new String(response.getResponseBodyAsBytes, charset)
-    if(needLogRsp){
-      log.debug("getRequestSend response headers:" + response.getHeaders)
-      log.debug("getRequestSend response body:" + body)
-    }
-    //    log.debug("getRequestSend response headers:" + response.getHeaders)
-    //    log.debug("getRequestSend response body:" + body)
+        log.debug("getRequestSend response headers:" + response.getHeaders)
+        log.debug("getRequestSend response body:" + body)
     if (response.getStatusCode != 200) {
       val uri = response.getUri
       val bodyLength = body.length
@@ -97,11 +93,10 @@ trait HttpUtil {
   private def executeRequest(
                               methodName: String,
                               request: BoundRequestBuilder,
-                              charset: Charset,
-                              needLogRsp:Boolean = true
+                              charset: Charset
                             )(implicit executor: ExecutionContext) = {
     request.scalaExecute().map { response =>
-      Right(parseResp(response, charset,needLogRsp))
+      Right(parseResp(response, charset))
     }.recover { case e: Throwable => Left(e) }
   }
 
@@ -111,8 +106,7 @@ trait HttpUtil {
                            parameters: List[(String, String)],
                            jsonStr: String,
                            charsetName: String = "UTF-8",
-                           timeOut:Int = 20 * 1000,
-                           needLogRsp:Boolean = true
+                           timeOut: Int = 20 * 1000
                          )(implicit executor: ExecutionContext): Future[Either[Throwable, String]] = {
     log.info("Post Request [" + methodName + "] Processing...")
     log.debug(methodName + " url=" + url)
@@ -129,7 +123,7 @@ trait HttpUtil {
       addQueryParams(parameters.map { kv => new Param(kv._1, kv._2) }.asJava).
       addHeader("Content-Type", "application/json").
       setBody(jsonStr)
-    executeRequest(methodName, request, cs, needLogRsp)
+    executeRequest(methodName, request, cs)
   }
 
   def getRequestSend(

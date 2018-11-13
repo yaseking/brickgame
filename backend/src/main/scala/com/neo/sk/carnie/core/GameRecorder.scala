@@ -81,20 +81,30 @@ object GameRecorder {
       msg match {
         case RecordData(frame, event) => //记录数据
           val snapshot =
-            if(event._1.exists{ case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true} ||
-              tickCount % 50 == 0) Some(event._2) else None //是否做快照
+            if(event._1.exists{
+//              case JoinEvent(_, info) =>
+//                println(s"add joinEvent: $info")
+//                true
+//              case LeftEvent(_, _) => true
+//              case SpaceEvent(_) => true
+//              case _ => false
+              case Protocol.DirectionEvent(_,_) => false
+              case Protocol.EncloseEvent(_) => false
+              case Protocol.RankEvent(_) => false
+              case _ => true
+            } || tickCount % 50 == 0) Some(event._2) else None //是否做快照
 
 //          log.debug(s"${event._1.exists{case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true}}")
-//          log.debug(s"做快照::tickcount:$tickCount, snapshot:$snapshot")
+//          log.debug(s"快照::tickcount:$tickCount, snapshot:$snapshot")
 
           event._1.foreach {
-            case Protocol.JoinEvent(id, nickName) =>
-              userMap.put(id, nickName)
-              userHistoryMap.put(id, nickName)
-              if(essfMap.get(UserBaseInfo(id, nickName)).nonEmpty) {
-                essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)) ::: List(UserJoinLeft(frame, -1l)))
+            case Protocol.JoinEvent(id, name) =>
+              userMap.put(id, name)
+              userHistoryMap.put(id, name)
+              if(essfMap.get(UserBaseInfo(id, name)).nonEmpty) {
+                essfMap.put(UserBaseInfo(id, name), essfMap(UserBaseInfo(id, name)) ::: List(UserJoinLeft(frame, -1l)))
               } else {
-                essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(frame, -1l)))
+                essfMap.put(UserBaseInfo(id, name), List(UserJoinLeft(frame, -1l)))
               }
 
             case Protocol.LeftEvent(id, nickName) =>
@@ -105,7 +115,7 @@ object GameRecorder {
                   essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
                   else {
                     val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
-                    List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame))
+                    essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
                   }
                 case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
               }
@@ -114,7 +124,8 @@ object GameRecorder {
             case _ =>
           }
 
-          var newEventRecorder = (event._1, snapshot) :: eventRecorder
+          var newEventRecorder =  (event._1, snapshot) :: eventRecorder
+
           if (newEventRecorder.lengthCompare(maxRecordNum) > 0) { //每一百帧写入一次
             newEventRecorder.reverse.foreach {
               case (events, Some(state)) if events.nonEmpty =>
@@ -129,6 +140,7 @@ object GameRecorder {
         case SaveInFile =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, SaveInFile, saveTime)
+          ctx.self ! SaveInFile
           switchBehavior(ctx, "save", save(recorder, gameInfo, essfMap, userMap, userHistoryMap, lastFrame))
 
         case _ =>
@@ -146,6 +158,12 @@ object GameRecorder {
           (essf._1, newJoinLeft)
         }.toList
         recorder.putMutableInfo(AppSettings.essfMapKeyName, Protocol.EssfMapInfo(mapInfo).fillMiddleBuffer(middleBuffer).result())
+        eventRecorder.reverse.foreach {
+          case (events, Some(state)) if events.nonEmpty =>
+            recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
+          case (events, None) if events.nonEmpty => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
+          case _ => recorder.writeEmptyFrame()
+        }
         recorder.finish()
         val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{

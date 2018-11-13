@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.ptcl.RoomApiProtocol
-import com.neo.sk.carnie.ptcl.RoomApiProtocol.RecordFrameInfo
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, ErrorRsp, RecordFrameInfo}
 import com.neo.sk.utils.essf.RecallGame._
 
 /**
@@ -35,7 +35,7 @@ object GameReplay {
   case object GameLoop extends Command
 
   case class Left() extends Command
-  case class GetRecordFrame(playerId: String, replyTo: ActorRef[RecordFrameInfo]) extends Command
+  case class GetRecordFrame(playerId: String, replyTo: ActorRef[CommonRsp]) extends Command
   case class StopReplay() extends Command
 
   final case class SwitchBehavior(
@@ -58,36 +58,17 @@ object GameReplay {
   case class InitReplay(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], userId:String, f:Int) extends Command
 
 
-  def create(recordId:Long): Behavior[Command] = {
+  def create(recordId:Long, playerId: String): Behavior[Command] = {
     Behaviors.setup[Command]{ ctx=>
       log.info(s"${ctx.self.path} is starting..")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
-        //test
-//        val replay=initInput("/Users/pro/SKProjects/carnie/backend/gameDataDirectoryPath/carnie_1000_1540539148541_0")
-//        val info=replay.init()
-//        try{
-//          println(s"test1")
-//          println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
-//          println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
-//          println(s"test4:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
-//          ctx.self ! SwitchBehavior("work",
-//            work(
-//              replay,
-//              metaDataDecode(info.simulatorMetadata).right.get,
-//              //
-//              userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-//            ))
-//        }catch {
-//          case e:Throwable=>
-//            log.error("error init game replay---"+e.getMessage)
-//        }
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
 //            log.debug(s"game path ${r.filePath}")
-//            val replay=initInput("../backend/" + r.filePath)
-            val replay=initInput(r.filePath)
+            val replay=initInput("../backend/" + r.filePath)
+//            val replay=initInput(r.filePath)
             val info=replay.init()
             try{
 //              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
@@ -103,9 +84,11 @@ object GameReplay {
             }catch {
               case e:Throwable=>
                 log.error("error---"+e.getMessage)
+                ctx.self ! SwitchBehavior("initError",initError)
             }
           case None=>
             log.debug(s"record--$recordId didn't exist!!")
+            ctx.self ! SwitchBehavior("initError",initError)
         }
         switchBehavior(ctx,"busy",busy())
       }
@@ -116,7 +99,8 @@ object GameReplay {
            metaData:GameInformation,
            frameCount: Int,
            userMap:List[((Protocol.UserBaseInfo, List[Protocol.UserJoinLeft]))],
-           userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None
+           userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None,
+           playedId: String = ""
           )(
             implicit stashBuffer:StashBuffer[Command],
             timer:TimerScheduler[Command],
@@ -134,18 +118,37 @@ object GameReplay {
               //todo dispatch gameInformation
               dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
               log.info(s" set replay from frame=${msg.f}")
-              //fixme 跳转帧数goto失效
+              log.debug(s"get snapshot index::${fileReader.getSnapshotIndexes}")
+              val nearSnapshotIndex = fileReader.gotoSnapshot(msg.f)
+//              val indexes = fileReader.getSnapshotIndexes.map(_._1)
+//              val nearSnapshotIndex = indexes.filter(f => f <= msg.f).max
+              log.debug(s"nearSnapshotIndex: $nearSnapshotIndex")
               //              fileReader.reset()
               //              for(i <- 1 to msg.f){
               //                if(fileReader.hasMoreFrame){
               //                  fileReader.readFrame()
               //                }
               //              }
-              fileReader.gotoSnapshot(msg.f)
+//              fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
+              log.debug(s"start loading ======")
+              dispatchTo(msg.subscriber, Protocol.StartLoading(nearSnapshotIndex))
+
+              for(i <- 0 until (msg.f - fileReader.getFramePosition)){
+                if(fileReader.hasMoreFrame){
+                  fileReader.readFrame().foreach { f => dispatchByteTo(msg.subscriber, f)
+                  }
+                }else{
+                  log.debug(s"${ctx.self.path} file reader has no frame, reply finish")
+                  dispatchTo(msg.subscriber, Protocol.ReplayFinish(msg.userId))
+                }
+              }
+              log.debug(s"start replay ======")
+              dispatchTo(msg.subscriber, Protocol.StartReplay(nearSnapshotIndex, fileReader.getFramePosition))
+
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
-                work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber))
+                work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber), msg.userId)
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
                 Behaviors.same
@@ -158,11 +161,18 @@ object GameReplay {
 
         case GameLoop=>
           if(fileReader.hasMoreFrame){
+//            val joinLeftInfo = userMap.filter(_._1.id == playedId).head._2
+//            val leftInfo = joinLeftInfo.map(_.leftFrame)
+//            val joinInfo = joinLeftInfo.map(_.joinFrame).sorted
+//            if (leftInfo.contains(fileReader.getFramePosition)) {
+//              fileReader.gotoSnapshot(joinInfo.filter(f => f.toInt > fileReader.getFramePosition).head.toInt)
+//            }
             userOpt.foreach(u=>
               fileReader.readFrame().foreach { f =>
                 dispatchByteTo(u, f)
               }
             )
+
             Behaviors.same
           }else{
             log.debug(s"has not more frame")
@@ -174,7 +184,8 @@ object GameReplay {
           }
 
         case GetRecordFrame(playerId, replyTo) =>
-          replyTo ! RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount)
+//          log.info(s"game replay got $msg")
+          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition - metaData.initFrame.toInt, frameCount))
           Behaviors.same
 
         case StopReplay() =>
@@ -199,6 +210,29 @@ object GameReplay {
       }
     }
   }
+
+  private def initError(
+                         implicit sendBuffer: MiddleBufferInJvm
+                       ):Behavior[Command]={
+    Behaviors.receive[Command]{(ctx,msg)=>
+      msg match {
+        case msg:InitReplay =>
+          log.debug(s"游戏文件不存在或已损坏")
+          dispatchTo(msg.subscriber, InitReplayError("游戏文件不存在或者已损坏！！"))
+          Behaviors.stopped
+
+        case msg:GetRecordFrame=>
+          msg.replyTo ! ErrorRsp(10001,"init error")
+          Behaviors.stopped
+
+        case msg=>
+          log.debug(s"unknown message:$msg")
+          Behaviors.stopped
+      }
+    }
+  }
+
+
 
   import org.seekloud.byteobject.ByteObject._
   def dispatchTo(subscriber: ActorRef[WsSourceProtocol.WsMsgSource], msg: Protocol.GameMessage)(implicit sendBuffer: MiddleBufferInJvm)= {

@@ -13,9 +13,9 @@ import javafx.scene.image.Image
   **/
 class RankCanvas(canvas: Canvas)  {
 
-  private val realWindowWidth = canvas.getWidth
-  private val realWindowHeight = canvas.getHeight
-  private val windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
+  private var realWindowWidth = canvas.getWidth
+  private var realWindowHeight = canvas.getHeight
+  private var windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val goldImg = new Image("gold.png")
   private val silverImg = new Image("silver.png")
@@ -29,13 +29,23 @@ class RankCanvas(canvas: Canvas)  {
   private var lastRankNum = 0 //清屏用
   private val myRankBaseLine = 4
 
+  def getRankView: Canvas = canvas
+
+  def resetRankView(rankWidth:Int, rankHeight:Int): Unit = {
+    canvas.setWidth(rankWidth)
+    canvas.setHeight(rankHeight)
+    realWindowWidth = canvas.getWidth
+    realWindowHeight = canvas.getHeight
+    windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
+  }
+
   def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
 
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
 
     ctx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    ctx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+    ctx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 230 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
 
     lastRankNum = currentRank.length
 
@@ -51,9 +61,6 @@ class RankCanvas(canvas: Canvas)  {
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
 
     currentRank.filter(_.id == uid).foreach { score =>
-//      myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-//      if (myScore.area > maxArea)
-//        maxArea = myScore.area
       val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setGlobalAlpha(0.6)
       ctx.setFill(color)
@@ -85,7 +92,7 @@ class RankCanvas(canvas: Canvas)  {
       ctx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
     }
     currentRank.foreach { score =>
-      val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      val color = snakes.find(_.id == score.id).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setGlobalAlpha(0.6)
       ctx.setFill(color)
       ctx.save()
@@ -103,10 +110,10 @@ class RankCanvas(canvas: Canvas)  {
   }
 
   def drawClearRank(): Unit = {
-    val rightBegin = windowBoundary.x - 230
+    val rightBegin = windowBoundary.x - 230//230
     ctx.clearRect(0, textLineHeight, fillWidth + windowBoundary.x / 6, textLineHeight * 4) //绘制前清除canvas
-    ctx.clearRect(rightBegin - 5 - textLineHeight, textLineHeight, 210 + 5 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
-    ctx.clearRect(20, textLineHeight * 5, 600, textLineHeight * 2)//清除fps
+    ctx.clearRect(rightBegin - 10 - textLineHeight, textLineHeight, 210 + 10 + textLineHeight, textLineHeight * (lastRankNum + 1) + 3)
+    ctx.clearRect(20, textLineHeight * 5, 700, textLineHeight * 2)//玩家死亡清除fps
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {

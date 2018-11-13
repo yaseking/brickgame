@@ -2,7 +2,7 @@ package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
-import com.neo.sk.carnie.paperClient.NetGameHolder.grid
+//import com.neo.sk.carnie.paperClient.NetGameHolder.grid
 
 /**
   * User: Taoz

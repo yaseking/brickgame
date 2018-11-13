@@ -60,6 +60,12 @@ object Protocol {
 
   case class Id(id: String) extends GameMessage
 
+  case class StartLoading(frame: Int) extends GameMessage
+
+  case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
+
+  case class InitReplayError(info: String) extends GameMessage
+
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
   case class SnakeAction(id: String, keyCode: Int, frame: Long, actionId: Int) extends GameMessage
@@ -73,7 +79,7 @@ object Protocol {
 
   case object ReStartGame extends GameMessage
 
-  case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage
+  case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage with GameEvent
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage
 
@@ -95,9 +101,9 @@ object Protocol {
 
 
   //essf
-  sealed trait GameEvent
+  sealed trait GameEvent extends GameMessage
 
-  case class JoinEvent(id: String, nickName: String) extends GameEvent
+  case class JoinEvent(id: String, name: String) extends GameEvent
 
   case class LeftEvent(id: String, nickName: String) extends GameEvent
 
