@@ -27,6 +27,15 @@ package object paperClient {
 
   case class Kill(killedId: String, killerId: String, killerName: String,frameCount:Long)
 
+  case class KilledSkDt(
+                      id:String,
+                      nickname:String,
+                      killing:Int,
+                      score: Float,
+                      startTime:Long,
+                      endTime:Long
+                      )
+
   case class BaseScore(kill: Int, area: Int, startTime: Long, endTime: Long)
 
 
@@ -52,7 +61,9 @@ package object paperClient {
                    startPoint: Point,
                    header: Point,
                    direction: Point = Point(0, 0),
-                   kill: Int = 0
+                   kill: Int = 0,
+                   startTime: Long,
+                   endTime: Long
                  )
 
   case class UpdateSnakeInfo(

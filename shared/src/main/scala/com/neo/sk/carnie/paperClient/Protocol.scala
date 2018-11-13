@@ -32,6 +32,10 @@ object Protocol {
                              killHistory: List[Kill]
                            ) extends GameMessage
 
+  case class KilledSkData(
+                         killedSkInfo: List[KilledSkDt]
+                         )
+
   case class Point4Trans(x: Int, y: Int)
 
   case class BodyBaseInfo(
