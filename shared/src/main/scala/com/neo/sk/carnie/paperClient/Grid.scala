@@ -75,7 +75,7 @@ trait Grid {
     }
   }
 
-  def update(origin: String): List[(String, List[Point])] = {
+  def update(origin: String): (List[(String, List[Point])], List[String]) = {
     val isFinish = updateSnakes(origin)
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
@@ -109,7 +109,7 @@ trait Grid {
     p + Point(2 + random.nextInt(2), 2 + random.nextInt(2))
   }
 
-  def updateSnakes(origin: String): List[(String, List[Point])] = {
+  def updateSnakes(origin: String): (List[(String, List[Point])], List[String]) = {
     var finishFields = List.empty[(String, List[Point])]
 
     def updateASnake(snake: SkDt, actMap: Map[String, Int]): Either[String, UpdateSnakeInfo] = {
@@ -283,7 +283,7 @@ trait Grid {
 
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
-    finishFields
+    (finishFields, finalDie)
   }
 
   def enclosure(snake: SkDt, origin: String, newHeader: Point, newDirection: Point) = {
