@@ -79,7 +79,8 @@ object RecordDAO {
           game.recordId === user.recordId
         }.result
     } yield {
-      usersInRecord
+      if(lastRecord == 0) usersInRecord.sortBy(_._1.recordId).reverse.take(count)
+      else usersInRecord.filter(_._1.recordId < lastRecord).sortBy(_._1.recordId).reverse.take(count)
     }
 
     db.run(action)
