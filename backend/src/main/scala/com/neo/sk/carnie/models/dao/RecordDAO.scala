@@ -55,22 +55,35 @@ object RecordDAO {
   }
 
   def getRecordListByPlayer(playerId: String,lastRecord: Long,count: Int) = {
-    if(lastRecord == 0L){
-      val action = {
-        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
+    //    if(lastRecord == 0L){
+    //      val action = {
+    //        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
+    //          game.recordId === user.recordId
+    //        }
+    //      }.result
+    //      db.run(action)
+    //    }
+    //    else{
+    //      val action = {
+    //        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
+    //          game.recordId === user.recordId
+    //        }
+    //      }.result
+    //      db.run(action)
+    //    }
+
+    val action = for {
+      records <- tUserInRecord.filter(_.userId === playerId).map(_.recordId).result
+      usersInRecord <-
+        tGameRecord.filter(_.recordId.inSet(records)).joinLeft(tUserInRecord).on { (game, user) =>
           game.recordId === user.recordId
-        }
-      }.result
-      db.run(action)
+        }.result
+    } yield {
+      usersInRecord
     }
-    else{
-      val action = {
-        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
-          game.recordId === user.recordId
-        }
-      }.result
-      db.run(action)
-    }
+
+    db.run(action)
+
   }
 
   def getRecordPath(recordId: Long) = db.run(
