@@ -248,7 +248,7 @@ object RoomActor {
           if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
           val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
-            if ((maxSize + fullSize * 0.1) < winStandard) Math.max(fullSize * (0.7 - userMap.size * 0.05), 0.2) else winStandard
+            if ((maxSize + fullSize * 0.1) < winStandard) Math.max(fullSize * (0.7 - userMap.size * 0.05), 0.15) else winStandard
           } else winStandard
 
           //for gameRecorder...
