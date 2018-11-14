@@ -37,16 +37,16 @@ object RecordDAO {
   def getRecordListByTime(startTime: Long,endTime: Long,lastRecord: Long,count: Int) = {
     if(lastRecord == 0L){
       val action = {
-        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
-          (game.recordId === user.recordId) && game.startTime >= startTime && game.endTime <= endTime
+        tGameRecord.filter(i => i.startTime >= startTime && i.endTime <= endTime).sortBy(_.recordId.desc) joinLeft tUserInRecord on { (game, user) =>
+          game.recordId === user.recordId
         }
       }.result
       db.run(action)
     }
     else{
       val action = {
-        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
-          game.recordId === user.recordId && game.startTime >= startTime && game.endTime <= endTime
+        tGameRecord.filter(i => i.startTime >= startTime && i.endTime <= endTime && i.recordId < lastRecord).sortBy(_.recordId.desc) joinLeft tUserInRecord on { (game, user) =>
+          game.recordId === user.recordId
         }
       }.result
       db.run(action)

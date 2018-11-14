@@ -209,12 +209,12 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
+        isWin = true
+        winnerName = winner
+        winnerData = Some(Protocol.SomeOneWin(winner, finalData))
         Boot.addToPlatform {
-          gameScene.drawGameWin(player.id, winner, finalData)
+//          gameScene.drawGameWin(player.id, winner, finalData)
           audioWin.play()
-          isWin = true
-          winnerName = winner
-          winnerData = Some(Protocol.SomeOneWin(winner, finalData))
           gameScene.drawGameWin(player.id, winner, finalData)
           grid.cleanData()
 //          animationTimer.stop()
