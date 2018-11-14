@@ -185,7 +185,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
     val w = windowBoundary.x - littleMap.w * canvasUnit * 1.050
-    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.170
+    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.210
     ctx.save()
     ctx.setGlobalAlpha(0.5)
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
