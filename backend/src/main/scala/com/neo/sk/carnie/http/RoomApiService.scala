@@ -84,7 +84,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
 
-        complete(RecordListRsp(data.toList.sortBy(_.recordId).reverse))
+        complete(RecordListRsp(data.toList.sortBy(_.recordId)))
 
         //        recordL.map{ r =>
         //          val record = r._1
@@ -108,7 +108,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
           val userList = res.filter(_._2.nonEmpty).map(_._2.get.userId)
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
-        complete(RecordListRsp(data.toList.sortBy(_.recordId).reverse))
+        complete(RecordListRsp(data.toList.sortBy(_.recordId)))
 //      RecordDAO.getRecordListByTime(req.startTime, req.endTime, req.lastRecordId, req.count).map { recordL =>
 //        complete(RecordListRsp(recordL.toList.map(_._1).distinct.sortWith((a, b) => a.recordId > b.recordId).take(req.count).map { r =>
 //          val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
@@ -125,7 +125,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
           val userList = res.map(_._2.userId)
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
-        complete(RecordListRsp(data.toList.sortBy(_.recordId).reverse))
+        complete(RecordListRsp(data.toList.sortBy(_.recordId)))
 //      RecordDAO.getRecordListByPlayer(req.playerId, req.lastRecordId, req.count).map { recordL =>
 //        complete(RecordListRsp(recordL.toList.filter(_._2.userId == req.playerId).map(_._1).distinct.sortWith((a, b) => a.recordId > b.recordId).take(req.count).map { r =>
 //          val userList = recordL.map(i => i._2).distinct.filter(_.recordId == r.recordId).map(_.userId)
