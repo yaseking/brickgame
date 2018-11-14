@@ -141,7 +141,8 @@ class DrawGame(
     val length = ctx.measureText(text).width
     val offx = length / 2
     val x = (dom.window.innerWidth / 2).toInt - 145
-    val y = (dom.window.innerHeight / 2).toInt - 180
+    val y = if (isReplay) (dom.window.innerHeight / 2).toInt - 80 else (dom.window.innerHeight / 2).toInt - 180
+//    val y = (dom.window.innerHeight / 2).toInt - 180
 
     val gameTime = (myScore.endTime - myScore.startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
