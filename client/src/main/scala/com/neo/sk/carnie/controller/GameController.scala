@@ -87,7 +87,7 @@ class GameController(player: PlayerInfoInClient,
     if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
       gameScene.resetScreen(1200,750,1200,250)
       stageCtx.getStage.setWidth(1200)
-      stageCtx.getStage.setHeight(800)
+      stageCtx.getStage.setHeight(750)
       exitFullScreen = true
     }
     if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
