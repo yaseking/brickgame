@@ -113,7 +113,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     import com.neo.sk.utils.SecureUtil._
     val appId = AppSettings.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
-    val data = RoomApiProtocol.RecordByPlayerReq("test",0,2).asJson.noSpaces
+    val data = RoomApiProtocol.RecordByPlayerReq("test",0,5).asJson.noSpaces
     val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), AppSettings.esheepGsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
 
