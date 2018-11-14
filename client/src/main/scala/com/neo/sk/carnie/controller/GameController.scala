@@ -87,7 +87,7 @@ class GameController(player: PlayerInfoInClient,
     if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
       gameScene.resetScreen(1200,750,1200,250)
       stageCtx.getStage.setWidth(1200)
-      stageCtx.getStage.setHeight(750)
+      stageCtx.getStage.setHeight(800)
       exitFullScreen = true
     }
     if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
@@ -212,10 +212,9 @@ class GameController(player: PlayerInfoInClient,
         isWin = true
         winnerName = winner
         winnerData = Some(Protocol.SomeOneWin(winner, finalData))
+//        gameScene.drawGameWin(player.id, winner, finalData)
         Boot.addToPlatform {
-//          gameScene.drawGameWin(player.id, winner, finalData)
           audioWin.play()
-          gameScene.drawGameWin(player.id, winner, finalData)
           grid.cleanData()
 //          animationTimer.stop()
         }
