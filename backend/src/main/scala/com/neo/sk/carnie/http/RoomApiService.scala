@@ -84,7 +84,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
 
-        complete(RecordListRsp(data.toList.sortBy(_.recordId)))
+        complete(RecordListRsp(data.toList.sortBy(_.recordId).reverse))
 
         //        recordL.map{ r =>
         //          val record = r._1
