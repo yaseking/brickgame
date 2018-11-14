@@ -239,7 +239,9 @@ object RoomActor {
               val finalData = grid.getGridData
               grid.cleanData()
               gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
-              gameEvent += ((grid.frameCount, LeftEvent(grid.currentRank.head.id, userMap(grid.currentRank.head.id).name)))
+              userMap.foreach { u =>
+                gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
+              }
             }
           }
 
