@@ -131,7 +131,7 @@ object GameRecorder {
 
           if (newEventRecorder.lengthCompare(maxRecordNum) > 0) { //每一百帧写入一次
             newEventRecorder.reverse.foreach {
-              case (events, Some(state)) if events.nonEmpty =>
+              case (events, Some(state)) =>
                 recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
               case (events, None) if events.nonEmpty => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
               case _ => recorder.writeEmptyFrame()
