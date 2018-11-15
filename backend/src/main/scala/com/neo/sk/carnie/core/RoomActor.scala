@@ -215,16 +215,16 @@ object RoomActor {
               }.toList)
             }
             userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+          }
 
-            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
-              val finalData = grid.getGridData
-              grid.cleanData()
-              dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData))
-              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
-              userMap.foreach { u =>
-                gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
-              }
-
+          if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
+            log.debug("winwinwinwin!!")
+            val finalData = grid.getGridData
+            grid.cleanData()
+            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData))
+            gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
+            userMap.foreach { u =>
+              gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
             }
           }
 
@@ -235,15 +235,15 @@ object RoomActor {
               }.toList)
             }
 
-            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
-              log.debug("winwinwinwin!!!!!!!!!!")
-              val finalData = grid.getGridData
-              grid.cleanData()
-              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
-              userMap.foreach { u =>
-                gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
-              }
-            }
+//            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
+//              log.debug("winwinwinwin!!!!!!!!!!")
+//              val finalData = grid.getGridData
+//              grid.cleanData()
+//              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
+//              userMap.foreach { u =>
+//                gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
+//              }
+//            }
           }
 
           if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
