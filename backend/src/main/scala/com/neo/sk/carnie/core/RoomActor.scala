@@ -74,7 +74,7 @@ object RoomActor {
           val userMap = mutable.HashMap[String, UserInfo]()
           val watcherMap = mutable.HashMap[String, String]()
           val grid = new GridOnServer(border)
-          val winStandard = fullSize * 0.4
+          val winStandard = fullSize * 0.2//0.4
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
           idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
@@ -217,6 +217,7 @@ object RoomActor {
             userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
 
+          log.info(s"currentRank: ${grid.currentRank}")
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
             log.debug("winwinwinwin!!")
             val finalData = grid.getGridData
