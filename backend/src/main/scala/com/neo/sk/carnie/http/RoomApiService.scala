@@ -80,7 +80,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     dealPostReq[RecordListReq] { req =>
       RecordDAO.getRecordList(req.lastRecordId, req.count).map { recordL =>
         val data = recordL.groupBy(_._1).map { case (record, res) =>
-          val userList = res.filter(_._2.nonEmpty).map(_._2.get.userId)
+          val userList = res.filter(_._2.nonEmpty).map(i => (i._2.get.userId,i._2.get.nickname.getOrElse("")))
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
 
@@ -105,7 +105,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     dealPostReq[RecordByTimeReq] { req =>
       RecordDAO.getRecordListByTime(req.startTime, req.endTime, req.lastRecordId, req.count).map { recordL =>
         val data = recordL.groupBy(_._1).take(req.count).map { case (record, res) =>
-          val userList = res.filter(_._2.nonEmpty).map(_._2.get.userId)
+          val userList = res.filter(_._2.nonEmpty).map(i => (i._2.get.userId,i._2.get.nickname.getOrElse("")))
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
         complete(RecordListRsp(data.toList.sortBy(_.recordId)))
@@ -122,7 +122,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     dealPostReq[RecordByPlayerReq] { req =>
       RecordDAO.getRecordListByPlayer(req.playerId, req.lastRecordId, req.count).map { recordL =>
         val data = recordL.groupBy(_._1).take(req.count).map { case (record, res) =>
-          val userList = res.filter(_._2.nonEmpty).map(_._2.get.userId)
+          val userList = res.filter(_._2.nonEmpty).map(i => (i._2.get.userId,i._2.get.nickname.getOrElse("")))
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
         complete(RecordListRsp(data.toList.sortBy(_.recordId)))
