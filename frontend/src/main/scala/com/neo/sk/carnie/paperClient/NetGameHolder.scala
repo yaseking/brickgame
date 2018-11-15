@@ -122,6 +122,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
 
   def draw(offsetTime: Long): Unit = {
+
     if (webSocketClient.getWsState) {
       if (replayFinish) {
         drawGame.drawGameOff(firstCome, Some(true), false, false)
