@@ -30,6 +30,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
   private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
   private var canvasUnit = (windowBoundary.x / window.x).toInt
+  private var canvasUnitY = (windowBoundary.y / window.y).toInt
   private var scale = 1.0
   private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
@@ -185,17 +186,17 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
     val w = windowBoundary.x - littleMap.w * canvasUnit * 1.050
-    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.210
+    val h = windowBoundary.y - littleMap.h * canvasUnitY * 1.170
     ctx.save()
     ctx.setGlobalAlpha(0.5)
-    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
+    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnitY + 5)
     ctx.restore()
-    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
+    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnitY).toInt, 10, 10)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * smallMap.x
       val y = i.header.y.toDouble / border.y * smallMap.y
       ctx.setFill(Constant.hex2Rgb(i.color))
-      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
+      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnitY, 10, 10)
     }
   }
 
