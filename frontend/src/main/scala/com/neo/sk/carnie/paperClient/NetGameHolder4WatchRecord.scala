@@ -249,8 +249,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
 
       case Protocol.StartReplay(firstSnapshotFrame,firstReplayFrame) =>
-//        println(s"firstSnapshotFrame::$firstSnapshotFrame")
-//        println(s"firstReplayFrame::$firstReplayFrame")
+        println(s"firstSnapshotFrame::$firstSnapshotFrame")
+        println(s"firstReplayFrame::$firstReplayFrame")
         for(i <- firstSnapshotFrame until firstReplayFrame)  {
           if (webSocketClient.getWsState) {
              if(snapshotMap.contains(grid.frameCount)) {
@@ -281,6 +281,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           }
 
         }
+        val snakes = grid.getGridData.snakes.map(_.id)
+        println(s"snakes:::::$snakes")
         if(!isContinue) firstCome = false
         loading = false
         startGame()
