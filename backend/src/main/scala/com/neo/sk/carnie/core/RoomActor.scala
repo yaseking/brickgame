@@ -236,6 +236,7 @@ object RoomActor {
             }
 
             if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
+              log.debug("winwinwinwin!!!!!!!!!!")
               val finalData = grid.getGridData
               grid.cleanData()
               gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
