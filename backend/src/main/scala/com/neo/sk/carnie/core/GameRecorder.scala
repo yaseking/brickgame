@@ -92,7 +92,10 @@ object GameRecorder {
               case Protocol.EncloseEvent(_) => false
               case Protocol.RankEvent(_) => false
               case _ => true
-            } || tickCount % 50 == 0) Some(event._2) else None //是否做快照
+            } || tickCount % 50 == 0) {
+              log.debug(s"save snapshot =======tickCount:$tickCount")
+              Some(event._2)
+            } else None //是否做快照
 
 //          log.debug(s"${event._1.exists{case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true}}")
 //          log.debug(s"快照::tickcount:$tickCount, snapshot:$snapshot")
@@ -247,6 +250,7 @@ object GameRecorder {
 
           newUserMap.foreach { user =>
             newEssfMap.put(UserBaseInfo(user._1, user._2), List(UserJoinLeft(frame, -1L)))
+
           }
           switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newEssfMap, newUserMap, newUserMap, newEventRecorder, frame))
 
