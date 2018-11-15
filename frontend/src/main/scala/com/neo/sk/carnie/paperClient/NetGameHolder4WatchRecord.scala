@@ -101,13 +101,13 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.resetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-      if(!isContinue) {
-        if(isWin) {
-          drawGame.drawGameWin(myId, winnerName, winData)
-        } else {
-          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-        }
-      }
+//      if(!isContinue) {
+//        if(isWin) {
+//          drawGame.drawGameWin(myId, winnerName, winData)
+//        } else {
+//          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+//        }
+//      }
     }
 
     if (webSocketClient.getWsState) {
