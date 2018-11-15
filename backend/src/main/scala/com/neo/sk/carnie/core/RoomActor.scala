@@ -217,8 +217,8 @@ object RoomActor {
             userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
 
-          log.info(s"currentRank: ${grid.currentRank}")
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
+            log.info(s"currentRank: ${grid.currentRank}")
             log.debug("winwinwinwin!!")
             val finalData = grid.getGridData
             grid.cleanData()
