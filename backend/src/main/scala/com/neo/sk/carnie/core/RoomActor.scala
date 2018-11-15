@@ -74,7 +74,7 @@ object RoomActor {
           val userMap = mutable.HashMap[String, UserInfo]()
           val watcherMap = mutable.HashMap[String, String]()
           val grid = new GridOnServer(border)
-          val winStandard = fullSize * 0.2//0.4
+          val winStandard = fullSize * 0.1//0.4
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
           idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
