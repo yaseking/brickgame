@@ -101,13 +101,13 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.resetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-      if(!isContinue) {
-        if(isWin) {
-          drawGame.drawGameWin(myId, winnerName, winData)
-        } else {
-          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-        }
-      }
+//      if(!isContinue) {
+//        if(isWin) {
+//          drawGame.drawGameWin(myId, winnerName, winData)
+//        } else {
+//          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+//        }
+//      }
     }
 
     if (webSocketClient.getWsState) {
@@ -249,8 +249,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
 
       case Protocol.StartReplay(firstSnapshotFrame,firstReplayFrame) =>
-//        println(s"firstSnapshotFrame::$firstSnapshotFrame")
-//        println(s"firstReplayFrame::$firstReplayFrame")
+        println(s"firstSnapshotFrame::$firstSnapshotFrame")
+        println(s"firstReplayFrame::$firstReplayFrame")
         for(i <- firstSnapshotFrame until firstReplayFrame)  {
           if (webSocketClient.getWsState) {
              if(snapshotMap.contains(grid.frameCount)) {
@@ -281,6 +281,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           }
 
         }
+        val snakes = grid.getGridData.snakes.map(_.id)
+        println(s"snakes:::::$snakes")
         if(!isContinue) firstCome = false
         loading = false
         startGame()
