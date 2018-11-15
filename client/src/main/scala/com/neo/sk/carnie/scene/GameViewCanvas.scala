@@ -43,6 +43,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     rankCanvas.setHeight(rankHeight)
     windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
     canvasUnit = (windowBoundary.x / window.x).toInt
+    canvasUnitY = (windowBoundary.y / window.y).toInt
   }
 
   def drawGameOff(firstCome: Boolean): Unit = {
@@ -185,18 +186,19 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
-    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.050
+    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.100
     val h = windowBoundary.y - littleMap.h * canvasUnitY * 1.170
+//    val h = w * 7 / 12
     ctx.save()
     ctx.setGlobalAlpha(0.5)
-    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnitY + 5)
+    ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
     ctx.restore()
-    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnitY).toInt, 10, 10)
+    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
     otherSnakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * smallMap.x
       val y = i.header.y.toDouble / border.y * smallMap.y
       ctx.setFill(Constant.hex2Rgb(i.color))
-      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnitY, 10, 10)
+      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
     }
   }
 

@@ -162,7 +162,6 @@ class GameController(player: PlayerInfoInClient,
           }
         }
         else{
-//          animationTimer.start()
           gameScene.drawGameWin(player.id, winnerData.get.winnerName, winnerData.get.data)
         }
     }
@@ -209,14 +208,16 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
-        isWin = true
-        winnerName = winner
-        winnerData = Some(Protocol.SomeOneWin(winner, finalData))
+
 //        gameScene.drawGameWin(player.id, winner, finalData)
         Boot.addToPlatform {
+          winnerName = winner
+          winnerData = Some(Protocol.SomeOneWin(winner, finalData))
+          isWin = true
           audioWin.play()
+          gameScene.drawGameWin(player.id, winner, finalData)
           grid.cleanData()
-//          animationTimer.stop()
+          animationTimer.stop()
         }
 
       case Protocol.Ranks(current) =>
