@@ -111,7 +111,7 @@ object GameRecorder {
               }
 
             case Protocol.LeftEvent(id, nickName) =>
-              userMap.put(id, nickName)
+              userMap.remove(id)
               essfMap.get(UserBaseInfo(id, nickName)) match {
                 case Some(joinOrLeftInfo) =>
                   if(joinOrLeftInfo.lengthCompare(1) == 0)

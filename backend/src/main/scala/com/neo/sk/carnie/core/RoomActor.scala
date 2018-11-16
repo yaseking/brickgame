@@ -140,7 +140,7 @@ object RoomActor {
           watcherMap.filter(_._2 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
-          gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+          if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case WatcherLeftRoom(uid) =>
@@ -161,6 +161,7 @@ object RoomActor {
             grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
             roomManager ! RoomManager.UserLeft(id)
             gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+            if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           }
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
