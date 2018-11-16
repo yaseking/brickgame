@@ -152,9 +152,11 @@ object RoomActor {
 
         case UserLeft(actor) =>
           log.debug(s"UserLeft:::")
-          subscribersMap.find(_._2.equals(actor)).foreach { case (id, _) =>
+          val subscribersOpt = subscribersMap.find(_._2.equals(actor))
+          if(subscribersOpt.nonEmpty){
+            val (id, _) = subscribersOpt.get
             log.debug(s"got Terminated id = $id")
-//            if(userDeadList.contains(id)) userDeadList -= id
+            //            if(userDeadList.contains(id)) userDeadList -= id
             val name = userMap.get(id).head.name
             subscribersMap.remove(id)
             userMap.remove(id)
