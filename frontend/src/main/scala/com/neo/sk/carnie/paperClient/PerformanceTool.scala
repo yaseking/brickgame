@@ -56,7 +56,13 @@ object PerformanceTool {
   private var latency: Long = 0L
 
   def receivePingPackage(p: ReceivePingPacket): Unit = {
-    receiveNetworkLatencyList = (System.currentTimeMillis() - p.createTime) :: receiveNetworkLatencyList
+    val currentTime = System.currentTimeMillis()
+    receiveNetworkLatencyList = (currentTime - p.createTime) :: receiveNetworkLatencyList
+    if(currentTime - p.createTime < 0) {
+      println(s"!!!!error:::::current time:$currentTime")
+      println(s"p.createTime:${p.createTime}")
+    }
+
     if (receiveNetworkLatencyList.size >= PingTimes) {
       latency = receiveNetworkLatencyList.sum / receiveNetworkLatencyList.size
       receiveNetworkLatencyList = Nil

@@ -77,7 +77,7 @@ object RoomActor {
           val winStandard = fullSize * 0.1//0.4
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
-          idle(roomId, grid, userMap, watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
+          idle(roomId, grid, userMap, mutable.Set.empty[String], watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
       }
     }
   }
@@ -85,6 +85,7 @@ object RoomActor {
   def idle(
             roomId: Int, grid: GridOnServer,
             userMap: mutable.HashMap[String, UserInfo],
+            userDeadList: mutable.Set[String],
             watcherMap: mutable.HashMap[String, String], //(watchId, playerId)
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long,
@@ -105,7 +106,8 @@ object RoomActor {
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
-          idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
+//          idle(roomId, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
+          Behaviors.same
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           Behaviors.same
 
@@ -125,10 +127,12 @@ object RoomActor {
             val name = userMap(id).name
             gameEvent += ((grid.frameCount, LeftEvent(id, name)))
           }
+          userDeadList += id
           Behaviors.same
 
         case LeftRoom(id, name) =>
           log.debug(s"LeftRoom:::$id")
+          if(userDeadList.contains(id)) userDeadList -= id
           grid.removeSnake(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
@@ -150,6 +154,7 @@ object RoomActor {
           log.debug(s"UserLeft:::")
           subscribersMap.find(_._2.equals(actor)).foreach { case (id, _) =>
             log.debug(s"got Terminated id = $id")
+            if(userDeadList.contains(id)) userDeadList -= id
             val name = userMap.get(id).head.name
             subscribersMap.remove(id)
             userMap.remove(id)
@@ -162,13 +167,14 @@ object RoomActor {
         case UserActionOnServer(id, action) =>
           action match {
             case Key(_, keyCode, frameCount, actionId) =>
-              if (keyCode == KeyEvent.VK_SPACE) {
+              if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
                 grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name)
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
                 gameEvent += ((grid.frameCount, SpaceEvent(id)))
+                userDeadList -= id
               } else {
                 val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
                 grid.addActionWithFrame(id, keyCode, realFrame)
@@ -183,6 +189,7 @@ object RoomActor {
             case _ =>
           }
           Behaviors.same
+
 
         case Sync =>
           val frame = grid.frameCount //即将执行改帧的数据
@@ -267,7 +274,7 @@ object RoomActor {
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
-          idle(roomId, grid, userMap, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard)
+          idle(roomId, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
