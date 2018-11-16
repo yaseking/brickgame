@@ -41,7 +41,7 @@ class GameController(player: PlayerInfoInClient,
   var winnerName = "unknown"
   var isContinues = true
   var justSynced = false
-  var winnerData : Option[Protocol.SomeOneWin] = None
+  var winnerData : Option[Protocol.Data4TotalSync] = None
   private var fieldNum = 0
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
@@ -118,32 +118,35 @@ class GameController(player: PlayerInfoInClient,
 
   def draw(offsetTime: Long): Unit = {
     val data = grid.getGridData
-    data.snakes.find(_.id == player.id) match {
-      case Some(snake) =>
-        firstCome = false
-        if (scoreFlag) {
-          myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-          scoreFlag = false
-        }
-        data.killHistory.foreach {
-          i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
-        }
-        val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
-        if(myFieldCount>fieldNum){
-          audioFinish.play()
-          fieldNum = myFieldCount
-        }
-
-        gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-        if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
-          gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
-          grid.lastTime -= 1
-          if (grid.lastTime == 0) {
-            grid.killInfo = ("", "", "")
+    if(isWin) {
+      gameScene.drawGameWin(player.id, winnerName, winnerData.get)
+    }
+    else {
+      data.snakes.find(_.id == player.id) match {
+        case Some(snake) =>
+          firstCome = false
+          if (scoreFlag) {
+            myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+            scoreFlag = false
           }
-        }
-      case None =>
-        if(!isWin){
+          data.killHistory.foreach {
+            i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
+          }
+          val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
+          if(myFieldCount>fieldNum){
+            audioFinish.play()
+            fieldNum = myFieldCount
+          }
+
+          gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+          if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
+            gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
+            grid.lastTime -= 1
+            if (grid.lastTime == 0) {
+              grid.killInfo = ("", "", "")
+            }
+          }
+        case None =>
           if (firstCome) gameScene.drawGameWait()
           else {
             if(timeFlag){
@@ -160,10 +163,7 @@ class GameController(player: PlayerInfoInClient,
             }
             isContinue = false
           }
-        }
-        else{
-          gameScene.drawGameWin(player.id, winnerData.get.winnerName, winnerData.get.data)
-        }
+      }
     }
   }
 
@@ -208,17 +208,16 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
-
+        winnerName = winner
+        winnerData = Some(finalData)
+        isWin = true
+        audioWin.play()
 //        gameScene.drawGameWin(player.id, winner, finalData)
-        Boot.addToPlatform {
-          winnerName = winner
-          winnerData = Some(Protocol.SomeOneWin(winner, finalData))
-          isWin = true
-          audioWin.play()
-          gameScene.drawGameWin(player.id, winner, finalData)
-          grid.cleanData()
-          animationTimer.stop()
-        }
+        grid.cleanData()
+//        Boot.addToPlatform {
+//
+//          animationTimer.stop()
+//        }
 
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
@@ -228,6 +227,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
+//        log.debug(s"${getClass.getResource("/mp3/win.mp3").toString}")
         log.debug(s"i receive Data4TotalSync!!${System.currentTimeMillis()}")
         Boot.addToPlatform{
           syncGridData = Some(data)
