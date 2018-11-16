@@ -254,35 +254,35 @@ object GameRecorder {
           val newEssfMap = mutable.HashMap.empty[UserBaseInfo, List[UserJoinLeft]]
 
           newUserMap.foreach { user =>
-            newEssfMap.put(UserBaseInfo(user._1, user._2), List(UserJoinLeft(frame, -1L)))
-
+            if(!event._1.contains(LeftEvent(user._1, user._2)))
+              newEssfMap.put(UserBaseInfo(user._1, user._2), List(UserJoinLeft(frame, -1L)))
           }
-          event._1.foreach {
-            case Protocol.JoinEvent(id, name) =>
-              userMap.put(id, name)
-              userHistoryMap.put(id, name)
-              if(newEssfMap.get(UserBaseInfo(id, name)).nonEmpty) {
-                newEssfMap.put(UserBaseInfo(id, name), newEssfMap(UserBaseInfo(id, name)) ::: List(UserJoinLeft(frame, -1l)))
-              } else {
-                newEssfMap.put(UserBaseInfo(id, name), List(UserJoinLeft(frame, -1l)))
-              }
-
-            case Protocol.LeftEvent(id, nickName) =>
-              userMap.put(id, nickName)
-              newEssfMap.get(UserBaseInfo(id, nickName)) match {
-                case Some(joinOrLeftInfo) =>
-                  if(joinOrLeftInfo.lengthCompare(1) == 0)
-                    newEssfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
-                  else {
-                    val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
-                    newEssfMap.put(UserBaseInfo(id, nickName), newEssfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
-                  }
-                case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
-              }
-
-
-            case _ =>
-          }
+//          event._1.foreach {
+//            case Protocol.JoinEvent(id, name) =>
+//              userMap.put(id, name)
+//              userHistoryMap.put(id, name)
+//              if(newEssfMap.get(UserBaseInfo(id, name)).nonEmpty) {
+//                newEssfMap.put(UserBaseInfo(id, name), newEssfMap(UserBaseInfo(id, name)) ::: List(UserJoinLeft(frame, -1l)))
+//              } else {
+//                newEssfMap.put(UserBaseInfo(id, name), List(UserJoinLeft(frame, -1l)))
+//              }
+//
+//            case Protocol.LeftEvent(id, nickName) =>
+//              userMap.put(id, nickName)
+//              newEssfMap.get(UserBaseInfo(id, nickName)) match {
+//                case Some(joinOrLeftInfo) =>
+//                  if(joinOrLeftInfo.lengthCompare(1) == 0)
+//                    newEssfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
+//                  else {
+//                    val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
+//                    newEssfMap.put(UserBaseInfo(id, nickName), newEssfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
+//                  }
+//                case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
+//              }
+//
+//
+//            case _ =>
+//          }
 
 
 
