@@ -211,9 +211,9 @@ object RoomActor {
             }
           }
 
-          val msgFuture: Future[String] = tokenActor ? AskForToken
-          msgFuture.map{token =>
-            killedSkData.killedSkInfo.foreach { i =>
+          killedSkData.killedSkInfo.foreach { i =>
+            val msgFuture: Future[String] = tokenActor ? AskForToken
+            msgFuture.map { token =>
               EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
             }
           }
