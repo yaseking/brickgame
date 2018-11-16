@@ -93,7 +93,7 @@ object GameRecorder {
               case Protocol.RankEvent(_) => false
               case _ => true
             } || tickCount % 50 == 0) {
-              log.debug(s"save snapshot =======tickCount:$tickCount")
+//              log.debug(s"save snapshot =======tickCount:$tickCount")
               Some(event._2)
             } else None //是否做快照
 
@@ -117,8 +117,13 @@ object GameRecorder {
                   if(joinOrLeftInfo.lengthCompare(1) == 0)
                   essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
                   else {
-                    val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
-                    essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
+                    if(joinOrLeftInfo.exists(_.leftFrame == -1l)) {
+                      val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
+                      essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
+                    } else {
+                      log.error(s"无法找到该用户加入事件！！！！")
+                    }
+
                   }
                 case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
               }
@@ -252,6 +257,35 @@ object GameRecorder {
             newEssfMap.put(UserBaseInfo(user._1, user._2), List(UserJoinLeft(frame, -1L)))
 
           }
+          event._1.foreach {
+            case Protocol.JoinEvent(id, name) =>
+              userMap.put(id, name)
+              userHistoryMap.put(id, name)
+              if(newEssfMap.get(UserBaseInfo(id, name)).nonEmpty) {
+                newEssfMap.put(UserBaseInfo(id, name), newEssfMap(UserBaseInfo(id, name)) ::: List(UserJoinLeft(frame, -1l)))
+              } else {
+                newEssfMap.put(UserBaseInfo(id, name), List(UserJoinLeft(frame, -1l)))
+              }
+
+            case Protocol.LeftEvent(id, nickName) =>
+              userMap.put(id, nickName)
+              newEssfMap.get(UserBaseInfo(id, nickName)) match {
+                case Some(joinOrLeftInfo) =>
+                  if(joinOrLeftInfo.lengthCompare(1) == 0)
+                    newEssfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
+                  else {
+                    val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
+                    newEssfMap.put(UserBaseInfo(id, nickName), newEssfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
+                  }
+                case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
+              }
+
+
+            case _ =>
+          }
+
+
+
           switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newEssfMap, newUserMap, newUserMap, newEventRecorder, frame))
 
         case _ =>
