@@ -234,6 +234,7 @@ object RoomActor {
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
             userMap.foreach { u =>
               gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
+              userDeadList += u._1
             }
           }
 
