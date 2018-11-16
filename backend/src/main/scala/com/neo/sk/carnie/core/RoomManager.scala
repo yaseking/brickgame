@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import org.slf4j.LoggerFactory
-
 import scala.collection.mutable
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
@@ -52,6 +51,8 @@ object RoomManager {
   case class FindPlayerList(roomId: Int, reply: ActorRef[List[PlayerIdName]]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
+
+  case class IsPlaying(roomId: Int, userId: String, reply: ActorRef[Boolean]) extends Command
 
   case class GetRecordFrame(recordId: Long, playerId: String, replyTo: ActorRef[CommonRsp]) extends Command
 
@@ -120,6 +121,11 @@ object RoomManager {
 
         case StopReplay(recordId, playerId) =>
           getGameReplay(ctx, recordId, playerId) ! GameReplay.StopReplay()
+          Behaviors.same
+
+        case IsPlaying(roomId, userId, reply) =>
+          val msg = roomMap.filter(_._1==roomId).head._2.exists(_._1==userId)//userId是否在游戏中
+          reply ! msg
           Behaviors.same
 
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
