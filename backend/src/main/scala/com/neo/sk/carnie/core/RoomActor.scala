@@ -109,7 +109,8 @@ object RoomActor {
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           Behaviors.same
 
-        case WatchGame(playerId, userId, subscriber) =>
+        case m@WatchGame(playerId, userId, subscriber) =>
+          log.info(s"got: $m")
           val truePlayerId = if (playerId == "unknown") userMap.head._1 else playerId
           watcherMap.put(userId, truePlayerId)
           subscribersMap.put(userId, subscriber)
