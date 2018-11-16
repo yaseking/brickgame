@@ -11,5 +11,5 @@ CREATE TABLE public.user_in_record(
   user_id  varchar(255) NOT NULL,
   record_id BIGINT NOT NULL,
   room_id  INT NOT NULL
-)
+);
 CREATE INDEX user_in_record_record_id_idx ON user_in_record(record_id);

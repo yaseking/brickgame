@@ -389,7 +389,6 @@ trait Grid {
       bodyDetails,
       fieldDetails,
       killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
-      //killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
     )
   }
 
@@ -460,11 +459,10 @@ trait Grid {
     }
   }
 
-  def cleanTurnPoint4Reply(sid: String) = {
+  def cleanSnakeTurnPoint(sid: String) = {
     if(snakeTurnPoints.contains(sid)) {
       snakeTurnPoints -= sid
     }
-
   }
 
 
