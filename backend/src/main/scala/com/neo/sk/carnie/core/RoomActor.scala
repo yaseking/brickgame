@@ -95,9 +95,8 @@ object RoomActor {
           ): Behavior[Command] = {
     Behaviors.receive { (ctx, msg) =>
       msg match {
-        case JoinRoom(id, name, subscriber) =>
-          log.info(s"got JoinRoom $msg")
-          log.info(s"joinRoom roomId: $roomId")
+        case m@JoinRoom(id, name, subscriber) =>
+          log.info(s"got JoinRoom $m")
           userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
           subscribersMap.put(id, subscriber)
           ctx.watchWith(subscriber, UserLeft(subscriber))
