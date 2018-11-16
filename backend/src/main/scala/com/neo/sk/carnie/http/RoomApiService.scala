@@ -48,7 +48,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
       val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
       msg.map { plist =>
         if(plist.nonEmpty){
-          log.info(s"plist:$plist")
+//          log.info(s"plist:$plist")
           complete(PlayerListRsp(PlayerInfo(plist)))
         }
          else{
