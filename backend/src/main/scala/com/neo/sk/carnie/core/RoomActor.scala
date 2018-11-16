@@ -156,13 +156,18 @@ object RoomActor {
             log.debug(s"got Terminated id = $id")
             if(userDeadList.contains(id)) userDeadList -= id
             val name = userMap.get(id).head.name
-            subscribersMap.remove(id)
+//            subscribersMap.remove(id)
             userMap.remove(id)
             grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
             roomManager ! RoomManager.UserLeft(id)
             gameEvent += ((grid.frameCount, LeftEvent(id, name)))
             if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           }
+          try{
+            val id = subscribersMap.filter(_._2.equals(actor)).head._1
+            subscribersMap.remove(id)
+          }
+
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserActionOnServer(id, action) =>
