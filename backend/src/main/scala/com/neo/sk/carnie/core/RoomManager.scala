@@ -23,12 +23,8 @@ import com.neo.sk.carnie.common.AppSettings
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  //  private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
   private val roomMap = mutable.HashMap[Int, mutable.HashSet[(String, String)]]() //roomId->Set((userId, name))
   private val limitNum = AppSettings.limitNum
-
-  //  private val userMap = mutable.HashMap[Long, (Long, String)]() //(userId, (roomId, name))
-
 
   trait Command
 
@@ -71,12 +67,6 @@ object RoomManager {
   case class PreWatchGame(roomId: Int, playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   private case object UnKnowAction extends Command
-
-  //  case class Key(id: Long, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
-  //  case class TextInfo(msg: String) extends UserAction
-  //  case class SendPingPacket(id: Long, createTime: Long) extends UserAction
-  //  case class NeedToSync(id: Long) extends UserAction with Command
-
 
   def create(): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
@@ -185,7 +175,7 @@ object RoomManager {
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
-          log.debug(s"${ctx.self.path} got roomId = $roomId")
+//          log.debug(s"${ctx.self.path} got roomId = $roomId")
           val roomInfo = roomMap.get(roomId)
           val replyMsg = if (roomInfo.nonEmpty) {
             roomInfo.get.toList.map { p => PlayerIdName(p._1, p._2) }

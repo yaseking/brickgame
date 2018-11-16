@@ -104,10 +104,9 @@ object RoomActor {
           ctx.watchWith(subscriber, UserLeft(subscriber))
           grid.addSnake(id, roomId, name)
           dispatchTo(subscribersMap, id, Protocol.Id(id))
-          val gridData = grid.getGridData
-          dispatch(subscribersMap, gridData)
+//          val gridData = grid.getGridData
+//          dispatch(subscribersMap, gridData)
 //          idle(roomId, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
-          Behaviors.same
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           Behaviors.same
 
@@ -116,7 +115,7 @@ object RoomActor {
           val truePlayerId = if (playerId == "unknown") userMap.head._1 else playerId
           watcherMap.put(userId, truePlayerId)
           subscribersMap.put(userId, subscriber)
-          ctx.watchWith(subscriber, WatcherLeftRoom(userId))//
+          ctx.watchWith(subscriber, WatcherLeftRoom(userId))
           dispatchTo(subscribersMap, userId, Protocol.Id(truePlayerId))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
@@ -152,22 +151,19 @@ object RoomActor {
 
         case UserLeft(actor) =>
           log.debug(s"UserLeft:::")
-          subscribersMap.find(_._2.equals(actor)).foreach { case (id, _) =>
+          val subscribersOpt = subscribersMap.find(_._2.equals(actor))
+          if(subscribersOpt.nonEmpty){
+            val (id, _) = subscribersOpt.get
             log.debug(s"got Terminated id = $id")
-            if(userDeadList.contains(id)) userDeadList -= id
+            //            if(userDeadList.contains(id)) userDeadList -= id
             val name = userMap.get(id).head.name
-//            subscribersMap.remove(id)
+            subscribersMap.remove(id)
             userMap.remove(id)
             grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
             roomManager ! RoomManager.UserLeft(id)
             gameEvent += ((grid.frameCount, LeftEvent(id, name)))
             if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           }
-          try{
-            val id = subscribersMap.filter(_._2.equals(actor)).head._1
-            subscribersMap.remove(id)
-          }
-
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserActionOnServer(id, action) =>
