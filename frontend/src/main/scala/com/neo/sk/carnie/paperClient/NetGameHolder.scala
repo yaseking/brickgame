@@ -303,9 +303,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         killInfo = (killedId, killedName, killerName)
         lastTime = 100
 
-      case Protocol.DeadPage(id, baseScore) =>
-        println(s"recv userDead: $baseScore")
-        myScore = baseScore
+      case x@Protocol.DeadPage(kill, area, start, end) =>
+        println(s"recv userDead $x")
+        myScore = BaseScore(kill, area, start, end)
 
       case data: Protocol.NewFieldInfo =>
         newFieldInfo = Some(data)

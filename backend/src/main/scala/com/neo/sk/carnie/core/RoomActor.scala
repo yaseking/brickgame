@@ -129,7 +129,7 @@ object RoomActor {
               val startTime = userMap(id).startTime
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
               log.debug(s"user ${id} dead===kill::${u._2}, area::${u._3}, starTime:$startTime")
-              dispatchTo(subscribersMap, id, Protocol.DeadPage(id, BaseScore(u._2, u._3, startTime, System.currentTimeMillis())))
+              dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, startTime, System.currentTimeMillis()))
             }
             userDeadList += id
           }
