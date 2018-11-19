@@ -176,6 +176,8 @@ object RoomActor {
           action match {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
+                val name = userMap.getOrElse(id, UserInfo("unknown", -1, -1)).name
+                userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
                 grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name)
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2 == id).foreach { w =>
