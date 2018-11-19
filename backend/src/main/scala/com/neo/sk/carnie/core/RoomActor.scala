@@ -182,6 +182,7 @@ object RoomActor {
               } else {
                 val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
                 grid.addActionWithFrame(id, keyCode, realFrame)
+                //todo 去掉向watchMap发送SnakeAction
                 dispatch(subscribersMap, Protocol.SnakeAction(id, keyCode, realFrame, actionId))
               }
             case SendPingPacket(_, createTime) =>
