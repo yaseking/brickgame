@@ -304,6 +304,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         lastTime = 100
 
       case Protocol.DeadPage(id, baseScore) =>
+        println(s"recv userDead: $baseScore")
         myScore = baseScore
 
       case data: Protocol.NewFieldInfo =>
