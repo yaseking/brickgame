@@ -1,13 +1,11 @@
 package com.neo.sk.carnie.controller
 
-import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, UserAction}
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.scene.GameScene
+import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration

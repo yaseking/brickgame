@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.paperClient
+package com.neo.sk.carnie.scene
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.ReceivePingPacket
