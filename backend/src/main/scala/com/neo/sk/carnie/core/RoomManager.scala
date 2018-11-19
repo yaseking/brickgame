@@ -94,9 +94,13 @@ object RoomManager {
           }
           Behaviors.same
 
-        case UserDead(id) =>
-          val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
-          getRoomActor(ctx, roomId) ! UserDead(id)
+        case UserDead(users) =>
+          val groupDeadUsers = users.map(uid => (roomMap.filter(r => r._2.exists(u => u._1 == uid)).head._1, uid)).groupBy(_._1)
+          groupDeadUsers.keys.foreach { roomId =>
+            val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
+            getRoomActor(ctx, roomId) ! UserDead(deadUsersInOneRoom)
+          }
+
           Behaviors.same
 
         case StartReplay(recordId, playedId, frame, subscriber, playerId) =>

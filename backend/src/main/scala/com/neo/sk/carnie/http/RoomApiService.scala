@@ -43,22 +43,23 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
-  private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-    dealPostReq[RoomIdReq] { req =>
-      val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-      msg.map { plist =>
-        if(plist.nonEmpty){
-//          log.info(s"plist:$plist")
-          complete(PlayerListRsp(PlayerInfo(plist)))
-        }
-         else{
-          log.info("get player list error: this room doesn't exist")
-          complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
-        }
-
-      }
-    }
-  }
+  // TODO:  
+//  private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
+//    dealPostReq[RoomIdReq] { req =>
+//      val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+//      msg.map { plist =>
+//        if(plist.nonEmpty){
+////          log.info(s"plist:$plist")
+//          complete(PlayerListRsp(PlayerInfo(plist)))
+//        }
+//         else{
+//          log.info("get player list error: this room doesn't exist")
+//          complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
+//        }
+//
+//      }
+//    }
+//  }
 
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
@@ -227,7 +228,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   }
 
   val roomApiRoutes: Route = {
-    getRoomId ~ getRoomPlayerList ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
+    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
       getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList
   }
 
