@@ -131,8 +131,8 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                     handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
-                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
-//                    handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
+//                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
+                    handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
                 }
               }
             }
