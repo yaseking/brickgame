@@ -175,7 +175,7 @@ object RoomManager {
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
-//          log.debug(s"${ctx.self.path} got roomId = $roomId")
+          log.debug(s"${ctx.self.path} got roomId = $roomId")
           val roomInfo = roomMap.get(roomId)
           val replyMsg = if (roomInfo.nonEmpty) {
             roomInfo.get.toList.map { p => PlayerIdName(p._1, p._2) }
