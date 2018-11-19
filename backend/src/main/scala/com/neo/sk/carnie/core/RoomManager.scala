@@ -118,9 +118,14 @@ object RoomManager {
           Behaviors.same
 
         case IsPlaying(roomId, userId, reply) =>
-          val msg = roomMap.filter(_._1==roomId).head._2.exists(_._1==userId)//userId是否在游戏中
-          reply ! msg
-          Behaviors.same
+          if(roomMap.contains(roomId)) {
+            val msg = roomMap.filter(_._1==roomId).head._2.exists(_._1==userId)//userId是否在游戏中
+            reply ! msg
+            Behaviors.same
+          } else {
+            log.debug(s"got wrong roomId: $roomId")
+            Behaviors.same
+          }
 
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")
