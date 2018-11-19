@@ -95,11 +95,17 @@ object RoomManager {
           Behaviors.same
 
         case UserDead(users) =>
-          val groupDeadUsers = users.map(uid => (roomMap.filter(r => r._2.exists(u => u._1 == uid)).head._1, uid)).groupBy(_._1)
-          groupDeadUsers.keys.foreach { roomId =>
-            val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
-            getRoomActor(ctx, roomId) ! UserDead(deadUsersInOneRoom)
+          try {
+            val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
+            groupDeadUsers.keys.foreach { roomId =>
+              val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
+              getRoomActor(ctx, roomId) ! UserDead(deadUsersInOneRoom)
+            }
+          } catch {
+            case e: Exception =>
+              log.error(s"user dead error:$e")
           }
+
 
           Behaviors.same
 

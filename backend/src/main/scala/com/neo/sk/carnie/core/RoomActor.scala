@@ -42,7 +42,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(users: List[String]) extends Command with RoomManager.Command
+  case class UserDead(users: List[(String, Int, Int)]) extends Command with RoomManager.Command // (id, kill, area)
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -122,10 +122,13 @@ object RoomActor {
           Behaviors.same
 
         case UserDead(users) =>
-          users.foreach { id =>
+          users.foreach { u =>
+            val id = u._1
             if(userMap.get(id).nonEmpty) {
               val name = userMap(id).name
+              val startTime = userMap(id).startTime
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+              dispatchTo(subscribersMap, id, DeadInfo(id, BaseScore(u._2, u._3, startTime, System.currentTimeMillis())))
             }
             userDeadList += id
           }

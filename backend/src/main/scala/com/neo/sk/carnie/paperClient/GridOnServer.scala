@@ -175,11 +175,17 @@ class GridOnServer(override val boundary: Point) extends Grid {
     val update = super.update("b")
     val isFinish = update._1
     if (newSnake) genWaitingSnake()
-    updateRanks()
     val deadSnakes = update._2
     if (deadSnakes.nonEmpty) {
-        roomManager ! UserDead(deadSnakes)
+      val deadSnakesInfo = deadSnakes.map { id =>
+        if(currentRank.exists(_.id == id)) {
+          val info = currentRank.filter(_.id == id).head
+          (id, info.k, info.area)
+        } else (id, -1, -1)
+      }
+      roomManager ! UserDead(deadSnakesInfo)
     }
+    updateRanks()
     isFinish
   }
 
