@@ -67,8 +67,8 @@ object GameReplay {
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
 //            log.debug(s"game path ${r.filePath}")
-            val replay=initInput("../backend/" + r.filePath)
-//            val replay=initInput(r.filePath)
+            val replay=initInput("../backend/" + r.filePath) //for reStart
+//            val replay=initInput(r.filePath) //for nohup
             val info=replay.init()
             try{
 //              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
@@ -185,7 +185,7 @@ object GameReplay {
 
         case GetRecordFrame(playerId, replyTo) =>
 //          log.info(s"game replay got $msg")
-          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition - metaData.initFrame.toInt, frameCount))
+          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount))
           Behaviors.same
 
         case StopReplay() =>

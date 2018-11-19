@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import org.slf4j.LoggerFactory
-
 import scala.collection.mutable
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
@@ -15,6 +14,7 @@ import com.neo.sk.carnie.core.RoomActor.UserDead
 import com.neo.sk.carnie.paperClient.Protocol.SendPingPacket
 import com.neo.sk.carnie.paperClient.WsSourceProtocol
 import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, PlayerIdName, RecordFrameInfo}
+import com.neo.sk.carnie.common.AppSettings
 
 
 /**
@@ -23,12 +23,8 @@ import com.neo.sk.carnie.ptcl.RoomApiProtocol.{CommonRsp, PlayerIdName, RecordFr
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  //  private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
   private val roomMap = mutable.HashMap[Int, mutable.HashSet[(String, String)]]() //roomId->Set((userId, name))
-  private val limitNum = 8
-
-  //  private val userMap = mutable.HashMap[Long, (Long, String)]() //(userId, (roomId, name))
-
+  private val limitNum = AppSettings.limitNum
 
   trait Command
 
@@ -52,6 +48,8 @@ object RoomManager {
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
+  case class IsPlaying(roomId: Int, userId: String, reply: ActorRef[Boolean]) extends Command
+
   case class GetRecordFrame(recordId: Long, playerId: String, replyTo: ActorRef[CommonRsp]) extends Command
 
   case object CompleteMsgFront extends Command
@@ -69,12 +67,6 @@ object RoomManager {
   case class PreWatchGame(roomId: Int, playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   private case object UnKnowAction extends Command
-
-  //  case class Key(id: Long, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
-  //  case class TextInfo(msg: String) extends UserAction
-  //  case class SendPingPacket(id: Long, createTime: Long) extends UserAction
-  //  case class NeedToSync(id: Long) extends UserAction with Command
-
 
   def create(): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
@@ -102,9 +94,19 @@ object RoomManager {
           }
           Behaviors.same
 
-        case UserDead(id, name) =>
-          val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
-          getRoomActor(ctx, roomId) ! UserDead(id, name)
+        case UserDead(users) =>
+          try {
+            val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
+            groupDeadUsers.keys.foreach { roomId =>
+              val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
+              getRoomActor(ctx, roomId) ! UserDead(deadUsersInOneRoom)
+            }
+          } catch {
+            case e: Exception =>
+              log.error(s"user dead error:$e")
+          }
+
+
           Behaviors.same
 
         case StartReplay(recordId, playedId, frame, subscriber, playerId) =>
@@ -120,6 +122,16 @@ object RoomManager {
         case StopReplay(recordId, playerId) =>
           getGameReplay(ctx, recordId, playerId) ! GameReplay.StopReplay()
           Behaviors.same
+
+        case IsPlaying(roomId, userId, reply) =>
+          if(roomMap.contains(roomId)) {
+            val msg = roomMap.filter(_._1==roomId).head._2.exists(_._1==userId)//userId是否在游戏中
+            reply ! msg
+            Behaviors.same
+          } else {
+            log.debug(s"got wrong roomId: $roomId")
+            Behaviors.same
+          }
 
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")

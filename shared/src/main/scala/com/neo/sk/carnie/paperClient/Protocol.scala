@@ -32,6 +32,10 @@ object Protocol {
                              killHistory: List[Kill]
                            ) extends GameMessage
 
+  case class KilledSkData(
+                         killedSkInfo: List[KilledSkDt]
+                         )
+
   case class Point4Trans(x: Int, y: Int)
 
   case class BodyBaseInfo(
@@ -63,6 +67,8 @@ object Protocol {
   case class StartLoading(frame: Int) extends GameMessage
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
+
+  case class DeadPage(kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
 
   case class InitReplayError(info: String) extends GameMessage
 

@@ -53,18 +53,19 @@ trait SlickTables {
   /** Entity class storing rows of table tUserInRecord
     *  @param userId Database column user_id SqlType(varchar), Length(255,true)
     *  @param recordId Database column record_id SqlType(int8)
-    *  @param roomId Database column room_id SqlType(int4) */
-  case class rUserInRecord(userId: String, recordId: Long, roomId: Int)
+    *  @param roomId Database column room_id SqlType(int4)
+    *  @param nickname Database column nickname SqlType(varchar), Length(255,true), Default() */
+  case class rUserInRecord(userId: String, recordId: Long, roomId: Int, nickname: String = "")
   /** GetResult implicit for fetching rUserInRecord objects using plain SQL queries */
   implicit def GetResultrUserInRecord(implicit e0: GR[String], e1: GR[Long], e2: GR[Int]): GR[rUserInRecord] = GR{
     prs => import prs._
-      rUserInRecord.tupled((<<[String], <<[Long], <<[Int]))
+      rUserInRecord.tupled((<<[String], <<[Long], <<[Int], <<[String]))
   }
   /** Table description of table user_in_record. Objects of this class serve as prototypes for rows in queries. */
   class tUserInRecord(_tableTag: Tag) extends profile.api.Table[rUserInRecord](_tableTag, "user_in_record") {
-    def * = (userId, recordId, roomId) <> (rUserInRecord.tupled, rUserInRecord.unapply)
+    def * = (userId, recordId, roomId, nickname) <> (rUserInRecord.tupled, rUserInRecord.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (Rep.Some(userId), Rep.Some(recordId), Rep.Some(roomId)).shaped.<>({r=>import r._; _1.map(_=> rUserInRecord.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (Rep.Some(userId), Rep.Some(recordId), Rep.Some(roomId), Rep.Some(nickname)).shaped.<>({r=>import r._; _1.map(_=> rUserInRecord.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column user_id SqlType(varchar), Length(255,true) */
     val userId: Rep[String] = column[String]("user_id", O.Length(255,varying=true))
@@ -72,6 +73,8 @@ trait SlickTables {
     val recordId: Rep[Long] = column[Long]("record_id")
     /** Database column room_id SqlType(int4) */
     val roomId: Rep[Int] = column[Int]("room_id")
+    /** Database column nickname SqlType(varchar), Length(255,true), Default() */
+    val nickname: Rep[String] = column[String]("nickname", O.Length(255,varying=true), O.Default(""))
 
     /** Index over (recordId) (database name user_in_record_record_id_idx) */
     val index1 = index("user_in_record_record_id_idx", recordId)

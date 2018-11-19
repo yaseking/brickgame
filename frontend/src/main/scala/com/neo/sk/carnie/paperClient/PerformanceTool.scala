@@ -12,13 +12,13 @@ object PerformanceTool {
   private var lastRenderTime = System.currentTimeMillis()
   private var lastRenderTimes = 0
   private var renderTimes = 0
-  private var tempTime = System.currentTimeMillis()
+//  private var tempTime = System.currentTimeMillis()
 
   private def addFps() = {
     val time = System.currentTimeMillis()
     renderTimes += 1
 //    println(s"addFps time:${time - tempTime}")
-    tempTime = time
+//    tempTime = time
     if (time - lastRenderTime > 1000) {
       lastRenderTime = time
       lastRenderTimes = renderTimes
@@ -56,7 +56,13 @@ object PerformanceTool {
   private var latency: Long = 0L
 
   def receivePingPackage(p: ReceivePingPacket): Unit = {
-    receiveNetworkLatencyList = (System.currentTimeMillis() - p.createTime) :: receiveNetworkLatencyList
+    val currentTime = System.currentTimeMillis()
+    receiveNetworkLatencyList = (currentTime - p.createTime) :: receiveNetworkLatencyList
+    if(currentTime - p.createTime < 0) {
+      println(s"!!!!error:::::current time:$currentTime")
+      println(s"p.createTime:${p.createTime}")
+    }
+
     if (receiveNetworkLatencyList.size >= PingTimes) {
       latency = receiveNetworkLatencyList.sum / receiveNetworkLatencyList.size
       receiveNetworkLatencyList = Nil

@@ -82,17 +82,14 @@ object GameRecorder {
         case RecordData(frame, event) => //记录数据
           val snapshot =
             if(event._1.exists{
-//              case JoinEvent(_, info) =>
-//                println(s"add joinEvent: $info")
-//                true
-//              case LeftEvent(_, _) => true
-//              case SpaceEvent(_) => true
-//              case _ => false
               case Protocol.DirectionEvent(_,_) => false
               case Protocol.EncloseEvent(_) => false
               case Protocol.RankEvent(_) => false
               case _ => true
-            } || tickCount % 50 == 0) Some(event._2) else None //是否做快照
+            } || tickCount % 50 == 0) {
+//              log.debug(s"save snapshot =======tickCount:$tickCount")
+              Some(event._2)
+            } else None //是否做快照
 
 //          log.debug(s"${event._1.exists{case Protocol.DirectionEvent(_,_) => false case Protocol.EncloseEvent(_) => false case _ => true}}")
 //          log.debug(s"快照::tickcount:$tickCount, snapshot:$snapshot")
@@ -108,14 +105,19 @@ object GameRecorder {
               }
 
             case Protocol.LeftEvent(id, nickName) =>
-              userMap.put(id, nickName)
+              userMap.remove(id)
               essfMap.get(UserBaseInfo(id, nickName)) match {
                 case Some(joinOrLeftInfo) =>
                   if(joinOrLeftInfo.lengthCompare(1) == 0)
                   essfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
                   else {
-                    val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
-                    essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
+                    if(joinOrLeftInfo.exists(_.leftFrame == -1l)) {
+                      val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
+                      essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
+                    } else {
+                      log.error(s"无法找到该用户加入事件！！！！")
+                    }
+
                   }
                 case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
               }
@@ -128,7 +130,7 @@ object GameRecorder {
 
           if (newEventRecorder.lengthCompare(maxRecordNum) > 0) { //每一百帧写入一次
             newEventRecorder.reverse.foreach {
-              case (events, Some(state)) if events.nonEmpty =>
+              case (events, Some(state)) =>
                 recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result(), Some(state.fillMiddleBuffer(middleBuffer).result()))
               case (events, None) if events.nonEmpty => recorder.writeFrame(events.fillMiddleBuffer(middleBuffer).result())
               case _ => recorder.writeEmptyFrame()
@@ -168,7 +170,7 @@ object GameRecorder {
         val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
           case Success(recordId) =>
-            val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId)).toSet
+            val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId,u._2)).toSet
             RecordDAO.saveUserInGame(usersInRoom).onComplete{
               case Success(_) =>
 
@@ -208,7 +210,7 @@ object GameRecorder {
           val filePath =  AppSettings.gameDataDirectoryPath + getFileName(gameInfo.roomId, gameInfo.startTime) + s"_${gameInfo.index}"
           RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
             case Success(recordId) =>
-              val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId)).toSet
+              val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId,u._2)).toSet
               RecordDAO.saveUserInGame(usersInRoom).onComplete{
                 case Success(_) =>
                   ctx.self ! SwitchBehavior("resetRecord", resetRecord(gameInfo, userMap, userHistoryMap))
@@ -239,15 +241,48 @@ object GameRecorder {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case RecordData(frame, event) => //新的文件初始化
+          log.debug(s"new recorder reset! start frame:$frame")
           val newUserMap = userMap
+          log.debug(s"new userMap: $newUserMap")
           val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, frame)
           val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, gameInfo, Some(event._2))
           val newEventRecorder = List((event._1, Some(event._2)))
           val newEssfMap = mutable.HashMap.empty[UserBaseInfo, List[UserJoinLeft]]
 
           newUserMap.foreach { user =>
-            newEssfMap.put(UserBaseInfo(user._1, user._2), List(UserJoinLeft(frame, -1L)))
+            if(!event._1.contains(LeftEvent(user._1, user._2)))
+              newEssfMap.put(UserBaseInfo(user._1, user._2), List(UserJoinLeft(frame, -1L)))
           }
+          log.debug(s"new essf map: $newEssfMap")
+//          event._1.foreach {
+//            case Protocol.JoinEvent(id, name) =>
+//              userMap.put(id, name)
+//              userHistoryMap.put(id, name)
+//              if(newEssfMap.get(UserBaseInfo(id, name)).nonEmpty) {
+//                newEssfMap.put(UserBaseInfo(id, name), newEssfMap(UserBaseInfo(id, name)) ::: List(UserJoinLeft(frame, -1l)))
+//              } else {
+//                newEssfMap.put(UserBaseInfo(id, name), List(UserJoinLeft(frame, -1l)))
+//              }
+//
+//            case Protocol.LeftEvent(id, nickName) =>
+//              userMap.put(id, nickName)
+//              newEssfMap.get(UserBaseInfo(id, nickName)) match {
+//                case Some(joinOrLeftInfo) =>
+//                  if(joinOrLeftInfo.lengthCompare(1) == 0)
+//                    newEssfMap.put(UserBaseInfo(id, nickName), List(UserJoinLeft(joinOrLeftInfo.head.joinFrame, frame)))
+//                  else {
+//                    val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
+//                    newEssfMap.put(UserBaseInfo(id, nickName), newEssfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
+//                  }
+//                case None => log.warn(s"get ${UserBaseInfo(id, nickName)} from essfMap error..")
+//              }
+//
+//
+//            case _ =>
+//          }
+
+
+
           switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newEssfMap, newUserMap, newUserMap, newEventRecorder, frame))
 
         case _ =>

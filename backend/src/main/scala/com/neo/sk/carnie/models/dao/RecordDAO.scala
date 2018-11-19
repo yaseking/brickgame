@@ -18,7 +18,7 @@ object RecordDAO {
   def getRecordList(lastRecord: Long,count: Int)= {
     if(lastRecord == 0L){
       val action = {
-        tGameRecord.sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
+        tGameRecord.sortBy(_.recordId.desc).take(count) joinLeft tUserInRecord on { (game, user) =>
           game.recordId === user.recordId
         }
       }.result
@@ -26,7 +26,7 @@ object RecordDAO {
     }
     else{
       val action = {
-        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc).take(count) join tUserInRecord on { (game, user) =>
+        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc).take(count) joinLeft tUserInRecord on { (game, user) =>
           game.recordId === user.recordId
         }
       }.result
@@ -37,16 +37,16 @@ object RecordDAO {
   def getRecordListByTime(startTime: Long,endTime: Long,lastRecord: Long,count: Int) = {
     if(lastRecord == 0L){
       val action = {
-        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
-          (game.recordId === user.recordId) && game.startTime >= startTime && game.endTime <= endTime
+        tGameRecord.filter(i => i.startTime >= startTime && i.endTime <= endTime).sortBy(_.recordId.desc) joinLeft tUserInRecord on { (game, user) =>
+          game.recordId === user.recordId
         }
       }.result
       db.run(action)
     }
     else{
       val action = {
-        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
-          game.recordId === user.recordId && game.startTime >= startTime && game.endTime <= endTime
+        tGameRecord.filter(i => i.startTime >= startTime && i.endTime <= endTime && i.recordId < lastRecord).sortBy(_.recordId.desc) joinLeft tUserInRecord on { (game, user) =>
+          game.recordId === user.recordId
         }
       }.result
       db.run(action)
@@ -55,22 +55,36 @@ object RecordDAO {
   }
 
   def getRecordListByPlayer(playerId: String,lastRecord: Long,count: Int) = {
-    if(lastRecord == 0L){
-      val action = {
-        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
+    //    if(lastRecord == 0L){
+    //      val action = {
+    //        tGameRecord.sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
+    //          game.recordId === user.recordId
+    //        }
+    //      }.result
+    //      db.run(action)
+    //    }
+    //    else{
+    //      val action = {
+    //        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
+    //          game.recordId === user.recordId
+    //        }
+    //      }.result
+    //      db.run(action)
+    //    }
+
+    val action = for {
+      records <- tUserInRecord.filter(_.userId === playerId).map(_.recordId).result
+      usersInRecord <-
+        tGameRecord.filter(_.recordId.inSet(records)).joinLeft(tUserInRecord).on { (game, user) =>
           game.recordId === user.recordId
-        }
-      }.result
-      db.run(action)
+        }.result
+    } yield {
+      if(lastRecord == 0) usersInRecord.sortBy(_._1.recordId).reverse
+      else usersInRecord.filter(_._1.recordId < lastRecord).sortBy(_._1.recordId).reverse
     }
-    else{
-      val action = {
-        tGameRecord.filter(_.recordId < lastRecord).sortBy(_.recordId.desc) join tUserInRecord on { (game, user) =>
-          game.recordId === user.recordId
-        }
-      }.result
-      db.run(action)
-    }
+
+    db.run(action)
+
   }
 
   def getRecordPath(recordId: Long) = db.run(

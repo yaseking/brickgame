@@ -9,7 +9,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "carnie"
-val projectVersion = "1.2.1"
+val projectVersion = "2018.11.15"
 
 val projectMainClass = "com.neo.sk.carnie.Boot"
 
@@ -79,7 +79,12 @@ lazy val client = (project in file("client")).enablePlugins(PackPlugin)
     mainClass in reStart := Some("com.neo.sk.carnie.Boot"),
     javaOptions in reStart += "-Xmx2g"
   )
-  .settings(name := "client")
+  .settings(name := "carnie")
+  .settings(
+    packMain := Map("carnie" -> "com.neo.sk.carnie.Boot"),
+    packJvmOpts := Map("carnie" -> Seq("-Xmx256m", "-Xms64m")),
+    packExtraClasspath := Map("carnie" -> Seq("."))
+  )
   .settings(
     libraryDependencies ++= Dependencies.backendDependencies
   )
@@ -99,7 +104,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
     packMain := Map("carnie" -> projectMainClass),
-    packJvmOpts := Map("carnie" -> Seq("-Xmx256m", "-Xms64m")),
+    packJvmOpts := Map("carnie" -> Seq("-Xmx1024m", "-Xms128m")),
     packExtraClasspath := Map("carnie" -> Seq("."))
   )
   .settings(

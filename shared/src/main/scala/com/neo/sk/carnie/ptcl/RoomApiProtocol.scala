@@ -44,7 +44,7 @@ object RoomApiProtocol {
                           startTime: Long,
                           endTime: Long,
                           userCounts: Int,
-                          userList: Seq[String]
+                          userList: Seq[(String,String)]
   )
 
   case class RecordInfoReq(

@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
-
 import com.neo.sk.carnie.Boot.executor
+import com.neo.sk.carnie.common.AppSetting
 
 object Api4GameAgent extends HttpUtil {
 
@@ -14,7 +14,7 @@ object Api4GameAgent extends HttpUtil {
 
   def getLoginRspFromEs() = {
     val methodName = "GET"
-    val url = "http://flowdev.neoap.com/esheep/api/gameAgent/login"
+    val url = "http://" + AppSetting.esheepDomain + "/esheep/api/gameAgent/login"
     log.info("start getLoginRspFromEs.")
     getRequestSend(methodName, url, Nil).map {
       case Right(r) =>
@@ -34,7 +34,7 @@ object Api4GameAgent extends HttpUtil {
   //fixme 尚未添加bot玩家
   def linkGameAgent(gameId: Long, playerId: String, token: String) = {
     val data = LinkGameAgentReq(gameId, playerId).asJson.noSpaces
-    val url = "http://flowdev.neoap.com/esheep/api/gameAgent/joinGame?token=" + token
+    val url = "http://" + AppSetting.esheepDomain + "/esheep/api/gameAgent/joinGame?token=" + token
 
     postJsonRequestSend("post", url, Nil, data).map {
       case Right(jsonStr) =>

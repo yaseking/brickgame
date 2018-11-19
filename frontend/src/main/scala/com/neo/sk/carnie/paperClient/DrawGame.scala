@@ -124,7 +124,7 @@ class DrawGame(
     ctx.fillText("Please wait.", 150, 180)
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
+  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -141,7 +141,8 @@ class DrawGame(
     val length = ctx.measureText(text).width
     val offx = length / 2
     val x = (dom.window.innerWidth / 2).toInt - 145
-    val y = (dom.window.innerHeight / 2).toInt - 180
+    val y = if (isReplay) (dom.window.innerHeight / 2).toInt - 80 else (dom.window.innerHeight / 2).toInt - 180
+//    val y = (dom.window.innerHeight / 2).toInt - 180
 
     val gameTime = (myScore.endTime - myScore.startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
@@ -162,8 +163,10 @@ class DrawGame(
     ctx.fillText(f"$bestScore%.2f" + "%", x + 230, y + 110)
     ctx.fillText(s"PLAYERS KILLED:", x, y + 150)
     ctx.fillText(s"${myScore.kill}", x + 230, y + 150)
-    ctx.fillText(s"TIME PLAYED:", x, y + 190)
-    ctx.fillText(s"$time", x + 230, y + 190)
+    if(!isReplay) {
+      ctx.fillText(s"TIME PLAYED:", x, y + 190)
+      ctx.fillText(s"$time", x + 230, y + 190)
+    }
     ctx.restore()
   }
 
@@ -172,13 +175,14 @@ class DrawGame(
     ctx.globalAlpha = 0.6
     ctx.restore()
     ctx.save()
-    ctx.font = "bold 30px Microsoft YaHei"
+    if(dom.window.innerWidth > 1200) ctx.font = "bold 30px Microsoft YaHei"
+    else ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillStyle = "#FF5809"
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
     val offx = length / 2
-    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
-    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180)
+//    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
+    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 5).toInt )
     ctx.restore()
   }
 
@@ -224,7 +228,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double): Double = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -312,8 +316,10 @@ class DrawGame(
     ctx.restore()
 
     //    //排行榜边界离屏
-    rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
-    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+    if(!isReplay) {
+      rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
+      PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+    }
 
     newScale
   }

@@ -30,6 +30,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
   private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
   private var canvasUnit = (windowBoundary.x / window.x).toInt
+  private var canvasUnitY = (windowBoundary.y / window.y).toInt
   private var scale = 1.0
   private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
@@ -42,6 +43,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     rankCanvas.setHeight(rankHeight)
     windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
     canvasUnit = (windowBoundary.x / window.x).toInt
+    canvasUnitY = (windowBoundary.y / window.y).toInt
   }
 
   def drawGameOff(firstCome: Boolean): Unit = {
@@ -95,10 +97,10 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
     val length = new Text(txt1).getLayoutBounds.getWidth
-    ctx.fillText(txt1, (windowBoundary.x - length) / 2 , 150)
+    ctx.fillText(txt1, (windowBoundary.x - length) / 2 , windowBoundary.y / 5)
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
     ctx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
-    ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, 75, 50, 50)
+    ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, windowBoundary.y / 5 - 75, 50, 50)
     ctx.restore()
   }
   import javafx.scene.text.Text
@@ -184,8 +186,9 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
-    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.050
-    val h = windowBoundary.y - littleMap.h * canvasUnit * 1.170
+    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.100
+    val h = windowBoundary.y - littleMap.h * canvasUnitY * 1.170
+//    val h = w * 7 / 12
     ctx.save()
     ctx.setGlobalAlpha(0.5)
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
@@ -231,12 +234,14 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-
+    ctx.setFill(ColorsSetting.backgroundColor)
+    ctx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
+
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
     drawCache(offx , offy)
     ctx.setGlobalAlpha(0.6)

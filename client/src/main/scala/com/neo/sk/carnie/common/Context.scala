@@ -13,7 +13,7 @@ class Context(stage: Stage) {
   def switchScene(scene: Scene, title:String = "carnie", fullScreen: Boolean) = {
     stage.setScene(scene)
     stage.sizeToScene()
-    stage.setResizable(false)
+    stage.setResizable(true)
     stage.setTitle(title)
 //    stage.setIconified(fullScreen)
     stage.setFullScreen(fullScreen)
