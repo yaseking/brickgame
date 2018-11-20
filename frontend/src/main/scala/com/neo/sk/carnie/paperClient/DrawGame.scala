@@ -24,10 +24,10 @@ class DrawGame(
   private val textLineHeight = 15
   private val fillWidth = 33
 
-  private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //排行榜离屏canvas
+  private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //排行榜canvas
   private[this] val rankCtx = rankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-  private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //离屏canvas
+  private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //边界canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
@@ -37,7 +37,6 @@ class DrawGame(
   private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
-  private val bloodImg = dom.document.getElementById("bloodImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
 
   def resetScreen(): Unit = {
@@ -78,7 +77,7 @@ class DrawGame(
     ctx.fillText(s"It failed to verify the player's info!", 150, 180)
   }
 
-  def drawCache(): Unit = { //离屏缓存的更新--缓存边界
+  def drawCache(): Unit = {
     borderCtx.fillStyle = ColorsSetting.borderColor
 
     //画边界
@@ -311,11 +310,11 @@ class DrawGame(
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
 
-    //边界离屏
+    //边界
     ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
     ctx.restore()
 
-    //    //排行榜边界离屏
+    //    //排行榜
     if(!isReplay) {
       rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
       PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)

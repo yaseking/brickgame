@@ -25,7 +25,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
   var firstCome = true
   var justSynced = false
-  var scoreFlag = true
+//  var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
   private var killInfo = ("", "", "")
@@ -138,10 +138,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           data.snakes.find(_.id == myId) match {
             case Some(snake) =>
               firstCome = false
-              if (scoreFlag) {
-                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-                scoreFlag = false
-              }
+//              if (scoreFlag) {
+//                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+//                scoreFlag = false
+//              }
               data.killHistory.foreach { i =>
                 if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
               }
@@ -166,9 +166,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               if (firstCome) drawGame.drawGameWait()
               else {
                 if (isContinue) audioKilled.play()
-                currentRank.filter(_.id == myId).foreach { score =>
-                  myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-                }
+//                currentRank.filter(_.id == myId).foreach { score =>
+//                  myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+//                }
                 drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
                 killInfo = ("", "", "")
                 dom.window.cancelAnimationFrame(nextFrame)
@@ -185,7 +185,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), scale)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
@@ -206,7 +205,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               audio1.currentTime = 0
               audioKilled.pause()
               audioKilled.currentTime = 0
-              scoreFlag = true
+//              scoreFlag = true
               firstCome = true
               if (isWin) {
                 isWin = false
@@ -274,7 +273,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         audio1.currentTime = 0
         audioKilled.pause()
         audioKilled.currentTime = 0
-        scoreFlag = true
+//        scoreFlag = true
         firstCome = true
         myScore = BaseScore(0, 0, 0l, 0l)
         if (isWin) {
@@ -302,6 +301,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         killInfo = (killedId, killedName, killerName)
         lastTime = 100
+
+      case x@Protocol.DeadPage(kill, area, start, end) =>
+        println(s"recv userDead $x")
+        myScore = BaseScore(kill, area, start, end)
 
       case data: Protocol.NewFieldInfo =>
         newFieldInfo = Some(data)

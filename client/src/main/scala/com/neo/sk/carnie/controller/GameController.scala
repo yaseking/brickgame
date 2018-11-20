@@ -1,13 +1,11 @@
 package com.neo.sk.carnie.controller
 
-import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, UserAction}
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.scene.GameScene
+import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
@@ -34,8 +32,8 @@ class GameController(player: PlayerInfoInClient,
   var grid = new GridOnClient(bounds)
   var firstCome = true
   val idGenerator = new AtomicInteger(1)
-  var scoreFlag = true
-  var timeFlag = true
+//  var scoreFlag = true
+//  var timeFlag = true
   var isWin = false
   var exitFullScreen = false
   var winnerName = "unknown"
@@ -125,10 +123,10 @@ class GameController(player: PlayerInfoInClient,
       data.snakes.find(_.id == player.id) match {
         case Some(snake) =>
           firstCome = false
-          if (scoreFlag) {
-            myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-            scoreFlag = false
-          }
+//          if (scoreFlag) {
+//            myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+//            scoreFlag = false
+//          }
           data.killHistory.foreach {
             i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
           }
@@ -149,13 +147,13 @@ class GameController(player: PlayerInfoInClient,
         case None =>
           if (firstCome) gameScene.drawGameWait()
           else {
-            if(timeFlag){
-              currentRank.filter(_.id == player.id).foreach { score =>
-                myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-              }
-              timeFlag = false
-              log.debug("my score has been set")
-            }
+//            if(timeFlag){
+//              currentRank.filter(_.id == player.id).foreach { score =>
+//                myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+//              }
+//              timeFlag = false
+//              log.debug("my score has been set")
+//            }
             gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
             if(isContinue) {
               audioDie.play()
@@ -219,6 +217,10 @@ class GameController(player: PlayerInfoInClient,
 //          animationTimer.stop()
 //        }
 
+      case x@Protocol.DeadPage(kill, area, start, end) =>
+        println(s"recv userDead $x")
+        myScore = BaseScore(kill, area, start, end)
+
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           currentRank = current
@@ -274,8 +276,8 @@ class GameController(player: PlayerInfoInClient,
           audioWin.stop()
           audioDie.stop()
           firstCome = true
-          scoreFlag = true
-          timeFlag = true
+//          scoreFlag = true
+//          timeFlag = true
           log.debug("timeFlag has been reset")
           if(isWin){
             isWin = false

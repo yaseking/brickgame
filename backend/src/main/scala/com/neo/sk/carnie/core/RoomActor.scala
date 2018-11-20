@@ -42,7 +42,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(users: List[String]) extends Command with RoomManager.Command
+  case class UserDead(users: List[(String, Int, Int)]) extends Command with RoomManager.Command // (id, kill, area)
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -122,10 +122,14 @@ object RoomActor {
           Behaviors.same
 
         case UserDead(users) =>
-          users.foreach { id =>
+          users.foreach { u =>
+            val id = u._1
             if(userMap.get(id).nonEmpty) {
               val name = userMap(id).name
+              val startTime = userMap(id).startTime
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
+              log.debug(s"user ${id} dead===kill::${u._2}, area::${u._3}, starTime:$startTime")
+              dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, startTime, System.currentTimeMillis()))
             }
             userDeadList += id
           }
@@ -172,6 +176,8 @@ object RoomActor {
           action match {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
+                val name = userMap.getOrElse(id, UserInfo("unknown", -1, -1)).name
+                userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
                 grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name)
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2 == id).foreach { w =>
