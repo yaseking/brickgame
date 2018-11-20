@@ -48,6 +48,8 @@ class DrawGame(
     canvas.height = windowBoundary.y.toInt
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
+    fieldCanvas.width = canvasUnit * Boundary.w
+    fieldCanvas.height = canvasUnit * Boundary.h
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
     drawCache()
@@ -233,6 +235,7 @@ class DrawGame(
   }
 
   def drawField(fieldData: List[Protocol.FieldByColumn], snakes: List[SkDt]): Unit = {
+    println("start drawField.")
     fieldCtx.clearRect(0, 0, fieldCanvas.width, fieldCanvas.height)
     fieldData.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
