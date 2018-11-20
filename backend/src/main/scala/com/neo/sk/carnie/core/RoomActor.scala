@@ -188,8 +188,8 @@ object RoomActor {
               } else {
                 val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
                 grid.addActionWithFrame(id, keyCode, realFrame)
-                userMap.foreach(u => dispatchTo(subscribersMap, u._1, Protocol.SnakeAction(id, keyCode, realFrame, actionId)))
-//                dispatch(subscribersMap, Protocol.SnakeAction(id, keyCode, realFrame, actionId))
+//                userMap.foreach(u => dispatchTo(subscribersMap, u._1, Protocol.SnakeAction(id, keyCode, realFrame, actionId)))
+                dispatch(subscribersMap, Protocol.SnakeAction(id, keyCode, realFrame, actionId))
               }
             case SendPingPacket(_, createTime) =>
               dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(createTime))
