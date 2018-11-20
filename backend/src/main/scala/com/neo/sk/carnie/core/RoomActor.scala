@@ -129,9 +129,16 @@ object RoomActor {
               val startTime = userMap(id).startTime
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
               log.debug(s"user ${id} dead===kill::${u._2}, area::${u._3}, starTime:$startTime")
-              dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, startTime, System.currentTimeMillis()))
+              val endTime = System.currentTimeMillis()
+              dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, startTime, endTime))
+              //上传战绩
+              val msgFuture: Future[String] = tokenActor ? AskForToken
+              msgFuture.map { token =>
+                EsheepClient.inputBatRecord(id, name, u._2, 1, u._3.toFloat*100 / fullSize, "", startTime, endTime, token)
+              }
             }
             userDeadList += id
+
           }
           Behaviors.same
 
@@ -156,6 +163,7 @@ object RoomActor {
           Behaviors.same
 
         case UserLeft(actor) =>
+          ctx.unwatch(actor)
           log.debug(s"UserLeft:::")
           val subscribersOpt = subscribersMap.find(_._2.equals(actor))
           if(subscribersOpt.nonEmpty){
@@ -208,7 +216,7 @@ object RoomActor {
           val finishFields = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
-          val killedSkData = grid.getKilledSkData
+//          val killedSkData = grid.getKilledSkData
 
           newData.killHistory.foreach { i =>
             if (i.frameCount + 1 == newData.frameCount) {
@@ -216,13 +224,13 @@ object RoomActor {
             }
           }
 
-          killedSkData.killedSkInfo.foreach { i =>
-            val msgFuture: Future[String] = tokenActor ? AskForToken
-            msgFuture.map { token =>
-              EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
-            }
-          }
-          grid.cleanKilledSkData()
+//          killedSkData.killedSkInfo.foreach { i =>
+//            val msgFuture: Future[String] = tokenActor ? AskForToken
+//            msgFuture.map { token =>
+//              EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
+//            }
+//          }
+//          grid.cleanKilledSkData()
 
           if (shouldNewSnake) dispatch(subscribersMap, newData)
           else if (finishFields.nonEmpty) {

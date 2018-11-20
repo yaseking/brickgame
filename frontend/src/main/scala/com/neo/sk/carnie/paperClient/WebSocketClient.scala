@@ -1,5 +1,5 @@
 package com.neo.sk.carnie.paperClient
-
+import org.scalajs.dom.raw.CloseEvent
 import com.neo.sk.carnie.model.ReplayInfo
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -58,6 +58,7 @@ class WebSocketClient (
       }
 
       gameStream.onclose = { event: Event =>
+        println(s"wb close========$event")
         wsSetup = false
         gameStreamOpt = None
         close(event)
