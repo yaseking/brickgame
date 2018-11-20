@@ -53,6 +53,17 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
+  //fixme for test
+//  private val playGame = (path("playGame") & get & pathEndOrSingleSlash) {
+//    parameter(
+//      'playerId.as[String],
+//      'playerName.as[String]
+//    ) {
+//      case (playerId, playerName) =>
+//        getFromResource("html/netSnake.html")
+//    }
+//  }
+
   private val watchGame = (path("watchGame") & get) {
     log.info("success to render watchGame page.")
     getFromResource("html/netSnake.html")
