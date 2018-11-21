@@ -58,7 +58,7 @@ class WebSocketClient (
       }
 
       gameStream.onclose = { event: Event =>
-        println(s"wb close========$event")
+        println(s"ws close========$event")
         wsSetup = false
         gameStreamOpt = None
         close(event)
