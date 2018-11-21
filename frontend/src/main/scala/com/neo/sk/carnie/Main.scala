@@ -1,11 +1,12 @@
 package com.neo.sk.carnie
 
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.paperClient.{NetGameHolder, NetGameHolder4WatchRecord}
+import com.neo.sk.carnie.paperClient.{NetGameHolder, NetGameHolder4WatchRecord, Test}
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalajs.dom
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 /**
@@ -43,6 +44,9 @@ object Main extends js.JSApp {
         val frame = playerMsgMap.getOrElse("frame", "0")
         val accessCode = playerMsgMap.getOrElse("accessCode", "abc")
         new NetGameHolder4WatchRecord(WatchRecordPara(recordId, playerId, frame, accessCode)).init()
+
+      case "test" =>
+        Test.init()
 
       case _ =>
         println("Unknown order!")

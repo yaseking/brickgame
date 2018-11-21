@@ -33,21 +33,22 @@ object PerformanceTool {
 //    val fpsString = s"fps : $lastRenderTimes, ping: $latency"
 //    ctx.fillText(fpsString, leftBegin, lineHeight)
 
-    ctx.font = "20px Helvetica"
-    ctx.fillStyle = ColorsSetting.fontColor2
-    val fpsString = "fps : "
-    val pingString = "ping: "
-    ctx.fillText(fpsString, leftBegin, lineHeight)
-    ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight)//50
-    ctx.strokeStyle = "black"
-    ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
-    ctx.fillStyle = if (lastRenderTimes < 50) ColorsSetting.redColor else ColorsSetting.greenColor
-    ctx.fillText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
-    ctx.strokeStyle = "black"
-    ctx.strokeText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
-    ctx.fillStyle = if (latency <= 100) ColorsSetting.greenColor else if (latency > 100 && latency <= 200) ColorsSetting.yellowColor else ColorsSetting.redColor
-    ctx.fillText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
+//    ctx.font = "20px Helvetica"
+//    ctx.fillStyle = ColorsSetting.fontColor2
+//    val fpsString = "fps : "
+//    val pingString = "ping: "
+//    ctx.fillText(fpsString, leftBegin, lineHeight)
+//    ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight)//50
+//    ctx.strokeStyle = "black"
+//    ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
+//    ctx.fillStyle = if (lastRenderTimes < 50) ColorsSetting.redColor else ColorsSetting.greenColor
+//    ctx.fillText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
+//    ctx.strokeStyle = "black"
+//    ctx.strokeText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
+//    ctx.fillStyle = if (latency <= 100) ColorsSetting.greenColor else if (latency > 100 && latency <= 200) ColorsSetting.yellowColor else ColorsSetting.redColor
+//    ctx.fillText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
 
+    println(s"fps::::::::$lastRenderTimes")
   }
 
   //PING

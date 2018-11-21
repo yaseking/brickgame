@@ -21,7 +21,7 @@ class DrawGame(
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val canvasSize = (border.x - 2) * (border.y - 2)
 
-  private val textLineHeight = 15
+    private val textLineHeight = 15
   private val fillWidth = 33
 
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //排行榜canvas
