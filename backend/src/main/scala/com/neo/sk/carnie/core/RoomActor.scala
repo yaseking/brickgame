@@ -235,14 +235,17 @@ object RoomActor {
           if (shouldNewSnake) dispatch(subscribersMap, newData)
           else if (finishFields.nonEmpty) {
             val finishUsers = finishFields.map(_._1)
-            finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
+            //test
+//            finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
             watcherMap.filter(u => finishUsers.contains(u._1)).foreach(u => dispatchTo(subscribersMap, u._1, newData))
             newField = finishFields.map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
                 ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
               }.toList)
             }
-            userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+//            userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            //test
+            userMap.foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
             watcherMap.filterNot(u => finishUsers.contains(u._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
 
