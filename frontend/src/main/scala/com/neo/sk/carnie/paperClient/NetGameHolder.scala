@@ -295,6 +295,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
+        println(s"===========recv total data")
         syncGridData = Some(data)
         justSynced = true
 
@@ -307,6 +308,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         myScore = BaseScore(kill, area, start, end)
 
       case data: Protocol.NewFieldInfo =>
+        println(s"((((((((((((recv new field info")
         newFieldInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
