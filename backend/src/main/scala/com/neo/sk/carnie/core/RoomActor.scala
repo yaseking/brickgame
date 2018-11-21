@@ -212,7 +212,9 @@ object RoomActor {
 
         case Sync =>
           val frame = grid.frameCount //即将执行改帧的数据
-          val shouldNewSnake = if (grid.waitingListState) true else if (tickCount % 20 == 5) true else false
+          val shouldNewSnake = if (grid.waitingListState) true else false
+          val shouldSync = if (tickCount % 50 == 5) true else false
+//          val waitingSnakesList = grid.waitingJoinList
           val finishFields = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
@@ -232,9 +234,19 @@ object RoomActor {
 //            }
 //          }
 //          grid.cleanKilledSkData()
+          if(grid.newInfo.nonEmpty) {
+            newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
+              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+              }.toList)
+            }
+            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
+          }
 
-          if (shouldNewSnake) dispatch(subscribersMap, newData)
-          else if (finishFields.nonEmpty) {
+
+          if (shouldSync) {
+            dispatch(subscribersMap, newData)
+          } else if (finishFields.nonEmpty) {
             val finishUsers = finishFields.map(_._1)
             //test
 //            finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
@@ -263,22 +275,12 @@ object RoomActor {
             }
           }
 
-          if(finishFields.nonEmpty && shouldNewSnake) {
+          if(finishFields.nonEmpty && shouldSync) {
             newField = finishFields.map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
                 ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
               }.toList)
             }
-
-//            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
-//              log.debug("winwinwinwin!!!!!!!!!!")
-//              val finalData = grid.getGridData
-//              grid.cleanData()
-//              gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
-//              userMap.foreach { u =>
-//                gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
-//              }
-//            }
           }
 
           if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))

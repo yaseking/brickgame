@@ -49,6 +49,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   var currentRank = List.empty[Score]
 
+  var newInfo = List.empty[(String, SkDt, List[Point])]
+
   private[this] var historyRankMap = Map.empty[String, Score]
   var historyRankList = historyRankMap.values.toList.sortBy(_.k).reverse
 
@@ -61,21 +63,29 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   def waitingListState = waitingJoin.nonEmpty
 
+//  def waitingJoinList = waitingJoin.keys
+
   private[this] def genWaitingSnake() = {
-    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, (name, bodyColor)) =>
+    val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor)) =>
       val startTime = System.currentTimeMillis()
       val indexSize = 5 //5
       val basePoint = randomEmptyPoint(indexSize)
-      (0 until indexSize).foreach { x =>
-        (0 until indexSize).foreach { y =>
+      val newFiled = (0 until indexSize).flatMap { x =>
+        (0 until indexSize).map { y =>
+          val point = Point(basePoint.x + x, basePoint.y + y)
           grid += Point(basePoint.x + x, basePoint.y + y) -> Field(id)
-        }
-      }
+          point
+        }.toList
+      }.toList
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      snakes += id -> SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime)
+      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime)
+      snakes += id -> snakeInfo
       killHistory -= id
-    }
+      (id, snakeInfo, newFiled)
+    }.toList
     waitingJoin = Map.empty[String, (String, String)]
+    newInfo
+
   }
 
   implicit val scoreOrdering = new Ordering[Score] {
@@ -174,7 +184,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   def updateInService(newSnake: Boolean): List[(String, List[Point])] = {
     val update = super.update("b")
     val isFinish = update._1
-    if (newSnake) genWaitingSnake()
+    if (newSnake) newInfo = genWaitingSnake()
     val deadSnakes = update._2
     if (deadSnakes.nonEmpty) {
       val deadSnakesInfo = deadSnakes.map { id =>

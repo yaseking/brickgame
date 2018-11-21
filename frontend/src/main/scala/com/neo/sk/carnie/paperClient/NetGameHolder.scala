@@ -35,6 +35,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   //  var play = true
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -101,6 +102,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     }
 
     if (webSocketClient.getWsState) {
+      if (newSnakeInfo.nonEmpty) {
+        grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
+        grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+        newSnakeInfo = None
+      }
       if (!justSynced) { //前端更新
         grid.update("f")
 
@@ -300,6 +306,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         syncGridData = Some(data)
         justSynced = true
 
+      case data: Protocol.NewSnakeInfo =>
+        println(s"!!!!!!new snake join!!!")
+        newSnakeInfo = Some(data)
+
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         killInfo = (killedId, killedName, killerName)
         lastTime = 100
@@ -311,6 +321,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")
         newFieldInfo = Some(data)
+
+      case data: Protocol.NewSnakeInfo =>
+        newSnakeInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)

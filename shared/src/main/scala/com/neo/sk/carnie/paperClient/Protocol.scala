@@ -32,6 +32,12 @@ object Protocol {
 //                             killHistory: List[Kill]
                            ) extends GameMessage
 
+  case class NewSnakeInfo(
+                         frameCount: Long,
+                         snake: List[SkDt],
+                         filedDetails: List[FieldByColumn]
+                         ) extends GameMessage
+
   case class KilledSkData(
                          killedSkInfo: List[KilledSkDt]
                          )
