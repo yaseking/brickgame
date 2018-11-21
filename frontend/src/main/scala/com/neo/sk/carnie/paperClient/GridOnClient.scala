@@ -52,7 +52,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid = gridMap
     actionMap = actionMap.filterKeys(_ >= (data.frameCount - maxDelayed))
     snakes = data.snakes.map(s => s.id -> s).toMap
-    killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName,k.frameCount)).toMap
+//    killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName,k.frameCount)).toMap
   }
 
   def addNewFieldInfo(data: Protocol.NewFieldInfo): Unit = {

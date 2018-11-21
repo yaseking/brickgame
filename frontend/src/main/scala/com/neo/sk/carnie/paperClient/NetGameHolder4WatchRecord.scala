@@ -117,7 +117,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         justSynced = false
       } else if(snapshotMap.contains(grid.frameCount)) {
         val data = snapshotMap(grid.frameCount)
-        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails))
 //        println(s"state 重置 via Map")
         snapshotMap -= grid.frameCount
       }
@@ -169,9 +169,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 //                drawGame.cleanMyScore
                 scoreFlag = false
               }
-              data.killHistory.foreach {
-                i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
-              }
+//              data.killHistory.foreach {
+//                i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
+//              }
+              if(killInfo._3 == myId) audioKill.play()
               var num = 0
               data.fieldDetails.find(_.uid == myId).get.scanField.foreach {
                 row =>
@@ -242,7 +243,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         loading = true
         drawGame.drawGameOff(firstCome, Some(false), loading, false)
         grid.frameCount = frame.toLong
-        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, List(), List(), List(), List()))
+        grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, List(), List(), List()))
         snapshotMap = Map.empty[Long, Snapshot]
         encloseMap = Map.empty[Long, NewFieldInfo]
 
@@ -255,7 +256,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           if (webSocketClient.getWsState) {
              if(snapshotMap.contains(grid.frameCount)) {
               val data = snapshotMap(grid.frameCount)
-              grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails, data.killHistory))
+              grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails))
                if(data.snakes.exists(_.id == myId)) firstCome = false
               //        println(s"state 重置 via Map")
               snapshotMap = snapshotMap.filter(_._1 > grid.frameCount)
@@ -402,9 +403,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
           }
         }
 
-//      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-//        killInfo = (killedId, killedName, killerName)
-//        lastTime = 100
+      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
+        killInfo = (killedId, killedName, killerName)
+        lastTime = 100
 
       case EncloseEvent(enclosure) =>
 //        println(s"got enclose event")
@@ -428,11 +429,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         if(grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
 
-      case msg@Snapshot(snakes, bodyDetails, fieldDetails, killHistory) =>
+      case msg@Snapshot(snakes, bodyDetails, fieldDetails) =>
 //        println(s"snapshot, frame:$frameIndex, snakes:${snakes.map(_.id)}")
         snapshotMap += frameIndex.toLong -> msg
         if(grid.frameCount >= frameIndex.toLong) { //重置
-          syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong + 1, snakes, bodyDetails, fieldDetails, killHistory))
+          syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong + 1, snakes, bodyDetails, fieldDetails))
           justSynced = true
         }
 

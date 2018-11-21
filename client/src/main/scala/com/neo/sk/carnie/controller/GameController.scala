@@ -127,9 +127,10 @@ class GameController(player: PlayerInfoInClient,
 //            myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
 //            scoreFlag = false
 //          }
-          data.killHistory.foreach {
-            i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
-          }
+//          data.killHistory.foreach {
+//            i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
+//          }
+          if(grid.killInfo._3 == snake.id) audioKill.play()
           val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
           if(myFieldCount>fieldNum){
             audioFinish.play()
