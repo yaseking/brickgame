@@ -252,8 +252,9 @@ class DrawGame(
   }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
-    val startTime = System.currentTimeMillis()
-    val startTime1 = System.currentTimeMillis()
+//    val startTime = System.currentTimeMillis()
+//    val startTime1 = System.currentTimeMillis()
+    val time1 = System.currentTimeMillis()
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -282,7 +283,8 @@ class DrawGame(
     setScale(newScale, windowBoundary.x / 2, windowBoundary.y / 2)
 
     ctx.globalAlpha = 0.6
-    val startDrawBody = System.currentTimeMillis()
+    val time2 = System.currentTimeMillis()
+    //    val startDrawBody = System.currentTimeMillis()
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
@@ -306,19 +308,21 @@ class DrawGame(
       }
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
-    val endDrawBody = System.currentTimeMillis()
-    println(s"drawBodyTime: ${endDrawBody - startDrawBody}")
-    val endTime1 = System.currentTimeMillis()
-    println(s"Time1: ${endTime1 - startTime1}")
+//    val endDrawBody = System.currentTimeMillis()
+    val time3 = System.currentTimeMillis()
+    println(s"drawBodyTime: ${time3 - time2}")
+//    val endTime1 = System.currentTimeMillis()
+    println(s"Time1: ${time3 - time1}")
 
 
-    val startTime2 = System.currentTimeMillis()
+//    val startTime2 = System.currentTimeMillis()
     //绘制领地
     ctx.save()
-    val startDrawField = System.currentTimeMillis()
+//    val startDrawField = System.currentTimeMillis()
     ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
-    val endDrawField = System.currentTimeMillis()
-    println(s"drawFieldTime: ${endDrawField - startDrawField}")
+//    val endDrawField = System.currentTimeMillis()
+    val time4 = System.currentTimeMillis()
+    println(s"drawFieldTime: ${time4 - time3}")
     ctx.restore()
 
 //    ctx.globalAlpha = 1.0
@@ -352,10 +356,11 @@ class DrawGame(
       ctx.fillStyle = "#000000"
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
-    val endTime2 = System.currentTimeMillis()
-    println(s"Time2: ${endTime2 - startTime2}")
+//    val endTime2 = System.currentTimeMillis()
+    val time5 = System.currentTimeMillis()
+    println(s"drawHead: ${time5 - time4}")
 
-    val startTime3 = System.currentTimeMillis()
+//    val startTime3 = System.currentTimeMillis()
     //边界
     ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
     ctx.restore()
@@ -366,11 +371,12 @@ class DrawGame(
       PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     }
 
-    val endTime = System.currentTimeMillis()
-    println(s"drawGridTime: ${endTime - startTime}")
+    val time6 = System.currentTimeMillis()
+//    val endTime = System.currentTimeMillis()
+    println(s"drawRank&border: ${time6 - time5}")
 
-    val endTime3 = System.currentTimeMillis()
-    println(s"Time3: ${endTime3 - startTime3}")
+//    val endTime3 = System.currentTimeMillis()
+    println(s"allTime: ${time6 - time1}")
     newScale
   }
 
