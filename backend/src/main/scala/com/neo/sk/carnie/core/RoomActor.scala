@@ -217,11 +217,12 @@ object RoomActor {
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
 //          val killedSkData = grid.getKilledSkData
-
-          newData.killHistory.foreach { i =>
-            if (i.frameCount + 1 == newData.frameCount) {
-              dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
-            }
+          grid.killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList.foreach {
+            i =>
+              if (i.frameCount + 1 == newData.frameCount) {
+                dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
+                gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName)))
+              }
           }
 
 //          killedSkData.killedSkInfo.foreach { i =>
@@ -292,7 +293,7 @@ object RoomActor {
 //          }
           val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
-          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
+          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails)
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
@@ -338,7 +339,7 @@ object RoomActor {
     val childName = "gameRecorder"
     ctx.child(childName).getOrElse {
       val newData = grid.getGridData
-      val actor = ctx.spawn(GameRecorder.create(roomId, Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory),
+      val actor = ctx.spawn(GameRecorder.create(roomId, Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails),
         GameInformation(roomId, System.currentTimeMillis(), 0, grid.frameCount)), childName)
       ctx.watchWith(actor, ChildDead(childName, actor))
       actor
