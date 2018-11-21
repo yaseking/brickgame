@@ -29,7 +29,7 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //边界canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private[this] val fieldCanvas = dom.document.getElementById("FieldView").asInstanceOf[Canvas] //边界canvas
+  private[this] val fieldCanvas = dom.document.getElementById("FieldView").asInstanceOf[Canvas] //领地canvas
   private[this] val fieldCtx = fieldCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
@@ -236,6 +236,7 @@ class DrawGame(
 
   def drawField(fieldData: List[Protocol.FieldByColumn], snakes: List[SkDt]): Unit = {
     println("start drawField.")
+    val startTime = System.currentTimeMillis()
     fieldCtx.clearRect(0, 0, fieldCanvas.width, fieldCanvas.height)
     fieldData.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
@@ -246,9 +247,13 @@ class DrawGame(
         }
       }
     }
+    val endTime = System.currentTimeMillis()
+    println(s"redrawFieldTime: ${endTime - startTime}")
   }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
+    val startTime = System.currentTimeMillis()
+    val startTime1 = System.currentTimeMillis()
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -277,6 +282,7 @@ class DrawGame(
     setScale(newScale, windowBoundary.x / 2, windowBoundary.y / 2)
 
     ctx.globalAlpha = 0.6
+    val startDrawBody = System.currentTimeMillis()
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
@@ -300,13 +306,23 @@ class DrawGame(
       }
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
+    val endDrawBody = System.currentTimeMillis()
+    println(s"drawBodyTime: ${endDrawBody - startDrawBody}")
+    val endTime1 = System.currentTimeMillis()
+    println(s"Time1: ${endTime1 - startTime1}")
 
 
+    val startTime2 = System.currentTimeMillis()
     //绘制领地
     ctx.save()
+    val startDrawField = System.currentTimeMillis()
     ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
+    val endDrawField = System.currentTimeMillis()
+    println(s"drawFieldTime: ${endDrawField - startDrawField}")
     ctx.restore()
+
 //    ctx.globalAlpha = 1.0
+//    val startDrawField = System.currentTimeMillis()
 //    fieldInWindow.foreach { field => //按行渲染
 //      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
 //      ctx.fillStyle = color
@@ -316,6 +332,8 @@ class DrawGame(
 //        }
 //      }
 //    }
+//    val endDrawField = System.currentTimeMillis()
+//    println(s"drawFieldTime: ${endDrawField - startDrawField}")
 
     snakeWithOff.foreach { s => //draw headers
       ctx.fillStyle = s.color
@@ -334,7 +352,10 @@ class DrawGame(
       ctx.fillStyle = "#000000"
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
+    val endTime2 = System.currentTimeMillis()
+    println(s"Time2: ${endTime2 - startTime2}")
 
+    val startTime3 = System.currentTimeMillis()
     //边界
     ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
     ctx.restore()
@@ -345,6 +366,11 @@ class DrawGame(
       PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     }
 
+    val endTime = System.currentTimeMillis()
+    println(s"drawGridTime: ${endTime - startTime}")
+
+    val endTime3 = System.currentTimeMillis()
+    println(s"Time3: ${endTime3 - startTime3}")
     newScale
   }
 

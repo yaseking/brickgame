@@ -22,47 +22,47 @@ trait EsheepService extends ServiceUtils with CirceSupport {
 
   val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
 
-  private val playGame = (path("playGame") & get & pathEndOrSingleSlash) {
-    parameter(
-      'playerId.as[String],
-      'playerName.as[String],
-      'roomId.as[Int].?,
-      'accessCode.as[String]
-    ) {
-      case (playerId, playerName, roomId, accessCode) =>
-        val gameId = AppSettings.esheepGameId
-        dealFutureResult{
-          val msg: Future[String] = tokenActor ? AskForToken
-          msg.map {token =>
-              dealFutureResult{
-                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-                  case Right(rsp) =>
-                    if(rsp.playerId == playerId){
-                      getFromResource("html/netSnake.html")
-                    } else {
-                      complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
-                    }
-                  case Left(e) =>
-                    log.error(s"playGame error. fail to verifyAccessCode err: $e")
-//                    getFromResource("html/netSnake.html")
-                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
-                }
-              }
-          }
-        }
-    }
-  }
-
-  //fixme for test
 //  private val playGame = (path("playGame") & get & pathEndOrSingleSlash) {
 //    parameter(
 //      'playerId.as[String],
-//      'playerName.as[String]
+//      'playerName.as[String],
+//      'roomId.as[Int].?,
+//      'accessCode.as[String]
 //    ) {
-//      case (playerId, playerName) =>
-//        getFromResource("html/netSnake.html")
+//      case (playerId, playerName, roomId, accessCode) =>
+//        val gameId = AppSettings.esheepGameId
+//        dealFutureResult{
+//          val msg: Future[String] = tokenActor ? AskForToken
+//          msg.map {token =>
+//              dealFutureResult{
+//                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+//                  case Right(rsp) =>
+//                    if(rsp.playerId == playerId){
+//                      getFromResource("html/netSnake.html")
+//                    } else {
+//                      complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
+//                    }
+//                  case Left(e) =>
+//                    log.error(s"playGame error. fail to verifyAccessCode err: $e")
+////                    getFromResource("html/netSnake.html")
+//                    complete(ErrorRsp(120002, "Some errors happened in parse verifyAccessCode."))
+//                }
+//              }
+//          }
+//        }
 //    }
 //  }
+
+  //fixme: for test
+  private val playGame = (path("playGame") & get & pathEndOrSingleSlash) {
+    parameter(
+      'playerId.as[String],
+      'playerName.as[String]
+    ) {
+      case (playerId, playerName) =>
+        getFromResource("html/netSnake.html")
+    }
+  }
 
   private val watchGame = (path("watchGame") & get) {
     log.info("success to render watchGame page.")
