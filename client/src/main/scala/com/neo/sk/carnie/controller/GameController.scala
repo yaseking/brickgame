@@ -1,14 +1,16 @@
 package com.neo.sk.carnie.controller
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
-import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, UserAction}
+import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction}
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
+
 import akka.actor.typed.scaladsl.adapter._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
@@ -47,6 +49,7 @@ class GameController(player: PlayerInfoInClient,
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
@@ -97,6 +100,13 @@ class GameController(player: PlayerInfoInClient,
     }
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
+
+    if (newSnakeInfo.nonEmpty) {
+      grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
+      grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+      newSnakeInfo = None
+    }
+
     if (!justSynced) {
       grid.update("f")
       if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
@@ -236,6 +246,10 @@ class GameController(player: PlayerInfoInClient,
           syncGridData = Some(data)
           justSynced = true
         }
+
+      case data: Protocol.NewSnakeInfo =>
+        println(s"!!!!!!new snake join!!!")
+        newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         Boot.addToPlatform {
