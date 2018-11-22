@@ -241,6 +241,7 @@ object RoomActor {
               }.toList)
             }
             dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
+            grid.newInfo = Nil
           }
 
 

@@ -322,8 +322,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         println(s"((((((((((((recv new field info")
         newFieldInfo = Some(data)
 
-      case data: Protocol.NewSnakeInfo =>
-        newSnakeInfo = Some(data)
+
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
