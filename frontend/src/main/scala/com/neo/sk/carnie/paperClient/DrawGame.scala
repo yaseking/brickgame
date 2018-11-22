@@ -248,7 +248,7 @@ class DrawGame(
 //  }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
-    val startTime6 = System.currentTimeMillis()
+//    val startTime6 = System.currentTimeMillis()
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -267,23 +267,23 @@ class DrawGame(
     val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
     val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
-    val endTime6 = System.currentTimeMillis()
-    println(s"Time6: ${endTime6 -startTime6}")
+//    val endTime6 = System.currentTimeMillis()
+//    println(s"Time6: ${endTime6 -startTime6}")
 
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
-    val endTime4 = System.currentTimeMillis()
-    println(s"Time4: ${endTime4 - endTime6}")
+//    val endTime4 = System.currentTimeMillis()
+//    println(s"Time4: ${endTime4 - endTime6}")
 
     val newScale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(newScale, windowBoundary.x / 2, windowBoundary.y / 2)
 
-    val endTime5 = System.currentTimeMillis()
-    println(s"Time5: ${endTime5 - endTime4}")
+//    val endTime5 = System.currentTimeMillis()
+//    println(s"Time5: ${endTime5 - endTime4}")
 
     ctx.globalAlpha = 0.6
     data.bodyDetails.foreach { bds =>
@@ -309,9 +309,9 @@ class DrawGame(
       }
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
-    val endDrawBody = System.currentTimeMillis()
-    println(s"drawBodyTime: ${endDrawBody - endTime5}")
-    println(s"Time1: ${endDrawBody - startTime6}")
+//    val endDrawBody = System.currentTimeMillis()
+//    println(s"drawBodyTime: ${endDrawBody - endTime5}")
+//    println(s"Time1: ${endDrawBody - startTime6}")
 
     //绘制领地
 //    ctx.save()
@@ -329,8 +329,8 @@ class DrawGame(
       }
     }
 
-    val endDrawField = System.currentTimeMillis()
-    println(s"drawFieldTime: ${endDrawField - endDrawBody}")
+//    val endDrawField = System.currentTimeMillis()
+//    println(s"drawFieldTime: ${endDrawField - endDrawBody}")
 
     snakeWithOff.foreach { s => //draw headers
       ctx.fillStyle = s.color
@@ -349,8 +349,8 @@ class DrawGame(
       ctx.fillStyle = "#000000"
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
-    val endTime2 = System.currentTimeMillis()
-    println(s"Time2: ${endTime2 - endDrawField}")
+//    val endTime2 = System.currentTimeMillis()
+//    println(s"Time2: ${endTime2 - endDrawField}")
 
     //边界
     ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
@@ -362,9 +362,9 @@ class DrawGame(
       PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     }
 
-    val endTime3 = System.currentTimeMillis()
-    println(s"Time3: ${endTime3 - endTime2}")
-    println(s"drawGridTime: ${endTime3 - startTime6}")
+//    val endTime3 = System.currentTimeMillis()
+//    println(s"Time3: ${endTime3 - endTime2}")
+//    println(s"drawGridTime: ${endTime3 - startTime6}")
     newScale
   }
 
