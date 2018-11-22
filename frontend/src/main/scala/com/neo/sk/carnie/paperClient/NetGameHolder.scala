@@ -80,9 +80,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var lastTime1 = 0L
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
+    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime, curTime)
-    println(curTime - lastTime1)
     lastTime1 = curTime
     if (isContinue)
       nextFrame = dom.window.requestAnimationFrame(gameRender())
