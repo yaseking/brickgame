@@ -29,7 +29,7 @@ trait Grid {
   var snakes = Map.empty[String, SkDt]
   var actionMap = Map.empty[Long, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[String, (String, String, Long)] //killedId, (killerId, killerName,frameCount)
-  var killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]//killedId, (killedId, killedName, killing, startTime, endTime)
+//  var killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]//killedId, (killedId, killedName, killing, startTime, endTime)
   var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
@@ -263,9 +263,9 @@ trait Grid {
       }
       val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
       val endTime = System.currentTimeMillis()
-      snakes.get(sid).foreach { s =>
-        killedSks += sid -> (sid, s.name, s.kill, score.formatted("%.2f").toFloat, s.startTime, endTime)
-      }
+//      snakes.get(sid).foreach { s =>
+//        killedSks += sid -> (sid, s.name, s.kill, score.formatted("%.2f").toFloat, s.startTime, endTime)
+//      }
       snakeTurnPoints -= sid
     }
 
@@ -387,16 +387,16 @@ trait Grid {
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      fieldDetails,
-      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
+      fieldDetails
+//      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
     )
   }
 
-  def getKilledSkData: Protocol.KilledSkData = {
-    Protocol.KilledSkData(
-      killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
-    )
-  }
+//  def getKilledSkData: Protocol.KilledSkData = {
+//    Protocol.KilledSkData(
+//      killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
+//    )
+//  }
 
   def getKiller(myId: String): Option[(String, String, Long)] = {
     killHistory.get(myId)
@@ -407,13 +407,13 @@ trait Grid {
     actionMap = Map.empty[Long, Map[String, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
     killHistory = Map.empty[String, (String, String, Long)]
-    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
+//    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
     snakeTurnPoints = snakeTurnPoints.empty
   }
 
-  def cleanKilledSkData(): Unit = {
-    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
-  }
+//  def cleanKilledSkData(): Unit = {
+//    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
+//  }
 
   def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地
     snakeTurnPoints -= snakeId

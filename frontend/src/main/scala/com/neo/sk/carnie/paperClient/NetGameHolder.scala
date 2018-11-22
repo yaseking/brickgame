@@ -142,9 +142,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
 //                scoreFlag = false
 //              }
-              data.killHistory.foreach { i =>
-                if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
-              }
+//              data.killHistory.foreach { i =>
+//                if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
+//              }
+              if(killInfo._3 == myId) audioKill.play()
               var num = 0
               data.fieldDetails.find(_.uid == myId).map(_.scanField).getOrElse(Nil).foreach { row =>
                 row.x.foreach { y => num += (y._2 - y._1) }
@@ -305,6 +306,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
+        println(s"===========recv total data")
 //        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
         justSynced = true
@@ -318,6 +320,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         myScore = BaseScore(kill, area, start, end)
 
       case data: Protocol.NewFieldInfo =>
+        println(s"((((((((((((recv new field info")
         newFieldInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
