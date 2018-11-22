@@ -149,6 +149,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
       color = randomHex()
     }
+//    log.debug(s"color : $color exceptColor : $exceptColor")
     "#" + color
   }
 
