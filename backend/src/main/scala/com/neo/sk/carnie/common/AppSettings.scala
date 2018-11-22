@@ -16,6 +16,8 @@ object AppSettings {
 
   val appConfig = config.getConfig("app")
   val limitNum = appConfig.getInt("limitNum")
+  val upperLimit = appConfig.getString("upperLimit")
+  val lowerLimit = appConfig.getString("lowerLimit")
   val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
 
   val httpInterface = appConfig.getString("http.interface")

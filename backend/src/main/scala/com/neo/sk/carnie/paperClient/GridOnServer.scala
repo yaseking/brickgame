@@ -134,17 +134,24 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   def randomColor(): String = {
     var color = randomHex()
+
     val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
     val similarityDegree = 2000
-    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
+    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0 ) {
       color = randomHex()
     }
+    log.debug(s"color : $color exceptColor : $exceptColor")
     "#" + color
   }
 
   def randomHex() = {
-    val h = random.nextInt(256).toHexString + random.nextInt(256).toHexString + random.nextInt(256).toHexString
+    val h = getRandom(94).toHexString + getRandom(94).toHexString + getRandom(94).toHexString
     String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
+  }
+  def getRandom(start:Int)={
+    val end = 256
+    val rnd = new scala.util.Random
+    start + rnd.nextInt(end - start)
   }
 
   def colorSimilarity(color1: String, color2: String) = {
