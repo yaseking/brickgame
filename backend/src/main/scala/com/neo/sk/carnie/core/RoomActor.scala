@@ -146,6 +146,7 @@ object RoomActor {
           log.debug(s"LeftRoom:::$id")
           if(userDeadList.contains(id)) userDeadList -= id
           grid.removeSnake(id)
+          grid.cleanSnakeTurnPoint(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
