@@ -263,12 +263,12 @@ object RoomActor {
             }
           }
 
-          if(finishFields.nonEmpty && shouldNewSnake) {
-            newField = finishFields.map { f =>
-              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
-              }.toList)
-            }
+//          if(finishFields.nonEmpty && shouldNewSnake) {
+//            newField = finishFields.map { f =>
+//              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+//                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+//              }.toList)
+//            }
 
 //            if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
 //              log.debug("winwinwinwin!!!!!!!!!!")
@@ -279,7 +279,7 @@ object RoomActor {
 //                gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
 //              }
 //            }
-          }
+//          }
 
           if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
           val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转

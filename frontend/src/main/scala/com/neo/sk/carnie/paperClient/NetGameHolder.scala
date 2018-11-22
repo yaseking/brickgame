@@ -35,6 +35,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
+  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   //  var play = true
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -107,6 +108,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
+            if(newFieldInfo.get.fieldDetails.exists(_.uid == myId))
+              audioFinish.play()
           } else { //主动要求同步数据
             webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
           }
@@ -117,6 +120,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         syncGridData = None
         justSynced = false
       }
+      totalData = Some(grid.getGridData)
     }
   }
 
@@ -127,59 +131,53 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       if (replayFinish) {
         drawGame.drawGameOff(firstCome, Some(true), false, false)
       } else {
-        val data = grid.getGridData
-        if (isWin) {
-          ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-          drawGame.drawGameWin(myId, winnerName, winData)
-          audio1.play()
-          dom.window.cancelAnimationFrame(nextFrame)
-          isContinue = false
-        } else {
-          data.snakes.find(_.id == myId) match {
-            case Some(snake) =>
-              firstCome = false
-//              if (scoreFlag) {
-//                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-//                scoreFlag = false
-//              }
-//              data.killHistory.foreach { i =>
-//                if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
-//              }
-              if(killInfo._3 == myId) audioKill.play()
-//              var num = 0
-//              data.fieldDetails.find(_.uid == myId).map(_.scanField).getOrElse(Nil).foreach { row =>
-//                row.x.foreach { y => num += (y._2 - y._1) }
-//              }
-//              if (fieldNum < num && snake.id == myId) {
-//                audioFinish.play()
-//              }
-//              fieldNum = num
-              val endTime1 = System.currentTimeMillis()
-              println(s"TimeBefore: ${endTime1 - currentTime}")
-              val time2 = drawGameImage(myId, data, offsetTime, endTime1)
-              if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
-                drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
-                lastTime -= 1
-                if (lastTime == 0) {
-                  killInfo = ("", "", "")
+        if(totalData.nonEmpty){
+          val data = totalData.get
+          if (isWin) {
+            ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+            drawGame.drawGameWin(myId, winnerName, winData)
+            audio1.play()
+            dom.window.cancelAnimationFrame(nextFrame)
+            isContinue = false
+          } else {
+            data.snakes.find(_.id == myId) match {
+              case Some(snake) =>
+                firstCome = false
+                //              if (scoreFlag) {
+                //                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+                //                scoreFlag = false
+                //              }
+                //              data.killHistory.foreach { i =>
+                //                if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
+                //              }
+                if(killInfo._3 == myId) audioKill.play()
+                val endTime1 = System.currentTimeMillis()
+                println(s"TimeBefore: ${endTime1 - currentTime}")
+                val time2 = drawGameImage(myId, data, offsetTime, endTime1)
+                if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
+                  drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
+                  lastTime -= 1
+                  if (lastTime == 0) {
+                    killInfo = ("", "", "")
+                  }
                 }
-              }
-              val endTime = System.currentTimeMillis()
-              println(s"TimeAfter: ${endTime - time2}")
-              println(s"drawTime: ${endTime - currentTime}")
+                val endTime = System.currentTimeMillis()
+                println(s"TimeAfter: ${endTime - time2}")
+                println(s"drawTime: ${endTime - currentTime}")
 
-            case None =>
-              if (firstCome) drawGame.drawGameWait()
-              else {
-                if (isContinue) audioKilled.play()
-//                currentRank.filter(_.id == myId).foreach { score =>
-//                  myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-//                }
-                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-                killInfo = ("", "", "")
-                dom.window.cancelAnimationFrame(nextFrame)
-                isContinue = false
-              }
+              case None =>
+                if (firstCome) drawGame.drawGameWait()
+                else {
+                  if (isContinue) audioKilled.play()
+                  //                currentRank.filter(_.id == myId).foreach { score =>
+                  //                  myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+                  //                }
+                  drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+                  killInfo = ("", "", "")
+                  dom.window.cancelAnimationFrame(nextFrame)
+                  isContinue = false
+                }
+            }
           }
         }
       }
@@ -321,8 +319,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")
-        if(data.fieldDetails.exists(_.uid == myId))
-          audioFinish.play()
+//        if(data.fieldDetails.exists(_.uid == myId))
+//          audioFinish.play()
         newFieldInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
