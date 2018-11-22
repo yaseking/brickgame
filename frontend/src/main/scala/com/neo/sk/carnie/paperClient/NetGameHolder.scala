@@ -179,6 +179,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                 }
             }
           }
+        } else {
+          drawGame.drawGameWait()
         }
       }
     } else {
