@@ -79,9 +79,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
-    draw(offsetTime)
-    val endTime = System.currentTimeMillis()
-    println(s"drawTime: ${endTime - curTime}")
+    draw(offsetTime, curTime)
 
     if (isContinue)
       nextFrame = dom.window.requestAnimationFrame(gameRender())
@@ -123,7 +121,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
 
-  def draw(offsetTime: Long): Unit = {
+  def draw(offsetTime: Long, currentTime: Long): Unit = {
 
     if (webSocketClient.getWsState) {
       if (replayFinish) {
@@ -155,7 +153,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                 audioFinish.play()
               }
               fieldNum = num
-              drawGameImage(myId, data, offsetTime)
+              val endTime1 = System.currentTimeMillis()
+              println(s"TimeBefore: ${endTime1 - currentTime}")
+              val time2 = drawGameImage(myId, data, offsetTime, endTime1)
               if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
                 drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
                 lastTime -= 1
@@ -163,6 +163,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                   killInfo = ("", "", "")
                 }
               }
+              val endTime = System.currentTimeMillis()
+              println(s"TimeAfter: ${endTime - time2}")
+              println(s"drawTime: ${endTime - currentTime}")
 
             case None =>
               if (firstCome) drawGame.drawGameWait()
@@ -184,9 +187,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     }
   }
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
+  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, currentTime: Long): Long = {
     scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), scale)
+    val endTime1 = System.currentTimeMillis()
+    println(s"drawGridTime: ${endTime1 - currentTime}")
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+    val endTime2 = System.currentTimeMillis()
+    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
+    endTime2
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
@@ -297,7 +305,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
-        drawGame.drawField(data.fieldDetails, data.snakes)
+//        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
         justSynced = true
 
