@@ -153,8 +153,13 @@ class GridOnServer(override val boundary: Point) extends Grid {
   }
 
   def randomHex() = {
-    val h = random.nextInt(256).toHexString + random.nextInt(256).toHexString + random.nextInt(256).toHexString
+    val h = getRandom(94).toHexString + getRandom(94).toHexString + getRandom(94).toHexString
     String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
+  }
+  def getRandom(start:Int)={
+    val end = 256
+    val rnd = new scala.util.Random
+    start + rnd.nextInt(end - start)
   }
 
   def colorSimilarity(color1: String, color2: String) = {
