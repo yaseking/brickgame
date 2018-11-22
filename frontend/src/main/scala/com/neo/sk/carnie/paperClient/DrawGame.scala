@@ -29,6 +29,8 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //边界canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+//  private[this] val fieldCanvas = dom.document.getElementById("FieldView").asInstanceOf[Canvas] //领地canvas
+//  private[this] val fieldCtx = fieldCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
@@ -46,6 +48,8 @@ class DrawGame(
     canvas.height = windowBoundary.y.toInt
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
+//    fieldCanvas.width = canvasUnit * Boundary.w
+//    fieldCanvas.height = canvasUnit * Boundary.h
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
     drawCache()
@@ -59,6 +63,9 @@ class DrawGame(
 
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
+
+//    fieldCanvas.width = canvasUnit * Boundary.w
+//    fieldCanvas.height = canvasUnit * Boundary.h
 
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
@@ -227,7 +234,21 @@ class DrawGame(
     ctx.restore()
   }
 
+//  def drawField(fieldData: List[Protocol.FieldByColumn], snakes: List[SkDt]): Unit = {
+//    fieldCtx.clearRect(0, 0, fieldCanvas.width, fieldCanvas.height)
+//    fieldData.foreach { field => //按行渲染
+//      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+//      fieldCtx.fillStyle = color
+//      field.scanField.foreach { point =>
+//        point.x.foreach { x =>
+//          fieldCtx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//        }
+//      }
+//    }
+//  }
+
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
+//    val startTime6 = System.currentTimeMillis()
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -246,14 +267,23 @@ class DrawGame(
     val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
     val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
+//    val endTime6 = System.currentTimeMillis()
+//    println(s"Time6: ${endTime6 -startTime6}")
+
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
+//    val endTime4 = System.currentTimeMillis()
+//    println(s"Time4: ${endTime4 - endTime6}")
+
     val newScale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
     setScale(newScale, windowBoundary.x / 2, windowBoundary.y / 2)
+
+//    val endTime5 = System.currentTimeMillis()
+//    println(s"Time5: ${endTime5 - endTime4}")
 
     ctx.globalAlpha = 0.6
     data.bodyDetails.foreach { bds =>
@@ -279,7 +309,14 @@ class DrawGame(
       }
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
+//    val endDrawBody = System.currentTimeMillis()
+//    println(s"drawBodyTime: ${endDrawBody - endTime5}")
+//    println(s"Time1: ${endDrawBody - startTime6}")
 
+    //绘制领地
+//    ctx.save()
+//    ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
+//    ctx.restore()
 
     ctx.globalAlpha = 1.0
     fieldInWindow.foreach { field => //按行渲染
@@ -292,7 +329,10 @@ class DrawGame(
       }
     }
 
-    snakeWithOff.foreach { s =>
+//    val endDrawField = System.currentTimeMillis()
+//    println(s"drawFieldTime: ${endDrawField - endDrawBody}")
+
+    snakeWithOff.foreach { s => //draw headers
       ctx.fillStyle = s.color
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
@@ -309,6 +349,8 @@ class DrawGame(
       ctx.fillStyle = "#000000"
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
     }
+//    val endTime2 = System.currentTimeMillis()
+//    println(s"Time2: ${endTime2 - endDrawField}")
 
     //边界
     ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
@@ -320,6 +362,9 @@ class DrawGame(
       PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     }
 
+//    val endTime3 = System.currentTimeMillis()
+//    println(s"Time3: ${endTime3 - endTime2}")
+//    println(s"drawGridTime: ${endTime3 - startTime6}")
     newScale
   }
 

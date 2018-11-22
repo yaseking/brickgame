@@ -251,7 +251,7 @@ object RoomActor {
             val finishUsers = finishFields.map(_._1)
             //test
 //            finishUsers.foreach(u => dispatchTo(subscribersMap, u, newData))
-            watcherMap.filter(u => finishUsers.contains(u._1)).foreach(u => dispatchTo(subscribersMap, u._1, newData))
+//            watcherMap.filter(u => finishUsers.contains(u._1)).foreach(u => dispatchTo(subscribersMap, u._1, newData))
             newField = finishFields.map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
                 ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
@@ -260,7 +260,7 @@ object RoomActor {
 //            userMap.filterNot(user => finishUsers.contains(user._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
             //test
             userMap.foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
-            watcherMap.filterNot(u => finishUsers.contains(u._1)).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            watcherMap.foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
