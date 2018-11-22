@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.core.GameRecorder.RecordData
+import com.neo.sk.carnie.common.AppSettings
 
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
@@ -28,6 +29,11 @@ object RoomActor {
 
   private val log = LoggerFactory.getLogger(this.getClass)
   val border = Point(BorderSize.w, BorderSize.h)
+
+  private val upperLimit = AppSettings.upperLimit.toFloat
+
+  private val lowerLimit = AppSettings.lowerLimit.toFloat
+
   private val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
 
   private final case object BehaviorChangeKey
@@ -146,7 +152,6 @@ object RoomActor {
           log.debug(s"LeftRoom:::$id")
           if(userDeadList.contains(id)) userDeadList -= id
           grid.removeSnake(id)
-          grid.cleanSnakeTurnPoint(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
@@ -174,6 +179,7 @@ object RoomActor {
             val name = userMap.get(id).head.name
             subscribersMap.remove(id)
             userMap.remove(id)
+            grid.cleanSnakeTurnPoint(id)
             grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
             roomManager ! RoomManager.UserLeft(id)
             gameEvent += ((grid.frameCount, LeftEvent(id, name)))
