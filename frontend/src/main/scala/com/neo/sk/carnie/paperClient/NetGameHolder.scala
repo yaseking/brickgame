@@ -146,14 +146,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //                if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
 //              }
               if(killInfo._3 == myId) audioKill.play()
-              var num = 0
-              data.fieldDetails.find(_.uid == myId).map(_.scanField).getOrElse(Nil).foreach { row =>
-                row.x.foreach { y => num += (y._2 - y._1) }
-              }
-              if (fieldNum < num && snake.id == myId) {
-                audioFinish.play()
-              }
-              fieldNum = num
+//              var num = 0
+//              data.fieldDetails.find(_.uid == myId).map(_.scanField).getOrElse(Nil).foreach { row =>
+//                row.x.foreach { y => num += (y._2 - y._1) }
+//              }
+//              if (fieldNum < num && snake.id == myId) {
+//                audioFinish.play()
+//              }
+//              fieldNum = num
               val endTime1 = System.currentTimeMillis()
               println(s"TimeBefore: ${endTime1 - currentTime}")
               val time2 = drawGameImage(myId, data, offsetTime, endTime1)
@@ -321,6 +321,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")
+        if(data.fieldDetails.exists(_.uid == myId))
+          audioFinish.play()
         newFieldInfo = Some(data)
 
       case x@Protocol.ReceivePingPacket(_) =>
