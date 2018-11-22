@@ -313,6 +313,7 @@ trait Grid {
           for (y <- yMin until yMax) {
             grid.get(Point(x, y)) match {
               case Some(x: Field) if x.id == snake.id => //donothing
+              case Some(x: Body)  if x.fid.nonEmpty && x.fid.get == snake.id =>
               case _ => targets = targets + Point(x, y)
             }
           }
