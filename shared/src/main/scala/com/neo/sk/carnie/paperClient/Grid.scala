@@ -246,14 +246,22 @@ trait Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
-    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l))).data.header)).keySet
+    val finishPoints = finishFields.flatMap(_._2)
+
+    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l))).data.header)).keySet
+    val bodyInNewFieldSnake = finishPoints.map{ fp =>
+      grid.get(fp) match {
+        case Some(Body(bid, _)) => Some(bid)
+        case _ => None
+      }
+    }.filter(_.nonEmpty).map(_.get)
 
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
-    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
+    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList :: bodyInNewFieldSnake
 
     val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
