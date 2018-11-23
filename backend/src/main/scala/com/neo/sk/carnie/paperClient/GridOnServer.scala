@@ -30,9 +30,9 @@ class GridOnServer(override val boundary: Point) extends Grid {
   private[this] var historyRankMap = Map.empty[String, Score]
   var historyRankList: List[Score] = historyRankMap.values.toList.sortBy(_.k).reverse
 
-  private[this] var historyRankThreshold = if (historyRankList.isEmpty) (-1, -1) else (historyRankList.map(_.area).min ,historyRankList.map(_.k).min)
+  private[this] var historyRankThreshold = if (historyRankList.isEmpty) (-1, -1) else (historyRankList.map(_.area).min, historyRankList.map(_.k).min)
 
-  def addSnake(id: String, roomId:Int, name: String) = {
+  def addSnake(id: String, roomId: Int, name: String) = {
     val bodyColor = randomColor()
     waitingJoin += (id -> (name, bodyColor))
   }
@@ -43,7 +43,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor)) =>
       val startTime = System.currentTimeMillis()
       val indexSize = 10 //5
-      val basePoint = randomEmptyPoint(indexSize)
+    val basePoint = randomEmptyPoint(indexSize)
       val newFiled = (0 until indexSize).flatMap { x =>
         (0 until indexSize).map { y =>
           val point = Point(basePoint.x + x, basePoint.y + y)
@@ -77,20 +77,20 @@ class GridOnServer(override val boundary: Point) extends Grid {
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
         case Some(oldScore) =>
-          if(cScore.area > oldScore.area) {
+          if (cScore.area > oldScore.area) {
             historyRankMap += (cScore.id -> cScore)
             historyChange = true
           }
-          else if(cScore.area == oldScore.area && cScore.k > oldScore.k) {
+          else if (cScore.area == oldScore.area && cScore.k > oldScore.k) {
             historyRankMap += (cScore.id -> cScore)
             historyChange = true
           }
         case None =>
-          if(cScore.area > historyRankThreshold._1) {
+          if (cScore.area > historyRankThreshold._1) {
             historyRankMap += (cScore.id -> cScore)
             historyChange = true
           }
-          else if(cScore.area == historyRankThreshold._1 && cScore.k > historyRankThreshold._2) {
+          else if (cScore.area == historyRankThreshold._1 && cScore.k > historyRankThreshold._2) {
             historyRankMap += (cScore.id -> cScore)
             historyChange = true
           }
@@ -110,18 +110,29 @@ class GridOnServer(override val boundary: Point) extends Grid {
     var color = randomHex()
     val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
     val similarityDegree = 2000
-    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_<similarityDegree) > 0) {
+    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_ < similarityDegree) > 0) {
       color = randomHex()
     }
-//    log.debug(s"color : $color exceptColor : $exceptColor")
+    //    log.debug(s"color : $color exceptColor : $exceptColor")
     "#" + color
+  }
+
+  implicit val scoreOrdering = new Ordering[Score] {
+    override def compare(x: Score, y: Score): Int = {
+      var r = y.area - x.area
+      if (r == 0) {
+        r = y.k - x.k
+      }
+      r
+    }
   }
 
   def randomHex() = {
     val h = getRandom(94).toHexString + getRandom(94).toHexString + getRandom(94).toHexString
     String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
   }
-  def getRandom(start:Int)={
+
+  def getRandom(start: Int) = {
     val end = 256
     val rnd = new scala.util.Random
     start + rnd.nextInt(end - start)
@@ -130,8 +141,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
   def colorSimilarity(color1: String, color2: String) = {
     var target = 0.0
     var index = 0
-    if(color1.length == 6 && color2.length == 6) {
-      (0 until color1.length/2).foreach{ _ =>
+    if (color1.length == 6 && color2.length == 6) {
+      (0 until color1.length / 2).foreach { _ =>
         target = target +
           Math.pow(hexToDec(color1.substring(index, index + 2)) - hexToDec(color2.substring(index, index + 2)), 2)
         index = index + 2
@@ -140,11 +151,11 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target.toInt
   }
 
-  def hexToDec(hex: String): Int ={
+  def hexToDec(hex: String): Int = {
     val hexString: String = "0123456789ABCDEF"
     var target = 0
     var base = Math.pow(16, hex.length - 1).toInt
-    for(i <- 0 until hex.length){
+    for (i <- 0 until hex.length) {
       target = target + hexString.indexOf(hex(i)) * base
       base = base / 16
     }
@@ -158,7 +169,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     val deadSnakes = update._2
     if (deadSnakes.nonEmpty) {
       val deadSnakesInfo = deadSnakes.map { id =>
-        if(currentRank.exists(_.id == id)) {
+        if (currentRank.exists(_.id == id)) {
           val info = currentRank.filter(_.id == id).head
           (id, info.k, info.area)
         } else (id, -1, -1)
