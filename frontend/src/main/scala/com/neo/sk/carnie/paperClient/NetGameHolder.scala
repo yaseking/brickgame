@@ -42,7 +42,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
-  private var scale = 1.0
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -193,7 +192,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, currentTime: Long): Long = {
-    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), scale)
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
     val endTime1 = System.currentTimeMillis()
     println(s"drawGridTime: ${endTime1 - currentTime}")
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))

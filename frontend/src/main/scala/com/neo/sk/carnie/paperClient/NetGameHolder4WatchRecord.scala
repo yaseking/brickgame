@@ -47,7 +47,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
-  private var scale = 1.0
 
 
 //  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -214,7 +213,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   }
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale, true)
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
 //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
