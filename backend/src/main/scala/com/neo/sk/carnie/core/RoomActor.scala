@@ -107,7 +107,7 @@ object RoomActor {
           userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
           subscribersMap.put(id, subscriber)
           log.debug(s"subscribersMap: $subscribersMap")
-          ctx.watchWith(subscriber, UserLeft(subscriber))
+//          ctx.watchWith(subscriber, UserLeft(subscriber))
           grid.addSnake(id, roomId, name)
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           val gridData = grid.getGridData
