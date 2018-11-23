@@ -322,7 +322,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         justSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-        println(s"!!!!!!new snake join!!!")
+        println(s"!!!!!!new snake---${data.snake} join!!!")
         newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
