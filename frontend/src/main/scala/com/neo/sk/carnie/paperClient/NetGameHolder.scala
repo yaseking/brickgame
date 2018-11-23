@@ -26,7 +26,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var firstCome = true
   var isSynced = false
   var justSynced = false
-//  var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
   private var killInfo = ("", "", "")
@@ -38,7 +37,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var totalData: scala.Option[Protocol.Data4TotalSync] = None
-  //  var play = true
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
@@ -74,6 +72,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
+    firstCome = false
     dom.window.requestAnimationFrame(gameRender())
   }
   var lastTime1 = 0L
@@ -148,7 +147,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           } else {
             data.snakes.find(_.id == myId) match {
               case Some(snake) =>
-                firstCome = false
+//                firstCome = false
                 //              if (scoreFlag) {
                 //                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
                 //                scoreFlag = false
