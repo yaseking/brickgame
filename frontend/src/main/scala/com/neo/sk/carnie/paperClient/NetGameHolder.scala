@@ -291,8 +291,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
         }
 
-      case Protocol.SomeOneWin(winner, finalData) =>
-        maxArea = Math.max(maxArea,currentRank.find(_.id == myId).map(_.area).getOrElse(0))
+      case Protocol.SomeOneWin(winner, finalData,max) =>
+        maxArea = Math.max(maxArea,max)
         isWin = true
         winnerName = winner
         winData = finalData
