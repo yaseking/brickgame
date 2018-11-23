@@ -26,19 +26,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var firstCome = true
   var isSynced = false
   var justSynced = false
-//  var scoreFlag = true
   var isWin = false
   var winnerName = "unknown"
-  private var killInfo = ("", "", "")
-  var lastTime = 0
+  var killInfo: scala.Option[(String, String, String)] = None
+  var barrageDuration = 0
   var winData: Protocol.Data4TotalSync = grid.getGridData
-  var fieldNum = 1
-  var snakeNum = 1
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var totalData: scala.Option[Protocol.Data4TotalSync] = None
-  //  var play = true
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
 
@@ -76,6 +72,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
+
   var lastTime1 = 0L
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
@@ -111,9 +108,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
         newSnakeInfo = None
       }
+
       if (!justSynced) { //前端更新
         grid.update("f")
-
         if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
@@ -147,25 +144,17 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
             isContinue = false
           } else {
             data.snakes.find(_.id == myId) match {
-              case Some(snake) =>
+              case Some(_) =>
                 firstCome = false
-                //              if (scoreFlag) {
-                //                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-                //                scoreFlag = false
-                //              }
-                //              data.killHistory.foreach { i =>
-                //                if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
-                //              }
-                if(killInfo._3 == myId) audioKill.play()
                 val endTime1 = System.currentTimeMillis()
                 println(s"TimeBefore: ${endTime1 - currentTime}")
                 val time2 = drawGameImage(myId, data, offsetTime, endTime1)
-                if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
-                  drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
-                  lastTime -= 1
-                  if (lastTime == 0) {
-                    killInfo = ("", "", "")
-                  }
+                if (killInfo.nonEmpty) {
+                  val killBaseInfo = killInfo.get
+                  if(killBaseInfo._3 == myId) audioKill.play()
+                  drawGame.drawUserDieInfo(killBaseInfo._2, killBaseInfo._3)
+                  barrageDuration -= 1
+                  if (barrageDuration == 0) killInfo = None
                 }
                 val endTime = System.currentTimeMillis()
                 println(s"TimeAfter: ${endTime - time2}")
@@ -175,11 +164,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                 if (firstCome) drawGame.drawGameWait()
                 else {
                   if (isContinue) audioKilled.play()
-                  //                currentRank.filter(_.id == myId).foreach { score =>
-                  //                  myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-                  //                }
                   drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-                  killInfo = ("", "", "")
+                  killInfo = None
                   dom.window.cancelAnimationFrame(nextFrame)
                   isContinue = false
                 }
@@ -330,8 +316,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-        killInfo = (killedId, killedName, killerName)
-        lastTime = 100
+        killInfo = Some(killedId, killedName, killerName)
+        barrageDuration = 100
 
       case x@Protocol.DeadPage(kill, area, start, end) =>
         println(s"recv userDead $x")
