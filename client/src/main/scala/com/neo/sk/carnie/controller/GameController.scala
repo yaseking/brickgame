@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
-import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction}
+import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction, UserLeft}
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
@@ -217,20 +217,33 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
-        winnerName = winner
-        winnerData = Some(finalData)
-        isWin = true
-        audioWin.play()
-//        gameScene.drawGameWin(player.id, winner, finalData)
-        grid.cleanData()
+        Boot.addToPlatform {
+          winnerName = winner
+          winnerData = Some(finalData)
+          isWin = true
+          audioWin.play()
+          //        gameScene.drawGameWin(player.id, winner, finalData)
+          grid.cleanData()
+        }
+
 //        Boot.addToPlatform {
 //
 //          animationTimer.stop()
 //        }
+      case UserLeft(id) =>
+        Boot.addToPlatform {
+          grid.returnBackField(id)
+          grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
+            Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+          }
+        }
 
       case x@Protocol.DeadPage(kill, area, start, end) =>
         println(s"recv userDead $x")
-        myScore = BaseScore(kill, area, start, end)
+        Boot.addToPlatform {
+          myScore = BaseScore(kill, area, start, end)
+        }
+
 
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
@@ -249,7 +262,9 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake join!!!")
-        newSnakeInfo = Some(data)
+        Boot.addToPlatform{
+          newSnakeInfo = Some(data)
+        }
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         Boot.addToPlatform {

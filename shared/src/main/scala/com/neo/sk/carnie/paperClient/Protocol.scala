@@ -76,6 +76,8 @@ object Protocol {
 
   case class DeadPage(kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
 
+  case class UserLeft(userId: String) extends GameMessage
+
   case class InitReplayError(info: String) extends GameMessage
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage

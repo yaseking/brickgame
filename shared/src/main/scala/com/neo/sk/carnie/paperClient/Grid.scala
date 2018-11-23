@@ -269,8 +269,8 @@ trait Grid {
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
-      val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
-      val endTime = System.currentTimeMillis()
+//      val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
+//      val endTime = System.currentTimeMillis()
 //      snakes.get(sid).foreach { s =>
 //        killedSks += sid -> (sid, s.name, s.kill, score.formatted("%.2f").toFloat, s.startTime, endTime)
 //      }

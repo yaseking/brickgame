@@ -156,6 +156,7 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
+          dispatch(subscribersMap, Protocol.UserLeft(id))
           watcherMap.filter(_._2 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
@@ -170,7 +171,7 @@ object RoomActor {
           Behaviors.same
 
         case UserLeft(actor) =>
-          ctx.unwatch(actor)
+//          ctx.unwatch(actor)
           log.debug(s"UserLeft:::")
           val subscribersOpt = subscribersMap.find(_._2.equals(actor))
           if(subscribersOpt.nonEmpty){
