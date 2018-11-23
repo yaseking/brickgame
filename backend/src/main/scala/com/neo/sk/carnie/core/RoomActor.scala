@@ -110,8 +110,8 @@ object RoomActor {
           ctx.watchWith(subscriber, UserLeft(subscriber))
           grid.addSnake(id, roomId, name)
           dispatchTo(subscribersMap, id, Protocol.Id(id))
-//          val gridData = grid.getGridData
-//          dispatch(subscribersMap, gridData)
+          val gridData = grid.getGridData
+          dispatch(subscribersMap, gridData)
 //          idle(roomId, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           Behaviors.same
