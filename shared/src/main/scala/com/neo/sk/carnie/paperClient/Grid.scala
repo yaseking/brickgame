@@ -261,7 +261,7 @@ trait Grid {
 
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
-    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
+    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList ::: bodyInNewFieldSnake
 
     val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
