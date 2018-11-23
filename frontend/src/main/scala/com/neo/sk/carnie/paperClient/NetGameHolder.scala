@@ -24,6 +24,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
   var firstCome = true
+  var isSynced = false
   var justSynced = false
 //  var scoreFlag = true
   var isWin = false
@@ -313,13 +314,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.Ranks(current) =>
         currentRank = current
         maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && justSynced) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
 //        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
         justSynced = true
+        isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!")
