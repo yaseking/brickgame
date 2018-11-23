@@ -105,7 +105,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
-        grid.cleanSnakeTurnPoint(myId)
+        newSnakeInfo.get.snake.foreach{ s =>
+          grid.cleanSnakeTurnPoint(s.id)
+        }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
         newSnakeInfo = None
