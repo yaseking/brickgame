@@ -96,7 +96,8 @@ object RoomActor {
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
             tickCount: Long,
             gameEvent: mutable.ArrayBuffer[(Long, GameEvent)],
-            winStandard: Double
+            winStandard: Double,
+            firstComeList: List[String] = List.empty[String]
           )(
             implicit timer: TimerScheduler[Command]
           ): Behavior[Command] = {
@@ -110,11 +111,11 @@ object RoomActor {
 //          ctx.watchWith(subscriber, UserLeft(subscriber))
           grid.addSnake(id, roomId, name)
           dispatchTo(subscribersMap, id, Protocol.Id(id))
-          val gridData = grid.getGridData
-          dispatch(subscribersMap, gridData)
+//          val gridData = grid.getGridData
+//          dispatch(subscribersMap, gridData)
 //          idle(roomId, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
-          Behaviors.same
+          idle(roomId, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList)
 
         case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
@@ -251,6 +252,10 @@ object RoomActor {
             }
             dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
             grid.newInfo = Nil
+          }
+
+          firstComeList.foreach { id =>
+            dispatchTo(subscribersMap, id, newData)
           }
 
 
