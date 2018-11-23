@@ -27,11 +27,6 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   var newInfo = List.empty[(String, SkDt, List[Point])]
 
-  private[this] var historyRankMap = Map.empty[String, Score]
-  var historyRankList: List[Score] = historyRankMap.values.toList.sortBy(_.k).reverse
-
-  private[this] var historyRankThreshold = if (historyRankList.isEmpty) (-1, -1) else (historyRankList.map(_.area).min, historyRankList.map(_.k).min)
-
   def addSnake(id: String, roomId: Int, name: String) = {
     val bodyColor = randomColor()
     waitingJoin += (id -> (name, bodyColor))
@@ -73,36 +68,6 @@ class GridOnServer(override val boundary: Point) extends Grid {
       case _ => (Point(-1, -1), Field((-1L).toString))
     }.filter(_._2.id != -1L).values.groupBy(_.id).map(p => (p._1, p._2.size))
     currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, areaMap.getOrElse(s.id, 0))).toList.sortBy(_.area).reverse
-    var historyChange = false
-    currentRank.foreach { cScore =>
-      historyRankMap.get(cScore.id) match {
-        case Some(oldScore) =>
-          if (cScore.area > oldScore.area) {
-            historyRankMap += (cScore.id -> cScore)
-            historyChange = true
-          }
-          else if (cScore.area == oldScore.area && cScore.k > oldScore.k) {
-            historyRankMap += (cScore.id -> cScore)
-            historyChange = true
-          }
-        case None =>
-          if (cScore.area > historyRankThreshold._1) {
-            historyRankMap += (cScore.id -> cScore)
-            historyChange = true
-          }
-          else if (cScore.area == historyRankThreshold._1 && cScore.k > historyRankThreshold._2) {
-            historyRankMap += (cScore.id -> cScore)
-            historyChange = true
-          }
-        case _ => //do nothing.
-      }
-    }
-
-    if (historyChange) {
-      historyRankList = historyRankMap.values.toList.sorted.take(historyRankLength)
-      historyRankThreshold = (historyRankList.lastOption.map(_.area).getOrElse(-1), historyRankList.lastOption.map(_.k).getOrElse(-1))
-      historyRankMap = historyRankList.map(s => s.id -> s).toMap
-    }
 
   }
 
@@ -115,16 +80,6 @@ class GridOnServer(override val boundary: Point) extends Grid {
     }
     //    log.debug(s"color : $color exceptColor : $exceptColor")
     "#" + color
-  }
-
-  implicit val scoreOrdering = new Ordering[Score] {
-    override def compare(x: Score, y: Score): Int = {
-      var r = y.area - x.area
-      if (r == 0) {
-        r = y.k - x.k
-      }
-      r
-    }
   }
 
   def randomHex() = {
