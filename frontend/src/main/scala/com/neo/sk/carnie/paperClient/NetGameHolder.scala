@@ -200,9 +200,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), scale)
     val endTime1 = System.currentTimeMillis()
     println(s"drawGridTime: ${endTime1 - currentTime}")
-    if (syncGridData.nonEmpty){
-      drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    }
+    drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     val endTime2 = System.currentTimeMillis()
     println(s"drawSmallMapTime: ${endTime2 - endTime1}")
     endTime2
@@ -313,7 +311,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.Ranks(current) =>
         currentRank = current
         maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin ) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && justSynced) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
