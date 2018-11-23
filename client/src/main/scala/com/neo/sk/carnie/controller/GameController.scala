@@ -54,6 +54,7 @@ class GameController(player: PlayerInfoInClient,
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
   private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var maxArea: Int = 0
   private val timeline = new Timeline()
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
@@ -165,7 +166,7 @@ class GameController(player: PlayerInfoInClient,
 //              timeFlag = false
 //              log.debug("my score has been set")
 //            }
-            gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore)
+            gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore,maxArea)
             if(isContinue) {
               audioDie.play()
               log.info("play the dieSound.")
@@ -216,8 +217,9 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case Protocol.SomeOneWin(winner, finalData) =>
+      case Protocol.SomeOneWin(winner, finalData,max) =>
         Boot.addToPlatform {
+          maxArea = Math.max(maxArea,max)
           winnerName = winner
           winnerData = Some(finalData)
           isWin = true
@@ -248,6 +250,7 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           currentRank = current
+          maxArea = Math.max(maxArea,currentRank.find(_.id == player.id).map(_.area).getOrElse(0))
           if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
             gameScene.drawRank(player.id, grid.getGridData.snakes, current)
         }
