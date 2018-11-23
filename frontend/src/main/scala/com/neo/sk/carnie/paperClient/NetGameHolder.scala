@@ -319,7 +319,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case Protocol.Ranks(current) =>
         currentRank = current
-        maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
+        maxArea = Math.max( maxArea ,historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
