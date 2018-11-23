@@ -113,8 +113,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
           if (newFieldInfo.get.frameCount == grid.frameCount) {
             grid.addNewFieldInfo(newFieldInfo.get)
-            if(newFieldInfo.get.fieldDetails.exists(_.uid == myId))
-              audioFinish.play()
+//            if(newFieldInfo.get.fieldDetails.exists(_.uid == myId))
+//              audioFinish.play()
           } else { //主动要求同步数据
             webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
           }
@@ -311,6 +311,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!")
+        if(data.filedDetails.exists(_.uid == myId))
+          audioFinish.play()
         newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
