@@ -295,6 +295,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         winData = finalData
         grid.cleanData()
 
+      case Protocol.WinnerBestScore(score) =>
+          maxArea = Math.max(maxArea,score)
+
 
       case Protocol.Ranks(current) =>
         currentRank = current

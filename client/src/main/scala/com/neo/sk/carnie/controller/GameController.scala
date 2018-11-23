@@ -227,10 +227,11 @@ class GameController(player: PlayerInfoInClient,
           grid.cleanData()
         }
 
-//        Boot.addToPlatform {
-//
-//          animationTimer.stop()
-//        }
+      case Protocol.WinnerBestScore(score) =>
+        Boot.addToPlatform{
+          maxArea = Math.max(maxArea,score)
+        }
+
       case UserLeft(id) =>
         Boot.addToPlatform {
           grid.returnBackField(id)
