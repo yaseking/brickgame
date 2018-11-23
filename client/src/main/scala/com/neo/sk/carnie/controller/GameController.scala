@@ -217,9 +217,8 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case Protocol.SomeOneWin(winner, finalData,max) =>
+      case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
-          maxArea = Math.max(maxArea,max)
           winnerName = winner
           winnerData = Some(finalData)
           isWin = true

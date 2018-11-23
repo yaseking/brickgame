@@ -282,8 +282,8 @@ object RoomActor {
             log.debug("winwinwinwin!!")
             val finalData = grid.getGridData
             grid.cleanData()
-            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData,grid.currentRank.head.area))
-            gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData,grid.currentRank.head.area)))
+            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData))
+            gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
             userMap.foreach { u =>
               gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
               userDeadList += u._1
