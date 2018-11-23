@@ -344,9 +344,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
-      case x@Protocol.ReplayFinish(_) =>
-        println("get message replay finish")
-        replayFinish = true
 
       case x@_ =>
         println(s"receive unknown msg:$x")
