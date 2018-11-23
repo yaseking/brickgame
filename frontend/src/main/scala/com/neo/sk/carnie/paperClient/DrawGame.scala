@@ -29,8 +29,6 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //边界canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-//  private[this] val fieldCanvas = dom.document.getElementById("FieldView").asInstanceOf[Canvas] //领地canvas
-//  private[this] val fieldCtx = fieldCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
@@ -49,8 +47,6 @@ class DrawGame(
     canvas.height = windowBoundary.y.toInt
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
-//    fieldCanvas.width = canvasUnit * Boundary.w
-//    fieldCanvas.height = canvasUnit * Boundary.h
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
     drawCache()
@@ -64,9 +60,6 @@ class DrawGame(
 
     borderCanvas.width = canvasUnit * Boundary.w
     borderCanvas.height = canvasUnit * Boundary.h
-
-//    fieldCanvas.width = canvasUnit * Boundary.w
-//    fieldCanvas.height = canvasUnit * Boundary.h
 
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt

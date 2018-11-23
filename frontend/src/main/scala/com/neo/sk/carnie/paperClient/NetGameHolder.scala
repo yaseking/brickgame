@@ -71,7 +71,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
-    firstCome = false
     dom.window.requestAnimationFrame(gameRender())
   }
   var lastTime1 = 0L
@@ -138,7 +137,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if(totalData.nonEmpty){
           val data = totalData.get
           if (isWin) {
-//            ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
             drawGame.drawGameWin(myId, winnerName, winData)
             audio1.play()
             dom.window.cancelAnimationFrame(nextFrame)
@@ -146,7 +144,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           } else {
             data.snakes.find(_.id == myId) match {
               case Some(snake) =>
-//                firstCome = false
+                if(firstCome) firstCome = false
                 //              if (scoreFlag) {
                 //                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
                 //                scoreFlag = false
