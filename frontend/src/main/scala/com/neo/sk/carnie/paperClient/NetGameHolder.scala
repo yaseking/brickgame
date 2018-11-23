@@ -322,6 +322,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case x@Protocol.DeadPage(kill, area, start, end) =>
         println(s"recv userDead $x")
         myScore = BaseScore(kill, area, start, end)
+        maxArea = Math.max(maxArea ,historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+
 
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")
