@@ -292,18 +292,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
+        maxArea = Math.max(maxArea,currentRank.find(_.id == myId).map(_.area).getOrElse(0))
         isWin = true
         winnerName = winner
         winData = finalData
+        grid.cleanData()
 
 
       case Protocol.Ranks(current) =>
         currentRank = current
-        maxArea = Math.max(maxArea ,currentRank.find(_.id == myId).map(_.area).getOrElse(0))
+        maxArea = Math.max(maxArea,currentRank.find(_.id == myId).map(_.area).getOrElse(0))
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
-//        if(isWin) {
-//          grid.cleanData()
-//        }
+
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
 //        drawGame.drawField(data.fieldDetails, data.snakes)
