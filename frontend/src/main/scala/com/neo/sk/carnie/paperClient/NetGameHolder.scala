@@ -200,7 +200,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), scale)
     val endTime1 = System.currentTimeMillis()
     println(s"drawGridTime: ${endTime1 - currentTime}")
-    drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+    if (syncGridData.nonEmpty){
+      drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+    }
     val endTime2 = System.currentTimeMillis()
     println(s"drawSmallMapTime: ${endTime2 - endTime1}")
     endTime2

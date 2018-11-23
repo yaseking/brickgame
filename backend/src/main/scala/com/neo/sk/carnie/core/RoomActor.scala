@@ -133,6 +133,7 @@ object RoomActor {
             if(userMap.get(id).nonEmpty) {
               val name = userMap(id).name
               val startTime = userMap(id).startTime
+              grid.cleanSnakeTurnPoint(id)
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
               log.debug(s"user ${id} dead===kill::${u._2}, area::${u._3}, starTime:$startTime")
               val endTime = System.currentTimeMillis()
