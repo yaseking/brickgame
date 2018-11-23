@@ -46,8 +46,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   private var maxArea: Int = 0
   private var scale = 1.0
 
-  var replayFinish = false
-
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
@@ -139,9 +137,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   def draw(offsetTime: Long, currentTime: Long): Unit = {
 
     if (webSocketClient.getWsState) {
-      if (replayFinish) {
-        drawGame.drawGameOff(firstCome, Some(true), false, false)
-      } else {
         if(totalData.nonEmpty){
           val data = totalData.get
           if (isWin) {
@@ -193,7 +188,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         } else {
           drawGame.drawGameWait()
         }
-      }
     } else {
       drawGame.drawGameOff(firstCome, None, false, false)
     }
@@ -319,7 +313,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case Protocol.Ranks(current) =>
         currentRank = current
-        maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
+        maxArea = Math.max( maxArea ,historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
@@ -350,9 +344,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
-      case x@Protocol.ReplayFinish(_) =>
-        println("get message replay finish")
-        replayFinish = true
 
       case x@_ =>
         println(s"receive unknown msg:$x")
