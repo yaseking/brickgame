@@ -228,9 +228,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case Protocol.WinnerBestScore(score) =>
-        Boot.addToPlatform{
           maxArea = Math.max(maxArea,score)
-        }
 
       case UserLeft(id) =>
         Boot.addToPlatform {
