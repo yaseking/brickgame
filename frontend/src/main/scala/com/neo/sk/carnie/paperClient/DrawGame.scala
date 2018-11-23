@@ -193,6 +193,7 @@ class DrawGame(
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
+    ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
@@ -372,7 +373,7 @@ class DrawGame(
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    val w = canvas.width - littleMap.w * canvasUnit * 1.042
+    val w = canvas.width * 0.98 - littleMap.w * canvasUnit * 1.042
     val h = canvas.height - littleMap.h * canvasUnit * 1.030
     ctx.save()
     ctx.globalAlpha = 0.5

@@ -145,7 +145,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if(totalData.nonEmpty){
           val data = totalData.get
           if (isWin) {
-            ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+//            ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
             drawGame.drawGameWin(myId, winnerName, winData)
             audio1.play()
             dom.window.cancelAnimationFrame(nextFrame)
