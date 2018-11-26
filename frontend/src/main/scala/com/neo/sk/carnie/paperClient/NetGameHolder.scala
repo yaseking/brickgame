@@ -341,8 +341,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!")
-        if(data.filedDetails.exists(_.uid == myId))
-          audioFinish.play()
         newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
@@ -357,8 +355,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")
-//        if(data.fieldDetails.exists(_.uid == myId))
-//          audioFinish.play()
+        if(data.fieldDetails.exists(_.uid == myId))
+          audioFinish.play()
         newFieldInfo += data.frameCount -> data
 
       case x@Protocol.ReceivePingPacket(_) =>
