@@ -204,13 +204,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         if (Constant.watchKeys.contains(e.keyCode)) {
           println(s"onkeydown：${e.keyCode}")
           val msg: Protocol.UserAction = {
-            val frame = grid.frameCount + 1
+            val frame = grid.frameCount + 2
             println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
             grid.addActionWithFrame(myId, e.keyCode, frame)
             if (e.keyCode != KeyCode.Space) {
               myActionHistory += actionId -> (e.keyCode, frame)
             } else { //重新开始游戏
+              drawFunction = FrontProtocol.DrawGameWait
               audio1.pause()
               audio1.currentTime = 0
               audioKilled.pause()
@@ -246,7 +247,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.Id(id) => myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        println(s"i got $keyCode, frame : $frame")
+        println(s"i got ${grid.frameCount}, frame : $frame")
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
