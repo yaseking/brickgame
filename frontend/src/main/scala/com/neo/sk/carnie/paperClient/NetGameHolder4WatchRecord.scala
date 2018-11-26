@@ -185,7 +185,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               fieldNum = num
               drawGameImage(myId, data, offsetTime)
               if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
-                drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
+                drawGame.drawBarrage(killInfo._2, killInfo._3)
                 lastTime -= 1
                 if (lastTime == 0) {
                   killInfo = ("", "", "")

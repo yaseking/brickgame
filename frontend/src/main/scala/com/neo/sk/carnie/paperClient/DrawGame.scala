@@ -170,7 +170,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawUserDieInfo(killedName: String, killerName: String) = {
+  def drawBarrage(killedName: String, killerName: String) = {
     ctx.save()
     ctx.globalAlpha = 0.6
     ctx.restore()
