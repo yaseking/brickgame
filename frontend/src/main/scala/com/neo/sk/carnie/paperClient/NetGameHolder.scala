@@ -70,7 +70,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
-    dom.window.requestAnimationFrame(gameRender())
+    nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
 //  var lastTime1 = 0L
@@ -255,7 +255,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.Id(id) => myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        println(s"i got actions $keyCode")
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
