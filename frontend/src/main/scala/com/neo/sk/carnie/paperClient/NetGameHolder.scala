@@ -284,7 +284,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case UserLeft(id) =>
-        println(s"user $id left:::$id")
+        println(s"user $id left:::")
         if (grid.snakes.contains(id)) grid.snakes -= id
         grid.returnBackField(id)
         grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
