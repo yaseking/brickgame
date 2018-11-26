@@ -31,7 +31,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
   var winData: Protocol.Data4TotalSync = grid.getGridData
-//  var newFieldInfo: List[scala.Option[Protocol.NewFieldInfo]] = List(None)
+//  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = List(None)
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
@@ -118,9 +118,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       if (!justSynced) { //前端更新
         grid.update("f")
-        newFieldInfo.foreach { m =>
-          val frame = m._1
-          val newFieldData = m._2
+        if (newFieldInfo.nonEmpty) {
+          val frame = newFieldInfo.keys.min
+          val newFieldData = newFieldInfo(frame)
+//          newFieldInfo.foreach { m =>
+//            val frame = data._1
+//            val newFieldData = data._2
           if (frame == grid.frameCount) {
             grid.addNewFieldInfo(newFieldData)
             newFieldInfo -= frame
@@ -128,7 +131,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
             webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
           }
 
+//          }
         }
+
 //        if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
 //          if (newFieldInfo.get.frameCount == grid.frameCount) {
 //            grid.addNewFieldInfo(newFieldInfo.get)
