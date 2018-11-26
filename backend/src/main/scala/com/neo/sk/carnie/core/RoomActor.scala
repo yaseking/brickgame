@@ -213,7 +213,7 @@ object RoomActor {
               dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(createTime))
 
             case NeedToSync(_) =>
-              log.debug("receive NeedToSync")
+//              log.debug("receive NeedToSync")
               dispatchTo(subscribersMap, id, grid.getGridData)
 
             case _ =>
