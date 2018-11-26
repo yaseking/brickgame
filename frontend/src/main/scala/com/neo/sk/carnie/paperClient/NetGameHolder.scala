@@ -71,7 +71,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     webSocketClient.setUp(order, webSocketPara)
   }
 
-  def updateListener() ={
+  def updateListener(): Unit ={
     webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
   }
 
