@@ -216,9 +216,8 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case Protocol.SomeOneWin(winner, finalData,max) =>
+      case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
-          maxArea = Math.max(maxArea,max)
           winnerName = winner
           winnerData = Some(finalData)
           isWin = true
@@ -227,10 +226,9 @@ class GameController(player: PlayerInfoInClient,
           grid.cleanData()
         }
 
-//        Boot.addToPlatform {
-//
-//          animationTimer.stop()
-//        }
+      case Protocol.WinnerBestScore(score) =>
+          maxArea = Math.max(maxArea,score)
+
       case UserLeft(id) =>
         Boot.addToPlatform {
           grid.returnBackField(id)

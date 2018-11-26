@@ -93,11 +93,13 @@ object Protocol {
 
   case object ReStartGame extends GameMessage
 
-  case class SomeOneWin(winnerName: String, data: Data4TotalSync, maxArea: Int) extends GameMessage with GameEvent
+  case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage with GameEvent
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
+
+  case class WinnerBestScore(Score: Int) extends GameMessage
 
   sealed trait WsSendMsg
   case object WsSendComplete extends WsSendMsg
