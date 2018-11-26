@@ -118,6 +118,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
         newSnakeInfo = None
       }
+      webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
       if (!isWin){
         if (syncGridData.nonEmpty) {
           grid.initSyncGridData(syncGridData.get)
