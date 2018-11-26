@@ -116,7 +116,7 @@ object GameRecorder {
                       val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
                       essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
                     } else {
-                      log.error(s"无法找到该用户加入事件！！！！")
+                      log.error(s"无法找到用户 $id 加入事件！！！！")
                     }
 
                   }
