@@ -50,6 +50,7 @@ class GameController(player: PlayerInfoInClient,
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
+  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
@@ -123,57 +124,55 @@ class GameController(player: PlayerInfoInClient,
       syncGridData = None
       justSynced = false
     }
+    totalData = Some(grid.getGridData)
   }
 
   def draw(offsetTime: Long): Unit = {
-    val data = grid.getGridData
-    if(isWin) {
-      gameScene.drawGameWin(player.id, winnerName, winnerData.get)
-    }
-    else {
-      data.snakes.find(_.id == player.id) match {
-        case Some(snake) =>
-          firstCome = false
-//          if (scoreFlag) {
-//            myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-//            scoreFlag = false
-//          }
-//          data.killHistory.foreach {
-//            i => if (i.frameCount + 1 == data.frameCount && i.killerId == player.id) audioKill.play()
-//          }
-          if(grid.killInfo._3 == snake.id) audioKill.play()
-          val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
-          if(myFieldCount>fieldNum){
-            audioFinish.play()
-            fieldNum = myFieldCount
-          }
-
-          gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-          if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
-            gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
-            grid.lastTime -= 1
-            if (grid.lastTime == 0) {
-              grid.killInfo = ("", "", "")
-            }
-          }
-        case None =>
-          if (firstCome) gameScene.drawGameWait()
-          else {
-//            if(timeFlag){
-//              currentRank.filter(_.id == player.id).foreach { score =>
-//                myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-//              }
-//              timeFlag = false
-//              log.debug("my score has been set")
-//            }
-            gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore,maxArea)
-            if(isContinue) {
-              audioDie.play()
-              log.info("play the dieSound.")
-            }
-            isContinue = false
-          }
+    if(totalData.nonEmpty) {
+      val data = totalData.get
+      if(isWin) {
+        gameScene.drawGameWin(player.id, winnerName, winnerData.get)
       }
+      else {
+        data.snakes.find(_.id == player.id) match {
+          case Some(snake) =>
+            if(firstCome) firstCome = false
+            if(grid.killInfo._3 == snake.id) audioKill.play()
+//            val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
+//            if(myFieldCount>fieldNum){
+//              audioFinish.play()
+//              fieldNum = myFieldCount
+//            }
+
+            gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+            if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
+              gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
+              grid.lastTime -= 1
+              if (grid.lastTime == 0) {
+                grid.killInfo = ("", "", "")
+              }
+            }
+          case None =>
+            if (firstCome) gameScene.drawGameWait()
+            else {
+              //            if(timeFlag){
+              //              currentRank.filter(_.id == player.id).foreach { score =>
+              //                myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+              //              }
+              //              timeFlag = false
+              //              log.debug("my score has been set")
+              //            }
+              gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore,maxArea)
+              if(isContinue) {
+                audioDie.play()
+                log.info("play the dieSound.")
+              }
+              isContinue = false
+            }
+        }
+      }
+    } else {
+      gameScene.drawGameWait()
     }
   }
 
@@ -232,6 +231,8 @@ class GameController(player: PlayerInfoInClient,
 
       case UserLeft(id) =>
         Boot.addToPlatform {
+          println(s"user $id left:::")
+          if (grid.snakes.contains(id)) grid.snakes -= id
           grid.returnBackField(id)
           grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
             Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
@@ -264,6 +265,8 @@ class GameController(player: PlayerInfoInClient,
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake join!!!")
         Boot.addToPlatform{
+          if(data.filedDetails.exists(_.uid == player.id))
+            audioFinish.play()
           newSnakeInfo = Some(data)
         }
 

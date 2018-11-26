@@ -33,7 +33,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
 //  var winData: Protocol.Data4TotalSync = grid.getGridData
-  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
+  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
 //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
@@ -75,13 +75,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  var lastTime1 = 0L
+//  var lastTime1 = 0L
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
-    println(s"requestAnimationTime: ${curTime - lastTime1}")
+//    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
-    draw(offsetTime, curTime)
-    lastTime1 = curTime
+    draw(offsetTime)
+//    lastTime1 = curTime
     if (isContinue)
       nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
@@ -104,8 +104,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
-        newSnakeInfo.get.snake.foreach { s =>
-          grid.cleanSnakeTurnPoint(s.id)
+        newSnakeInfo.get.snake.foreach{ s =>
+          grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
+//          val filterFrame = grid.actionMap.filter(_._2.contains(s.id)).keys.toList //todo 待测试
+//          if (filterFrame.nonEmpty) {
+//            val filterAction = filterFrame.map {frame =>
+//              (frame, grid.actionMap(frame) - s.id)
+//            }.toMap
+//            grid.actionMap = grid.actionMap.filterNot(_._2.contains(s.id)) ++ filterAction //清理死前action
+//          }
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
@@ -118,14 +125,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           syncGridData = None
         } else {
           grid.update("f")
-          if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
-            if (newFieldInfo.get.frameCount == grid.frameCount) {
-              grid.addNewFieldInfo(newFieldInfo.get)
-              if (newFieldInfo.get.fieldDetails.exists(_.uid == myId)) audioFinish.play()
-            } else { //主动要求同步数据
+          newFieldInfo.foreach { m =>
+            val frame = m._1
+            val newFieldData = m._2
+            if (frame == grid.frameCount) {
+              grid.addNewFieldInfo(newFieldData)
+              newFieldInfo -= frame
+            } else if (frame < grid.frameCount) {
               webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
             }
-            newFieldInfo = None
+
           }
         }
 //        totalData = Some(grid.getGridData)
@@ -225,14 +234,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, currentTime: Long): Long = {
+  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
-    val endTime1 = System.currentTimeMillis()
-    println(s"drawGridTime: ${endTime1 - currentTime}")
+//    val endTime1 = System.currentTimeMillis()
+//    println(s"drawGridTime: ${endTime1 - currentTime}")
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    val endTime2 = System.currentTimeMillis()
-    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
-    endTime2
+//    val endTime2 = System.currentTimeMillis()
+//    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
+//    endTime2
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
@@ -257,7 +266,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               firstCome = true
               if (isWin) {
                 isWin = false
-//                winnerName = "unknown"
+                winnerName = "unknown"
               }
               myScore = BaseScore(0, 0, 0l, 0l)
               isContinue = true
@@ -284,6 +293,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.Id(id) => myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
+        println(s"i got actions $keyCode")
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
@@ -332,7 +342,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case UserLeft(id) =>
-        println(s"user $id left:::$id")
+        println(s"user $id left:::")
         if (grid.snakes.contains(id)) grid.snakes -= id
         grid.returnBackField(id)
         grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
@@ -360,10 +370,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         println(s"===========recv total data")
 //        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
+        newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+        justSynced = true
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!")
+        if(data.filedDetails.exists(_.uid == myId))
+          audioFinish.play()
         newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
@@ -380,7 +394,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         println(s"((((((((((((recv new field info")
 //        if(data.fieldDetails.exists(_.uid == myId))
 //          audioFinish.play()
-        newFieldInfo = Some(data)
+        newFieldInfo += data.frameCount -> data
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
