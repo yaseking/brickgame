@@ -72,13 +72,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  var lastTime1 = 0L
+//  var lastTime1 = 0L
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
-    println(s"requestAnimationTime: ${curTime - lastTime1}")
+//    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
-    draw(offsetTime, curTime)
-    lastTime1 = curTime
+    draw(offsetTime)
+//    lastTime1 = curTime
     if (isContinue)
       nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
@@ -130,7 +130,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
 
-  def draw(offsetTime: Long, currentTime: Long): Unit = {
+  def draw(offsetTime: Long): Unit = {
 
     if (webSocketClient.getWsState) {
         if(totalData.nonEmpty){
@@ -144,9 +144,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
             data.snakes.find(_.id == myId) match {
               case Some(_) =>
                 if(firstCome) firstCome = false
-                val endTime1 = System.currentTimeMillis()
-                println(s"TimeBefore: ${endTime1 - currentTime}")
-                val time2 = drawGameImage(myId, data, offsetTime, endTime1)
+//                val endTime1 = System.currentTimeMillis()
+//                println(s"TimeBefore: ${endTime1 - currentTime}")
+                drawGameImage(myId, data, offsetTime)
                 if (killInfo.nonEmpty) {
                   val killBaseInfo = killInfo.get
                   if(killBaseInfo._3 == myId) audioKill.play()
@@ -154,9 +154,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                   barrageDuration -= 1
                   if (barrageDuration == 0) killInfo = None
                 }
-                val endTime = System.currentTimeMillis()
-                println(s"TimeAfter: ${endTime - time2}")
-                println(s"drawTime: ${endTime - currentTime}")
+//                val endTime = System.currentTimeMillis()
+//                println(s"TimeAfter: ${endTime - time2}")
+//                println(s"drawTime: ${endTime - currentTime}")
 
               case None =>
                 if (firstCome) drawGame.drawGameWait()
@@ -177,14 +177,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     }
   }
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, currentTime: Long): Long = {
+  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
-    val endTime1 = System.currentTimeMillis()
-    println(s"drawGridTime: ${endTime1 - currentTime}")
+//    val endTime1 = System.currentTimeMillis()
+//    println(s"drawGridTime: ${endTime1 - currentTime}")
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    val endTime2 = System.currentTimeMillis()
-    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
-    endTime2
+//    val endTime2 = System.currentTimeMillis()
+//    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
+//    endTime2
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
