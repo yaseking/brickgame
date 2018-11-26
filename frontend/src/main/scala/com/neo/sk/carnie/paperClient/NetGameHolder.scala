@@ -101,7 +101,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
         newSnakeInfo.get.snake.foreach{ s =>
-          grid.cleanSnakeTurnPoint(s.id)
+          grid.cleanSnakeTurnPoint(s.id)//todo 身体消失的bug可能在这里
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
@@ -315,7 +315,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!")
-        if(data.filedDetails.exists(_.uid == myId))
+        if(data.filedDetails.exists(_.uid == myId))//??
           audioFinish.play()
         newSnakeInfo = Some(data)
 
