@@ -118,7 +118,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
         newSnakeInfo = None
       }
-      webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+
       if (!isWin){
         if (syncGridData.nonEmpty) {
           grid.initSyncGridData(syncGridData.get)
@@ -136,6 +136,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
             }
           }
         }
+        webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
         val gridData = grid.getGridData
         gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
