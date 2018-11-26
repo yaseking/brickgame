@@ -222,20 +222,27 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
             if (e.keyCode != KeyCode.Space) {
               myActionHistory += actionId -> (e.keyCode, frame)
             } else { //重新开始游戏
-              drawFunction = FrontProtocol.DrawGameWait
-              audio1.pause()
-              audio1.currentTime = 0
-              audioKilled.pause()
-              audioKilled.currentTime = 0
-//              scoreFlag = true
-              firstCome = true
-              if (isWin) {
-                isWin = false
-//                winnerName = "unknown"
+              drawFunction match {
+                case FrontProtocol.DrawBaseGame(data) =>nextFrame = dom.window.requestAnimationFrame(gameRender())
+                case _ =>
+                  drawFunction = FrontProtocol.DrawGameWait
+                  audio1.pause()
+                  audio1.currentTime = 0
+                  audioKilled.pause()
+                  audioKilled.currentTime = 0
+                  //              scoreFlag = true
+                  firstCome = true
+                  if (isWin) {
+                    isWin = false
+                    //                winnerName = "unknown"
+                  }
+                  myScore = BaseScore(0, 0, 0l, 0l)
+                  isContinue = true
+                  nextFrame = dom.window.requestAnimationFrame(gameRender())
               }
-              myScore = BaseScore(0, 0, 0l, 0l)
-              isContinue = true
-              nextFrame = dom.window.requestAnimationFrame(gameRender())
+//              if(drawFunction.isInstanceOf[FrontProtocol.DrawGameDie]){
+//
+//              }
             }
             Key(myId, e.keyCode, frame, actionId)
           }
