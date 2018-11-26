@@ -143,7 +143,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
             drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
-            println(s"${grid.getKiller(myId).map(_._2)}")
+            println(s"killer: ${grid.getKiller(myId).map(_._2)}")
             drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
