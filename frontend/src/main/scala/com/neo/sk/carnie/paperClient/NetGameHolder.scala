@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.paperClient.FrontProtocol.{DrawGameOff, DrawGameWait}
 import org.scalajs.dom.html.Canvas
@@ -11,6 +10,7 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
+
 /**
   * User: Taoz
   * Date: 9/1/2016
@@ -204,7 +204,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //    }
 //  }
 
-  def draw(offsetTime: Long, currentTime: Long): Unit = {
+  def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case DrawGameWait => drawGame.drawGameWait()
 
@@ -216,7 +216,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        drawGameImage(myId, data, offsetTime, 0l)
+        drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
           if(killBaseInfo._3 == myId) audioKill.play()
@@ -266,7 +266,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               firstCome = true
               if (isWin) {
                 isWin = false
-                winnerName = "unknown"
+//                winnerName = "unknown"
               }
               myScore = BaseScore(0, 0, 0l, 0l)
               isContinue = true
@@ -371,7 +371,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
         newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
-        justSynced = true
+//        justSynced = true
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
