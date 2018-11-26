@@ -27,16 +27,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
   var firstCome = true
   var isSynced = false
-  var justSynced = false
+//  var justSynced = false
   var isWin = false
-  var winnerName = "unknown"
+//  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
-  var winData: Protocol.Data4TotalSync = grid.getGridData
+//  var winData: Protocol.Data4TotalSync = grid.getGridData
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
-  var totalData: scala.Option[Protocol.Data4TotalSync] = None
+//  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
@@ -80,7 +80,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     val curTime = System.currentTimeMillis()
     println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
-    drawBase(offsetTime, curTime)
+    draw(offsetTime, curTime)
     lastTime1 = curTime
     if (isContinue)
       nextFrame = dom.window.requestAnimationFrame(gameRender())
@@ -94,7 +94,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
       if (!isContinue) {
         if (isWin) {
-          drawGame.drawGameWin(myId, winnerName, winData)
+          val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
+          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData)
         } else {
           drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
         }
@@ -111,10 +112,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         newSnakeInfo = None
       }
 
-      if (isWin) {
-        drawFunction = FrontProtocol.DrawGameWin
-      } else {
-        if (!justSynced) { //前端更新
+      if (!isWin){
+        if (syncGridData.nonEmpty) {
+          grid.initSyncGridData(syncGridData.get)
+          syncGridData = None
+        } else {
           grid.update("f")
           if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
             if (newFieldInfo.get.frameCount == grid.frameCount) {
@@ -125,16 +127,19 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
             }
             newFieldInfo = None
           }
-        } else if (syncGridData.nonEmpty) {
-          grid.initSyncGridData(syncGridData.get)
-          syncGridData = None
-          justSynced = false
         }
-        totalData = Some(grid.getGridData)
-        grid.getGridData.snakes.find(_.id == myId) match {
-          case Some(_) => drawFunction = FrontProtocol.DrawBaseGame(totalData.get)
-          case None if !firstCome => drawFunction = FrontProtocol.DrawGameDie
-          case _ => drawFunction = FrontProtocol.DrawGameWait
+//        totalData = Some(grid.getGridData)
+        val gridData = grid.getGridData
+        gridData.snakes.find(_.id == myId) match {
+          case Some(_) =>
+            firstCome = false
+            drawFunction = FrontProtocol.DrawBaseGame(gridData)
+
+          case None if !firstCome =>
+            drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
+
+          case _ =>
+            drawFunction = FrontProtocol.DrawGameWait
         }
       }
     } else {
@@ -143,63 +148,62 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
 
+//  def draw(offsetTime: Long, currentTime: Long): Unit = {
+//
+//    if (webSocketClient.getWsState) {
+//        if(totalData.nonEmpty){
+//          val data = totalData.get
+//          if (isWin) {
+//            drawGame.drawGameWin(myId, winnerName, winData)
+//            audio1.play()
+//            dom.window.cancelAnimationFrame(nextFrame)
+//            isContinue = false
+//          } else {
+//            data.snakes.find(_.id == myId) match {
+//              case Some(_) =>
+//                if(firstCome) firstCome = false
+//                val endTime1 = System.currentTimeMillis()
+//                println(s"TimeBefore: ${endTime1 - currentTime}")
+//                val time2 = drawGameImage(myId, data, offsetTime, endTime1)
+//                if (killInfo.nonEmpty) {
+//                  val killBaseInfo = killInfo.get
+//                  if(killBaseInfo._3 == myId) audioKill.play()
+//                  drawGame.drawUserDieInfo(killBaseInfo._2, killBaseInfo._3)
+//                  barrageDuration -= 1
+//                  if (barrageDuration == 0) killInfo = None
+//                }
+//                val endTime = System.currentTimeMillis()
+//                println(s"TimeAfter: ${endTime - time2}")
+//                println(s"drawTime: ${endTime - currentTime}")
+//
+//              case None =>
+//                if (firstCome) drawGame.drawGameWait()
+//                else {
+//                  if (isContinue) audioKilled.play()
+//                  drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+//                  killInfo = None
+//                  dom.window.cancelAnimationFrame(nextFrame)
+//                  isContinue = false
+//                }
+//            }
+//          }
+//        } else {
+//          drawGame.drawGameWait()
+//        }
+//    } else {
+//      drawGame.drawGameOff(firstCome, None, false, false)
+//    }
+//  }
+
   def draw(offsetTime: Long, currentTime: Long): Unit = {
-
-    if (webSocketClient.getWsState) {
-        if(totalData.nonEmpty){
-          val data = totalData.get
-          if (isWin) {
-            drawGame.drawGameWin(myId, winnerName, winData)
-            audio1.play()
-            dom.window.cancelAnimationFrame(nextFrame)
-            isContinue = false
-          } else {
-            data.snakes.find(_.id == myId) match {
-              case Some(_) =>
-                if(firstCome) firstCome = false
-                val endTime1 = System.currentTimeMillis()
-                println(s"TimeBefore: ${endTime1 - currentTime}")
-                val time2 = drawGameImage(myId, data, offsetTime, endTime1)
-                if (killInfo.nonEmpty) {
-                  val killBaseInfo = killInfo.get
-                  if(killBaseInfo._3 == myId) audioKill.play()
-                  drawGame.drawUserDieInfo(killBaseInfo._2, killBaseInfo._3)
-                  barrageDuration -= 1
-                  if (barrageDuration == 0) killInfo = None
-                }
-                val endTime = System.currentTimeMillis()
-                println(s"TimeAfter: ${endTime - time2}")
-                println(s"drawTime: ${endTime - currentTime}")
-
-              case None =>
-                if (firstCome) drawGame.drawGameWait()
-                else {
-                  if (isContinue) audioKilled.play()
-                  drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-                  killInfo = None
-                  dom.window.cancelAnimationFrame(nextFrame)
-                  isContinue = false
-                }
-            }
-          }
-        } else {
-          drawGame.drawGameWait()
-        }
-    } else {
-      drawGame.drawGameOff(firstCome, None, false, false)
-    }
-  }
-
-  def drawBase(offsetTime: Long, currentTime: Long): Unit = {
     drawFunction match {
       case DrawGameWait => drawGame.drawGameWait()
 
       case DrawGameOff => drawGame.drawGameOff(firstCome, None, false, false)
 
-      case FrontProtocol.DrawGameWin =>
-        drawGame.drawGameWin(myId, winnerName, winData)
+      case FrontProtocol.DrawGameWin(winner, winData) =>
+        drawGame.drawGameWin(myId, winner, winData)
         audio1.play()
-        dom.window.cancelAnimationFrame(nextFrame)
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
@@ -212,11 +216,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           if (barrageDuration == 0) killInfo = None
         }
 
-      case FrontProtocol.DrawGameDie =>
+      case FrontProtocol.DrawGameDie(killerName) =>
         if (isContinue) audioKilled.play()
-        drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+        drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
-        dom.window.cancelAnimationFrame(nextFrame)
         isContinue = false
     }
   }
@@ -254,7 +257,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               firstCome = true
               if (isWin) {
                 isWin = false
-                winnerName = "unknown"
+//                winnerName = "unknown"
               }
               myScore = BaseScore(0, 0, 0l, 0l)
               isContinue = true
@@ -323,7 +326,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         myScore = BaseScore(0, 0, 0l, 0l)
         if (isWin) {
           isWin = false
-          winnerName = "unknown"
+//          winnerName = "unknown"
         }
         isContinue = true
         nextFrame = dom.window.requestAnimationFrame(gameRender())
@@ -337,9 +340,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
+        drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
         isWin = true
-        winnerName = winner
-        winData = finalData
+//        winnerName = winner
+//        winData = finalData
         grid.cleanData()
 
       case Protocol.WinnerBestScore(score) =>
@@ -349,13 +353,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.Ranks(current) =>
         currentRank = current
         maxArea = Math.max(maxArea,currentRank.find(_.id == myId).map(_.area).getOrElse(0))
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
+          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
 //        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
-        justSynced = true
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>

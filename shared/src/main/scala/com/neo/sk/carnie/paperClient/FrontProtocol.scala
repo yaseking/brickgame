@@ -9,12 +9,12 @@ object FrontProtocol {
 
   case object DrawGameWait extends DrawFunction
 
-  case object DrawGameWin extends DrawFunction
+  case class DrawGameWin(winnerName: String, winData: Protocol.Data4TotalSync) extends DrawFunction
 
   case object DrawGameOff extends DrawFunction
 
   case class DrawBaseGame(data: Protocol.Data4TotalSync) extends DrawFunction
 
-  case object DrawGameDie extends DrawFunction
+  case class DrawGameDie(killerName: Option[String]) extends DrawFunction
 
 }
