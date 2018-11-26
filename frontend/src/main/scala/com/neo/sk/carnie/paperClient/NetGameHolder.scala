@@ -128,49 +128,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           if (newFieldInfo.nonEmpty) {
             val frame = newFieldInfo.keys.min
             val newFieldData = newFieldInfo(frame)
-            //          newFieldInfo.foreach { m =>
-            //            val frame = data._1
-            //            val newFieldData = data._2
             if (frame == grid.frameCount) {
               grid.addNewFieldInfo(newFieldData)
               newFieldInfo -= frame
             } else if (frame < grid.frameCount) {
               webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
             }
-      if (!justSynced) { //前端更新
-        grid.update("f")
-        if (newFieldInfo.nonEmpty) {
-          val frame = newFieldInfo.keys.min
-          val newFieldData = newFieldInfo(frame)
-//          newFieldInfo.foreach { m =>
-//            val frame = data._1
-//            val newFieldData = data._2
-          if (frame == grid.frameCount) {
-            grid.addNewFieldInfo(newFieldData)
-            newFieldInfo -= frame
-          } else if (frame < grid.frameCount) {
-            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
-          }
-
-//          }
           }
         }
-
-//        if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
-//          if (newFieldInfo.get.frameCount == grid.frameCount) {
-//            grid.addNewFieldInfo(newFieldInfo.get)
-////            if(newFieldInfo.get.fieldDetails.exists(_.uid == myId))
-////              audioFinish.play()
-//          } else { //主动要求同步数据
-//            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
-//          }
-//          newFieldInfo = None
-//        }
-      } else if (syncGridData.nonEmpty) {
-        grid.initSyncGridData(syncGridData.get)
-        syncGridData = None
-        justSynced = false
-//        totalData = Some(grid.getGridData)
         val gridData = grid.getGridData
         gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
@@ -188,54 +153,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       drawFunction = FrontProtocol.DrawGameOff
     }
   }
-
-
-//  def draw(offsetTime: Long, currentTime: Long): Unit = {
-//
-//    if (webSocketClient.getWsState) {
-//        if(totalData.nonEmpty){
-//          val data = totalData.get
-//          if (isWin) {
-//            drawGame.drawGameWin(myId, winnerName, winData)
-//            audio1.play()
-//            dom.window.cancelAnimationFrame(nextFrame)
-//            isContinue = false
-//          } else {
-//            data.snakes.find(_.id == myId) match {
-//              case Some(_) =>
-//                if(firstCome) firstCome = false
-//                val endTime1 = System.currentTimeMillis()
-//                println(s"TimeBefore: ${endTime1 - currentTime}")
-//                val time2 = drawGameImage(myId, data, offsetTime, endTime1)
-//                if (killInfo.nonEmpty) {
-//                  val killBaseInfo = killInfo.get
-//                  if(killBaseInfo._3 == myId) audioKill.play()
-//                  drawGame.drawUserDieInfo(killBaseInfo._2, killBaseInfo._3)
-//                  barrageDuration -= 1
-//                  if (barrageDuration == 0) killInfo = None
-//                }
-//                val endTime = System.currentTimeMillis()
-//                println(s"TimeAfter: ${endTime - time2}")
-//                println(s"drawTime: ${endTime - currentTime}")
-//
-//              case None =>
-//                if (firstCome) drawGame.drawGameWait()
-//                else {
-//                  if (isContinue) audioKilled.play()
-//                  drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-//                  killInfo = None
-//                  dom.window.cancelAnimationFrame(nextFrame)
-//                  isContinue = false
-//                }
-//            }
-//          }
-//        } else {
-//          drawGame.drawGameWait()
-//        }
-//    } else {
-//      drawGame.drawGameOff(firstCome, None, false, false)
-//    }
-//  }
 
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
