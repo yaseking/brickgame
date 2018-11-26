@@ -156,9 +156,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
-      case DrawGameWait => drawGame.drawGameWait()
+      case FrontProtocol.DrawGameWait => drawGame.drawGameWait()
 
-      case DrawGameOff => drawGame.drawGameOff(firstCome, None, false, false)
+      case FrontProtocol.DrawGameOff => drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         drawGame.drawGameWin(myId, winner, winData)
