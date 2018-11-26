@@ -304,8 +304,6 @@ class GameController(player: PlayerInfoInClient,
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake join!!!")
         Boot.addToPlatform{
-          if(data.filedDetails.exists(_.uid == player.id))
-            audioFinish.play()
           newSnakeInfo = Some(data)
         }
 
@@ -317,6 +315,8 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
+          if(data.fieldDetails.exists(_.uid == player.id))
+            audioFinish.play()
           newFieldInfo = Some(data)
         }
 
