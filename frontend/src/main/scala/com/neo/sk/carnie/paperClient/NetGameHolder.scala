@@ -54,10 +54,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
-  private val listener = dom.document.addEventListener("visibilitychange", { e: Event =>
+   dom.document.addEventListener("visibilitychange", { e: Event =>
     if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
       println("has Synced")
-      webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+      updateListener()
     }
   })
 
