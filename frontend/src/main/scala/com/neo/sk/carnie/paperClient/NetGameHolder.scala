@@ -54,6 +54,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
+  private val listener = dom.document.addEventListener("visibilitychange", { e: Event =>
+    if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
+      println("has Synced")
+      webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+    }
+  })
 
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
@@ -65,6 +71,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     webSocketClient.setUp(order, webSocketPara)
   }
 
+  def updateListener() ={
+    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+  }
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
@@ -197,6 +206,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
+
+
     startGame()
     if (order == "playGame") {
       rankCanvas.focus()
@@ -205,7 +216,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           println(s"onkeydown：${e.keyCode}")
           val msg: Protocol.UserAction = {
             val frame = grid.frameCount + 2
-            println(s"frame : $frame")
+//            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
             grid.addActionWithFrame(myId, e.keyCode, frame)
             if (e.keyCode != KeyCode.Space) {
