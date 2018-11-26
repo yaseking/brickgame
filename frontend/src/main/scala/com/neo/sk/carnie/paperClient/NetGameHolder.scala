@@ -72,7 +72,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
-    dom.window.requestAnimationFrame(gameRender())
+    nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
 //  var lastTime1 = 0L
@@ -125,18 +125,51 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           syncGridData = None
         } else {
           grid.update("f")
-          newFieldInfo.foreach { m =>
-            val frame = m._1
-            val newFieldData = m._2
+          if (newFieldInfo.nonEmpty) {
+            val frame = newFieldInfo.keys.min
+            val newFieldData = newFieldInfo(frame)
+            //          newFieldInfo.foreach { m =>
+            //            val frame = data._1
+            //            val newFieldData = data._2
             if (frame == grid.frameCount) {
               grid.addNewFieldInfo(newFieldData)
               newFieldInfo -= frame
             } else if (frame < grid.frameCount) {
               webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
             }
+      if (!justSynced) { //前端更新
+        grid.update("f")
+        if (newFieldInfo.nonEmpty) {
+          val frame = newFieldInfo.keys.min
+          val newFieldData = newFieldInfo(frame)
+//          newFieldInfo.foreach { m =>
+//            val frame = data._1
+//            val newFieldData = data._2
+          if (frame == grid.frameCount) {
+            grid.addNewFieldInfo(newFieldData)
+            newFieldInfo -= frame
+          } else if (frame < grid.frameCount) {
+            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+          }
 
+//          }
           }
         }
+
+//        if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
+//          if (newFieldInfo.get.frameCount == grid.frameCount) {
+//            grid.addNewFieldInfo(newFieldInfo.get)
+////            if(newFieldInfo.get.fieldDetails.exists(_.uid == myId))
+////              audioFinish.play()
+//          } else { //主动要求同步数据
+//            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+//          }
+//          newFieldInfo = None
+//        }
+      } else if (syncGridData.nonEmpty) {
+        grid.initSyncGridData(syncGridData.get)
+        syncGridData = None
+        justSynced = false
 //        totalData = Some(grid.getGridData)
         val gridData = grid.getGridData
         gridData.snakes.find(_.id == myId) match {
@@ -293,7 +326,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case Protocol.Id(id) => myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        println(s"i got actions $keyCode")
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
