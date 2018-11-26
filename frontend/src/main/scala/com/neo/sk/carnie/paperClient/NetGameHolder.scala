@@ -358,7 +358,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")
 //        if(data.fieldDetails.exists(_.uid == myId))
-          audioFinish.play()
+//          audioFinish.play()
         newFieldInfo += data.frameCount -> data
 
       case x@Protocol.ReceivePingPacket(_) =>
