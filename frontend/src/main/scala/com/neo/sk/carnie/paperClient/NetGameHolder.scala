@@ -72,7 +72,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
-    nextFrame = dom.window.requestAnimationFrame(gameRender())
+    dom.window.requestAnimationFrame(gameRender())
   }
 
 //  var lastTime1 = 0L
