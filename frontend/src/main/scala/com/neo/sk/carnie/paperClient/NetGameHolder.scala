@@ -1,7 +1,9 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.carnie.common.Constant
+import com.neo.sk.carnie.paperClient.FrontProtocol.{DrawGameOff, DrawGameWait}
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
@@ -37,6 +39,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   var totalData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+  var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
@@ -77,7 +80,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     val curTime = System.currentTimeMillis()
     println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
-    draw(offsetTime, curTime)
+    drawBase(offsetTime, curTime)
     lastTime1 = curTime
     if (isContinue)
       nextFrame = dom.window.requestAnimationFrame(gameRender())
@@ -89,8 +92,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     if ((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.resetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-      if(!isContinue) {
-        if(isWin) {
+      if (!isContinue) {
+        if (isWin) {
           drawGame.drawGameWin(myId, winnerName, winData)
         } else {
           drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
@@ -100,7 +103,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
-        newSnakeInfo.get.snake.foreach{ s =>
+        newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id)
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
@@ -108,24 +111,34 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         newSnakeInfo = None
       }
 
-      if (!justSynced) { //前端更新
-        grid.update("f")
-        if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
-          if (newFieldInfo.get.frameCount == grid.frameCount) {
-            grid.addNewFieldInfo(newFieldInfo.get)
-            if(newFieldInfo.get.fieldDetails.exists(_.uid == myId))
-              audioFinish.play()
-          } else { //主动要求同步数据
-            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+      if (isWin) {
+        drawFunction = FrontProtocol.DrawGameWin
+      } else {
+        if (!justSynced) { //前端更新
+          grid.update("f")
+          if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) {
+            if (newFieldInfo.get.frameCount == grid.frameCount) {
+              grid.addNewFieldInfo(newFieldInfo.get)
+              if (newFieldInfo.get.fieldDetails.exists(_.uid == myId)) audioFinish.play()
+            } else { //主动要求同步数据
+              webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+            }
+            newFieldInfo = None
           }
-          newFieldInfo = None
+        } else if (syncGridData.nonEmpty) {
+          grid.initSyncGridData(syncGridData.get)
+          syncGridData = None
+          justSynced = false
         }
-      } else if (syncGridData.nonEmpty) {
-        grid.initSyncGridData(syncGridData.get)
-        syncGridData = None
-        justSynced = false
+        totalData = Some(grid.getGridData)
+        grid.getGridData.snakes.find(_.id == myId) match {
+          case Some(_) => drawFunction = FrontProtocol.DrawBaseGame(totalData.get)
+          case None if !firstCome => drawFunction = FrontProtocol.DrawGameDie
+          case _ => drawFunction = FrontProtocol.DrawGameWait
+        }
       }
-      totalData = Some(grid.getGridData)
+    } else {
+      drawFunction = FrontProtocol.DrawGameOff
     }
   }
 
@@ -176,6 +189,38 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       drawGame.drawGameOff(firstCome, None, false, false)
     }
   }
+
+  def drawBase(offsetTime: Long, currentTime: Long): Unit = {
+    drawFunction match {
+      case DrawGameWait => drawGame.drawGameWait()
+
+      case DrawGameOff => drawGame.drawGameOff(firstCome, None, false, false)
+
+      case FrontProtocol.DrawGameWin =>
+        drawGame.drawGameWin(myId, winnerName, winData)
+        audio1.play()
+        dom.window.cancelAnimationFrame(nextFrame)
+        isContinue = false
+
+      case FrontProtocol.DrawBaseGame(data) =>
+        drawGameImage(myId, data, offsetTime, 0l)
+        if (killInfo.nonEmpty) {
+          val killBaseInfo = killInfo.get
+          if(killBaseInfo._3 == myId) audioKill.play()
+          drawGame.drawUserDieInfo(killBaseInfo._2, killBaseInfo._3)
+          barrageDuration -= 1
+          if (barrageDuration == 0) killInfo = None
+        }
+
+      case FrontProtocol.DrawGameDie =>
+        if (isContinue) audioKilled.play()
+        drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+        killInfo = None
+        dom.window.cancelAnimationFrame(nextFrame)
+        isContinue = false
+    }
+  }
+
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, currentTime: Long): Long = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
