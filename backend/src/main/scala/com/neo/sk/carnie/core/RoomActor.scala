@@ -138,7 +138,7 @@ object RoomActor {
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
               log.debug(s"user ${id} dead===kill::${u._2}, area::${u._3}, starTime:$startTime")
               val endTime = System.currentTimeMillis()
-              dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, startTime, endTime))
+              dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
               //上传战绩
               val msgFuture: Future[String] = tokenActor ? AskForToken
               msgFuture.map { token =>

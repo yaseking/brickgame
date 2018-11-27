@@ -111,8 +111,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
-        newSnakeInfo.get.snake.foreach{ s =>
-          grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
+//        newSnakeInfo.get.snake.foreach{ s =>
+//          grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
 //          val filterFrame = grid.actionMap.filter(_._2.contains(s.id)).keys.toList //todo 待测试
 //          if (filterFrame.nonEmpty) {
 //            val filterAction = filterFrame.map {frame =>
@@ -120,7 +120,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //            }.toMap
 //            grid.actionMap = grid.actionMap.filterNot(_._2.contains(s.id)) ++ filterAction //清理死前action
 //          }
-        }
+//        }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
         newSnakeInfo = None
@@ -309,6 +309,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       case UserLeft(id) =>
         println(s"user $id left:::")
         if (grid.snakes.contains(id)) grid.snakes -= id
+        grid.cleanSnakeTurnPoint(id)
         grid.returnBackField(id)
         grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
           Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
@@ -347,8 +348,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         killInfo = Some(killedId, killedName, killerName)
         barrageDuration = 100
 
-      case x@Protocol.DeadPage(kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, start, end) =>
         println(s"recv userDead $x")
+        grid.cleanSnakeTurnPoint(id)
         myScore = BaseScore(kill, area, start, end)
         maxArea = Math.max(maxArea ,historyRank.find(_.id == myId).map(_.area).getOrElse(0))
 

@@ -280,7 +280,7 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case x@Protocol.DeadPage(kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, start, end) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
           myScore = BaseScore(kill, area, start, end)

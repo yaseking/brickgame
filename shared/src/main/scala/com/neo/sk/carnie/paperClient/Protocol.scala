@@ -74,7 +74,7 @@ object Protocol {
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
 
-  case class DeadPage(kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+  case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
 
   case class UserLeft(userId: String) extends GameMessage
 
