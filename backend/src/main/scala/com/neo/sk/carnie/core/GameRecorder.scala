@@ -36,7 +36,7 @@ object GameRecorder {
 
   private final case object SaveDateKey
 
-  private final val saveTime = 10.minute
+  private final val saveTime = 1.minute
 
   private val maxRecordNum = 100
 
@@ -172,6 +172,7 @@ object GameRecorder {
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
           case Success(recordId) =>
             val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId,u._2)).toSet
+            log.debug(s"users in room:$usersInRoom")
             RecordDAO.saveUserInGame(usersInRoom).onComplete{
               case Success(_) =>
 
