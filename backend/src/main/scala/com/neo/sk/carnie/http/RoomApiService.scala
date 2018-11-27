@@ -207,6 +207,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
             val replay = initInput(r.filePath)
             val info = replay.init()
             val frameBias = metaDataDecode(info.simulatorMetadata).right.get.initFrame
+            log.debug(s"frameBias========$frameBias")
             val frameCount = info.frameCount
             val playerList = userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
             val playerInfo = playerList.map { ls =>
