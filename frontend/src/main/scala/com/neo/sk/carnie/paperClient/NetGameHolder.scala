@@ -126,24 +126,24 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         newSnakeInfo = None
       }
 
-      if (!isWin){
-        if (syncGridData.nonEmpty) {
-          grid.initSyncGridData(syncGridData.get)
-          syncGridData = None
-        } else {
-          grid.update("f")
-          if (newFieldInfo.nonEmpty) {
-            val frame = newFieldInfo.keys.min
-            val newFieldData = newFieldInfo(frame)
-            if (frame == grid.frameCount) {
-              grid.addNewFieldInfo(newFieldData)
-              newFieldInfo -= frame
-            } else if (frame < grid.frameCount) {
-              webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
-            }
+      if (syncGridData.nonEmpty) { //逻辑帧更新数据
+        grid.initSyncGridData(syncGridData.get)
+        syncGridData = None
+      } else {
+        grid.update("f")
+        if (newFieldInfo.nonEmpty) {
+          val frame = newFieldInfo.keys.min
+          val newFieldData = newFieldInfo(frame)
+          if (frame == grid.frameCount) {
+            grid.addNewFieldInfo(newFieldData)
+            newFieldInfo -= frame
+          } else if (frame < grid.frameCount) {
+            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
           }
         }
-//        webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+      }
+
+      if (!isWin){
         val gridData = grid.getGridData
         gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
