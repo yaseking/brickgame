@@ -148,7 +148,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       if (!isWin) {
         val gridData = grid.getGridData
-        println(s"reset draw function: myId:$myId snakes:::${gridData.snakes}")
+        println(s"reset draw function: myId:$myId snakes:::${gridData.snakes}, drawFunction:${gridData.snakes.find(_.id == myId)}")
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             firstCome = false
