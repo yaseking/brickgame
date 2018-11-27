@@ -40,7 +40,6 @@ class GameController(player: PlayerInfoInClient,
   var exitFullScreen = false
   var winnerName = "unknown"
   var isContinues = true
-  var justSynced = false
   var winnerData : Option[Protocol.Data4TotalSync] = None
 //  private var fieldNum = 0
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
@@ -94,6 +93,7 @@ class GameController(player: PlayerInfoInClient,
       stageCtx.getStage.setHeight(750)
       exitFullScreen = true
     }
+
     if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
       stageWidth = stageCtx.getStage.getWidth.toInt
       stageHeight = stageCtx.getStage.getHeight.toInt
@@ -110,7 +110,10 @@ class GameController(player: PlayerInfoInClient,
       newSnakeInfo = None
     }
 
-    if (!justSynced) {
+    if(syncGridData.nonEmpty) {
+      grid.initSyncGridData(syncGridData.get)
+      syncGridData = None
+    } else {
       grid.update("f")
       if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
         if (newFieldInfo.get.frameCount == grid.frameCount) {
@@ -120,11 +123,8 @@ class GameController(player: PlayerInfoInClient,
         }
         newFieldInfo = None
       }
-    } else if(syncGridData.nonEmpty) {
-      grid.initSyncGridData(syncGridData.get)
-      syncGridData = None
-      justSynced = false
     }
+
     val gridData = grid.getGridData
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
@@ -168,52 +168,6 @@ class GameController(player: PlayerInfoInClient,
         grid.killInfo = ("", "", "")
         isContinue = false
     }
-//    if(totalData.nonEmpty) {
-//      val data = totalData.get
-//      if(isWin) {
-//        gameScene.drawGameWin(player.id, winnerName, winnerData.get)
-//      }
-//      else {
-//        data.snakes.find(_.id == player.id) match {
-//          case Some(snake) =>
-//            if(firstCome) firstCome = false
-//            if(grid.killInfo._3 == snake.id) audioKill.play()
-////            val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
-////            if(myFieldCount>fieldNum){
-////              audioFinish.play()
-////              fieldNum = myFieldCount
-////            }
-//
-//            gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-//            if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
-//              gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
-//              grid.lastTime -= 1
-//              if (grid.lastTime == 0) {
-//                grid.killInfo = ("", "", "")
-//              }
-//            }
-//          case None =>
-//            if (firstCome) gameScene.drawGameWait()
-//            else {
-//              //            if(timeFlag){
-//              //              currentRank.filter(_.id == player.id).foreach { score =>
-//              //                myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-//              //              }
-//              //              timeFlag = false
-//              //              log.debug("my score has been set")
-//              //            }
-//              gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore,maxArea)
-//              if(isContinue) {
-//                audioDie.play()
-//                log.info("play the dieSound.")
-//              }
-//              isContinue = false
-//            }
-//        }
-//      }
-//    } else {
-//      gameScene.drawGameWait()
-//    }
   }
 
   def gameMessageReceiver(msg: WsSourceProtocol.WsMsgSource): Unit = {
@@ -296,11 +250,8 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
-//        log.debug(s"${getClass.getResource("/mp3/win.mp3").toString}")
-        log.debug(s"i receive Data4TotalSync!!${System.currentTimeMillis()}")
         Boot.addToPlatform{
           syncGridData = Some(data)
-          justSynced = true
         }
 
       case data: Protocol.NewSnakeInfo =>

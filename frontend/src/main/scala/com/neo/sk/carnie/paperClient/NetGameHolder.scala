@@ -143,19 +143,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         }
       }
 
-      if (!isWin){
+      if (!isWin) {
         val gridData = grid.getGridData
-        gridData.snakes.find(_.id == myId) match {
+        drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             firstCome = false
-            drawFunction = FrontProtocol.DrawBaseGame(gridData)
+            FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
-//            println(s"killer: ${grid.getKiller(myId).map(_._2)}")
-            drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
+            FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
-            drawFunction = FrontProtocol.DrawGameWait
+            FrontProtocol.DrawGameWait
         }
       }
     } else {
