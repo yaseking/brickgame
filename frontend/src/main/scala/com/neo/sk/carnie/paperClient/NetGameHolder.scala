@@ -112,6 +112,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
         newSnakeInfo.get.snake.foreach{ s =>
+          println(s"update new snakes info:$s")
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
 //          val filterFrame = grid.actionMap.filter(_._2.contains(s.id)).keys.toList //todo 待测试
 //          if (filterFrame.nonEmpty) {
