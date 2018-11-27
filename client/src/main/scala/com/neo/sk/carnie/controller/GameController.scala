@@ -57,7 +57,7 @@ class GameController(player: PlayerInfoInClient,
   val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
   val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
   val bgmList = List(bgm,bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
-  var BGM = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
+  var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
