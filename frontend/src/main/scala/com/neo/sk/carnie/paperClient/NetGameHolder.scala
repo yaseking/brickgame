@@ -148,8 +148,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
-            if(firstCome)
-              firstCome = false
+            if(firstCome) firstCome = false
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
@@ -226,19 +225,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
-                  drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
                   audio1.currentTime = 0
                   audioKilled.pause()
                   audioKilled.currentTime = 0
-                  //              scoreFlag = true
                   firstCome = true
-                  if (isWin) {
-                    isWin = false
-                    //                winnerName = "unknown"
-                  }
+                  if (isWin) isWin = false
                   myScore = BaseScore(0, 0, 0l, 0l)
                   isContinue = true
+                  dom.window.requestAnimationFrame(gameRender())
               }
             }
             Key(myId, e.keyCode, frame, actionId)
