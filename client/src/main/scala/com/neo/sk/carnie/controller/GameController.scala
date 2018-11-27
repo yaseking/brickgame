@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.controller
 
+import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.Boot
@@ -10,7 +11,6 @@ import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
-
 import akka.actor.typed.scaladsl.adapter._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
@@ -36,6 +36,7 @@ class GameController(player: PlayerInfoInClient,
   val idGenerator = new AtomicInteger(1)
 //  var scoreFlag = true
 //  var timeFlag = true
+  var playBgm = true
   var isWin = false
   var exitFullScreen = false
   var winnerName = "unknown"
@@ -46,6 +47,17 @@ class GameController(player: PlayerInfoInClient,
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
+  val bgm = new AudioClip(getClass.getResource("/mp3/V.A. - びっくり熱血新記録!はるかなる金メダル：：テクノスロゴ~デモ.mp3").toString)
+  val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
+  val bgm2 = new AudioClip(getClass.getResource("/mp3/bgm2.mp3").toString)
+  val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
+  val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
+  val bgm5 = new AudioClip(getClass.getResource("/mp3/bgm5.mp3").toString)
+  val bgm6 = new AudioClip(getClass.getResource("/mp3/bgm6.mp3").toString)
+  val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
+  val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
+  val bgmList = List(bgm,bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
+  var BGM = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
@@ -76,8 +88,11 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def startGameLoop(): Unit = { //渲染帧
+    val rnd = new scala.util.Random
+    BGM = bgmList(rnd.nextInt(9))
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
+//    bgm.play(50)
     val keyFrame = new KeyFrame(Duration.millis(Protocol.frameRate), { _ =>
       logicLoop()
     })
@@ -144,15 +159,35 @@ class GameController(player: PlayerInfoInClient,
 
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
-      case FrontProtocol.DrawGameWait => gameScene.drawGameWait()
+      case FrontProtocol.DrawGameWait =>
+        BGM.stop()
+        val rnd = new scala.util.Random
+        BGM = bgmList(rnd.nextInt(9))
+        gameScene.drawGameWait()
 
-      case FrontProtocol.DrawGameOff => gameScene.drawGameOff(firstCome)
+      case FrontProtocol.DrawGameOff =>
+        BGM.stop()
+        val rnd = new scala.util.Random
+        BGM = bgmList(rnd.nextInt(9))
+        gameScene.drawGameOff(firstCome)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
+        BGM.stop()
+        val rnd = new scala.util.Random
+        BGM = bgmList(rnd.nextInt(9))
         gameScene.drawGameWin(player.id, winner, winData)
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
+        if(playBgm) {
+          BGM.play(30)
+          playBgm = false
+        }
+        if(!BGM.isPlaying){
+          val rnd = new scala.util.Random
+          BGM = bgmList(rnd.nextInt(9))
+          BGM.play(30)
+        }
         gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo.nonEmpty) {
           val killBaseInfo = grid.killInfo.get
@@ -162,6 +197,9 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
+        BGM.stop()
+        val rnd = new scala.util.Random
+        BGM = bgmList(rnd.nextInt(9))
         if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = None
