@@ -465,7 +465,7 @@ trait Grid {
 
   def cleanSnakeTurnPoint(sid: String) = {
     if(snakeTurnPoints.contains(sid)) {
-      println("cleanTurnPoint.")
+      println(s"cleanTurnPoint-id: ${sid}")
       snakeTurnPoints -= sid
     }
   }
