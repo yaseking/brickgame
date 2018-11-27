@@ -152,7 +152,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             println(s"===============some")
-            firstCome = false
+            if(firstCome)
+              firstCome = false
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
