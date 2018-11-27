@@ -151,12 +151,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         println(s"reset draw function: myId:$myId snakes:::${gridData.snakes}, drawFunction:${gridData.snakes.find(_.id == myId)}")
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
-            print(s"===============some")
+            println(s"===============some")
             firstCome = false
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
-            print(s"===============None")
+            println(s"===============None")
             FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
@@ -166,6 +166,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
+    println(s"draw function===$drawFunction")
   }
 
   def draw(offsetTime: Long): Unit = {
@@ -180,6 +181,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
+        println(s"base-----------------")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
@@ -190,6 +192,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
+        println(s"die-----------------")
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
