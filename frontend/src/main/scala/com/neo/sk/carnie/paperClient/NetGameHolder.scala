@@ -167,11 +167,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
-    println(s"draw function===$drawFunction")
+    println(s"draw function===$drawFunction,======isContinue:$isContinue")
   }
 
   def draw(offsetTime: Long): Unit = {
-    println(s"drawFunction:====$drawFunction")
+    println(s"drawFunction in draw:====$drawFunction")
     drawFunction match {
       case FrontProtocol.DrawGameWait => drawGame.drawGameWait()
 
