@@ -89,7 +89,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     drawGame.drawGameOn()
     val rnd = new scala.util.Random
     BGM = bgmList(rnd.nextInt(9))
-    BGM.play()
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
@@ -202,7 +201,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       case FrontProtocol.DrawBaseGame(data) =>
         if(playBgm) {
-
+          BGM.play()
           playBgm = false
         }
         if(BGM.paused){
