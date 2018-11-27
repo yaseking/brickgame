@@ -154,18 +154,17 @@ class GameController(player: PlayerInfoInClient,
 
       case FrontProtocol.DrawBaseGame(data) =>
         gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-        if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && player.id != grid.killInfo._1) {//
-          gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
-          grid.lastTime -= 1
-          if (grid.lastTime == 0) {
-            grid.killInfo = ("", "", "")
-          }
+        if (grid.killInfo.nonEmpty) {
+          val killBaseInfo = grid.killInfo.get
+          gameScene.drawBarrage(killBaseInfo._2, killBaseInfo._3)
+          grid.barrageDuration -= 1
+          if (grid.barrageDuration == 0) grid.killInfo = None
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
         if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
-        grid.killInfo = ("", "", "")
+        grid.killInfo = None
         isContinue = false
     }
   }
@@ -262,8 +261,8 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         Boot.addToPlatform {
-          grid.killInfo = (killedId, killedName, killerName)
-          grid.lastTime = 100
+          grid.killInfo = Some(killedId, killedName, killerName)
+          grid.barrageDuration = 100
         }
 
       case data: Protocol.NewFieldInfo =>

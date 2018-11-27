@@ -117,7 +117,7 @@ class GameScene {
     rank.drawRank(myId, snakes, currentRank)
   }
 
-  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+  def drawBarrage(killedName: String, killerName: String): Unit = {
     view.drawUserDieInfo(killedName,killerName)
   }
 
