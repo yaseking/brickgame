@@ -221,7 +221,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               myActionHistory += actionId -> (e.keyCode, frame)
             } else { //重新开始游戏
               drawFunction match {
-                case FrontProtocol.DrawBaseGame(data) =>nextFrame = dom.window.requestAnimationFrame(gameRender())
+                case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
                   drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
@@ -237,9 +237,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                   myScore = BaseScore(0, 0, 0l, 0l)
                   isContinue = true
               }
-//              if(drawFunction.isInstanceOf[FrontProtocol.DrawGameDie]){
-//
-//              }
             }
             Key(myId, e.keyCode, frame, actionId)
           }
