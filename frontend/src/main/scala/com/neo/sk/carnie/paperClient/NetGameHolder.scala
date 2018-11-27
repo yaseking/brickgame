@@ -151,10 +151,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         println(s"reset draw function: myId:$myId snakes:::${gridData.snakes}, drawFunction:${gridData.snakes.find(_.id == myId)}")
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
+            print(s"===============some")
             firstCome = false
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
+            print(s"===============None")
             FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
