@@ -247,7 +247,7 @@ object GameRecorder {
           val newUserMap = userMap
           log.debug(s"new userMap: $newUserMap")
           val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, frame)
-          val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, gameInfo, Some(event._2))
+          val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, newGameInfo, Some(event._2))
           val newEventRecorder = List((event._1, Some(event._2)))
           val newEssfMap = mutable.HashMap.empty[UserBaseInfo, List[UserJoinLeft]]
 
