@@ -112,7 +112,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
         newSnakeInfo.get.snake.foreach{ s =>
-          println(s"update new snakes info:$s")
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
 //          val filterFrame = grid.actionMap.filter(_._2.contains(s.id)).keys.toList //todo 待测试
 //          if (filterFrame.nonEmpty) {
@@ -122,9 +121,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //            grid.actionMap = grid.actionMap.filterNot(_._2.contains(s.id)) ++ filterAction //清理死前action
 //          }
         }
-        println(s"更新前snakes：${grid.snakes}")
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
-        println(s"更新后snakes：${grid.snakes}")
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
         newSnakeInfo = None
       }
@@ -148,16 +145,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       if (!isWin) {
         val gridData = grid.getGridData
-        println(s"reset draw function: myId:$myId snakes:::${gridData.snakes}, drawFunction:${gridData.snakes.find(_.id == myId)}")
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
-            println(s"===============some")
             if(firstCome)
               firstCome = false
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
-            println(s"===============None")
             FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
@@ -167,11 +161,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
-    println(s"draw function===$drawFunction,======isContinue:$isContinue")
   }
 
   def draw(offsetTime: Long): Unit = {
-    println(s"drawFunction in draw:====$drawFunction")
     drawFunction match {
       case FrontProtocol.DrawGameWait => drawGame.drawGameWait()
 
@@ -183,7 +175,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        println(s"base-----------------")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
@@ -194,7 +185,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-        println(s"die-----------------")
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
