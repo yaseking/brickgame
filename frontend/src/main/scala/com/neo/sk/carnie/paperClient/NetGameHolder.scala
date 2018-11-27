@@ -164,6 +164,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
   def draw(offsetTime: Long): Unit = {
+    println("come to draw!!")
     drawFunction match {
       case FrontProtocol.DrawGameWait => drawGame.drawGameWait()
 
@@ -175,6 +176,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
+        println("draw---DrawBaseGame!!")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
