@@ -47,7 +47,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }.toList
       }.toList
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime)
+      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime)//img: Int
       snakes += id -> snakeInfo
       killHistory -= id
       (id, snakeInfo, newFiled)
