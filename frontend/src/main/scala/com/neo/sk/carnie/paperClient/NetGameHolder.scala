@@ -225,6 +225,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
+                  drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
                   audio1.currentTime = 0
                   audioKilled.pause()
