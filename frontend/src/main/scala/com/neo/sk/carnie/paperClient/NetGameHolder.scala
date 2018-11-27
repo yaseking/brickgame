@@ -52,17 +52,17 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm = dom.document.getElementById("V.A. - びっくり熱血新記録!はるかなる金メダル：：テクノスロゴ~デモ").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm1 = dom.document.getElementById("bgm1").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm2 = dom.document.getElementById("bgm2").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm3 = dom.document.getElementById("bgm3").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm5 = dom.document.getElementById("bgm5").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm6 = dom.document.getElementById("bgm6").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
-  private[this] val bgmList = List(bgm,bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
-  private[this] var BGM = dom.document.getElementById("bgm1").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm = dom.document.getElementById("V.A. - びっくり熱血新記録!はるかなる金メダル：：テクノスロゴ~デモ").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm1 = dom.document.getElementById("bgm1").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm2 = dom.document.getElementById("bgm2").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm3 = dom.document.getElementById("bgm3").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm5 = dom.document.getElementById("bgm5").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm6 = dom.document.getElementById("bgm6").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgmList = List(bgm,bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
+//  private[this] var BGM = dom.document.getElementById("bgm1").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
    dom.document.addEventListener("visibilitychange", { e: Event =>
@@ -88,7 +88,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   def startGame(): Unit = {
     drawGame.drawGameOn()
     val rnd = new scala.util.Random
-    BGM = bgmList(rnd.nextInt(9))
+//    BGM = bgmList(rnd.nextInt(9))
     dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
@@ -180,35 +180,35 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     println("come to draw!!")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-        BGM.pause()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+//        BGM.pause()
+//        val rnd = new scala.util.Random
+//        BGM = bgmList(rnd.nextInt(9))
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-        BGM.pause()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+//        BGM.pause()
+//        val rnd = new scala.util.Random
+//        BGM = bgmList(rnd.nextInt(9))
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-        BGM.pause()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+//        BGM.pause()
+//        val rnd = new scala.util.Random
+//        BGM = bgmList(rnd.nextInt(9))
         drawGame.drawGameWin(myId, winner, winData)
         audio1.play()
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        if(playBgm) {
-          BGM.play()
-          playBgm = false
-        }
-        if(BGM.paused){
-          val rnd = new scala.util.Random
-          BGM = bgmList(rnd.nextInt(9))
-          BGM.play()
-        }
+//        if(playBgm) {
+//          BGM.play()
+//          playBgm = false
+//        }
+//        if(BGM.paused){
+//          val rnd = new scala.util.Random
+//          BGM = bgmList(rnd.nextInt(9))
+//          BGM.play()
+//        }
         println("draw---DrawBaseGame!!")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
@@ -220,9 +220,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-        BGM.pause()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+//        BGM.pause()
+//        val rnd = new scala.util.Random
+//        BGM = bgmList(rnd.nextInt(9))
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
