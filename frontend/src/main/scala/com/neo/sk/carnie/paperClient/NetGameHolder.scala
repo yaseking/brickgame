@@ -2,7 +2,6 @@ package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
 import com.neo.sk.carnie.common.Constant
-import com.neo.sk.carnie.paperClient.FrontProtocol.{DrawGameOff, DrawGameWait}
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
@@ -61,7 +60,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     }
   })
 
-  private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
 
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
@@ -92,7 +90,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
     draw(offsetTime)
 //    lastTime1 = curTime
     if (isContinue)
-      nextFrame = dom.window.requestAnimationFrame(gameRender())
+      dom.window.requestAnimationFrame(gameRender())
   }
 
 
@@ -223,8 +221,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
               myActionHistory += actionId -> (e.keyCode, frame)
             } else { //重新开始游戏
               drawFunction match {
-                case FrontProtocol.DrawBaseGame(data) =>
-//                  nextFrame = dom.window.requestAnimationFrame(gameRender())
+                case FrontProtocol.DrawBaseGame(data) =>nextFrame = dom.window.requestAnimationFrame(gameRender())
                 case _ =>
                   drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
@@ -239,7 +236,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                   }
                   myScore = BaseScore(0, 0, 0l, 0l)
                   isContinue = true
-                  nextFrame = dom.window.requestAnimationFrame(gameRender())
               }
 //              if(drawFunction.isInstanceOf[FrontProtocol.DrawGameDie]){
 //
@@ -312,7 +308,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //          winnerName = "unknown"
         }
         isContinue = true
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case UserLeft(id) =>
         println(s"user $id left:::")
