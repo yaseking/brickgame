@@ -131,8 +131,10 @@ class GameController(player: PlayerInfoInClient,
         firstCome = false
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
+      case None if isWin =>
+
       case None if !firstCome =>
-        println(s"killer: ${grid.getKiller(player.id).map(_._2)}")
+//        println(s"killer: ${grid.getKiller(player.id).map(_._2)}")
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
       case _ =>
@@ -161,7 +163,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-        if (isContinue) audioKill.play()
+        if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = ("", "", "")
         isContinue = false
