@@ -84,7 +84,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
 //  var lastTime1 = 0L
   def gameRender(): Double => Unit = { _ =>
-    println("????????????????????")
     val curTime = System.currentTimeMillis()
 //    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
