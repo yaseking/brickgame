@@ -122,7 +122,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 //            grid.actionMap = grid.actionMap.filterNot(_._2.contains(s.id)) ++ filterAction //清理死前action
 //          }
         }
+        println(s"更新前snakes：${grid.snakes}")
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
+        println(s"更新后snakes：${grid.snakes}")
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
         newSnakeInfo = None
       }
@@ -146,6 +148,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
 
       if (!isWin) {
         val gridData = grid.getGridData
+        println(s"reset draw function: myId:$myId snakes:::${gridData.snakes}")
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             firstCome = false
