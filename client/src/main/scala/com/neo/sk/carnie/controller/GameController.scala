@@ -49,7 +49,7 @@ class GameController(player: PlayerInfoInClient,
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
-  val bgm = new AudioClip(getClass.getResource("/mp3/V.A. - びっくり熱血新記録!はるかなる金メダル：：テクノスロゴ~デモ.mp3").toString)
+  val bgm = new AudioClip(getClass.getResource("/mp3/bgm0.mp3").toString)
   val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
   val bgm2 = new AudioClip(getClass.getResource("/mp3/bgm2.mp3").toString)
   val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)

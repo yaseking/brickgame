@@ -52,7 +52,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模�
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm = dom.document.getElementById("V.A. - びっくり熱血新記録!はるかなる金メダル：：テクノスロゴ~デモ").asInstanceOf[HTMLAudioElement]
+  private[this] val bgm = dom.document.getElementById("bgm0").asInstanceOf[HTMLAudioElement]
   private[this] val bgm1 = dom.document.getElementById("bgm1").asInstanceOf[HTMLAudioElement]
   private[this] val bgm2 = dom.document.getElementById("bgm2").asInstanceOf[HTMLAudioElement]
   private[this] val bgm3 = dom.document.getElementById("bgm3").asInstanceOf[HTMLAudioElement]
@@ -62,7 +62,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模�
   private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
   private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
   private[this] val bgmList = List(bgm,bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
-  private var BGM = dom.document.getElementById("V.A. - びっくり熱血新記録!はるかなる金メダル：：テクノスロゴ~デモ").asInstanceOf[HTMLAudioElement]
+  private var BGM = dom.document.getElementById("bgm0").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
    dom.document.addEventListener("visibilitychange", { e: Event =>
