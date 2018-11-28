@@ -421,8 +421,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
 
   override def render: Elem = {
     init()
-    <div>
-      {<canvas id="RankView" tabindex="1" style="z-index: 3;position: absolute;"></canvas>}
-    </div>
+    <div></div>
   }
 }
