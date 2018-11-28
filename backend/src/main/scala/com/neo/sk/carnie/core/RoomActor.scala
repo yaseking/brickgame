@@ -179,7 +179,7 @@ object RoomActor {
           userMap.remove(id)
           subscribersMap.remove(id)
           dispatch(subscribersMap, Protocol.UserLeft(id))
-          watcherMap.filter(_._2 == id).keySet.foreach { i =>
+          watcherMap.filter(_._2._1 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
           if (headImgList.contains(id)) headImgList.remove(id)
@@ -230,7 +230,7 @@ object RoomActor {
                   grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, headImgList(id))
                 }
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
-                watcherMap.filter(_._2 == id).foreach { w =>
+                watcherMap.filter(_._2._1 == id).foreach { w =>
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
                 gameEvent += ((grid.frameCount, SpaceEvent(id)))
