@@ -48,7 +48,9 @@ object RoomManager {
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
-  case class IsPlaying(roomId: Int, userId: String, reply: ActorRef[Boolean]) extends Command
+  case class JudgePlaying(userId: String, reply: ActorRef[Boolean]) extends Command
+
+  case class JudgePlaying4Watch(roomId: Int, userId: String, reply: ActorRef[Boolean]) extends Command
 
   case class GetRecordFrame(recordId: Long, playerId: String, replyTo: ActorRef[CommonRsp]) extends Command
 
@@ -123,7 +125,12 @@ object RoomManager {
           getGameReplay(ctx, recordId, playerId) ! GameReplay.StopReplay()
           Behaviors.same
 
-        case IsPlaying(roomId, userId, reply) =>
+        case JudgePlaying(userId, reply) =>
+          val rst = roomMap.map(_._2.exists(_._1 == userId)).toList.contains(true)
+          reply ! rst
+          Behaviors.same
+
+        case JudgePlaying4Watch(roomId, userId, reply) =>
           if(roomMap.contains(roomId)) {
             val msg = roomMap.filter(_._1==roomId).head._2.exists(_._1==userId)//userId是否在游戏中
             reply ! msg

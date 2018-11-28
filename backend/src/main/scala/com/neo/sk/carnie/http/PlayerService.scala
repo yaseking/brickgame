@@ -52,8 +52,15 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         'mode.as[Int],
         'img.as[Int]
       ) { (id, name, mode, img) =>
-        log.info(s"joinGame: id-$id, name-$name, mode-$mode, img-$img")
-        handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+        dealFutureResult {
+          val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
+          msg.map{r=>
+            if(r)
+              getFromResource("html/errPage.html")
+            else
+              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+          }
+        }
       }
     } ~
       path("observeGame") {
@@ -71,7 +78,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(data) =>
                     dealFutureResult {
-                      val msg: Future[Boolean] = roomManager ? (RoomManager.IsPlaying(roomId, data.playerId, _))
+                      val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying4Watch(roomId, data.playerId, _))
                       msg.map{r=>
                         if(r)
                           getFromResource("html/errPage.html")
