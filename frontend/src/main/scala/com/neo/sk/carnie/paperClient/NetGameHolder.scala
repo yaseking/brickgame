@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.carnie.common.Constant
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -9,6 +10,9 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
+import com.neo.sk.carnie.util.Component
+
+import scala.xml.Elem
 
 /**
   * User: Taoz
@@ -16,7 +20,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模式，1:反转模式
+class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Component{//0:正常模式，1:反转模式
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -412,5 +416,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模�
       case x@_ =>
         println(s"receive unknown msg:$x")
     }
+  }
+
+  override def render: Elem = {
+    init()
+    <div>
+      {<canvas id="GameView" tabindex="1"></canvas>}
+    </div>
   }
 }

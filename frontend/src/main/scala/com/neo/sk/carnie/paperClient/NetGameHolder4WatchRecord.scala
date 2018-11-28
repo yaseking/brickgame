@@ -1,13 +1,12 @@
 package com.neo.sk.carnie.paperClient
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
-import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Canvas, Document => _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
+import com.neo.sk.carnie.util.Component
+import scala.xml.Elem
 
 /**
   * User: Taoz
@@ -15,7 +14,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Time: 12:45 PM
   */
 //@JSExportTopLevel("paperClient.NetGameHolder")
-class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
+class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Component{
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -470,5 +469,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     }
   }
 
-
+  override def render: Elem = {
+    init()
+    <div>
+      {<canvas id="GameView" tabindex="1"></canvas>}
+    </div>
+  }
 }
