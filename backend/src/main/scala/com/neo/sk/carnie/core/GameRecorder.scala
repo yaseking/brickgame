@@ -36,7 +36,7 @@ object GameRecorder {
 
   private final case object SaveDateKey
 
-  private final val saveTime = 1.minute
+  private final val saveTime = 10.minute
 
   private val maxRecordNum = 100
 
