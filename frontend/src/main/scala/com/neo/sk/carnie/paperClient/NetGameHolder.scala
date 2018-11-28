@@ -16,7 +16,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int = 0) {//0:正常模式，1:反转模式
+class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模式，1:反转模式
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -236,7 +236,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int = 0) 
                   dom.window.requestAnimationFrame(gameRender())
               }
             }
-            val newKeyCode = if(mode == 0) e.keyCode else {
+            val newKeyCode = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 0) e.keyCode else {
               e.keyCode match {
                 case KeyCode.Left => KeyCode.Right
                 case KeyCode.Right => KeyCode.Left

@@ -48,9 +48,12 @@ trait PlayerService extends ServiceUtils with CirceSupport {
     path("join") {
       parameter(
         'id.as[String],
-        'name.as[String]
-      ) { (id, name) =>
-        handleWebSocketMessages(webSocketChatFlow(id, sender = name))
+        'name.as[String],
+        'mode.as[Int],
+        'img.as[Int]
+      ) { (id, name, mode, img) =>
+        log.info(s"joinGame: id-$id, name-$name, mode-$mode, img-$img")
+        handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
       }
     } ~
       path("observeGame") {
@@ -128,11 +131,11 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 val playerName = URLDecoder.decode(name, "UTF-8")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
-                    handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
+                    handleWebSocketMessages(webSocketChatFlow(id, playerName, 0, 0))//todo 客户端区分模式
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
 //                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
-                    handleWebSocketMessages(webSocketChatFlow(id, sender = playerName))
+                    handleWebSocketMessages(webSocketChatFlow(id, playerName, 0, 0))
                 }
               }
             }
@@ -186,7 +189,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
   }
 
 
-  def webSocketChatFlow(playedId: String, sender: String): Flow[Message, Message, Any] = {
+  def webSocketChatFlow(playedId: String, sender: String, mode: Int, img: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
     import org.seekloud.byteobject.MiddleBufferInJvm
@@ -214,7 +217,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(RoomManager.joinGame(roomManager, playedId, sender))
+      .via(RoomManager.joinGame(roomManager, playedId, sender, mode, img))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)

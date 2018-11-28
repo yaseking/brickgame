@@ -32,7 +32,7 @@ object RoomManager {
 
   case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
 
-  case class Join(id: String, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class Join(id: String, name: String, mode: Int, img: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   case class Left(id: String, name: String) extends Command
 
@@ -81,7 +81,7 @@ object RoomManager {
   def idle(roomIdGenerator: AtomicInteger)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case msg@Join(id, name, subscriber) =>
+        case msg@Join(id, name, mode, img, subscriber) =>
           log.info(s"got $msg")
           if (roomMap.nonEmpty && roomMap.exists(_._2.size < limitNum)) {
             val roomId = roomMap.filter(_._2.size < limitNum).head._1
@@ -234,7 +234,7 @@ object RoomManager {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def joinGame(actor: ActorRef[RoomManager.Command], userId: String, name: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+  def joinGame(actor: ActorRef[RoomManager.Command], userId: String, name: String, mode: Int, img: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
@@ -254,7 +254,7 @@ object RoomManager {
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! Join(userId, name, outActor))
+      ).mapMaterializedValue(outActor => actor ! Join(userId, name, mode, img, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }
