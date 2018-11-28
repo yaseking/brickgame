@@ -77,7 +77,7 @@ object GameRecorder {
           )(implicit stashBuffer: StashBuffer[Command],
             timer: TimerScheduler[Command],
             middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
-    log.debug(s"userHistoryMap:::::::$userHistoryMap")
+//    log.debug(s"userHistoryMap:::::::$userHistoryMap")
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case RecordData(frame, event) => //记录数据
@@ -252,7 +252,7 @@ object GameRecorder {
         case RecordData(frame, event) => //新的文件初始化
           log.debug(s"new recorder reset! start frame:$frame")
           val newUserMap = userMap
-          val newUserHistoryMap = userMap
+          val newUserHistoryMap = userHistoryMap.filter(u => userMap.contains(u._1))
           log.debug(s"new userMap: $newUserMap")
           val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, frame)
           val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, newGameInfo, Some(event._2))
