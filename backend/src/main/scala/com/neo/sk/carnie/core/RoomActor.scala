@@ -321,8 +321,11 @@ object RoomActor {
             dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
             userMap.foreach { u =>
-              gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
-              userDeadList += u._1
+              if (!userDeadList.contains(u._1)) {
+                gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
+                userDeadList += u._1
+              }
+
             }
           }
 
