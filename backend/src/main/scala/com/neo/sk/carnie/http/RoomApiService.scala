@@ -79,7 +79,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
     dealPostReq[RecordListReq] { req =>
       RecordDAO.getRecordList(req.lastRecordId, req.count).map { recordL =>
-        val data = recordL.groupBy(_._1).map { case (record, res) if res.exists(_._2.nonEmpty) => //可能会造成每页显示不到10条录像
+        val data = recordL.groupBy(_._1).map { case (record, res) if res.toList.exists(_._2.nonEmpty) => //可能会造成每页显示不到10条录像
           val userList = res.filter(_._2.nonEmpty).map(i => (i._2.get.userId,i._2.get.nickname))
           recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
         }
