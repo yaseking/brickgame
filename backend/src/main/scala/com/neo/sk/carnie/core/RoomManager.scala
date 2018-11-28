@@ -126,7 +126,7 @@ object RoomManager {
           Behaviors.same
 
         case JudgePlaying(userId, reply) =>
-          val rst = roomMap.map(_._2.exists(_._1 == userId)).toList.contains(true)
+          val rst = roomMap.map(_._2._2.exists(_._1 == userId)).toList.contains(true)
           reply ! rst
           Behaviors.same
 
