@@ -81,6 +81,11 @@ class GameController(player: PlayerInfoInClient,
 //    animationTimer.stop()
   }
 
+  def getRandom(s: Int) ={
+    val rnd = new scala.util.Random
+    rnd.nextInt(s)
+  }
+
   def start(domain: String): Unit = {
     playActor ! PlayGameWebSocket.ConnectGame(player, domain)
     addUserActionListen()
@@ -88,8 +93,7 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def startGameLoop(): Unit = { //渲染帧
-    val rnd = new scala.util.Random
-    BGM = bgmList(rnd.nextInt(9))
+    BGM = bgmList(getRandom(9))
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
 //    bgm.play(50)
@@ -161,20 +165,17 @@ class GameController(player: PlayerInfoInClient,
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
         BGM.stop()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+        BGM = bgmList(getRandom(9))
         gameScene.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
         BGM.stop()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+        BGM = bgmList(getRandom(9))
         gameScene.drawGameOff(firstCome)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         BGM.stop()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+        BGM = bgmList(getRandom(9))
         gameScene.drawGameWin(player.id, winner, winData)
         isContinue = false
 
@@ -184,8 +185,7 @@ class GameController(player: PlayerInfoInClient,
           playBgm = false
         }
         if(!BGM.isPlaying){
-          val rnd = new scala.util.Random
-          BGM = bgmList(rnd.nextInt(9))
+          BGM = bgmList(getRandom(9))
           BGM.play(30)
         }
         gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
@@ -198,8 +198,7 @@ class GameController(player: PlayerInfoInClient,
 
       case FrontProtocol.DrawGameDie(killerName) =>
         BGM.stop()
-        val rnd = new scala.util.Random
-        BGM = bgmList(rnd.nextInt(9))
+        BGM = bgmList(getRandom(9))
         if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = None
