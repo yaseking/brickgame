@@ -21,7 +21,7 @@ import scala.xml.Elem
   */
 
 class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Component {
-  //0:正常模式，1:反转模式
+  //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
