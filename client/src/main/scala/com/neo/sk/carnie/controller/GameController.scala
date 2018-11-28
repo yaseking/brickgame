@@ -23,7 +23,9 @@ import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 
 class GameController(player: PlayerInfoInClient,
                      stageCtx: Context,
-                     gameScene: GameScene) {
+                     gameScene: GameScene,
+                     mode: Int =0,
+                     img: Int =0) {
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
@@ -61,7 +63,6 @@ class GameController(player: PlayerInfoInClient,
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
-//  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
@@ -352,7 +353,16 @@ class GameController(player: PlayerInfoInClient,
               isContinue = true
           }
         }
-        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(key), frame, actionId))
+        val newKeyCode = if(mode == 0) key else {
+          key match {
+            case KeyCode.LEFT => KeyCode.RIGHT
+            case KeyCode.RIGHT => KeyCode.LEFT
+            case KeyCode.DOWN => KeyCode.UP
+            case KeyCode.UP => KeyCode.DOWN
+            case _ => KeyCode.SPACE
+          }
+        }
+        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
       }
     }
 
