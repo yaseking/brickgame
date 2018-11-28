@@ -282,6 +282,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模�
                 case KeyCode.Up => KeyCode.Down
               }
             }
+            println(s"onkeydown：${newKeyCode}")
             Key(myId, newKeyCode, frame, actionId)
           }
           webSocketClient.sendMessage(msg)
