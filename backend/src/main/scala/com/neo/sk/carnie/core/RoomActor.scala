@@ -125,6 +125,7 @@ object RoomActor {
 //          idle(roomId, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, winStandard)
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           headImgList.put(id, img)
+//          log.debug(s"headImgList after join:$headImgList")
           idle(index + 1, roomId, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, headImgList)
 
         case m@WatchGame(playerId, userId, subscriber) =>
@@ -229,6 +230,9 @@ object RoomActor {
                 log.debug(s"headImgList::$headImgList")
                 if (headImgList.contains(id)) {
                   grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, headImgList(id))
+                } else {
+                  log.error(s"can not find headImg of $id")
+                  grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, 0)
                 }
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2._1 == id).foreach { w =>
@@ -371,7 +375,7 @@ object RoomActor {
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           getGameRecorder(ctx, roomId, grid) ! recordData
-          idle(index, roomId, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard)
+          idle(index, roomId, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, headImgList = headImgList)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
