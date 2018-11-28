@@ -23,7 +23,7 @@ import com.neo.sk.carnie.common.AppSettings
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  private val roomMap = mutable.HashMap[Int, mutable.HashSet[(String, String)]]() //roomId->Set((userId, name))
+  private val roomMap = mutable.HashMap[Int, (Int, mutable.HashSet[(String, String)])]() //roomId->(mode,Set((userId, name)))
   private val limitNum = AppSettings.limitNum
 
   trait Command
@@ -83,20 +83,20 @@ object RoomManager {
       msg match {
         case msg@Join(id, name, mode, img, subscriber) =>
           log.info(s"got $msg")
-          if (roomMap.nonEmpty && roomMap.exists(_._2.size < limitNum)) {
-            val roomId = roomMap.filter(_._2.size < limitNum).head._1
-            roomMap.put(roomId, roomMap(roomId) += ((id, name)))
-            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
+          if (roomMap.nonEmpty && roomMap.exists(r => r._2._1 == mode && r._2._2.size < limitNum)) {
+            val roomId = roomMap.filter(r => r._2._1 == mode && r._2._2.size < limitNum).head._1
+            roomMap.put(roomId, (mode, roomMap(roomId)._2 + ((id, name))))
+            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber, img)
           } else {
             val roomId = roomIdGenerator.getAndIncrement()
-            roomMap.put(roomId, mutable.HashSet((id, name)))
-            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber)
+            roomMap.put(roomId, (mode, mutable.HashSet((id, name))))
+            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber, img)
           }
           Behaviors.same
 
         case UserDead(users) =>
           try {
-            val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
+            val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
             groupDeadUsers.keys.foreach { roomId =>
               val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
               getRoomActor(ctx, roomId) ! UserDead(deadUsersInOneRoom)
@@ -125,7 +125,7 @@ object RoomManager {
 
         case IsPlaying(roomId, userId, reply) =>
           if(roomMap.contains(roomId)) {
-            val msg = roomMap.filter(_._1==roomId).head._2.exists(_._1==userId)//userId是否在游戏中
+            val msg = roomMap.filter(_._1==roomId).head._2._2.exists(_._1==userId)//userId是否在游戏中
             reply ! msg
             Behaviors.same
           } else {
@@ -143,8 +143,8 @@ object RoomManager {
         case msg@Left(id, name) =>
           log.info(s"got $msg")
           try {
-            val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
-            roomMap.update(roomId, roomMap(roomId).-((id, name)))
+            val roomId = roomMap.filter(r => r._2._2.exists(u => u._1 == id)).head._1
+            roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2 -((id, name))))
             getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
           } catch {
             case e: Exception =>
@@ -165,8 +165,8 @@ object RoomManager {
             case _ =>
 //              log.debug(s"receive $m...roomMap:$roomMap")
           }
-          if (roomMap.exists(r => r._2.exists(u => u._1 == id))) {
-            val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
+          if (roomMap.exists(r => r._2._2.exists(u => u._1 == id))) {
+            val roomId = roomMap.filter(r => r._2._2.exists(u => u._1 == id)).head._1
             getRoomActor(ctx, roomId) ! RoomActor.UserActionOnServer(id, action)
           }
           Behaviors.same
@@ -180,26 +180,26 @@ object RoomManager {
 
         case UserLeft(id) =>
           log.debug(s"got Terminated id = $id")
-          val roomInfoOpt = roomMap.find(r => r._2.exists(u => u._1 == id))
+          val roomInfoOpt = roomMap.find(r => r._2._2.exists(u => u._1 == id))
           if (roomInfoOpt.nonEmpty) {
             val roomId = roomInfoOpt.get._1
-            val filterUserInfo = roomMap(roomId).find(_._1 == id)
+            val filterUserInfo = roomMap(roomId)._2.find(_._1 == id)
             if (filterUserInfo.nonEmpty) {
-              roomMap.update(roomId, roomMap(roomId).-(filterUserInfo.get))
+              roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2 - filterUserInfo.get))
             }
           }
           Behaviors.same
 
         case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
-          reply ! roomMap.find(r => r._2.exists(i => i._1 == pid)).map(_._1)
+          reply ! roomMap.find(r => r._2._2.exists(i => i._1 == pid)).map(_._1)
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"${ctx.self.path} got roomId = $roomId")
           val roomInfo = roomMap.get(roomId)
           val replyMsg = if (roomInfo.nonEmpty) {
-            roomInfo.get.toList.map { p => PlayerIdName(p._1, p._2) }
+            roomInfo.get._2.toList.map { p => PlayerIdName(p._1, p._2) }
           } else Nil
           reply ! replyMsg
           Behaviors.same
