@@ -29,7 +29,7 @@ object Main extends js.JSApp {
         val playerId = if(playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if(playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
 //        val img = 0
-        new NetGameHolder("playGame", PlayGamePara(playerId, playerName, mode =1)).init()
+        new NetGameHolder("playGame", PlayGamePara(playerId, playerName, mode = 0)).init()
 
       case "watchGame" =>
         val roomId = playerMsgMap.getOrElse("roomId", "1000")
