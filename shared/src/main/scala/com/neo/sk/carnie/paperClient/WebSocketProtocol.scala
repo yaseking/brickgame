@@ -6,7 +6,7 @@ package com.neo.sk.carnie.paperClient
 object WebSocketProtocol {
   sealed trait WebSocketPara
 
-  case class PlayGamePara(playerId: String, playerName: String) extends WebSocketPara
+  case class PlayGamePara(playerId: String, playerName: String, mode: Int = 0, img: Int = 0) extends WebSocketPara//img: Int
 
   case class WatchGamePara(roomId: String, playerId: String, accessCode: String) extends WebSocketPara
 

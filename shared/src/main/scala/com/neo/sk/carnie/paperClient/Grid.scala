@@ -248,7 +248,7 @@ trait Grid {
 
     val finishPoints = finishFields.flatMap(_._2)
 
-    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l))).data.header)).keySet
+    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l, img = 0))).data.header)).keySet
     val bodyInNewFieldSnake = finishPoints.map{ fp =>
       grid.get(fp) match {
         case Some(Body(bid, _)) => Some(bid)

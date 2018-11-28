@@ -99,6 +99,7 @@ object GameRecorder {
             case Protocol.JoinEvent(id, name) =>
               userMap.put(id, name)
               userHistoryMap.put(id, name)
+              log.debug(s"history map:$userHistoryMap when join")
               if(essfMap.get(UserBaseInfo(id, name)).nonEmpty) {
                 essfMap.put(UserBaseInfo(id, name), essfMap(UserBaseInfo(id, name)) ::: List(UserJoinLeft(frame, -1l)))
               } else {
@@ -107,6 +108,7 @@ object GameRecorder {
 
             case Protocol.LeftEvent(id, nickName) =>
               userMap.remove(id)
+              log.debug(s"history map:$userHistoryMap when left")
               essfMap.get(UserBaseInfo(id, nickName)) match {
                 case Some(joinOrLeftInfo) =>
                   if(joinOrLeftInfo.lengthCompare(1) == 0)
@@ -172,7 +174,8 @@ object GameRecorder {
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
           case Success(recordId) =>
             val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId,u._2)).toSet
-            log.debug(s"users in room:$usersInRoom")
+              log.debug(s"history map:$userHistoryMap")
+              log.debug(s"users in room:$usersInRoom")
             RecordDAO.saveUserInGame(usersInRoom).onComplete{
               case Success(_) =>
 
@@ -213,6 +216,8 @@ object GameRecorder {
           RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
             case Success(recordId) =>
               val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId,u._2)).toSet
+              log.debug(s"history map:$userHistoryMap")
+              log.debug(s"users in room:$usersInRoom")
               RecordDAO.saveUserInGame(usersInRoom).onComplete{
                 case Success(_) =>
                   ctx.self ! SwitchBehavior("resetRecord", resetRecord(gameInfo, userMap, userHistoryMap))

@@ -16,7 +16,7 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
+class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模式，1:反转模式
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -182,7 +182,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
   }
 
   def draw(offsetTime: Long): Unit = {
-    println("come to draw!!")
+//    println("come to draw!!")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
         BGM.pause()
@@ -210,7 +210,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
           BGM = bgmList(getRandom(9))
           BGM.play()
         }
-        println("draw---DrawBaseGame!!")
+//        println("draw---DrawBaseGame!!")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
@@ -249,7 +249,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
       rankCanvas.focus()
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
-          println(s"onkeydown：${e.keyCode}")
           val msg: Protocol.UserAction = {
             val frame = grid.frameCount + 2
 //            println(s"frame : $frame")
@@ -273,7 +272,17 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {
                   dom.window.requestAnimationFrame(gameRender())
               }
             }
-            Key(myId, e.keyCode, frame, actionId)
+            val newKeyCode = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 0) e.keyCode else {
+              e.keyCode match {
+                case KeyCode.Left => KeyCode.Right
+                case KeyCode.Right => KeyCode.Left
+                case KeyCode.Down => KeyCode.Up
+                case KeyCode.Up => KeyCode.Down
+                case _ => KeyCode.Space
+              }
+            }
+            println(s"onkeydown：$newKeyCode")
+            Key(myId, newKeyCode, frame, actionId)
           }
           webSocketClient.sendMessage(msg)
           e.preventDefault()
