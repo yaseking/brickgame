@@ -64,7 +64,7 @@ package object paperClient {
                    kill: Int = 0,
                    startTime: Long,
                    endTime: Long,
-                   img: Int
+                   img: Int =0//头部图片
                  )
 
   case class UpdateSnakeInfo(

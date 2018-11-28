@@ -250,7 +250,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模�
       rankCanvas.focus()
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
-          println(s"onkeydown：${e.keyCode}")
           val msg: Protocol.UserAction = {
             val frame = grid.frameCount + 2
 //            println(s"frame : $frame")
@@ -280,10 +279,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模�
                 case KeyCode.Right => KeyCode.Left
                 case KeyCode.Down => KeyCode.Up
                 case KeyCode.Up => KeyCode.Down
-                case KeyCode.Space => KeyCode.Space
+                case _ => KeyCode.Space
               }
             }
-            println(s"onkeydown：${newKeyCode}")
+            println(s"onkeydown：$newKeyCode")
             Key(myId, newKeyCode, frame, actionId)
           }
           webSocketClient.sendMessage(msg)

@@ -52,8 +52,15 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         'mode.as[Int],
         'img.as[Int]
       ) { (id, name, mode, img) =>
-        log.info(s"joinGame: id-$id, name-$name, mode-$mode, img-$img")
-        handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+        dealFutureResult {
+          val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
+          msg.map{r=>
+            if(r)
+              getFromResource("html/errPage.html")
+            else
+              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+          }
+        }
       }
     } ~
       path("observeGame") {
@@ -71,7 +78,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(data) =>
                     dealFutureResult {
-                      val msg: Future[Boolean] = roomManager ? (RoomManager.IsPlaying(roomId, data.playerId, _))
+                      val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying4Watch(roomId, data.playerId, _))
                       msg.map{r=>
                         if(r)
                           getFromResource("html/errPage.html")
@@ -120,7 +127,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         parameter(
           'id.as[String],
           'name.as[String],
-          'accessCode.as[String]
+          'accessCode.as[String]//todo 客户端接收模式参数
         ) { (id, name, accessCode) =>
           val gameId = AppSettings.esheepGameId
           dealFutureResult{
@@ -131,7 +138,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 val playerName = URLDecoder.decode(name, "UTF-8")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
-                    handleWebSocketMessages(webSocketChatFlow(id, playerName, 0, 0))//todo 客户端区分模式
+                    handleWebSocketMessages(webSocketChatFlow(id, playerName, 0, 0))
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
 //                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))

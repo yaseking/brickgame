@@ -31,7 +31,7 @@ object PlayGameWebSocket {
 
   sealed trait WsCommand
 
-  case class ConnectGame(playerInfo: PlayerInfoInClient, domain: String) extends WsCommand
+  case class ConnectGame(playerInfo: PlayerInfoInClient, domain: String) extends WsCommand//mode: Int, img: Int
 
   case class MsgToService(sendMsg: WsSendMsg) extends WsCommand
 
@@ -142,7 +142,7 @@ object PlayGameWebSocket {
 
   }
 
-  def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String): String = {
+  def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String): String = {//mode: Int, img: Int
     val wsProtocol = "ws"
     val domain = "10.1.29.250:30368"
 //    val domain = "localhost:30368"
