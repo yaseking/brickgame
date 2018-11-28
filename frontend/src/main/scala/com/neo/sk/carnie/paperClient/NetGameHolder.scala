@@ -280,6 +280,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) {//0:正常模�
                 case KeyCode.Right => KeyCode.Left
                 case KeyCode.Down => KeyCode.Up
                 case KeyCode.Up => KeyCode.Down
+                case KeyCode.Space => KeyCode.Space
               }
             }
             println(s"onkeydown：${newKeyCode}")
