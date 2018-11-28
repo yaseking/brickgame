@@ -59,7 +59,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
                   <p style="text-align: center; margin-top: 10px;"> 选择头像</p>
                 </div>
                 <div>
-                  <div class="gameDiv"style="text-align: center;">
+                  <div class="gameDiv" style="text-align: center;">
                     <div style="width: 27%; margin: 20px;">
                       <div style="overflow: hidden;" id="1000000002">
                         <div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">
