@@ -77,7 +77,7 @@ object GameRecorder {
           )(implicit stashBuffer: StashBuffer[Command],
             timer: TimerScheduler[Command],
             middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
-    log.debug(s"userHistoryMap:::::::$userHistoryMap")
+//    log.debug(s"userHistoryMap:::::::$userHistoryMap")
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case RecordData(frame, event) => //记录数据
