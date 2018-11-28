@@ -106,7 +106,8 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
                             </div>
                           </div>
                         </div>
-                      <button class="arrow" onclick="">进入游戏</button>
+                      <button class="arrow" onclick="function f() {
+                          paperClient.Main.main()}">进入游戏</button>
       </body>
     </html>
   }
