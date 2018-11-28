@@ -13,3 +13,5 @@ CREATE TABLE public.user_in_record(
   room_id  INT NOT NULL
 );
 CREATE INDEX user_in_record_record_id_idx ON user_in_record(record_id);
+
+ALTER TABLE public.user_in_record ADD nickname varchar(255) DEFAULT '' NOT NULL;
