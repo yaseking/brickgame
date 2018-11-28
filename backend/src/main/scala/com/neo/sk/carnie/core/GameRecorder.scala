@@ -108,8 +108,9 @@ object GameRecorder {
               }
 
             case Protocol.LeftEvent(id, nickName) =>
+              log.debug(s"===============history map:$userHistoryMap before left")
               userMap.remove(id)
-              log.debug(s"history map:$userHistoryMap when left")
+              log.debug(s"!!!!!!!!!!!!!!!history map:$userHistoryMap when left")
               essfMap.get(UserBaseInfo(id, nickName)) match {
                 case Some(joinOrLeftInfo) =>
                   if(joinOrLeftInfo.lengthCompare(1) == 0)
