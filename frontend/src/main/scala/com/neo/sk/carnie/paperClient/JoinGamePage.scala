@@ -2,6 +2,8 @@ package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.WebSocketPara
 import com.neo.sk.carnie.util.Component
+import org.scalajs.dom
+import org.scalajs.dom.html.{Document => _, _}
 
 import scala.xml.Elem
 
@@ -10,6 +12,8 @@ import scala.xml.Elem
   **/
 class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Component {
 
+  def gotoGame() ={
+  }
   override def render: Elem = {
     <html>
       <body>
@@ -102,7 +106,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
                             </div>
                           </div>
                         </div>
-                      <button class="arrow" onclick="f()">进入游戏</button>
+                      <button class="arrow" onclick="">进入游戏</button>
       </body>
     </html>
   }
