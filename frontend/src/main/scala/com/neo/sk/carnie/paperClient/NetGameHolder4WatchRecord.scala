@@ -466,10 +466,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
   override def render: Elem = {
     init()
-    <div>
-      {<canvas id="RankView" tabindex="1" style="z-index: 3;position: absolute;"></canvas>}
-      {<canvas id="GameView" tabindex="1" style="position: relative;"></canvas>}
-      {<canvas id="BorderView" tabindex="1"></canvas>}
-    </div>
+    <div></div>
   }
 }
