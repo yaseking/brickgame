@@ -68,7 +68,7 @@ object GameRecorder {
 
   def idle(recorder: FrameOutputStream,
            gameInfo: GameInformation,
-           essfMap: mutable.HashMap[UserBaseInfo,List[UserJoinLeft]] = mutable.HashMap[UserBaseInfo,List[UserJoinLeft]](),
+           essfMap: mutable.HashMap[UserBaseInfo, List[UserJoinLeft]] = mutable.HashMap[UserBaseInfo,List[UserJoinLeft]](),
            userMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
            userHistoryMap: mutable.HashMap[String, String] = mutable.HashMap[String, String](),
            eventRecorder: List[(List[Protocol.GameEvent], Option[Protocol.Snapshot])] = Nil,
@@ -77,6 +77,7 @@ object GameRecorder {
           )(implicit stashBuffer: StashBuffer[Command],
             timer: TimerScheduler[Command],
             middleBuffer: MiddleBufferInJvm): Behavior[Command] = {
+    log.debug(s"userHistoryMap:::::::$userHistoryMap")
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case RecordData(frame, event) => //记录数据
