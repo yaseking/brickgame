@@ -107,9 +107,9 @@ class GameScene {
     view.drawGameWin(myId: String, winner: String, data: Data4TotalSync)
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore): Unit = {
+  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
     rank.drawClearRank()
-    view.drawGameDie(killerOpt, myScore)
+    view.drawGameDie(killerOpt, myScore,maxArea)
   }
 
 
@@ -117,7 +117,7 @@ class GameScene {
     rank.drawRank(myId, snakes, currentRank)
   }
 
-  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+  def drawBarrage(killedName: String, killerName: String): Unit = {
     view.drawUserDieInfo(killedName,killerName)
   }
 

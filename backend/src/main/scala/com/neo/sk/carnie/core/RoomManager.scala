@@ -142,9 +142,15 @@ object RoomManager {
 
         case msg@Left(id, name) =>
           log.info(s"got $msg")
-          val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
-          roomMap.update(roomId, roomMap(roomId).-((id, name)))
-          getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
+          try {
+            val roomId = roomMap.filter(r => r._2.exists(u => u._1 == id)).head._1
+            roomMap.update(roomId, roomMap(roomId).-((id, name)))
+            getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
+          } catch {
+            case e: Exception =>
+              log.error(s"$msg got error: $e")
+          }
+
           Behaviors.same
 
         case msg@WatcherLeft(roomId, userId) =>

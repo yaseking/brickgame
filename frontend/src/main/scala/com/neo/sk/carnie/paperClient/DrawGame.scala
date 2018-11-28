@@ -48,7 +48,6 @@ class DrawGame(
     borderCanvas.height = canvasUnit * Boundary.h
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
-//    drawTest()
     drawCache()
   }
 
@@ -64,7 +63,6 @@ class DrawGame(
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
 
-//    drawTest()
     drawCache()
 
   }
@@ -171,7 +169,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawUserDieInfo(killedName: String, killerName: String) = {
+  def drawBarrage(killedName: String, killerName: String) = {
     ctx.save()
     ctx.globalAlpha = 0.6
     ctx.restore()
@@ -188,6 +186,7 @@ class DrawGame(
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
+    ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
@@ -325,6 +324,20 @@ class DrawGame(
   }
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
 
+//  def drawField(fieldData: List[Protocol.FieldByColumn], snakes: List[SkDt]): Unit = {
+//    fieldCtx.clearRect(0, 0, fieldCanvas.width, fieldCanvas.height)
+//    fieldData.foreach { field => //按行渲染
+//      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+//      fieldCtx.fillStyle = color
+//      field.scanField.foreach { point =>
+//        point.x.foreach { x =>
+//          fieldCtx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//        }
+//      }
+//    }
+//  }
+
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -348,9 +361,9 @@ class DrawGame(
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
-    val newScale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
-    setScale(newScale, windowBoundary.x / 2, windowBoundary.y / 2)
+    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
     ctx.globalAlpha = 0.6
     data.bodyDetails.foreach { bds =>
@@ -376,7 +389,10 @@ class DrawGame(
       }
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
-
+    //绘制领地
+//    ctx.save()
+//    ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
+//    ctx.restore()
 
     ctx.globalAlpha = 1.0
     fieldInWindow.foreach { field => //按行渲染
@@ -389,7 +405,7 @@ class DrawGame(
       }
     }
 
-    snakeWithOff.foreach { s =>
+    snakeWithOff.foreach { s => //draw headers
       ctx.fillStyle = s.color
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
@@ -416,17 +432,14 @@ class DrawGame(
       rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
       PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
     }
-    val b = System.currentTimeMillis()
-    println(s"hkhj: ${b-a}")
-    newScale
   }
 
   def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    val w = canvas.width - littleMap.w * canvasUnit * 1.042
-    val h = canvas.height - littleMap.h * canvasUnit * 1.030
+    val w = canvas.width * 0.99 - littleMap.w * canvasUnit //* 1.042
+    val h = canvas.height * 0.985 - littleMap.h * canvasUnit //* 1.030
     ctx.save()
     ctx.globalAlpha = 0.5
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)

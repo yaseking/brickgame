@@ -10,14 +10,14 @@ object Protocol {
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
 
-  case class GridDataSync(
-                           frameCount: Long,
-                           snakes: List[SkDt],
-                           bodyDetails: List[Bd],
-                           fieldDetails: List[Fd],
-                           borderDetails: List[Bord],
-                           killHistory: List[Kill]
-                         ) extends GameMessage
+//  case class GridDataSync(
+//                           frameCount: Long,
+//                           snakes: List[SkDt],
+//                           bodyDetails: List[Bd],
+//                           fieldDetails: List[Fd],
+//                           borderDetails: List[Bord],
+//                           killHistory: List[Kill]
+//                         ) extends GameMessage
 
   case class NewFieldInfo(
                            frameCount: Long,
@@ -28,9 +28,15 @@ object Protocol {
                              frameCount: Long,
                              snakes: List[SkDt],
                              bodyDetails: List[BodyBaseInfo],
-                             fieldDetails: List[FieldByColumn],
-                             killHistory: List[Kill]
+                             fieldDetails: List[FieldByColumn]
+//                             killHistory: List[Kill]
                            ) extends GameMessage
+
+  case class NewSnakeInfo(
+                         frameCount: Long,
+                         snake: List[SkDt],
+                         filedDetails: List[FieldByColumn]
+                         ) extends GameMessage
 
   case class KilledSkData(
                          killedSkInfo: List[KilledSkDt]
@@ -68,7 +74,9 @@ object Protocol {
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
 
-  case class DeadPage(kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+  case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+
+  case class UserLeft(userId: String) extends GameMessage
 
   case class InitReplayError(info: String) extends GameMessage
 
@@ -87,9 +95,11 @@ object Protocol {
 
   case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage with GameEvent
 
-  case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage
+  case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
+
+  case class WinnerBestScore(Score: Int) extends GameMessage
 
   sealed trait WsSendMsg
   case object WsSendComplete extends WsSendMsg
@@ -123,7 +133,7 @@ object Protocol {
 
   case class RankEvent(rank: List[Score]) extends GameEvent
 
-  case class Snapshot(snakes: List[SkDt], bodyDetails: List[BodyBaseInfo], fieldDetails: List[FieldByColumn], killHistory: List[Kill]) extends GameEvent
+  case class Snapshot(snakes: List[SkDt], bodyDetails: List[BodyBaseInfo], fieldDetails: List[FieldByColumn]) extends GameEvent
 
   case class DecodeError() extends GameEvent
 

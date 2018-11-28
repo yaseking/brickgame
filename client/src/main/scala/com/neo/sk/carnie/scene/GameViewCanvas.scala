@@ -127,10 +127,10 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     ctx.restore()
   }
 
-  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore): Unit = {
+  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore, maxArea: Int): Unit = {
     //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 //    val endTime = System.currentTimeMillis()
-    if (myScore.area > maxArea) maxArea = myScore.area
+//    if (myScore.area > maxArea) maxArea = myScore.area
     ctx.setFill(ColorsSetting.dieInfoBackgroundColor)
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.setFill(ColorsSetting.gameNameColor)
@@ -190,8 +190,8 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
-    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.100
-    val h = windowBoundary.y - littleMap.h * canvasUnitY * 1.170
+    val w = windowBoundary.x * 0.99 - littleMap.w * canvasUnit //* 1.100
+    val h = windowBoundary.y - littleMap.h * canvasUnitY //* 1.170
 //    val h = w * 7 / 12
     ctx.save()
     ctx.setGlobalAlpha(0.5)

@@ -36,7 +36,7 @@ object GameRecorder {
 
   private final case object SaveDateKey
 
-  private final val saveTime = 10.minute
+  private final val saveTime = 1.minute
 
   private val maxRecordNum = 100
 
@@ -85,6 +85,7 @@ object GameRecorder {
               case Protocol.DirectionEvent(_,_) => false
               case Protocol.EncloseEvent(_) => false
               case Protocol.RankEvent(_) => false
+              case Protocol.SomeOneKilled(_,_,_) => false
               case _ => true
             } || tickCount % 50 == 0) {
 //              log.debug(s"save snapshot =======tickCount:$tickCount")
@@ -115,7 +116,7 @@ object GameRecorder {
                       val join = joinOrLeftInfo.filter(_.leftFrame == -1l).head.joinFrame
                       essfMap.put(UserBaseInfo(id, nickName), essfMap(UserBaseInfo(id, nickName)).filterNot(_.leftFrame == -1l) ::: List(UserJoinLeft(join, frame)))
                     } else {
-                      log.error(s"无法找到该用户加入事件！！！！")
+                      log.error(s"无法找到用户 $id 加入事件！！！！")
                     }
 
                   }
@@ -171,6 +172,7 @@ object GameRecorder {
         RecordDAO.saveGameRecorder(gameInfo.roomId, gameInfo.startTime, System.currentTimeMillis(), filePath).onComplete{
           case Success(recordId) =>
             val usersInRoom = userHistoryMap.map(u => SlickTables.rUserInRecord(u._1, recordId, gameInfo.roomId,u._2)).toSet
+            log.debug(s"users in room:$usersInRoom")
             RecordDAO.saveUserInGame(usersInRoom).onComplete{
               case Success(_) =>
 
@@ -245,7 +247,7 @@ object GameRecorder {
           val newUserMap = userMap
           log.debug(s"new userMap: $newUserMap")
           val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, frame)
-          val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, gameInfo, Some(event._2))
+          val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, newGameInfo, Some(event._2))
           val newEventRecorder = List((event._1, Some(event._2)))
           val newEssfMap = mutable.HashMap.empty[UserBaseInfo, List[UserJoinLeft]]
 
