@@ -252,6 +252,7 @@ object GameRecorder {
         case RecordData(frame, event) => //新的文件初始化
           log.debug(s"new recorder reset! start frame:$frame")
           val newUserMap = userMap
+          val newUserHistoryMap = userMap
           log.debug(s"new userMap: $newUserMap")
           val newGameInfo = GameInformation(gameInfo.roomId, System.currentTimeMillis(), gameInfo.index + 1, frame)
           val recorder: FrameOutputStream = getRecorder(getFileName(gameInfo.roomId, newGameInfo.startTime), newGameInfo.index, newGameInfo, Some(event._2))
@@ -292,7 +293,7 @@ object GameRecorder {
 
 
 
-          switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newEssfMap, newUserMap, newUserMap, newEventRecorder, frame))
+          switchBehavior(ctx, "idle", idle(recorder, newGameInfo, newEssfMap, newUserMap, newUserHistoryMap, newEventRecorder, frame))
 
         case _ =>
           Behaviors.unhandled
