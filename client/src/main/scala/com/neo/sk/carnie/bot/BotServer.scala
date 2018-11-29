@@ -57,13 +57,13 @@ class BotServer extends EsheepAgent {
   }
 
   override def observation(request: Credit): Future[ObservationRsp] = {
-    println(s"action Called by [$request")
+    println(s"observation Called by [$request")
     val rsp = ObservationRsp()
     Future.successful(rsp)
   }
 
   override def inform(request: Credit): Future[InformRsp] = {
-    println(s"action Called by [$request")
+    println(s"inform Called by [$request")
     val rsp = InformRsp()
     Future.successful(rsp)
   }
