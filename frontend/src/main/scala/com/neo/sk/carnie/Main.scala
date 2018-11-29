@@ -1,7 +1,7 @@
 package com.neo.sk.carnie
 
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.paperClient.{JoinGamePage, NetGameHolder, NetGameHolder4WatchRecord}
+import com.neo.sk.carnie.paperClient.{JoinGamePage, NetGameHolder, CanvasPage,NetGameHolder4WatchRecord}
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -17,7 +17,7 @@ import scala.xml.Elem
 
 @JSExportTopLevel("paperClient.Main")
 object Main extends js.JSApp {
-
+  var currentPage:Elem = <div></div>
   def main(): Unit = {
     show()
   }
@@ -62,19 +62,15 @@ object Main extends js.JSApp {
   }
 
   def show(): Cancelable = {
-    val currentPage = selectPage()
+    currentPage = selectPage()
     val page =
       <div>
         {currentPage}
       </div>
     mount(dom.document.body, page)
   }
-  def play(modelId:Int, headId:Int): Cancelable = {
-    val currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).render
-    val page =
-      <div>
-        {currentPage}
-      </div>
-    mount(dom.document.body, page)
+  def play(modelId:Int, headId:Int): Unit = {
+    currentPage = new CanvasPage().render
+//    currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).render
   }
 }
