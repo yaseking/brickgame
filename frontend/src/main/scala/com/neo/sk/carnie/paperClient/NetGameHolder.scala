@@ -255,7 +255,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           val msg: Protocol.UserAction = {
-            val frame = grid.frameCount + 2
+            val frame = grid.frameCount + 3//2
             //            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
             grid.addActionWithFrame(myId, e.keyCode, frame)
