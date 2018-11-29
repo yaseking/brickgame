@@ -123,9 +123,6 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
             <h1 style="font-family: Verdana;font-size: 30px;">欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div  style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 10px;"> 选择模式</p>
-            </div>
             <div style="display:flex;flex-wrap: wrap;" >
                 {modelDiv}
             </div>
@@ -139,7 +136,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
                 {headDiv}
             </div>
           </div>
-          <button class="arrow" onclick={() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
+          <button type="button" class="btn btn-primary" onclick={() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
           </div>
       </body>
     </html>
