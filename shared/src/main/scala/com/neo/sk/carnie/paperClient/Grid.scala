@@ -123,9 +123,9 @@ trait Grid {
           case _ => snake.direction
         }
         if (keyDirection + snake.direction != Point(0, 0)) {
-          keyDirection * 2
+          keyDirection
         } else {
-          snake.direction * 2
+          snake.direction
         }
       }
 
