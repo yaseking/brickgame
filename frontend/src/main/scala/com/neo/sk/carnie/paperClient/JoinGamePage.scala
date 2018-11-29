@@ -112,7 +112,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   
   def gotoGame(modelId: Int, headId: Int):Unit ={
     if(modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
-    else Main.play()
+    else Main.play(modelId,headId)
   }
   override def render: Elem = {
     {init()}
