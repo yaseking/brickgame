@@ -33,8 +33,8 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int,Boolean]] = Var(Map())
 
-  var headLists = List(Head(0,"/carnie/static/img/luffy.png"), Head(1,"/carnie/static/img/luffy.png"),Head(2,"/carnie/static/img/luffy.png"),
-    Head(3,"/carnie/static/img/luffy.png"), Head(4,"/carnie/static/img/luffy.png"),Head(5,"/carnie/static/img/luffy.png"))
+  var headLists = List(Head(0,"/carnie/static/img/luffy.png"), Head(1,"/carnie/static/img/fatTiger.png"),Head(2,"/carnie/static/img/Bob.png"),
+    Head(3,"/carnie/static/img/yang.png"), Head(4,"/carnie/static/img/smile.png"),Head(5,"/carnie/static/img/pig.png"))
   var headSelectMap : Map[Int,Boolean] =Map()
   var headSelected = Head(-1,"tbd")
   //游戏选择框
