@@ -34,25 +34,26 @@ object PerformanceTool {
 //    val fpsString = s"fps : $lastRenderTimes, ping: $latency"
 //    ctx.fillText(fpsString, leftBegin, lineHeight)
 
-    ctx.font = "20px Helvetica"
+    ctx.font = "15px Helvetica"
     ctx.fillStyle = ColorsSetting.fontColor2
     val fpsString = "fps : "
     val pingString = "ping: "
     val drawTimeString = "drawTimeAverage: "
     ctx.fillText(fpsString, leftBegin, lineHeight * 5)
     ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight * 5)//50
-    ctx.fillText(drawTimeString, leftBegin, lineHeight * 6)
     ctx.strokeStyle = "black"
     ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight * 5)
     ctx.fillStyle = if (lastRenderTimes < 50) ColorsSetting.redColor else ColorsSetting.greenColor
     ctx.fillText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight * 5)
-    ctx.strokeStyle = "black"
+//    ctx.strokeStyle = "black"
     ctx.strokeText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight * 5)
     ctx.fillStyle = if (latency <= 100) ColorsSetting.greenColor else if (latency > 100 && latency <= 200) ColorsSetting.yellowColor else ColorsSetting.redColor
     ctx.fillText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight * 5)
-    ctx.strokeStyle = "black"
+    ctx.font = "12px Helvetica"
+    ctx.fillText(drawTimeString, leftBegin, lineHeight * 6)
+//    ctx.strokeStyle = "black"
     ctx.strokeText(s"${drawTimeAva}ms".toString, leftBegin + ctx.measureText(drawTimeString).width, lineHeight * 6)
-    ctx.fillStyle = if (drawTimeAva > 15) ColorsSetting.redColor else ColorsSetting.greenColor
+    ctx.fillStyle = if (drawTimeAva > 10) ColorsSetting.redColor else ColorsSetting.greenColor
     ctx.fillText(s"${drawTimeAva}ms".toString, leftBegin + ctx.measureText(drawTimeString).width, lineHeight * 6)
   }
 

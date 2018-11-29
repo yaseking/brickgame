@@ -220,7 +220,7 @@ class DrawGame(
     ctx.fillStyle = "#000000"
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
-    println(ctx.measureText(txt2).width.toString)
+//    println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     ctx.font = "bold 20px Microsoft YaHei"
@@ -322,7 +322,7 @@ class DrawGame(
       val img = if (s.id == championId) championHeaderImg else {
         if (s.id == uid) myHeaderImg else otherHeaderImg
       }
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 3) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
