@@ -5,7 +5,7 @@ import com.neo.sk.carnie.paperClient.{JoinGamePage, NetGameHolder, NetGameHolder
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
-import mhtml.{Cancelable, mount}
+import mhtml.{Cancelable, Var, mount}
 import org.scalajs.dom
 
 import scala.scalajs.js
@@ -21,6 +21,8 @@ object Main extends js.JSApp {
   def main(): Unit = {
     show()
   }
+
+  private val currentPage: Var[Elem] = Var(<div></div>)
 
   def selectPage(): Elem = {
 //    new JoinGamePage("playGame", PlayGamePara("test", "test", mode = 1)).render
