@@ -16,11 +16,17 @@ class SelectScene {
   val height = 500
   val group = new Group
   val button = new Button("加入游戏")
-  var selectScene: SelectSceneListener = _
+  var selectSceneListener: SelectSceneListener = _
 
   button.setLayoutX(230)
   button.setLayoutY(240)
 
   group.getChildren.add(button)
   val scene = new Scene(group)
+
+  button.setOnAction(_ => selectSceneListener.joinGame())
+
+  def setSelectSceneListener(listen: SelectSceneListener) = {
+    selectSceneListener = listen
+  }
 }
