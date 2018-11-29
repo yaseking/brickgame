@@ -314,6 +314,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                println("rollBack1111.")
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
@@ -327,6 +328,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
                   val oldGrid = grid
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
+                  println("rollBack2222.")
                 }
               }
               myActionHistory -= actionId
@@ -337,6 +339,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
               val oldGrid = grid
               oldGrid.recallGrid(frame, grid.frameCount)
               grid = oldGrid
+              println("rollBack3333.")
             }
           }
         }
