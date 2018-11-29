@@ -21,7 +21,7 @@ import scala.xml.Elem
   */
 
 class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Component {
-  //0:正常模式，1:反转模式
+  //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
@@ -255,7 +255,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           val msg: Protocol.UserAction = {
-            val frame = grid.frameCount + 2
+            val frame = grid.frameCount + 4//2 4
             //            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
             grid.addActionWithFrame(myId, e.keyCode, frame)
