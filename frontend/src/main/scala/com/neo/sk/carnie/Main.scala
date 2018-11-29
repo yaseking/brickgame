@@ -17,7 +17,7 @@ import scala.xml.Elem
 
 @JSExportTopLevel("paperClient.Main")
 object Main extends js.JSApp {
-
+  var currentPage :Elem = <div></div>
   def main(): Unit = {
     show()
   }
@@ -62,19 +62,14 @@ object Main extends js.JSApp {
   }
 
   def show(): Cancelable = {
-    val currentPage = selectPage()
+    currentPage = selectPage()
     val page =
       <div>
         {currentPage}
       </div>
     mount(dom.document.body, page)
   }
-  def play(modelId:Int, headId:Int): Cancelable = {
-    val currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).render
-    val page =
-      <div>
-        {currentPage}
-      </div>
-    mount(dom.document.body, page)
+  def play(modelId:Int, headId:Int):Unit = {
+    currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test", modelId, headId)).render
   }
 }
