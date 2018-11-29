@@ -1,11 +1,11 @@
 package com.neo.sk.carnie
 
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.paperClient.{JoinGamePage, NetGameHolder, NetGameHolder4WatchRecord}
+import com.neo.sk.carnie.paperClient.{CanvasPage, JoinGamePage, NetGameHolder, NetGameHolder4WatchRecord}
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
-import mhtml.{Cancelable, mount}
+import mhtml.{Cancelable, Var, mount}
 import org.scalajs.dom
 
 import scala.scalajs.js
@@ -22,7 +22,10 @@ object Main extends js.JSApp {
     show()
   }
 
+  private val currentPage: Var[Elem] = Var(<div></div>)
+
   def selectPage(): Elem = {
+//    new JoinGamePage("playGame", PlayGamePara("test", "test", mode = 1)).render
     val url = dom.window.location.href.split("carnie/")(1)
     val info = url.split("\\?")
     val playerMsgMap = info(1).split("&").map {
@@ -37,8 +40,8 @@ object Main extends js.JSApp {
         val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
         //        val img = 0
-        new NetGameHolder("playGame", PlayGamePara(playerId, playerName)).render
-//        new JoinGamePage("playGame", PlayGamePara(playerId, playerName, mode = 1)).render
+//        new NetGameHolder("playGame", PlayGamePara(playerId, playerName)).render
+        new JoinGamePage("playGame", PlayGamePara(playerId, playerName, mode = 1)).render
 
       case "watchGame" =>
         val roomId = playerMsgMap.getOrElse("roomId", "1000")
@@ -61,11 +64,16 @@ object Main extends js.JSApp {
   }
 
   def show(): Cancelable = {
-    val currentPage = selectPage()
+    currentPage := selectPage()
     val page =
       <div>
         {currentPage}
       </div>
     mount(dom.document.body, page)
+  }
+
+  def play(modelId:Int, headId:Int): Unit = {
+    currentPage := new CanvasPage().render
+    new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).init()
   }
 }

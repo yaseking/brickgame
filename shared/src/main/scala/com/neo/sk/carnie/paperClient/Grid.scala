@@ -469,7 +469,5 @@ trait Grid {
       snakeTurnPoints -= sid
     }
   }
-
-
 }
 
