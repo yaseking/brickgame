@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.controller
 
+import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.Boot
@@ -10,7 +11,6 @@ import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
-
 import akka.actor.typed.scaladsl.adapter._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
@@ -23,7 +23,9 @@ import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 
 class GameController(player: PlayerInfoInClient,
                      stageCtx: Context,
-                     gameScene: GameScene) {
+                     gameScene: GameScene,
+                     mode: Int =0,
+                     img: Int =0) {
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
@@ -36,21 +38,32 @@ class GameController(player: PlayerInfoInClient,
   val idGenerator = new AtomicInteger(1)
 //  var scoreFlag = true
 //  var timeFlag = true
+  var playBgm = true
   var isWin = false
   var exitFullScreen = false
   var winnerName = "unknown"
   var isContinues = true
-  var justSynced = false
   var winnerData : Option[Protocol.Data4TotalSync] = None
-  private var fieldNum = 0
+//  private var fieldNum = 0
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
+  val bgm = new AudioClip(getClass.getResource("/mp3/bgm0.mp3").toString)
+  val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
+  val bgm2 = new AudioClip(getClass.getResource("/mp3/bgm2.mp3").toString)
+  val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
+  val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
+  val bgm5 = new AudioClip(getClass.getResource("/mp3/bgm5.mp3").toString)
+  val bgm6 = new AudioClip(getClass.getResource("/mp3/bgm6.mp3").toString)
+  val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
+  val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
+  val bgmList = List(bgm,bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
+  var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
-  var totalData: scala.Option[Protocol.Data4TotalSync] = None
+  var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
@@ -69,6 +82,11 @@ class GameController(player: PlayerInfoInClient,
 //    animationTimer.stop()
   }
 
+  def getRandom(s: Int) ={
+    val rnd = new scala.util.Random
+    rnd.nextInt(s)
+  }
+
   def start(domain: String): Unit = {
     playActor ! PlayGameWebSocket.ConnectGame(player, domain)
     addUserActionListen()
@@ -76,8 +94,10 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def startGameLoop(): Unit = { //渲染帧
+    BGM = bgmList(getRandom(9))
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
+//    bgm.play(50)
     val keyFrame = new KeyFrame(Duration.millis(Protocol.frameRate), { _ =>
       logicLoop()
     })
@@ -93,6 +113,7 @@ class GameController(player: PlayerInfoInClient,
       stageCtx.getStage.setHeight(750)
       exitFullScreen = true
     }
+
     if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
       stageWidth = stageCtx.getStage.getWidth.toInt
       stageHeight = stageCtx.getStage.getHeight.toInt
@@ -109,7 +130,10 @@ class GameController(player: PlayerInfoInClient,
       newSnakeInfo = None
     }
 
-    if (!justSynced) {
+    if(syncGridData.nonEmpty) {
+      grid.initSyncGridData(syncGridData.get)
+      syncGridData = None
+    } else {
       grid.update("f")
       if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
         if (newFieldInfo.get.frameCount == grid.frameCount) {
@@ -119,60 +143,67 @@ class GameController(player: PlayerInfoInClient,
         }
         newFieldInfo = None
       }
-    } else if(syncGridData.nonEmpty) {
-      grid.initSyncGridData(syncGridData.get)
-      syncGridData = None
-      justSynced = false
     }
-    totalData = Some(grid.getGridData)
+
+    val gridData = grid.getGridData
+    gridData.snakes.find(_.id == player.id) match {
+      case Some(_) =>
+        firstCome = false
+        drawFunction = FrontProtocol.DrawBaseGame(gridData)
+
+      case None if isWin =>
+
+      case None if !firstCome =>
+//        println(s"killer: ${grid.getKiller(player.id).map(_._2)}")
+        drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
+
+      case _ =>
+        drawFunction = FrontProtocol.DrawGameWait
+    }
   }
 
   def draw(offsetTime: Long): Unit = {
-    if(totalData.nonEmpty) {
-      val data = totalData.get
-      if(isWin) {
-        gameScene.drawGameWin(player.id, winnerName, winnerData.get)
-      }
-      else {
-        data.snakes.find(_.id == player.id) match {
-          case Some(snake) =>
-            if(firstCome) firstCome = false
-            if(grid.killInfo._3 == snake.id) audioKill.play()
-//            val myFieldCount = grid.getMyFieldCount(player.id, bounds, Point(0, 0))
-//            if(myFieldCount>fieldNum){
-//              audioFinish.play()
-//              fieldNum = myFieldCount
-//            }
+    drawFunction match {
+      case FrontProtocol.DrawGameWait =>
+        BGM.stop()
+        BGM = bgmList(getRandom(9))
+        gameScene.drawGameWait()
 
-            gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-            if (grid.killInfo._2 != "" && grid.killInfo._3 != "" && snake.id != grid.killInfo._1) {
-              gameScene.drawUserDieInfo(grid.killInfo._2, grid.killInfo._3)
-              grid.lastTime -= 1
-              if (grid.lastTime == 0) {
-                grid.killInfo = ("", "", "")
-              }
-            }
-          case None =>
-            if (firstCome) gameScene.drawGameWait()
-            else {
-              //            if(timeFlag){
-              //              currentRank.filter(_.id == player.id).foreach { score =>
-              //                myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
-              //              }
-              //              timeFlag = false
-              //              log.debug("my score has been set")
-              //            }
-              gameScene.drawGameDie(grid.getKiller(player.id).map(_._2),myScore,maxArea)
-              if(isContinue) {
-                audioDie.play()
-                log.info("play the dieSound.")
-              }
-              isContinue = false
-            }
+      case FrontProtocol.DrawGameOff =>
+        BGM.stop()
+        BGM = bgmList(getRandom(9))
+        gameScene.drawGameOff(firstCome)
+
+      case FrontProtocol.DrawGameWin(winner, winData) =>
+        BGM.stop()
+        BGM = bgmList(getRandom(9))
+        gameScene.drawGameWin(player.id, winner, winData)
+        isContinue = false
+
+      case FrontProtocol.DrawBaseGame(data) =>
+        if(playBgm) {
+          BGM.play(30)
+          playBgm = false
         }
-      }
-    } else {
-      gameScene.drawGameWait()
+        if(!BGM.isPlaying){
+          BGM = bgmList(getRandom(9))
+          BGM.play(30)
+        }
+        gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        if (grid.killInfo.nonEmpty) {
+          val killBaseInfo = grid.killInfo.get
+          gameScene.drawBarrage(killBaseInfo._2, killBaseInfo._3)
+          grid.barrageDuration -= 1
+          if (grid.barrageDuration == 0) grid.killInfo = None
+        }
+
+      case FrontProtocol.DrawGameDie(killerName) =>
+        BGM.stop()
+        BGM = bgmList(getRandom(9))
+        if (isContinue) audioDie.play()
+        gameScene.drawGameDie(killerName, myScore, maxArea)
+        grid.killInfo = None
+        isContinue = false
     }
   }
 
@@ -218,6 +249,7 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneWin(winner, finalData) =>
         Boot.addToPlatform {
+          drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
           winnerName = winner
           winnerData = Some(finalData)
           isWin = true
@@ -231,13 +263,15 @@ class GameController(player: PlayerInfoInClient,
 
       case UserLeft(id) =>
         Boot.addToPlatform {
+          println(s"user $id left:::")
+          if (grid.snakes.contains(id)) grid.snakes -= id
           grid.returnBackField(id)
           grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
             Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
           }
         }
 
-      case x@Protocol.DeadPage(kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, start, end) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
           myScore = BaseScore(kill, area, start, end)
@@ -253,29 +287,26 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
-//        log.debug(s"${getClass.getResource("/mp3/win.mp3").toString}")
-        log.debug(s"i receive Data4TotalSync!!${System.currentTimeMillis()}")
         Boot.addToPlatform{
           syncGridData = Some(data)
-          justSynced = true
         }
 
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake join!!!")
         Boot.addToPlatform{
-          if(data.filedDetails.exists(_.uid == player.id))
-            audioFinish.play()
           newSnakeInfo = Some(data)
         }
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         Boot.addToPlatform {
-          grid.killInfo = (killedId, killedName, killerName)
-          grid.lastTime = 100
+          grid.killInfo = Some(killedId, killedName, killerName)
+          grid.barrageDuration = 100
         }
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
+          if(data.fieldDetails.exists(_.uid == player.id))
+            audioFinish.play()
           newFieldInfo = Some(data)
         }
 
@@ -305,21 +336,32 @@ class GameController(player: PlayerInfoInClient,
           grid.myActionHistory += actionId -> (keyCode, frame)
         } else {
           //数据重置
-          audioWin.stop()
-          audioDie.stop()
-          firstCome = true
-//          scoreFlag = true
-//          timeFlag = true
-          log.debug("timeFlag has been reset")
-          if(isWin){
-            isWin = false
-            winnerName = "unknown"
+          drawFunction match {
+            case FrontProtocol.DrawBaseGame(_) =>
+            case _ =>
+              drawFunction = FrontProtocol.DrawGameWait
+              audioWin.stop()
+              audioDie.stop()
+              firstCome = true
+              if(isWin){
+                isWin = false
+                winnerName = "unknown"
+              }
+//              fieldNum = 0
+              animationTimer.start()
+              isContinue = true
           }
-          fieldNum = 0
-          animationTimer.start()
-          isContinue = true
         }
-        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(key), frame, actionId))
+        val newKeyCode = if(mode == 0) key else {
+          key match {
+            case KeyCode.LEFT => KeyCode.RIGHT
+            case KeyCode.RIGHT => KeyCode.LEFT
+            case KeyCode.DOWN => KeyCode.UP
+            case KeyCode.UP => KeyCode.DOWN
+            case _ => KeyCode.SPACE
+          }
+        }
+        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
       }
     }
 

@@ -62,6 +62,10 @@ object Dependencies {
 
   val byteObject = "org.seekloud" %% "byteobject" % "0.1.1"
 
+  val grpcSeq = Seq(
+    "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+    "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
+  )
 
   val backendDependencies: Seq[ModuleID] =
     Dependencies.akkaSeq ++
@@ -84,7 +88,7 @@ object Dependencies {
         Dependencies.essf,
         Dependencies.byteObject
         // "com.lihaoyi" %% "upickle" % "0.6.6"
-      )
+      ) ++ Dependencies.grpcSeq
 
 
 }

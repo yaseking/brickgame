@@ -21,21 +21,21 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-  private[this] var waitingJoin = Map.empty[String, (String, String)]
+  private[this] var waitingJoin = Map.empty[String, (String, String, Int)]
 
   var currentRank = List.empty[Score]
 
   var newInfo = List.empty[(String, SkDt, List[Point])]
 
-  def addSnake(id: String, roomId: Int, name: String) = {
+  def addSnake(id: String, roomId: Int, name: String, img: Int) = {
     val bodyColor = randomColor()
-    waitingJoin += (id -> (name, bodyColor))
+    waitingJoin += (id -> (name, bodyColor, img))
   }
 
   def waitingListState: Boolean = waitingJoin.nonEmpty
 
   private[this] def genWaitingSnake() = {
-    val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor)) =>
+    val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor, img)) =>
       val startTime = System.currentTimeMillis()
       val indexSize = 10 //5
     val basePoint = randomEmptyPoint(indexSize)
@@ -47,12 +47,12 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }.toList
       }.toList
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime)
+      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime, img = img)//img: Int
       snakes += id -> snakeInfo
       killHistory -= id
       (id, snakeInfo, newFiled)
     }.toList
-    waitingJoin = Map.empty[String, (String, String)]
+    waitingJoin = Map.empty[String, (String, String, Int)]
     newInfo
 
   }

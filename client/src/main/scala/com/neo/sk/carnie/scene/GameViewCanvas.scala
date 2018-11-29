@@ -13,6 +13,7 @@ import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 import javafx.scene.SnapshotParameters
 import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
+import org.slf4j.LoggerFactory
 
 /**
   * Created by dry on 2018/10/29.
@@ -35,6 +36,9 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
   private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
+  private[this] val log = LoggerFactory.getLogger(this.getClass)
+
+  def debug(str: String) = log.debug(s"$str")
 
   def resetScreen(viewWidth:Int, viewHeight:Int, rankWidth:Int, rankHeight:Int) = {
     canvas.setWidth(viewWidth)
@@ -186,8 +190,8 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
-    val w = windowBoundary.x - littleMap.w * canvasUnit * 1.100
-    val h = windowBoundary.y - littleMap.h * canvasUnitY * 1.170
+    val w = windowBoundary.x * 0.99 - littleMap.w * canvasUnit //* 1.100
+    val h = windowBoundary.y - littleMap.h * canvasUnitY //* 1.170
 //    val h = w * 7 / 12
     ctx.save()
     ctx.setGlobalAlpha(0.5)
@@ -202,7 +206,12 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     }
   }
 
-
+  var a = 0
+  var b = 0
+  var c = 0
+  var d = 0
+  var e = 0
+  var f = 0
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
 //    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
     ctx.setFill(Color.rgb(105,105,105))
@@ -252,21 +261,49 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
         val end = turnPoints(i + 1)
+        f = f + 1
+        if(f % 200 == 0 || f == 0) {
+          debug(s"length:${turnPoints.length} turnPoints:$turnPoints ")
+        }
         if (start.x == end.x) { //同x
           if (start.y > end.y) {
+//            a = a + 1
+////            println(a)
+//            if(a % 200 == 0) {
+//              debug("111")
+//            }
             ctx.fillRect((start.x + offx) * canvasUnit, (end.y + 1 + offy) * canvasUnit, canvasUnit, (start.y - end.y) * canvasUnit)
           } else {
+//            b = b + 1
+//            if(b % 200 == 0) {
+//              debug("222")
+//            }
             ctx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, canvasUnit, (end.y - start.y) * canvasUnit)
           }
         } else { // 同y
+
           if (start.x > end.x) {
+//            c=c+1
+//            if(c % 200 == 0) {
+//              debug("333")
+//            }
             ctx.fillRect((end.x + 1 + offx) * canvasUnit, (end.y + offy) * canvasUnit, (start.x - end.x) * canvasUnit, canvasUnit)
           } else {
+//            d = d + 1
+//            if(d % 200 == 0) {
+//              debug("444")
+//            }
             ctx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, (end.x - start.x) * canvasUnit, canvasUnit)
           }
         }
       }
-      if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+      if (turnPoints.nonEmpty) {
+//        e = e + 1
+//        if(e % 200 == 0) {
+//          debug("555")
+//        }
+        ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+      }
     }
 
     ctx.setGlobalAlpha(1)

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
   * Created by dry on 2018/10/26.
   **/
 
-class LoginController(loginScene: LoginScene, context: Context) {
+class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, img: Int
 
   val loginSocketClient = system.spawn(LoginSocketClient.create(context, this), "loginSocketClient")
 

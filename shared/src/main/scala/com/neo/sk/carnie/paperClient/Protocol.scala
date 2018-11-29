@@ -74,7 +74,7 @@ object Protocol {
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
 
-  case class DeadPage(kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+  case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
 
   case class UserLeft(userId: String) extends GameMessage
 
@@ -153,6 +153,6 @@ object Protocol {
 //  case class ReplayFrameData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]]) extends GameMessage
   case class ReplayFrameData(frameIndex: Int, eventsData: GameEvent, stateData: Option[GameEvent]) extends GameMessage
 
-  val frameRate = 150
+  val frameRate = 75 //150 75
 
 }

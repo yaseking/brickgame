@@ -147,7 +147,7 @@ object GameReplay {
               dispatchTo(msg.subscriber, Protocol.StartReplay(nearSnapshotIndex, fileReader.getFramePosition))
 
               if(fileReader.hasMoreFrame){
-                timer.startPeriodicTimer(GameLoopKey, GameLoop, 150.millis)
+                timer.startPeriodicTimer(GameLoopKey, GameLoop, Protocol.frameRate.millis)
                 work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber), msg.userId)
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
