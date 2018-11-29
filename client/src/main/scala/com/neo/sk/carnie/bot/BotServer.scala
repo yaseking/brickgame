@@ -22,6 +22,26 @@ object BotServer {
     ).build
 
   }
+
+  def main(args: Array[String]): Unit = {
+
+    val executor = concurrent.ExecutionContext.Implicits.global
+    val port = 5321
+
+    val server = BotServer.build(port, executor)
+    server.start()
+    println(s"Server started at $port")
+
+    sys.addShutdownHook {
+      println("JVM SHUT DOWN.")
+      server.shutdown()
+      println("SHUT DOWN.")
+    }
+
+    server.awaitTermination()
+    println("DONE.")
+
+  }
 }
 
 class BotServer extends EsheepAgent {
