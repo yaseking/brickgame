@@ -117,7 +117,8 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   override def render: Elem = {
     {init()}
     <html>
-      <body style="background-color: darkgray;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;">
+      <body background="/carnie/static/img/background.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
+            text="#68228B" onload="setInterval('clock()',1000)">
         <div style="text-align: center;">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;">欢迎来到carnie</h1>
