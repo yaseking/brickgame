@@ -374,7 +374,7 @@ object RoomActor {
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails)
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
-          getGameRecorder(ctx, roomId, grid) ! recordData
+          if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid) ! recordData
           idle(index, roomId, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, headImgList = headImgList)
 
         case ChildDead(child, childRef) =>
