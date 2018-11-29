@@ -6,6 +6,8 @@ import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
 import com.neo.sk.carnie.util.Component
 import org.scalajs.dom
+
+import scala.util.Random
 //import org.scalajs.dom.ext.KeyCode
 //import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw.{Event, HTMLAudioElement, VisibilityState}
@@ -66,10 +68,14 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   }
   def init()={
     modelLists.foreach(game=>
-      modelSelectMap += (game.id -> false)
+      if(game.id ==1) modelSelectMap += (game.id -> true)
+      else modelSelectMap += (game.id -> false)
     )
+    val rnd = new Random
+    val a = rnd.nextInt(6)
     headLists.foreach(game=>
-      headSelectMap += (game.id -> false)
+      if(game.id == a) modelSelectMap += (game.id -> true)
+      else headSelectMap += (game.id -> false)
     )
   }
   def selectClass(id:Int) = modelSelectFlag.map {flag=>
