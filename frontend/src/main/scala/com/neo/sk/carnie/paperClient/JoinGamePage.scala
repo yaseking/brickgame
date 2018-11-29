@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant
+import com.neo.sk.carnie.util.JsFunc
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
 import com.neo.sk.carnie.util.Component
@@ -27,7 +28,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   var modelLists = List(Model(0,"/carnie/static/img/luffy.png","正常模式"),
     Model(1,"/carnie/static/img/luffy.png","反转模式"),Model(2,"/carnie/static/img/luffy.png","2倍加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
-  var modelSelected = Model(1,"tbd","tbd")
+  var modelSelected = Model(-1,"tbd","tbd")
   //游戏选择框
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int,Boolean]] = Var(Map())
@@ -35,7 +36,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   var headLists = List(Head(0,"/carnie/static/img/luffy.png"), Head(1,"/carnie/static/img/luffy.png"),Head(2,"/carnie/static/img/luffy.png"),
     Head(3,"/carnie/static/img/luffy.png"), Head(4,"/carnie/static/img/luffy.png"),Head(5,"/carnie/static/img/luffy.png"))
   var headSelectMap : Map[Int,Boolean] =Map()
-  var headSelected = Head(1,"tbd")
+  var headSelected = Head(-1,"tbd")
   //游戏选择框
   private val headList: Var[List[Head]] = Var(headLists)
   private val headSelectFlag: Var[Map[Int,Boolean]] = Var(Map())
@@ -56,7 +57,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
     games.map( game =>
       <div style="width:27%;margin:20px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectHeadClass(game.id)} onclick={()=>selectHead(game.id)} style="margin-top:20px;height:100px;width:100px">
+          <div class={selectHeadClass(game.id)} onclick={()=>selectHead(game.id)} style="margin-top:20px;height:100px;width:100px;text-align: center">
             <img class="home-img" src={game.img}></img>
           </div>
         </div>
@@ -109,13 +110,14 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
     println(headSelected.id)
   }
   
-  def gotoGame():Unit ={
-    Main.play()
+  def gotoGame(modelId: Int, headId: Int):Unit ={
+    if(modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
+    else Main.play()
   }
   override def render: Elem = {
     {init()}
     <html>
-      <body>
+      <body style="background-color: darkgray;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;">
         <div style="text-align: center;">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;">欢迎来到carnie</h1>
@@ -124,7 +126,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
             <div  style="margin-top: 20px;">
               <p style="text-align: center; margin-top: 10px;"> 选择模式</p>
             </div>
-            <div class="gameDiv" >
+            <div style="display:flex;flex-wrap: wrap;" >
                 {modelDiv}
             </div>
           </div>
@@ -133,11 +135,11 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
             <div style="margin-top: 20px;">
               <p style="text-align: center; margin-top: 10px;"> 选择头像</p>
             </div>
-            <div class="gameDiv" style="text-align: center;">
+            <div  style="text-align: center;display: flex; flex-wrap: wrap;">
                 {headDiv}
             </div>
           </div>
-          <button class="arrow" onclick={() => gotoGame()}>进入游戏</button>
+          <button class="arrow" onclick={() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
           </div>
       </body>
     </html>

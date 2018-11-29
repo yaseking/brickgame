@@ -102,8 +102,8 @@
 
 .gameDiv{
     display: flex;
-    text-align:center;
     flex-wrap: wrap;
+    text-align:center;
 }
 
 
