@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="/carnie/static/css/canvas.css">
-  <link rel="stylesheet" href="/carnie/static/css/adminPage.css">
   <link rel="stylesheet" href="/carnie/static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/carnie/static/css/adminPage.css">
   <script src="/carnie/static/js/jquery.min.js"></script>
   <script src="/carnie/static/js/bootstrap.min.js"></script>
 
@@ -14,6 +14,7 @@
 <canvas id="RankView" tabindex="1" style="z-index: 3;position: absolute;"></canvas>
 <canvas id="GameView" tabindex="1" style="position: relative;"></canvas>
 <canvas id="BorderView" tabindex="1"></canvas>
+
 
 <body style="background-color: darkgray;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;" id="body">
 
@@ -46,15 +47,104 @@
 
 
 
-  <div style="text-align: center;">
-    <form action="#" id="form" style="margin-top: 6em;">
-      <h1 style="font-family: Verdana;font-size: 45px;">欢迎来到carnie</h1>
-    </form>
-    <br>
-  </div>
+  <!--<div style="text-align: center;">-->
+    <!--<div  id="form">-->
+      <!--<h1 style="font-family: Verdana; font-size: 30px;">欢迎来到carnie</h1>-->
+    <!--</div>-->
+
+    <!--<div style="overflow: hidden;" >-->
+
+      <!--<div  style="margin-top: 20px;">-->
+        <!--<p style="text-align: center; margin-top: 10px;"> 选择模式</p>-->
+      <!--</div>-->
+
+      <!--<div>-->
+        <!--<div class="gameDiv">-->
+          <!--<div style="width: 27%; margin: 20px;">-->
+            <!--<div style="overflow: hidden;" id="1000000012">-->
+              <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+                <!--<img class="home-img" src="/carnie/static/img/luffy.png">-->
+                <!--<p style="text-align: center; margin-top: 10px;"> tank</p>-->
+              <!--</div>-->
+            <!--</div>-->
+          <!--</div><div style="width: 27%; margin: 20px;">-->
+          <!--<div style="overflow: hidden;" id="1000000011">-->
+            <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+              <!--<img class="home-img" src="/carnie/static/img/yang.png">-->
+              <!--<p style="text-align: center; margin-top: 10px;"> medusa</p>-->
+            <!--</div>-->
+          <!--</div>-->
+        <!--</div><div style="width: 27%; margin: 20px;">-->
+          <!--<div style="overflow: hidden;" id="1000000013">-->
+            <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px" >-->
+              <!--<img class="home-img" src="/carnie/static/img/fatTiger.png">-->
+              <!--<p style="text-align: center; margin-top: 10px;"> carnie</p>-->
+            <!--</div>-->
+          <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
+
+    <!--<div style="overflow: hidden;" >-->
+      <!--<div style="margin-top: 20px;">-->
+        <!--<p style="text-align: center; margin-top: 10px;"> 选择头像</p>-->
+      <!--</div>-->
+      <!--<div>-->
+        <!--<div class="gameDiv">-->
+          <!--<div style="width: 27%; margin: 20px;">-->
+            <!--<div style="overflow: hidden;" id="1000000002">-->
+              <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+                <!--<img class="home-img" src="/carnie/static/img/luffy.png">-->
+                <!--<p style="text-align: center; margin-top: 10px;"> tank</p>-->
+              <!--</div>-->
+            <!--</div>-->
+          <!--</div><div style="width: 27%; margin: 20px;">-->
+          <!--<div style="overflow: hidden;" id="1000000001">-->
+            <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+              <!--<img class="home-img" src="/carnie/static/img/yang.png" >-->
+              <!--<p style="text-align: center; margin-top: 10px;"> medusa</p>-->
+            <!--</div>-->
+          <!--</div>-->
+        <!--</div><div style="width: 27%; margin: 20px;">-->
+          <!--<div style="overflow: hidden;" id="1000000003">-->
+            <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+              <!--<img class="home-img" src="/carnie/static/img/fatTiger.png" >-->
+              <!--<p style="text-align: center; margin-top: 10px;"> carnie</p>-->
+            <!--</div>-->
+          <!--</div>-->
+        <!--</div><div style="width: 27%; margin: 20px;">-->
+          <!--<div style="overflow: hidden;" id="1000000004">-->
+            <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+              <!--<img class="home-img" src="/carnie/static/img/smile.png" >-->
+              <!--<p style="text-align: center; margin-top: 10px;"> gypsy</p>-->
+            <!--</div>-->
+          <!--</div>-->
+        <!--</div><div style="width: 27%; margin: 20px;">-->
+          <!--<div style="overflow: hidden;" id="1000000005">-->
+            <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+              <!--<img class="home-img" src="/carnie/static/img/pig.png" >-->
+              <!--<p style="text-align: center; margin-top: 10px;"> paradise</p>-->
+            <!--</div>-->
+          <!--</div>-->
+        <!--</div><div style="width: 27%; margin: 20px;">-->
+          <!--<div style="overflow: hidden;" id="1000000006">-->
+            <!--<div class="game-not-selected" style="margin-top: 20px;height:100px;width: 100px">-->
+              <!--<img class="home-img" src="/carnie/static/img/Bob.png">-->
+              <!--<p style="text-align: center; margin-top: 10px;"> thor</p>-->
+            <!--</div>-->
+          <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
+    <!--<button class="arrow" onclick="f()">进入游戏</button>-->
+  <!--</div>-->
 
   <script type="text/javascript" src="/carnie/static/sjsout/frontend-fastopt.js"></script>
-  <script>paperClient.Main.main()</script>
+  <script>function f() {
+    paperClient.Main.main()
+  }</script>
 
 </body>
 </html>
