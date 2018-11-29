@@ -6,6 +6,8 @@ import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
 import com.neo.sk.carnie.util.Component
 import org.scalajs.dom
+
+import scala.util.Random
 //import org.scalajs.dom.ext.KeyCode
 //import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw.{Event, HTMLAudioElement, VisibilityState}
@@ -22,9 +24,9 @@ import scala.xml.Elem
   * Created by dry on 2018/11/28.
   **/
 class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Component {
-  case class Model(id:Int,img:String,name:String)
-  case class Head(id:Int,img:String)
-  
+  sealed case class Model(id:Int,img:String,name:String)
+  sealed case class Head(id:Int,img:String)
+
   var modelLists = List(Model(0,"/carnie/static/img/Genji.png","正常模式"),
     Model(1,"/carnie/static/img/Dva.png","反转模式"),Model(2,"/carnie/static/img/Tracer.png","2倍加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
@@ -66,10 +68,14 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   }
   def init()={
     modelLists.foreach(game=>
-      modelSelectMap += (game.id -> false)
+      if(game.id ==1) modelSelectMap += (game.id -> true)
+      else modelSelectMap += (game.id -> false)
     )
+    val rnd = new Random
+    val a = rnd.nextInt(6)
     headLists.foreach(game=>
-      headSelectMap += (game.id -> false)
+    if(game.id == a) modelSelectMap += (game.id -> true)
+    else headSelectMap += (game.id -> false)
     )
   }
   def selectClass(id:Int) = modelSelectFlag.map {flag=>
