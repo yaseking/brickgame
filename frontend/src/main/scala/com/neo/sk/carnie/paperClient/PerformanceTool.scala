@@ -26,8 +26,9 @@ object PerformanceTool {
     }
   }
 
-  def renderFps(ctx: CanvasRenderingContext2D, leftBegin: Int, lineHeight: Int) = {
+  def renderFps(ctx: CanvasRenderingContext2D, leftBegin: Int, lineHeight: Int, startDrawTime: Long) = {
     addFps()
+    addDrawTime(startDrawTime)
 //    ctx.font = "14px Helvetica"
     ctx.textAlign = "start"
 //    val fpsString = s"fps : $lastRenderTimes, ping: $latency"
@@ -37,17 +38,36 @@ object PerformanceTool {
     ctx.fillStyle = ColorsSetting.fontColor2
     val fpsString = "fps : "
     val pingString = "ping: "
-    ctx.fillText(fpsString, leftBegin, lineHeight)
-    ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight)//50
+    val drawTimeString = "drawTimeAverage: "
+    ctx.fillText(fpsString, leftBegin, lineHeight * 5)
+    ctx.fillText(pingString, leftBegin + ctx.measureText(fpsString).width + 50, lineHeight * 5)//50
+    ctx.fillText(drawTimeString, leftBegin, lineHeight * 6)
     ctx.strokeStyle = "black"
-    ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
+    ctx.strokeText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight * 5)
     ctx.fillStyle = if (lastRenderTimes < 50) ColorsSetting.redColor else ColorsSetting.greenColor
-    ctx.fillText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight)
+    ctx.fillText(lastRenderTimes.toString, leftBegin + ctx.measureText(fpsString).width, lineHeight * 5)
     ctx.strokeStyle = "black"
-    ctx.strokeText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
+    ctx.strokeText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight * 5)
     ctx.fillStyle = if (latency <= 100) ColorsSetting.greenColor else if (latency > 100 && latency <= 200) ColorsSetting.yellowColor else ColorsSetting.redColor
-    ctx.fillText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight)
+    ctx.fillText(s"${latency}ms", leftBegin + ctx.measureText(fpsString).width + ctx.measureText(pingString).width + 60, lineHeight * 5)
+    ctx.strokeStyle = "black"
+    ctx.strokeText(s"${drawTimeAva}ms".toString, leftBegin + ctx.measureText(drawTimeString).width, lineHeight * 6)
+    ctx.fillStyle = if (drawTimeAva > 15) ColorsSetting.redColor else ColorsSetting.greenColor
+    ctx.fillText(s"${drawTimeAva}ms".toString, leftBegin + ctx.measureText(drawTimeString).width, lineHeight * 6)
+  }
 
+  //drawTimeAverage
+  private var drawTimeList: List[Long] = Nil
+  private val drawTimes = 10
+  private var drawTimeAva: Long = 0l
+
+  private def addDrawTime(startTime: Long): Unit = {
+    val currentTime = System.currentTimeMillis()
+    drawTimeList = (currentTime - startTime) :: drawTimeList
+    if(drawTimeList.size >= drawTimes) {
+      drawTimeAva = drawTimeList.sum / drawTimeList.size
+      drawTimeList = Nil
+    }
   }
 
   //PING

@@ -243,6 +243,7 @@ class DrawGame(
 //  }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false): Unit = { //头所在的点是屏幕的正中心
+    val startTime = System.currentTimeMillis()
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -321,7 +322,7 @@ class DrawGame(
       val img = if (s.id == championId) championHeaderImg else {
         if (s.id == uid) myHeaderImg else otherHeaderImg
       }
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
@@ -335,7 +336,7 @@ class DrawGame(
     //    //排行榜
     if(!isReplay) {
       rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
-      PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+      PerformanceTool.renderFps(rankCtx, 20, textLineHeight, startTime)
     }
   }
 
