@@ -47,8 +47,8 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
         <div style="overflow:hidden" id={game.id.toString}>
           <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:250px;width:250px">
             <img class="home-img" src={game.img}></img>
+            <p style="text-align:center;margin-top:10px;font-size: 30px;color:white" > {game.name}</p>
           </div>
-          <p style="text-align:center;margin-top:10px;"> {game.name}</p>
         </div>
       </div>
     )
@@ -117,11 +117,11 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   override def render: Elem = {
     {init()}
     <html>
-      <body background="/carnie/static/img/background.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
+      <body background="/carnie/static/img/background1.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
             text="#68228B" onload="setInterval('clock()',1000)">
         <div style="text-align: center;">
           <div  id="form">
-            <h1 style="font-family: Verdana;font-size: 30px;">欢迎来到carnie</h1>
+            <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
             <div style="display:flex;flex-wrap: wrap;" >
@@ -131,7 +131,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
           
           <div style="overflow: hidden;" >
             <div style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 10px;"> 选择头像</p>
+              <p style="text-align: center; margin-top: 10px;font-size: 30px;color:white" > 选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: wrap;">
                 {headDiv}
