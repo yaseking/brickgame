@@ -25,8 +25,8 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   case class Model(id:Int,img:String,name:String)
   case class Head(id:Int,img:String)
   
-  var modelLists = List(Model(0,"/carnie/static/img/luffy.png","正常模式"),
-    Model(1,"/carnie/static/img/luffy.png","反转模式"),Model(2,"/carnie/static/img/luffy.png","2倍加速模式"))
+  var modelLists = List(Model(0,"/carnie/static/img/Genji.png","正常模式"),
+    Model(1,"/carnie/static/img/Dva.png","反转模式"),Model(2,"/carnie/static/img/Tracer.png","2倍加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
   var modelSelected = Model(-1,"tbd","tbd")
   //游戏选择框
