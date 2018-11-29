@@ -69,4 +69,12 @@ object Main extends js.JSApp {
       </div>
     mount(dom.document.body, page)
   }
+  def play(): Cancelable = {
+    val currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test")).render
+    val page =
+      <div>
+        {currentPage}
+      </div>
+    mount(dom.document.body, page)
+  }
 }
