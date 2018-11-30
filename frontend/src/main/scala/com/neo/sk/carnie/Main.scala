@@ -75,11 +75,7 @@ object Main extends js.JSApp {
   }
 
   def show(): Cancelable = {
-    val page =
-      <div>
-        {currentPage}
-      </div>
-    mount(dom.document.body, page)
+    mount(dom.document.body, currentPage)
   }
 
 //  def play(modelId:Int, headId:Int,playerId:String, playerName:String): Unit = {
