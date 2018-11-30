@@ -11,7 +11,8 @@ import org.scalajs.dom.html.{Canvas, Image}
   **/
 class DrawGame(
   ctx: CanvasRenderingContext2D,
-  canvas: Canvas
+  canvas: Canvas,
+  img: Int = 0
 ) {
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -31,8 +32,18 @@ class DrawGame(
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
-  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
-  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
+  private val imgMap: Map[Int, String] =
+    Map(
+      0 -> "luffyImg",
+      1 -> "fatTigerImg",
+      2 -> "BobImg",
+      3 -> "yangImg",
+      4 -> "smileImg",
+      5 -> "pigImg"
+    )
+//  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
+  private val myHeaderImg = dom.document.getElementById(imgMap(img)).asInstanceOf[Image]
+//  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
   private val goldImg = dom.document.getElementById("goldImg").asInstanceOf[Image]
   private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
@@ -53,7 +64,7 @@ class DrawGame(
   }
 
   def drawGameOn(): Unit = {
-    bodyAttribute.style_=("background-color:#F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
+    bodyAttribute.style_=("overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
 
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
@@ -220,7 +231,7 @@ class DrawGame(
     ctx.fillStyle = "#000000"
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
-    println(ctx.measureText(txt2).width.toString)
+//    println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     ctx.font = "bold 20px Microsoft YaHei"
@@ -242,14 +253,17 @@ class DrawGame(
   //    }
   //  }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150): Unit = { //头所在的点是屏幕的正中心
+//    println(s"drawGrid-frameRate: $frameRate")
+    val startTime = System.currentTimeMillis()
     val snakes = data.snakes
+//    val trueFrame = if(mode ==1) Protocol.frameRate2 else Protocol.frameRate1
 
     val lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
         val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + direction * offsetTime.toFloat / frameRate
 
       case None =>
         Point(border.x / 2, border.y / 2)
@@ -315,13 +329,15 @@ class DrawGame(
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / Protocol.frameRate
+      val off = direction * offsetTime.toFloat / frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      val img = if (s.id == championId) championHeaderImg else {
-        if (s.id == uid) myHeaderImg else otherHeaderImg
-      }
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+
+      if(s.id == championId)
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
@@ -335,7 +351,7 @@ class DrawGame(
     //    //排行榜
     if(!isReplay) {
       rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
-      PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+      PerformanceTool.renderFps(rankCtx, 20, textLineHeight, startTime)
     }
   }
 

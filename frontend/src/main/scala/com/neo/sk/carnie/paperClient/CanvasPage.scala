@@ -12,6 +12,6 @@ class CanvasPage extends Component{
       <canvas id="GameView" tabindex="1" style="position: relative;"></canvas>
       <canvas id="BorderView" tabindex="1"></canvas>
     </div>
-  }
+  }//borderView style="position: relative;"
 
 }

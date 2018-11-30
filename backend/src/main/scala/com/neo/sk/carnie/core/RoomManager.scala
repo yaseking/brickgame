@@ -88,11 +88,11 @@ object RoomManager {
           if (roomMap.nonEmpty && roomMap.exists(r => r._2._1 == mode && r._2._2.size < limitNum)) {
             val roomId = roomMap.filter(r => r._2._1 == mode && r._2._2.size < limitNum).head._1
             roomMap.put(roomId, (mode, roomMap(roomId)._2 + ((id, name))))
-            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber, img)
+            getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           } else {
             val roomId = roomIdGenerator.getAndIncrement()
             roomMap.put(roomId, (mode, mutable.HashSet((id, name))))
-            getRoomActor(ctx, roomId) ! RoomActor.JoinRoom(id, name, subscriber, img)
+            getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           }
           Behaviors.same
 
@@ -101,7 +101,8 @@ object RoomManager {
             val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
             groupDeadUsers.keys.foreach { roomId =>
               val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
-              getRoomActor(ctx, roomId) ! UserDead(deadUsersInOneRoom)
+              val mode = roomMap(roomId)._1
+              getRoomActor(ctx, roomId, mode) ! UserDead(deadUsersInOneRoom)
             }
           } catch {
             case e: Exception =>
@@ -144,7 +145,14 @@ object RoomManager {
           log.info(s"got $m")
           val truePlayerId = if (playerId.contains("Set")) playerId.drop(4).dropRight(1) else playerId
           log.info(s"truePlayerId: $truePlayerId")
-          getRoomActor(ctx, roomId) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
+          try {
+            val mode = roomMap(roomId)._1
+            getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
+          } catch {
+            case e: Exception =>
+              log.error(s"$msg got error: $e")
+          }
+
           Behaviors.same
 
         case msg@Left(id, name) =>
@@ -152,7 +160,8 @@ object RoomManager {
           try {
             val roomId = roomMap.filter(r => r._2._2.exists(u => u._1 == id)).head._1
             roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2 -((id, name))))
-            getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id, name)
+            val mode = roomMap(roomId)._1
+            getRoomActor(ctx, roomId, mode) ! RoomActor.LeftRoom(id, name)
           } catch {
             case e: Exception =>
               log.error(s"$msg got error: $e")
@@ -162,7 +171,14 @@ object RoomManager {
 
         case msg@WatcherLeft(roomId, userId) =>
           log.info(s"got $msg")
-          getRoomActor(ctx, roomId) ! RoomActor.WatcherLeftRoom(userId)
+          try {
+            val mode = roomMap(roomId)._1
+            getRoomActor(ctx, roomId, mode) ! RoomActor.WatcherLeftRoom(userId)
+          } catch {
+            case e: Exception =>
+              log.error(s"$msg got error: $e")
+          }
+
           Behaviors.same
 
         case m@UserActionOnServer(id, action) =>
@@ -174,7 +190,8 @@ object RoomManager {
           }
           if (roomMap.exists(r => r._2._2.exists(u => u._1 == id))) {
             val roomId = roomMap.filter(r => r._2._2.exists(u => u._1 == id)).head._1
-            getRoomActor(ctx, roomId) ! RoomActor.UserActionOnServer(id, action)
+            val mode = roomMap(roomId)._1
+            getRoomActor(ctx, roomId, mode) ! RoomActor.UserActionOnServer(id, action)
           }
           Behaviors.same
 
@@ -316,10 +333,10 @@ object RoomManager {
     Flow.fromSinkAndSource(in, out)
   }
 
-  private def getRoomActor(ctx: ActorContext[Command], roomId: Int) = {
-    val childName = s"room_$roomId"
+  private def getRoomActor(ctx: ActorContext[Command], roomId: Int, mode: Int) = {
+    val childName = s"room_$roomId-mode_$mode"
     ctx.child(childName).getOrElse {
-      val actor = ctx.spawn(RoomActor.create(roomId), childName)
+      val actor = ctx.spawn(RoomActor.create(roomId, mode), childName)
       ctx.watchWith(actor, ChildDead(roomId, childName, actor))
       actor
 

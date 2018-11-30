@@ -6,8 +6,8 @@ import akka.stream.ActorMaterializer
 import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.common.Context
-import com.neo.sk.carnie.controller.{GameController, LoginController}
-import com.neo.sk.carnie.scene.{GameScene, LoginScene}
+import com.neo.sk.carnie.controller.{GameController, LoginController, SelectController}
+import com.neo.sk.carnie.scene.{GameScene, LoginScene, SelectScene}
 import javafx.application.Platform
 import javafx.stage.Stage
 
@@ -40,10 +40,12 @@ class Boot extends javafx.application.Application {
 //    loginController.showScene()
 
 
-    val playGameScreen = new GameScene()
-    context.switchScene(playGameScreen.getScene,fullScreen = true)
-    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen, mode = 1).start("")
+//    val playGameScreen = new GameScene()
+//    context.switchScene(playGameScreen.getScene,fullScreen = true)
+//    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+//    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen, mode = 1).start("")
 
+    val selectScreen = new SelectScene()
+    new SelectController(selectScreen, context).showScene
   }
 }

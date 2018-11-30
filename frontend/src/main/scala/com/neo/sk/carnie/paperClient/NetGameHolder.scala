@@ -20,7 +20,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Component {
+class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, frameRate: Int = 150) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
@@ -79,7 +79,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
 
   private var logicFrameTime = System.currentTimeMillis()
 
-  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
+  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas, img)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
   def init(): Unit = {
@@ -99,7 +99,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
     drawGame.drawGameOn()
     BGM = bgmList(getRandom(9))
     BGM.play()
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+//    val frameRate = webSocketPara match {
+//      case WebSocketProtocol.PlayGamePara(_, _, mode, _) =>
+//        if(mode == 2) frameRate2 else frameRate1
+//      case _ =>
+//        frameRate1
+//    }
+    dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
@@ -137,13 +143,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
       if (newSnakeInfo.nonEmpty) {
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
-          //          val filterFrame = grid.actionMap.filter(_._2.contains(s.id)).keys.toList //todo 待测试
-          //          if (filterFrame.nonEmpty) {
-          //            val filterAction = filterFrame.map {frame =>
-          //              (frame, grid.actionMap(frame) - s.id)
-          //            }.toMap
-          //            grid.actionMap = grid.actionMap.filterNot(_._2.contains(s.id)) ++ filterAction //清理死前action
-          //          }
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
@@ -237,9 +236,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
 
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
-    //    val endTime1 = System.currentTimeMillis()
-    //    println(s"drawGridTime: ${endTime1 - currentTime}")
+//    val frameRate = webSocketPara match {
+//      case WebSocketProtocol.PlayGamePara(_, _, mode, _) =>
+//        if(mode == 2) frameRate2 else frameRate1
+//      case _ =>
+//        frameRate1
+//    }
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), frameRate = frameRate)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    val endTime2 = System.currentTimeMillis()
     //    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
@@ -255,12 +258,23 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           val msg: Protocol.UserAction = {
-            val frame = grid.frameCount + 4//2 4
+            val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
+            val frame = grid.frameCount + delay//2 4
             //            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
-            grid.addActionWithFrame(myId, e.keyCode, frame)
-            if (e.keyCode != KeyCode.Space) {
-              myActionHistory += actionId -> (e.keyCode, frame)
+            val newKeyCode =
+              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
+                e.keyCode match {
+                  case KeyCode.Left => KeyCode.Right
+                  case KeyCode.Right => KeyCode.Left
+                  case KeyCode.Down => KeyCode.Up
+                  case KeyCode.Up => KeyCode.Down
+                  case _ => KeyCode.Space
+                } else e.keyCode
+            println(s"onkeydown：$newKeyCode")
+            grid.addActionWithFrame(myId, newKeyCode, frame)
+            if (newKeyCode != KeyCode.Space) {
+              myActionHistory += actionId -> (newKeyCode, frame)
             } else { //重新开始游戏
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
@@ -277,16 +291,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
                   dom.window.requestAnimationFrame(gameRender())
               }
             }
-            val newKeyCode = if (webSocketPara.asInstanceOf[PlayGamePara].mode == 0) e.keyCode else {
-              e.keyCode match {
-                case KeyCode.Left => KeyCode.Right
-                case KeyCode.Right => KeyCode.Left
-                case KeyCode.Down => KeyCode.Up
-                case KeyCode.Up => KeyCode.Down
-                case _ => KeyCode.Space
-              }
-            }
-            println(s"onkeydown：$newKeyCode")
+
             Key(myId, newKeyCode, frame, actionId)
           }
           webSocketClient.sendMessage(msg)

@@ -73,7 +73,7 @@ object RoomActor {
 
   case class TimeOut(msg: String) extends Command
 
-  def create(roomId: Int): Behavior[Command] = {
+  def create(roomId: Int, mode: Int): Behavior[Command] = {
     log.debug(s"Room Actor-$roomId start...")
     Behaviors.setup[Command] { ctx =>
       Behaviors.withTimers[Command] {
@@ -84,14 +84,20 @@ object RoomActor {
           val grid = new GridOnServer(border)
           val winStandard = fullSize * 0.1//0.4
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
-          timer.startPeriodicTimer(SyncKey, Sync, Protocol.frameRate millis)
-          idle(0L, roomId, grid, userMap, mutable.HashMap[Long, Set[String]](), mutable.Set.empty[String], watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
+          val frameRate = mode match {
+            case 2 => Protocol.frameRate2
+            case _ => Protocol.frameRate1
+          }
+          log.info(s"frameRate: $frameRate")
+          timer.startPeriodicTimer(SyncKey, Sync, frameRate millis)
+          idle(0L, roomId, mode, grid, userMap, mutable.HashMap[Long, Set[String]](), mutable.Set.empty[String], watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
       }
     }
   }
 
   def idle( index: Long,
             roomId: Int,
+            mode: Int,
             grid: GridOnServer,
             userMap: mutable.HashMap[String, UserInfo],
             userGroup: mutable.HashMap[Long, Set[String]],
@@ -126,7 +132,7 @@ object RoomActor {
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
           headImgList.put(id, img)
 //          log.debug(s"headImgList after join:$headImgList")
-          idle(index + 1, roomId, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, headImgList)
+          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, headImgList)
 
         case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
@@ -142,7 +148,7 @@ object RoomActor {
             case None => userGroup.put(index%classify, Set(userId))
           }
 //          Behaviors.same
-          idle(index + 1, roomId, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, headImgList)
+          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, headImgList)
 
         case UserDead(users) =>
           users.foreach { u =>
@@ -375,7 +381,7 @@ object RoomActor {
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid) ! recordData
-          idle(index, roomId, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, headImgList = headImgList)
+          idle(index, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, headImgList = headImgList)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
