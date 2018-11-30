@@ -76,7 +76,18 @@ object Main extends js.JSApp {
         {currentPage}
       </div>
     mount(dom.document.body, page)
-    new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).init()
+    val url = dom.window.location.href.split("carnie/")(1)
+    val info = url.split("\\?")
+    val playerMsgMap = info(1).split("&").map {
+      a =>
+        val b = a.split("=")
+        (b(0), b(1))
+    }.toMap
+    val sendData = PlayerMsg(playerMsgMap).asJson.noSpaces
+    println(s"sendData: $sendData")
+    val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+    val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+    new NetGameHolder("playGame", PlayGamePara(playerId, playerName,modelId,headId)).init()
 //    currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).render
   }
 }
