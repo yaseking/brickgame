@@ -75,7 +75,6 @@ object Main extends js.JSApp {
   }
 
   def show(): Cancelable = {
-    println("??" + currentPage)
     val page =
       <div>
         {currentPage}
