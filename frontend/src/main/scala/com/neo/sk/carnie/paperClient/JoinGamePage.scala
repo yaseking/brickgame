@@ -135,7 +135,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   override def render: Elem = {
     {init()}
     <html>
-      <body style="background-color: darkgray;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;" id="body" >
+      <body style="background-color:#333333;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;" id="body" >
         <div style="text-align: center;" id="selectPage">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
