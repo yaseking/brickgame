@@ -120,7 +120,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
     {init()}
     <html>
       <body background="/carnie/static/img/background1.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
-            text="#68228B" onload="setInterval('clock()',1000)">
+            text="#68228B" >
         <div style="text-align: center;">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
