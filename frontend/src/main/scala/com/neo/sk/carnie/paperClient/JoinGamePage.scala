@@ -122,27 +122,29 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   override def render: Elem = {
     init()
-    <div background="/carnie/static/img/background2.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
-         text="#68228B" style="text-align: center;">
-      <div>
-        <h1 style="font-family: Verdana;font-size: 30px;color:white">欢迎来到carnie</h1>
-        <button type="button" style="font-size: 30px" class="btn btn-primary" onclick={() => gotoGame(modelSelected.id, headSelected.id, webSocketPara.playerId, webSocketPara.playerName)}>进入游戏</button>
-      </div>
-      <div style="overflow: hidden;">
-        <div style="display:flex;flex-wrap: wrap;margin-left:18%">
-          {modelDiv}
-        </div>
-      </div>
+      <div background="/carnie/static/img/background2.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
+            text="#68228B">
+        <div style="text-align: center;" id="selectPage">
+          <div id="form">
+            <h1 style="font-family: Verdana;font-size: 30px;color:white">欢迎来到carnie</h1>
+            <button type="button" style="font-size: 30px" class="btn btn-primary" onclick={() => gotoGame(modelSelected.id, headSelected.id, webSocketPara.playerId, webSocketPara.playerName)}>进入游戏</button>
+          </div>
+          <div style="overflow: hidden;">
+            <div style="display:flex;flex-wrap: wrap;margin-left:18%">
+              {modelDiv}
+            </div>
+          </div>
 
-      <div style="overflow: hidden;">
-        <div style="margin-top: 20px;">
-          <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white">选择头像</p>
-        </div>
-        <div style="text-align: center;display: flex; flex-wrap: wrap;margin-left:24%">
-          {headDiv}
+          <div style="overflow: hidden;">
+            <div style="margin-top: 20px;">
+              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white">选择头像</p>
+            </div>
+            <div style="text-align: center;display: flex; flex-wrap: wrap;margin-left:24%">
+              {headDiv}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
   }
 
 
