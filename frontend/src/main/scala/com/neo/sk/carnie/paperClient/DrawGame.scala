@@ -12,7 +12,7 @@ import org.scalajs.dom.html.{Canvas, Image}
 class DrawGame(
   ctx: CanvasRenderingContext2D,
   canvas: Canvas,
-  img: Int
+  img: Int = 0
 ) {
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)

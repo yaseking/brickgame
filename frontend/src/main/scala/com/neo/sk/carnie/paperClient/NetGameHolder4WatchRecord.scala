@@ -73,7 +73,13 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   def startGame(): Unit = {
     println(s"start game======")
     drawGame.drawGameOn()
-    gameLoopInterval = dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+    val frameRate = webSocketPara match {
+      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
+        if(mode == 2) frameRate2 else frameRate1
+      case _ =>
+        frameRate1
+    }
+    gameLoopInterval = dom.window.setInterval(() => gameLoop(), frameRate)
     //    pingInterval = dom.window.setInterval(() => {
     //      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     //    }, 100)

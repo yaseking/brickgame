@@ -99,7 +99,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0) e
     drawGame.drawGameOn()
     BGM = bgmList(getRandom(9))
     BGM.play()
-    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
+    val frameRate = webSocketPara match {
+      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
+        if(mode == 2) frameRate2 else frameRate1
+      case _ =>
+        frameRate1
+    }
+    dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
@@ -255,7 +261,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0) e
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           val msg: Protocol.UserAction = {
-            val frame = grid.frameCount + 4//2 4
+            val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
+            val frame = grid.frameCount + delay//2 4
             //            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
             grid.addActionWithFrame(myId, e.keyCode, frame)
