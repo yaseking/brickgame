@@ -70,12 +70,13 @@ object Main extends js.JSApp {
     mount(dom.document.body, page)
   }
   def play(modelId:Int, headId:Int): Unit = {
-    currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).render
+    currentPage = new CanvasPage().render
     val page =
       <div>
         {currentPage}
       </div>
     mount(dom.document.body, page)
+    new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).init()
 //    currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).render
   }
 }
