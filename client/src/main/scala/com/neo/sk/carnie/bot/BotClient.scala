@@ -4,9 +4,7 @@ import io.grpc.{ManagedChannel, ManagedChannelBuilder}
 import org.seekloud.esheepapi.pb.api.{CreateRoomRsp, Credit, ObservationRsp, SimpleRsp}
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgentStub
-
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 /**
   * Created by dry on 2018/11/29.
