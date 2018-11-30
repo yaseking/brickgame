@@ -244,8 +244,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0) e
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId))
-    //    val endTime1 = System.currentTimeMillis()
-    //    println(s"drawGridTime: ${endTime1 - currentTime}")
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    val endTime2 = System.currentTimeMillis()
     //    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
