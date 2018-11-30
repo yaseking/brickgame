@@ -30,7 +30,7 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //边界canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-//  private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
+  private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
   private val imgMap: Map[Int, String] =
     Map(
@@ -64,7 +64,7 @@ class DrawGame(
   }
 
   def drawGameOn(): Unit = {
-//    bodyAttribute.style_=("background-color:#F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
+    bodyAttribute.style_=("overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
 
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
