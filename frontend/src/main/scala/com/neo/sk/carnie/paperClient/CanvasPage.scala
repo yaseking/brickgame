@@ -10,7 +10,7 @@ class CanvasPage extends Component{
     <div>
       <canvas id="RankView" tabindex="1" style="z-index: 3;position: absolute;"></canvas>
       <canvas id="GameView" tabindex="1" style="position: relative;"></canvas>
-      <canvas id="BorderView" tabindex="1"></canvas>
+      <canvas id="BorderView" tabindex="1" style="position: relative;"></canvas>
     </div>
   }
 
