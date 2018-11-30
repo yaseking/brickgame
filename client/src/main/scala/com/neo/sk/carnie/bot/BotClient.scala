@@ -10,6 +10,7 @@ import scala.concurrent.Future
   * Created by dry on 2018/11/29.
   **/
 
+//内部测试用
 class BotClient (
                   host: String,
                   port: Int,

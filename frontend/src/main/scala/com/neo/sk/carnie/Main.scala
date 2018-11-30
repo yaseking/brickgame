@@ -69,6 +69,7 @@ object Main extends js.JSApp {
   }
 
   def refreshPage(newPage: Elem): Cancelable = {
+    println("refreshPage!!!")
     currentPage = newPage
     show()
   }
