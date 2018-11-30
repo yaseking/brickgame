@@ -45,7 +45,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
 
   private val modelDiv = modelList.map{ games =>
     games.map( game =>
-      <div style="text-align:center;width:27%;margin:20px;">
+      <div style="text-align:center;width:27%;margin:10px;">
         <div style="overflow:hidden" id={game.id.toString}>
           <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:250px;width:250px">
             <img class="home-img" src={game.img}></img>
@@ -57,7 +57,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   }
   private val headDiv = headList.map{ games =>
     games.map( game =>
-      <div style="width:27%;margin:20px;">
+      <div style="width:27%;margin:10px;">
         <div style="overflow:hidden" id={game.id.toString}>
           <div class={selectHeadClass(game.id)} onclick={()=>selectHead(game.id)} style="margin-top:20px;height:100px;width:100px;text-align: center">
             <img class="home-img" src={game.img}></img>
@@ -121,25 +121,25 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
     <html>
       <body background="/carnie/static/img/background1.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
             text="#68228B" onload="setInterval('clock()',1000)">
-        <div style="text-align: center;margin: 0 auto;">
+        <div style="text-align: center;">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-wrap: wrap;margin-left:16%" >
+            <div style="display:flex;flex-wrap: wrap;margin-left:18%" >
                 {modelDiv}
             </div>
           </div>
           
           <div style="overflow: hidden;" >
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 10px;">
               <p style="text-align: center; margin-top: 10px;font-size: 30px;color:white" > 选择头像</p>
             </div>
-            <div  style="text-align: center;display: flex; flex-wrap: wrap;margin-left:19%">
+            <div  style="text-align: center;display: flex; flex-wrap: wrap;margin-left:24%">
                 {headDiv}
             </div>
           </div>
-          <button type="button" class="btn btn-primary" onclick={() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
+          <button type="button" style="font-size: 30px" class="btn btn-primary" onclick={() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
           </div>
       </body>
     </html>
