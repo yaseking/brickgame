@@ -331,10 +331,11 @@ class DrawGame(
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
-      val img = if (s.id == championId) championHeaderImg else {
-        if (s.id == uid) myHeaderImg else otherHeaderImg
-      }
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+
+      if(s.id == championId)
+        ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
