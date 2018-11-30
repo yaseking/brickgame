@@ -254,6 +254,7 @@ class DrawGame(
   //  }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+    println(s"drawGrid-frameRate: $frameRate")
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
 //    val trueFrame = if(mode ==1) Protocol.frameRate2 else Protocol.frameRate1

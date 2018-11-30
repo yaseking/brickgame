@@ -88,6 +88,7 @@ object RoomActor {
             case 2 => Protocol.frameRate2
             case _ => Protocol.frameRate1
           }
+          log.info(s"frameRate: $frameRate")
           timer.startPeriodicTimer(SyncKey, Sync, frameRate millis)
           idle(0L, roomId, mode, grid, userMap, mutable.HashMap[Long, Set[String]](), mutable.Set.empty[String], watcherMap, subscribersMap, 0L, mutable.ArrayBuffer[(Long, GameEvent)](), winStandard)
       }
