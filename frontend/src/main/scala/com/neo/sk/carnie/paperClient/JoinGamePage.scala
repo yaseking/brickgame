@@ -130,7 +130,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     else {
       dom.document.getElementById("joinPage").setAttribute("display", "none")
       Main.refreshPage(new CanvasPage().render)
-      new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), headId).init()
+      val frameRate = if(modelId==2) frameRate2 else frameRate1
+      new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), headId, frameRate).init()
     }
   }
   override def render: Elem = {

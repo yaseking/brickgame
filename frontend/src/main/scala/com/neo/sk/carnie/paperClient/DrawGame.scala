@@ -253,15 +253,16 @@ class DrawGame(
   //    }
   //  }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
+//    val trueFrame = if(mode ==1) Protocol.frameRate2 else Protocol.frameRate1
 
     val lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
         val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + direction * offsetTime.toFloat / frameRate
 
       case None =>
         Point(border.x / 2, border.y / 2)
@@ -327,7 +328,7 @@ class DrawGame(
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / Protocol.frameRate
+      val off = direction * offsetTime.toFloat / frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
