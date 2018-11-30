@@ -71,11 +71,11 @@ object Main extends js.JSApp {
   }
   def play(modelId:Int, headId:Int,playerId:String, playerName:String): Unit = {
     currentPage = new CanvasPage().render
-//    val page =
-//      <div>
-//        {currentPage}
-//      </div>
-//    mount(dom.document.body, page)
+    val page =
+      <div>
+        {currentPage}
+      </div>
+    mount(dom.document.body, page)
 //    val url = dom.window.location.href.split("carnie/")(1)
 //    val info = url.split("\\?")
 //    val playerMsgMap = info(1).split("&").map {
