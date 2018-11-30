@@ -30,7 +30,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   var modelLists = List(Model(0,"/carnie/static/img/Genji.png","正常模式"),
     Model(1,"/carnie/static/img/Dva.png","反转模式"),Model(2,"/carnie/static/img/Tracer.png","2倍加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
-  var modelSelected = Model(-1,"tbd","tbd")
+  var modelSelected = Model(0,"/carnie/static/img/Dva.png","反转模式")
   //游戏选择框
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int,Boolean]] = Var(Map())
@@ -38,7 +38,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   var headLists = List(Head(0,"/carnie/static/img/luffy.png"), Head(1,"/carnie/static/img/fatTiger.png"),Head(2,"/carnie/static/img/Bob.png"),
     Head(3,"/carnie/static/img/yang.png"), Head(4,"/carnie/static/img/smile.png"),Head(5,"/carnie/static/img/pig.png"))
   var headSelectMap : Map[Int,Boolean] =Map()
-  var headSelected = Head(-1,"tbd")
+  var headSelected = Head(0,"/carnie/static/img/luffy.png")
   //游戏选择框
   private val headList: Var[List[Head]] = Var(headLists)
   private val headSelectFlag: Var[Map[Int,Boolean]] = Var(Map())
@@ -68,14 +68,10 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   }
   def init()={
     modelLists.foreach(game=>
-      if(game.id ==1) modelSelectMap += (game.id -> true)
-      else modelSelectMap += (game.id -> false)
+      modelSelectMap += (game.id -> false)
     )
-    val rnd = new Random
-    val a = rnd.nextInt(6)
     headLists.foreach(game=>
-    if(game.id == a) modelSelectMap += (game.id -> true)
-    else headSelectMap += (game.id -> false)
+      headSelectMap += (game.id -> false)
     )
   }
   def selectClass(id:Int) = modelSelectFlag.map {flag=>
@@ -125,12 +121,12 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
     <html>
       <body background="/carnie/static/img/background1.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
             text="#68228B" onload="setInterval('clock()',1000)">
-        <div style="text-align: center;">
+        <div style="text-align: center;margin: 0 auto;">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-wrap: wrap;" >
+            <div style="display:flex;flex-wrap: wrap;margin-left:16%" >
                 {modelDiv}
             </div>
           </div>
@@ -139,7 +135,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
             <div style="margin-top: 20px;">
               <p style="text-align: center; margin-top: 10px;font-size: 30px;color:white" > 选择头像</p>
             </div>
-            <div  style="text-align: center;display: flex; flex-wrap: wrap;">
+            <div  style="text-align: center;display: flex; flex-wrap: wrap;margin-left:19%">
                 {headDiv}
             </div>
           </div>
