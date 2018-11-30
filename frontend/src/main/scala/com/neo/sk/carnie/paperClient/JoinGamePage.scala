@@ -131,7 +131,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       dom.document.getElementById("joinPage").setAttribute("display", "none")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
-      println(s"JoinGamePage: $frameRate")
+//      println(s"JoinGamePage: $frameRate")
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), headId, frameRate).init()
     }
   }
