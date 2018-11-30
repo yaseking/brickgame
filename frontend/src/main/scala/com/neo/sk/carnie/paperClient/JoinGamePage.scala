@@ -23,7 +23,7 @@ import scala.xml.Elem
 /**
   * Created by dry on 2018/11/28.
   **/
-class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Component {
+class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component {
   sealed case class Model(id:Int,img:String,name:String)
   sealed case class Head(id:Int,img:String)
 
@@ -112,11 +112,11 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
     println(headSelected.id)
   }
 
-  def gotoGame(modelId: Int, headId: Int):Unit ={
+  def gotoGame(modelId: Int, headId: Int,playerId:String, playerName:String):Unit ={
     if(modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
-      dom.document.getElementById("selectPage").setAttribute("hidden","hidden")
-      Main.play(modelId,headId)
+//      dom.document.getElementById("selectPage").setAttribute("hidden","hidden")
+      Main.play(modelId,headId,playerId,playerName)
     }
   }
   override def render: Elem = {
@@ -143,7 +143,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
             </div>
           </div>
           <button type="button" style="font-size: 30px" class="btn btn-primary" onclick=
-          {() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
+          {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
       </body>
     </html>
