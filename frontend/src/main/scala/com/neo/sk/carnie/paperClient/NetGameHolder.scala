@@ -100,7 +100,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0) e
     BGM = bgmList(getRandom(9))
     BGM.play()
     val frameRate = webSocketPara match {
-      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
+      case WebSocketProtocol.PlayGamePara(_, _, mode, _) =>
         if(mode == 2) frameRate2 else frameRate1
       case _ =>
         frameRate1
