@@ -99,12 +99,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
     drawGame.drawGameOn()
     BGM = bgmList(getRandom(9))
     BGM.play()
-//    val frameRate = webSocketPara match {
-//      case WebSocketProtocol.PlayGamePara(_, _, mode, _) =>
-//        if(mode == 2) frameRate2 else frameRate1
-//      case _ =>
-//        frameRate1
-//    }
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
@@ -112,7 +106,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  //  var lastTime1 = 0L
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     //    println(s"requestAnimationTime: ${curTime - lastTime1}")
@@ -186,7 +179,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   }
 
   def draw(offsetTime: Long): Unit = {
-    //    println("come to draw!!")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
         BGM.pause()
@@ -236,17 +228,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
 
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-//    val frameRate = webSocketPara match {
-//      case WebSocketProtocol.PlayGamePara(_, _, mode, _) =>
-//        if(mode == 2) frameRate2 else frameRate1
-//      case _ =>
-//        frameRate1
-//    }
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), frameRate = frameRate)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    //    val endTime2 = System.currentTimeMillis()
-    //    println(s"drawSmallMapTime: ${endTime2 - endTime1}")
-    //    endTime2
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
@@ -319,7 +302,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                println("rollBack1111.")
+//                println("rollBack1111.")
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
@@ -333,7 +316,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
                   val oldGrid = grid
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
-                  println("rollBack2222.")
+//                  println("rollBack2222.")
                 }
               }
               myActionHistory -= actionId
@@ -344,7 +327,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
               val oldGrid = grid
               oldGrid.recallGrid(frame, grid.frameCount)
               grid = oldGrid
-              println("rollBack3333.")
+//              println("rollBack3333.")
             }
           }
         }
