@@ -74,8 +74,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
     println(s"start game======")
     drawGame.drawGameOn()
     val frameRate = webSocketPara match {
-      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
-        if(mode == 2) frameRate2 else frameRate1
+//      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
+//        if(mode == 2) frameRate2 else frameRate1
       case _ =>
         frameRate1
     }
