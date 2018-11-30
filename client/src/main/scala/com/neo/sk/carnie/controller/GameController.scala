@@ -60,7 +60,8 @@ class GameController(player: PlayerInfoInClient,
   val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
   val bgmList = List(bgm,bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
+  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+//  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
@@ -135,14 +136,25 @@ class GameController(player: PlayerInfoInClient,
       syncGridData = None
     } else {
       grid.update("f")
-      if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
-        if (newFieldInfo.get.frameCount == grid.frameCount) {
-          grid.addNewFieldInfo(newFieldInfo.get)
-        } else { //主动要求同步数据
+      if (newFieldInfo.nonEmpty) {
+        val frame = newFieldInfo.keys.min
+        val newFieldData = newFieldInfo(frame)
+        if (frame == grid.frameCount) {
+          grid.addNewFieldInfo(newFieldData)
+          newFieldInfo -= frame
+        } else if (frame < grid.frameCount) {
           playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
         }
-        newFieldInfo = None
       }
+
+//      if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
+//        if (newFieldInfo.get.frameCount == grid.frameCount) {
+//          grid.addNewFieldInfo(newFieldInfo.get)
+//        } else { //主动要求同步数据
+//          playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+//        }
+//        newFieldInfo = None
+//      }
     }
 
     val gridData = grid.getGridData
@@ -289,6 +301,7 @@ class GameController(player: PlayerInfoInClient,
       case data: Protocol.Data4TotalSync =>
         Boot.addToPlatform{
           syncGridData = Some(data)
+          newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
         }
 
       case data: Protocol.NewSnakeInfo =>
@@ -307,7 +320,7 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform{
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
-          newFieldInfo = Some(data)
+          newFieldInfo += data.frameCount -> data
         }
 
       case x@Protocol.ReceivePingPacket(_) =>

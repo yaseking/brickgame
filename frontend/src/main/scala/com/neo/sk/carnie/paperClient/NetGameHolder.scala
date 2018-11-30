@@ -143,13 +143,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0) e
       if (newSnakeInfo.nonEmpty) {
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
-          //          val filterFrame = grid.actionMap.filter(_._2.contains(s.id)).keys.toList //todo 待测试
-          //          if (filterFrame.nonEmpty) {
-          //            val filterAction = filterFrame.map {frame =>
-          //              (frame, grid.actionMap(frame) - s.id)
-          //            }.toMap
-          //            grid.actionMap = grid.actionMap.filterNot(_._2.contains(s.id)) ++ filterAction //清理死前action
-          //          }
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
