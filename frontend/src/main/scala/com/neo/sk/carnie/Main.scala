@@ -5,7 +5,7 @@ import com.neo.sk.carnie.paperClient.{CanvasPage, JoinGamePage, NetGameHolder, N
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
-import mhtml.{Cancelable, Var, mount}
+import mhtml.{Cancelable, Var, mount, emptyHTML}
 import org.scalajs.dom
 
 import scala.scalajs.js

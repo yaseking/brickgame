@@ -86,7 +86,7 @@ lazy val client = (project in file("client")).enablePlugins(PackPlugin)
     packExtraClasspath := Map("carnie" -> Seq("."))
   )
   .settings(
-    libraryDependencies ++= Dependencies.backendDependencies
+    libraryDependencies ++= Dependencies.backendDependencies ++ Dependencies.grpcSeq
   ).settings(
   PB.targets in Compile := Seq(
     scalapb.gen() -> (sourceManaged in Compile).value
