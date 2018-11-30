@@ -29,7 +29,7 @@ class WebSocketClient (
   def setUp(order: String, setupInfo: WebSocketPara): Unit = {
     if (!wsSetup) {
       val url = setupInfo match {
-        case p: PlayGamePara => getWebSocketUri(p.playerId, p.playerName, p.mode, 0)
+        case p: PlayGamePara => getWebSocketUri(p.playerId, p.playerName, p.mode, p.img)
         case p: WatchGamePara => getWebSocketUri4WatchGame(p.roomId, p.playerId, p.accessCode)
         case p: WatchRecordPara => getWebSocketUri4WatchRecord(p.recordId, p.playerId, p.frame, p.accessCode)
       }
