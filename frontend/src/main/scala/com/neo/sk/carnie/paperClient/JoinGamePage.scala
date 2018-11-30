@@ -144,6 +144,9 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
           <div style="overflow: hidden;" >
+            <div style="margin-top: 20px;">
+              <p style="text-align: center; margin-top: 20px;font-size: 20px;color:white" > 选择模式</p>
+            </div>
             <div style="display:flex;flex-wrap: wrap;margin-left:18%" >
                 {modelDiv}
             </div>
@@ -151,7 +154,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" > 选择头像</p>
+              <p style="text-align: center; margin-top: 20px;font-size: 20px;color:white" > 选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: wrap;margin-left:24%">
                 {headDiv}
