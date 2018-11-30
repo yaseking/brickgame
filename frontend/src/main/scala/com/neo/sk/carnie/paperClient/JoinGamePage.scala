@@ -1,10 +1,23 @@
 package com.neo.sk.carnie.paperClient
 
+import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.util.JsFunc
+import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
 import com.neo.sk.carnie.util.Component
+import org.scalajs.dom
+
+import scala.util.Random
+//import org.scalajs.dom.ext.KeyCode
+//import org.scalajs.dom.html.{Document => _, _}
+import org.scalajs.dom.raw.{Event, HTMLAudioElement, VisibilityState}
 import com.neo.sk.carnie.Main
 import mhtml.{Rx, Var}
+import scala.scalajs.js.Date
+import io.circe.generic.auto._
+import io.circe.syntax._
+
+
 import scala.xml.Elem
 
 /**
@@ -71,8 +84,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   def selectClass(id: Int): Rx[String] = modelSelectFlag.map { flag =>
     if (flag.contains(id)) {
       flag(id) match {
-        case true => "game-selected"
-        case _ => "game-not-selected"
+        case true =>"game-selected"
+        case _ =>"game-not-selected"
       }
     }
     else "game-not-selected"
@@ -119,32 +132,33 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId)).render
     }
   }
-
   override def render: Elem = {
-    init()
-    <div background="/carnie/static/img/background2.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
-         text="#68228B">
-      <div style="text-align: center;" id="selectPage">
-        <div id="form">
-          <h1 style="font-family: Verdana;font-size: 30px;color:white">欢迎来到carnie</h1>
-          <button type="button" style="font-size: 30px" class="btn btn-primary" onclick={() => gotoGame(modelSelected.id, headSelected.id, webSocketPara.playerId, webSocketPara.playerName)}>进入游戏</button>
-        </div>
-        <div style="overflow: hidden;">
-          <div style="display:flex;flex-wrap: wrap;margin-left:18%">
-            {modelDiv}
+    {init()}
+    <html>
+      <body style="background-color: darkgray;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;" id="body" >
+        <div style="text-align: center;" id="selectPage">
+          <div  id="form">
+            <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
+            <button type="button" style="font-size: 30px" class="btn btn-primary" onclick=
+            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
-        </div>
+          <div style="overflow: hidden;" >
+            <div style="display:flex;flex-wrap: wrap;margin-left:18%" >
+                {modelDiv}
+            </div>
+          </div>
 
-        <div style="overflow: hidden;">
-          <div style="margin-top: 20px;">
-            <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white">选择头像</p>
+          <div style="overflow: hidden;" >
+            <div style="margin-top: 20px;">
+              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" > 选择头像</p>
+            </div>
+            <div  style="text-align: center;display: flex; flex-wrap: wrap;margin-left:24%">
+                {headDiv}
+            </div>
           </div>
-          <div style="text-align: center;display: flex; flex-wrap: wrap;margin-left:24%">
-            {headDiv}
           </div>
-        </div>
-      </div>
-    </div>
+      </body>
+    </html>
   }
 
 
