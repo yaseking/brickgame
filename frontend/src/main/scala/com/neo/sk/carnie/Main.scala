@@ -87,7 +87,7 @@ object Main extends js.JSApp {
 //    println(s"sendData: $sendData")
 //    val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
 //    val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-    new NetGameHolder("playGame", PlayGamePara(playerId, playerName,modelId,headId)).init()
+    new NetGameHolder("playGame", PlayGamePara(playerId, playerName,modelId),headId).init()
 //    currentPage = new NetGameHolder("playGame", PlayGamePara("test", "test",modelId,headId)).render
   }
 }

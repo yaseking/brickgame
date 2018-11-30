@@ -20,7 +20,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Component {
+class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
@@ -79,7 +79,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
 
   private var logicFrameTime = System.currentTimeMillis()
 
-  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
+  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas, img)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
   def init(): Unit = {
@@ -277,15 +277,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara) extends Compone
                   dom.window.requestAnimationFrame(gameRender())
               }
             }
-            val newKeyCode = if (webSocketPara.asInstanceOf[PlayGamePara].mode == 0) e.keyCode else {
-              e.keyCode match {
-                case KeyCode.Left => KeyCode.Right
-                case KeyCode.Right => KeyCode.Left
-                case KeyCode.Down => KeyCode.Up
-                case KeyCode.Up => KeyCode.Down
-                case _ => KeyCode.Space
-              }
-            }
+            val newKeyCode =
+              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
+                e.keyCode match {
+                  case KeyCode.Left => KeyCode.Right
+                  case KeyCode.Right => KeyCode.Left
+                  case KeyCode.Down => KeyCode.Up
+                  case KeyCode.Up => KeyCode.Down
+                  case _ => KeyCode.Space
+                } else e.keyCode
             println(s"onkeydown：$newKeyCode")
             Key(myId, newKeyCode, frame, actionId)
           }

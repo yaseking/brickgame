@@ -11,7 +11,8 @@ import org.scalajs.dom.html.{Canvas, Image}
   **/
 class DrawGame(
   ctx: CanvasRenderingContext2D,
-  canvas: Canvas
+  canvas: Canvas,
+  img: Int
 ) {
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -29,10 +30,20 @@ class DrawGame(
 
   private[this] val borderCanvas = dom.document.getElementById("BorderView").asInstanceOf[Canvas] //边界canvas
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
+//  private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
-  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
-  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
+  private val imgMap: Map[Int, String] =
+    Map(
+      0 -> "luffyImg",
+      1 -> "fatTigerImg",
+      2 -> "BobImg",
+      3 -> "yangImg",
+      4 -> "smileImg",
+      5 -> "pigImg"
+    )
+//  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
+  private val myHeaderImg = dom.document.getElementById(imgMap(img)).asInstanceOf[Image]
+//  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
   private val goldImg = dom.document.getElementById("goldImg").asInstanceOf[Image]
   private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
@@ -318,6 +329,7 @@ class DrawGame(
       val off = direction * offsetTime.toFloat / Protocol.frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
+      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
       val img = if (s.id == championId) championHeaderImg else {
         if (s.id == uid) myHeaderImg else otherHeaderImg
       }
