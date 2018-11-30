@@ -115,7 +115,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   def gotoGame(modelId: Int, headId: Int,playerId:String, playerName:String):Unit ={
     if(modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
-//      dom.document.getElementById("selectPage").setAttribute("hidden","hidden")
+      dom.document.getElementById("selectPage").setAttribute("hidden","hidden")
       Main.play(modelId,headId,playerId,playerName)
     }
   }
