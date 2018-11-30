@@ -127,6 +127,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
         <div style="text-align: center;" id="selectPage">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
+            <button type="button" style="font-size: 30px" class="btn btn-primary" onclick=
+            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
           <div style="overflow: hidden;" >
             <div style="display:flex;flex-wrap: wrap;margin-left:18%" >
@@ -142,8 +144,6 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
                 {headDiv}
             </div>
           </div>
-          <button type="button" style="font-size: 30px" class="btn btn-primary" onclick=
-          {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
       </body>
     </html>
