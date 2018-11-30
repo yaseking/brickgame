@@ -129,7 +129,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
       Main.refreshPage(new CanvasPage().render)
-      new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId)).render
+      new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId), headId).init()
     }
   }
   override def render: Elem = {
