@@ -6,7 +6,7 @@ import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.actor.LoginSocketClient
 import com.neo.sk.carnie.actor.LoginSocketClient.EstablishConnection2Es
-import com.neo.sk.carnie.scene.{GameScene, LoginScene}
+import com.neo.sk.carnie.scene.{GameScene, LoginScene, SelectScene}
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
@@ -66,4 +66,11 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     }
   }
 
+  def switchToSelecting():Unit = {
+    Boot.addToPlatform {
+      val selectScene = new SelectScene()
+//      context.switchScene(selectScene.scene, "Select", false)
+      new SelectController(selectScene, context).showScene
+    }
+  }
 }
