@@ -3,14 +3,13 @@ package com.neo.sk.carnie.paperClient
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.common.Constant
-import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
-import org.scalajs.dom
-import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.html.{Document => _, _}
-import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.util.Component
+import org.scalajs.dom
+import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.html.{Canvas, Document => _}
+import org.scalajs.dom.raw._
 
 import scala.xml.Elem
 
@@ -20,7 +19,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, frameRate: Int = 150) extends Component {
+class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara, img: Int = 0, frameRate: Int = 150) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]

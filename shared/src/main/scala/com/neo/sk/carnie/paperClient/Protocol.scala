@@ -115,6 +115,8 @@ object Protocol {
 
   case class NeedToSync(id: String) extends UserAction
 
+  case class NeedMsg4Watch(id: String) extends UserAction
+
 
   //essf
   sealed trait GameEvent extends GameMessage
