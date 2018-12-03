@@ -144,13 +144,13 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       <div  style="background-color: #333333;" id="body" >
         <div  id="selectPage">
           <div  id="form">
-            <h1 style="font-family: Verdana;font-size:45px;color:white;text-align: center;" >欢迎来到carnie</h1>
+            <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
             <div style="margin-top: 20px;">
-              <p style="text-align: center; font-size: 30px;color:white" >选择模式</p>
+              <p style="text-align: center; font-size: 20px;color:white" >选择模式</p>
             </div>
-            <div style="display:flex;flex-wrap: wrap;" >
+            <div style="display:flex;flex-wrap: nowrap;margin-left:12%;margin-right:12%" >
                 {modelDiv}
             </div>
           </div>
@@ -163,7 +163,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" >选择头像</p>
+              <p style="text-align: center; margin-top: 20px;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
                 {headDiv}
