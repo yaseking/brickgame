@@ -54,9 +54,10 @@ object Main extends js.JSApp {
         val b = a.split("=")
         (b(0), b(1))
     }.toMap
-
+    println("hello .....")
     info(0) match {
       case "playGame" =>
+        println("playGame")
         val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
         currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
