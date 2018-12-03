@@ -347,6 +347,7 @@ object RoomManager {
     val childName = s"gameReplay--$recordId--$playerId"
     ctx.child(childName).getOrElse {
       val actor = ctx.spawn(GameReplay.create(recordId, playerId), childName)
+      log.debug(s"new actor $childName!!!")
       actor
     }.upcast[GameReplay.Command]
   }
