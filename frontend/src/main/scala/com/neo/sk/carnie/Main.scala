@@ -62,6 +62,7 @@ object Main extends js.JSApp {
         currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
 
       case _ =>
+        println("not playGame")
         currentPage = new CanvasPage().render
         newGameHolder(playerMsgMap, info)
     }
