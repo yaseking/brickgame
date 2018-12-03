@@ -131,10 +131,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
-//      dom.document.getElementById("joinPage").setAttribute("display", "none")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
-//      println(s"JoinGamePage: $frameRate")
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), headId, frameRate).init()
     }
   }
@@ -154,7 +152,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
           <div style="text-align: center;">
             <button type="button"   style="font-size: 30px ;" class="btn btn-primary" onclick=
-            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerName,webSocketPara.playerId)}>进入游戏</button>
+            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
 
