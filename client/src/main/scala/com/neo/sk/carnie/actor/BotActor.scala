@@ -95,10 +95,9 @@ object BotActor {
 
           closed.onComplete { _ =>
             log.info("connect to service closed!")
-            gameController.loseConnect()
           } //ws断开
           connected.onComplete(i => log.info(i.toString))
-          connecting(stream)
+          gaming(stream)
           Behaviors.same
 
         case JoinRoom(roomId, playerId, apiToken) =>
