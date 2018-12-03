@@ -19,6 +19,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   private var myId = ""
+  private var myMode = -1
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -70,7 +71,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   }
 
 
-  def startGame(): Unit = {
+  def startGame(frameRate: Int): Unit = {
     println(s"start game======")
     drawGame.drawGameOn()
 //    val frameRate = webSocketPara match {
@@ -238,6 +239,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       case Protocol.Id(id) => myId = id
         println(s"receive ID = $id")
 
+      case Protocol.Mode(mode) =>
+        println(s"receive mode = $mode")
+        myMode = mode
+
       case Protocol.StartLoading(frame) =>
         println(s"start loading  =========")
         replayFinish = false
@@ -289,7 +294,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         //        println(s"snakes:::::$snakes")
         if (!isContinue) firstCome = false
         loading = false
-        startGame()
+        val frameRate = myMode match {
+          case 2 => frameRate2
+          case _ => frameRate1
+        }
+        startGame(frameRate)
       //        grid.frameCount = firstReplayframe.toLong
 
       case Protocol.InitReplayError(info) =>
