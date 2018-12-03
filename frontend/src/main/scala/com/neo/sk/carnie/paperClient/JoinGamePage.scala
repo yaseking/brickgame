@@ -135,8 +135,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
   override def render: Elem = {
     {init()}
-    <html >
-      <body  style="background-color: #333333;" id="body" >
+    <div >
+      <div  style="background-color: #333333;" id="body" >
         <div  id="selectPage">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size:45px;color:white;text-align: center;" >欢迎来到carnie</h1>
@@ -152,7 +152,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
           <div style="text-align: center;">
             <button type="button"   style="font-size: 30px ;" class="btn btn-primary" onclick=
-            {() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
+            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerName,webSocketPara.playerId)}>进入游戏</button>
           </div>
 
 
