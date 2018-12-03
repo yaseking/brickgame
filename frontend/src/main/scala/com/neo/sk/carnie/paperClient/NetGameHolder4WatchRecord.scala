@@ -236,6 +236,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
   private def messageHandler(data: GameMessage): Unit = {
     data match {
+
+      case Protocol.InitReplayError(msg) =>
+        drawGame.drawRecordError()
+
       case Protocol.Id(id) => myId = id
         println(s"receive ID = $id")
 
