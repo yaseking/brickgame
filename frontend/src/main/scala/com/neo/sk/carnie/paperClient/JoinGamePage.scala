@@ -52,7 +52,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:10px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
           </div>
-          <p style="font-size: 15px;color:white;" > {game.name}</p>
+          <p style="font-size: 15px;color:white;margin-left:12%;margin-right:12%" > {game.name}</p>
         </div>
       </div>
     )
@@ -150,7 +150,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             <div style="margin-top: 20px;">
               <p style="text-align: center; font-size: 20px;color:white" >选择模式</p>
             </div>
-            <div style="display:flex;flex-wrap: nowrap;margin-left:12%;margin-right:12%" >
+            <div style="display:flex;flex-wrap: nowrap;margin-left:23%;margin-right:23%" >
                 {modelDiv}
             </div>
           </div>
