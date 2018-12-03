@@ -106,6 +106,8 @@ class DrawGame(
     if (readFileError) {
       println("==============read file error")
       ctx.fillStyle = ColorsSetting.backgroundColor2
+      canvas.width = 800
+      canvas.height = 400
       ctx.fillRect(0, 0, 800.0, 400.0)
       ctx.fillStyle = ColorsSetting.fontColor
 //      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
