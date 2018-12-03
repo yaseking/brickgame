@@ -144,10 +144,10 @@ object RoomManager {
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")
           val truePlayerId = if (playerId.contains("Set")) playerId.drop(4).dropRight(1) else playerId
-          log.info(s"truePlayerId: $truePlayerId")
+//          log.info(s"truePlayerId: $truePlayerId")
           try {
             val mode = roomMap(roomId)._1
-            getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
+            getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, mode, subscriber)
           } catch {
             case e: Exception =>
               log.error(s"$msg got error: $e")

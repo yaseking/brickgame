@@ -54,7 +54,7 @@ object RoomActor {
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
-  case class WatchGame(playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+  case class WatchGame(playerId: String, userId: String, mode: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   case class WatcherLeftRoom(userId: String) extends Command
 
@@ -134,13 +134,15 @@ object RoomActor {
 //          log.debug(s"headImgList after join:$headImgList")
           idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, headImgList)
 
-        case m@WatchGame(playerId, userId, subscriber) =>
+        case m@WatchGame(playerId, userId, mode, subscriber) =>
           log.info(s"got: $m")
           val truePlayerId = if (playerId == "unknown") userMap.head._1 else playerId
           watcherMap.put(userId, (truePlayerId, index%classify))
           subscribersMap.put(userId, subscriber)
           ctx.watchWith(subscriber, WatcherLeftRoom(userId))
           dispatchTo(subscribersMap, userId, Protocol.Id(truePlayerId))
+          val img = headImgList(playerId)
+          dispatchTo(subscribersMap, userId, Protocol.StartWatching(mode, img))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           userGroup.get(index%classify) match {
