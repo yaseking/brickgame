@@ -319,6 +319,7 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
+          println("get newFieldInfo.")
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
           newFieldInfo += data.frameCount -> data
@@ -342,6 +343,7 @@ class GameController(player: PlayerInfoInClient,
       val key = event.getCode
       if (Constant.watchKeys.contains(key)) {
         val delay = if(mode==2) 4 else 2
+        println(s"delay: $delay")
         val frame = grid.frameCount + delay
         val actionId = idGenerator.getAndIncrement()
         val keyCode = Constant.keyCode2Int(key)
