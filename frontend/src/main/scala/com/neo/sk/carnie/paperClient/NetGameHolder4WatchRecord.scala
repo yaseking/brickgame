@@ -57,11 +57,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-
   private var nextFrame = 0
   private var isContinue = true
   private var logicFrameTime = System.currentTimeMillis()
-
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
