@@ -117,6 +117,7 @@ object GameReplay {
             case Some(u)=>
               //todo dispatch gameInformation
               dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
+              dispatchTo(msg.subscriber, Protocol.Mode(metaData.mode))
               log.info(s" set replay from frame=${msg.f}")
               log.debug(s"get snapshot index::${fileReader.getSnapshotIndexes}")
               val nearSnapshotIndex = fileReader.gotoSnapshot(msg.f)
