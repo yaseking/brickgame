@@ -1,7 +1,7 @@
 package com.neo.sk.carnie
 
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.paperClient.{JoinGamePage, NetGameHolder, CanvasPage,NetGameHolder4WatchRecord}
+import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -29,7 +29,7 @@ object Main extends js.JSApp {
         val playerId = playerMsgMap.getOrElse("playerId", "unknown")
         val accessCode = playerMsgMap.getOrElse("accessCode", "test123")
         println(s"Frontend-roomId: $roomId, playerId:$playerId, accessCode: $accessCode")
-        new NetGameHolder("watchGame", WatchGamePara(roomId, playerId, accessCode)).init()//fixme 被观战者的头部图片需要从后台获取
+        new NetGameHolder4WatchGame("watchGame", WatchGamePara(roomId, playerId, accessCode)).init()//fixme 被观战者的头部图片需要从后台获取
 
       case "watchRecord" =>
         val recordId = playerMsgMap.getOrElse("recordId", "1000001")
