@@ -391,7 +391,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
         myScore = BaseScore(kill, area, start, end)
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
 
-
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")
         if (data.fieldDetails.exists(_.uid == myId))
