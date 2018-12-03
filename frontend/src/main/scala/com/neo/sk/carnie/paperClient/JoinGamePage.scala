@@ -49,10 +49,10 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     games.map(game =>
       <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:150px;width:150px;">
+          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:10px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
           </div>
-          <p style="margin-top:10px;font-size: 15px;color:white; margin-left:30%;margin-right:30%;" > {game.name}</p>
+          <p style="font-size: 15px;color:white;" > {game.name}</p>
         </div>
       </div>
     )
@@ -62,7 +62,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     games.map(game =>
       <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:20px;height:100px;width:100px;text-align: center">
+          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:10px;height:100px;width:100px;text-align: center">
             <img class="home-img" src={game.img}></img>
           </div>
         </div>
@@ -148,7 +148,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           </div>
           <div style="overflow: hidden;" >
             <div style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" >选择模式</p>
+              <p style="text-align: center; font-size: 30px;color:white" >选择模式</p>
             </div>
             <div style="display:flex;flex-wrap: wrap;" >
                 {modelDiv}
