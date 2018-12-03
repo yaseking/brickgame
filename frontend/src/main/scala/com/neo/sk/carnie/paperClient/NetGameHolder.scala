@@ -33,7 +33,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   var isSynced = false
   //  var justSynced = false
   var isWin = false
-  var playBgm = true
   //  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
@@ -180,25 +179,26 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
+        if(!BGM.paused){
+          BGM.pause()
+        }
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
+        if(!BGM.paused){
+          BGM.pause()
+        }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         if(!BGM.paused){
           BGM.pause()
-          BGM = bgmList(getRandom(8))
         }
         drawGame.drawGameWin(myId, winner, winData)
         audio1.play()
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        if (playBgm) {
-          //          BGM.play()
-          playBgm = false
-        }
         if (BGM.paused) {
           BGM = bgmList(getRandom(8))
           BGM.play()
@@ -216,7 +216,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       case FrontProtocol.DrawGameDie(killerName) =>
         if(!BGM.paused){
           BGM.pause()
-          BGM = bgmList(getRandom(8))
         }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)

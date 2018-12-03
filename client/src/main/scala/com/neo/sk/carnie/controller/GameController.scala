@@ -177,18 +177,21 @@ class GameController(player: PlayerInfoInClient,
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-        BGM.stop()
-        BGM = bgmList(getRandom(8))
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
         gameScene.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-        BGM.stop()
-        BGM = bgmList(getRandom(8))
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
         gameScene.drawGameOff(firstCome)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-        BGM.stop()
-        BGM = bgmList(getRandom(8))
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
         gameScene.drawGameWin(player.id, winner, winData)
         isContinue = false
 
@@ -210,8 +213,9 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-        BGM.stop()
-        BGM = bgmList(getRandom(8))
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
         if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = None
