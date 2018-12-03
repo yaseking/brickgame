@@ -74,9 +74,13 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       if(game.id == 0) modelSelectMap += (game.id -> true)
       else modelSelectMap += (game.id -> false)
     )
+    modelSelectFlag := modelSelectMap
+    val rnd = Random.nextInt(6)
     headLists.foreach(game =>
-      headSelectMap += (game.id -> false)
+      if(game.id == rnd) headSelectMap += (game.id -> true)
+      else headSelectMap += (game.id -> false)
     )
+    headSelectFlag := headSelectMap
   }
 
   def selectClass(id: Int): Rx[String] = modelSelectFlag.map { flag =>
@@ -126,7 +130,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
-      dom.document.getElementById("joinPage").setAttribute("display", "none")
+//      dom.document.getElementById("joinPage").setAttribute("display", "none")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
 //      println(s"JoinGamePage: $frameRate")
