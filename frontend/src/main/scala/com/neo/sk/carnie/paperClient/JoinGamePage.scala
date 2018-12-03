@@ -81,6 +81,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       else headSelectMap += (game.id -> false)
     )
     headSelectFlag := headSelectMap
+    headSelected = headLists(rnd)
   }
 
   def selectClass(id: Int): Rx[String] = modelSelectFlag.map { flag =>
