@@ -230,7 +230,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
   val roomApiRoutes: Route = {
     getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
-      getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList
+      getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList
   }
 
 
