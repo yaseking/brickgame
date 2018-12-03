@@ -238,7 +238,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
     data match {
 
       case Protocol.InitReplayError(msg) =>
-        drawGame.drawRecordError()
+        drawGame.drawGameOff(true, None, false, true)
 
       case Protocol.Id(id) => myId = id
         println(s"receive ID = $id")

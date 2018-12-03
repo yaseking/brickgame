@@ -135,13 +135,13 @@ class DrawGame(
     ctx.fillText("Please wait.", 150, 180)
   }
 
-  def drawRecordError(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor2
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.font = "36px Helvetica"
-    ctx.fillText("文件不存在或已损坏...", 150, 180)
-  }
+//  def drawRecordError(): Unit = {
+//    ctx.fillStyle = ColorsSetting.backgroundColor2
+//    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    ctx.fillStyle = ColorsSetting.fontColor
+//    ctx.font = "36px Helvetica"
+//    ctx.fillText("文件不存在或已损坏...", 150, 180)
+//  }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
