@@ -4,6 +4,8 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
 import javafx.scene.control.{Button, RadioButton, ToggleGroup}
 import javafx.scene.image.{Image, ImageView}
+import javafx.scene.paint.Color
+import javafx.scene.text.Font
 
 abstract class SelectSceneListener {
     def joinGame(mode: Int, img: Int)
@@ -21,6 +23,9 @@ class SelectScene {
 
   val canvas = new Canvas(width, height)
   val canvasCtx = canvas.getGraphicsContext2D
+  canvasCtx.setFill(Color.rgb(51, 51, 51))
+  canvasCtx.fillRect(0, 0, width, height)
+
   val modeImg0 = new Image("img/coffee2.png")
   val modeImg1 = new Image("img/game.png")
   val modeImg2 = new Image("img/rocket1.png")
@@ -44,12 +49,20 @@ class SelectScene {
   mode2.setToggleGroup(toggleGroup)
   mode2.setUserData(2)
 
+  canvasCtx.setFill(Color.WHITE)
+  canvasCtx.setFont(Font.font(15))
+  canvasCtx.fillText("正常模式", 80, 170)
+  canvasCtx.fillText("反转模式", 230, 170)
+  canvasCtx.fillText("加速模式", 380, 170)
+  canvasCtx.setFont(Font.font(18))
+  canvasCtx.fillText("选择头像：", 210, 240)
+
   mode0.setLayoutX(100)
-  mode0.setLayoutY(170)
+  mode0.setLayoutY(180)
   mode1.setLayoutX(250)
-  mode1.setLayoutY(170)
+  mode1.setLayoutY(180)
   mode2.setLayoutX(400)
-  mode2.setLayoutY(170)
+  mode2.setLayoutY(180)
 
   val toggleGroup2 = new ToggleGroup()
   val img0 = new RadioButton("")
@@ -72,34 +85,34 @@ class SelectScene {
   img5.setToggleGroup(toggleGroup2)
   img5.setUserData(5)
 
-  img0.setLayoutX(100)
+  img0.setLayoutX(110)
   img0.setLayoutY(310)
-  img1.setLayoutX(150)
+  img1.setLayoutX(160)
   img1.setLayoutY(310)
-  img2.setLayoutX(200)
+  img2.setLayoutX(210)
   img2.setLayoutY(310)
-  img3.setLayoutX(250)
+  img3.setLayoutX(260)
   img3.setLayoutY(310)
-  img4.setLayoutX(300)
+  img4.setLayoutX(310)
   img4.setLayoutY(310)
-  img5.setLayoutX(350)
+  img5.setLayoutX(360)
   img5.setLayoutY(310)
 
   val button = new Button("加入游戏")
 
-  button.setLayoutX(250)
+  button.setLayoutX(220)
   button.setLayoutY(350)
 
-  canvasCtx.drawImage(modeImg0, 40, 50, 120, 120)
-  canvasCtx.drawImage(modeImg1, 190, 50, 120, 120)
-  canvasCtx.drawImage(modeImg2, 340, 50, 120, 120)
+  canvasCtx.drawImage(modeImg0, 50, 30, 120, 120)
+  canvasCtx.drawImage(modeImg1, 190, 30, 120, 120)
+  canvasCtx.drawImage(modeImg2, 340, 40, 120, 110)
 
-  canvasCtx.drawImage(headerImg0, 90, 250, 40, 40)
-  canvasCtx.drawImage(headerImg1, 140, 250, 40, 40)
-  canvasCtx.drawImage(headerImg2, 190, 250, 40, 40)
-  canvasCtx.drawImage(headerImg3, 240, 250, 40, 40)
-  canvasCtx.drawImage(headerImg4, 290, 250, 40, 40)
-  canvasCtx.drawImage(headerImg5, 340, 250, 40, 40)
+  canvasCtx.drawImage(headerImg0, 100, 250, 40, 40)
+  canvasCtx.drawImage(headerImg1, 150, 250, 40, 40)
+  canvasCtx.drawImage(headerImg2, 200, 250, 40, 40)
+  canvasCtx.drawImage(headerImg3, 250, 250, 40, 40)
+  canvasCtx.drawImage(headerImg4, 300, 250, 40, 40)
+  canvasCtx.drawImage(headerImg5, 350, 250, 40, 40)
 
 
   group.getChildren.add(canvas)
@@ -122,8 +135,6 @@ class SelectScene {
   toggleGroup2.selectedToggleProperty().addListener(_ => selectImg())
 
   def selectMode(): Unit = {
-//    val a = toggleGroup.getSelectedToggle
-//    println(s"a $a")
     val rst = toggleGroup.getSelectedToggle.getUserData.toString.toInt
     println(s"rst: $rst")
     selectedMode = rst
@@ -139,9 +150,4 @@ class SelectScene {
   def setListener(listen: SelectSceneListener): Unit ={
     listener = listen
   }
-//  def joinGame() ={
-//    println(s"mode-$selectedMode")
-//    println(s"img-$selectedImg")
-//    (selectedMode, selectedImg)
-//  }
 }

@@ -35,17 +35,17 @@ class Boot extends javafx.application.Application {
   override def start(mainStage: Stage): Unit = {
     val context = new Context(mainStage)
 
-    val loginScene = new LoginScene()
-    val loginController = new LoginController(loginScene, context)
-    loginController.showScene()
+//    val loginScene = new LoginScene()
+//    val loginController = new LoginController(loginScene, context)
+//    loginController.showScene()
 
 
 //    val playGameScreen = new GameScene()
 //    context.switchScene(playGameScreen.getScene,fullScreen = true)
-//    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 //    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen, mode = 1).start("")
 
-//    val selectScreen = new SelectScene()
-//    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
+    val selectScreen = new SelectScene()
+    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
   }
 }

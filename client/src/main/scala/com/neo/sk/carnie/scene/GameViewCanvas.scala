@@ -37,7 +37,6 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
   val ab = imgMap(img)
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = new Image(imgMap(img))
-  private val otherHeaderImg = new Image("boy.png")
   private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
   private var canvasUnit = (windowBoundary.x / window.x).toInt
@@ -335,15 +334,16 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
       val off = direction * offsetTime.toFloat / frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      val img = if (s.id == championId) championHeaderImg else {
-        if (s.id == uid) myHeaderImg else otherHeaderImg
-      }
+      if (s.id == championId)
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
+      val otherHeaderImg = new Image(imgMap(s.img))
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       ctx.setFont(Font.font(16))
       ctx.setFill(Color.rgb(0, 0, 0))
       val t = new Text(s"${s.name}")
-      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y) * canvasUnit - 10)
+      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
     }
 
     ctx.restore()
