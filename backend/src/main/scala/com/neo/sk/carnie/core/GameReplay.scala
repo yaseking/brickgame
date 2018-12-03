@@ -66,11 +66,12 @@ object GameReplay {
       Behaviors.withTimers[Command] { implicit timer =>
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
-//            log.debug(s"game path ${r.filePath}")
-            val replay=initInput("../backend/" + r.filePath) //for reStart
-//            val replay=initInput(r.filePath) //for nohup
-            val info=replay.init()
             try{
+//            log.debug(s"game path ${r.filePath}")
+              val replay=initInput("../backend/" + r.filePath) //for reStart
+//            val replay=initInput(r.filePath) //for nohup
+              val info=replay.init()
+
 //              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
 //              println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
               log.debug(s"userInfo:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")

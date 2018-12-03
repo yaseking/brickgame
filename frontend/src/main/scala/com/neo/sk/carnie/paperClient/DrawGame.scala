@@ -104,7 +104,13 @@ class DrawGame(
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     if (readFileError) {
-      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+      println("==============read file error")
+      ctx.fillStyle = ColorsSetting.backgroundColor2
+      canvas.width = 800
+      canvas.height = 400
+      ctx.fillRect(0, 0, 800.0, 400.0)
+      ctx.fillStyle = ColorsSetting.fontColor
+//      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
       ctx.fillText("文件不存在或文件已损坏...", 150, 180)
     } else if (replayFinish.nonEmpty && replayFinish.get) {
@@ -134,6 +140,14 @@ class DrawGame(
     ctx.font = "36px Helvetica"
     ctx.fillText("Please wait.", 150, 180)
   }
+
+//  def drawRecordError(): Unit = {
+//    ctx.fillStyle = ColorsSetting.backgroundColor2
+//    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    ctx.fillStyle = ColorsSetting.fontColor
+//    ctx.font = "36px Helvetica"
+//    ctx.fillText("文件不存在或已损坏...", 150, 180)
+//  }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
