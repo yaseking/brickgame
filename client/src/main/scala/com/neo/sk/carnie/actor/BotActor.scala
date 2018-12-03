@@ -62,6 +62,8 @@ object BotActor {
   def gaming()(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case CreateRoom(playerId, apiToken) =>
+          Behaviors.same
 
 
         case unknown@_ =>
