@@ -105,7 +105,7 @@ class SelectScene {
 
   canvasCtx.drawImage(modeImg0, 50, 30, 120, 120)
   canvasCtx.drawImage(modeImg1, 190, 30, 120, 120)
-  canvasCtx.drawImage(modeImg2, 340, 30, 120, 120)
+  canvasCtx.drawImage(modeImg2, 340, 40, 120, 110)
 
   canvasCtx.drawImage(headerImg0, 100, 250, 40, 40)
   canvasCtx.drawImage(headerImg1, 150, 250, 40, 40)
