@@ -66,7 +66,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
   private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
   private[this] val bgmList = List(bgm1, bgm2, bgm3, bgm4, bgm5, bgm6, bgm7, bgm8)
-  private var BGM = dom.document.getElementById("bgm5").asInstanceOf[HTMLAudioElement]
+  private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
   dom.document.addEventListener("visibilitychange", { e: Event =>
