@@ -29,7 +29,7 @@ object Main extends js.JSApp {
         val playerId = playerMsgMap.getOrElse("playerId", "unknown")
         val accessCode = playerMsgMap.getOrElse("accessCode", "test123")
         println(s"Frontend-roomId: $roomId, playerId:$playerId, accessCode: $accessCode")
-        new NetGameHolder4WatchGame("watchGame", WatchGamePara(roomId, playerId, accessCode)).init()//fixme 被观战者的头部图片需要从后台获取
+        new NetGameHolder4WatchGame("watchGame", WatchGamePara(roomId, playerId, accessCode)).init()
 
       case "watchRecord" =>
         val recordId = playerMsgMap.getOrElse("recordId", "1000001")

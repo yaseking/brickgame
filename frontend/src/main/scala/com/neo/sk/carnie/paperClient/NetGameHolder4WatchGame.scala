@@ -294,6 +294,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case Protocol.Id(id) => myId = id
 
       case Protocol.StartWatching(mode, img) =>
+        println(s"startWatching mode-$mode, img-$img")
         drawGame = new DrawGame(ctx, canvas, img)
         frameRate = if(mode==2) frameRate2 else frameRate1
         startGame()
@@ -305,7 +306,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-//                println("rollBack1111.")
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
@@ -319,7 +319,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
                   val oldGrid = grid
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
-//                  println("rollBack2222.")
                 }
               }
               myActionHistory -= actionId
@@ -330,7 +329,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
               val oldGrid = grid
               oldGrid.recallGrid(frame, grid.frameCount)
               grid = oldGrid
-//              println("rollBack3333.")
             }
           }
         }

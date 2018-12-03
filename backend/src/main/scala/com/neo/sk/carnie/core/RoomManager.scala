@@ -147,7 +147,7 @@ object RoomManager {
 //          log.info(s"truePlayerId: $truePlayerId")
           try {
             val mode = roomMap(roomId)._1
-            getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, mode, subscriber)
+            getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
           } catch {
             case e: Exception =>
               log.error(s"$msg got error: $e")

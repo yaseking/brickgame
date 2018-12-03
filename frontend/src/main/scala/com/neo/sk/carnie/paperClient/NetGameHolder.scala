@@ -40,10 +40,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
-  //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
+  val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
@@ -237,7 +237,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           val msg: Protocol.UserAction = {
-            val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
             val frame = grid.frameCount + delay//2 4
             //            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
@@ -298,7 +297,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-//                println("rollBack1111.")
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
@@ -312,7 +310,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
                   val oldGrid = grid
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
-//                  println("rollBack2222.")
                 }
               }
               myActionHistory -= actionId
@@ -323,24 +320,23 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
               val oldGrid = grid
               oldGrid.recallGrid(frame, grid.frameCount)
               grid = oldGrid
-//              println("rollBack3333.")
             }
           }
         }
 
-      case ReStartGame =>
-        audio1.pause()
-        audio1.currentTime = 0
-        audioKilled.pause()
-        audioKilled.currentTime = 0
-        //        scoreFlag = true
-        firstCome = true
-        myScore = BaseScore(0, 0, 0l, 0l)
-        if (isWin) {
-          isWin = false
-          //          winnerName = "unknown"
-        }
-        isContinue = true
+//      case ReStartGame =>
+//        audio1.pause()
+//        audio1.currentTime = 0
+//        audioKilled.pause()
+//        audioKilled.currentTime = 0
+//        //        scoreFlag = true
+//        firstCome = true
+//        myScore = BaseScore(0, 0, 0l, 0l)
+//        if (isWin) {
+//          isWin = false
+//          //          winnerName = "unknown"
+//        }
+//        isContinue = true
 
       case UserLeft(id) =>
         println(s"user $id left:::")
