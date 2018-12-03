@@ -382,7 +382,7 @@ object RoomActor {
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails)
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
-          if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid) ! recordData
+          if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid, mode) ! recordData
           idle(index, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, headImgList = headImgList)
 
         case ChildDead(child, childRef) =>
@@ -421,12 +421,12 @@ object RoomActor {
     stashBuffer.unstashAll(ctx, behavior)
   }
 
-  private def getGameRecorder(ctx: ActorContext[Command], roomId: Int, grid: GridOnServer): ActorRef[GameRecorder.Command] = {
+  private def getGameRecorder(ctx: ActorContext[Command], roomId: Int, grid: GridOnServer, mode: Int): ActorRef[GameRecorder.Command] = {
     val childName = "gameRecorder"
     ctx.child(childName).getOrElse {
       val newData = grid.getGridData
       val actor = ctx.spawn(GameRecorder.create(roomId, Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails),
-        GameInformation(roomId, System.currentTimeMillis(), 0, grid.frameCount)), childName)
+        GameInformation(roomId, System.currentTimeMillis(), 0, grid.frameCount, mode)), childName)
       ctx.watchWith(actor, ChildDead(childName, actor))
       actor
     }.upcast[GameRecorder.Command]

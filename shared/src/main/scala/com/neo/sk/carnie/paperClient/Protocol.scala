@@ -72,6 +72,8 @@ object Protocol {
 
   case class StartWatching(mode: Int, img: Int) extends GameMessage
 
+  case class Mode(mode: Int) extends GameMessage
+
   case class StartLoading(frame: Int) extends GameMessage
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
@@ -138,7 +140,7 @@ object Protocol {
 
   case class DecodeError() extends GameEvent
 
-  case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
+  case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long, mode: Int)
 
   case class UserJoinLeft(joinFrame: Long, leftFrame: Long)
 
