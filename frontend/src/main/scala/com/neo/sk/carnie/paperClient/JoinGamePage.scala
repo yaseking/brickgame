@@ -27,10 +27,10 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   sealed case class Model(id:Int,img:String,name:String)
   sealed case class Head(id:Int,img:String)
 
-  var modelLists = List(Model(0,"/carnie/static/img/Genji2.png","正常模式"),
-    Model(1,"/carnie/static/img/Dva2.png","反转模式"),Model(2,"/carnie/static/img/Tracer2.png","2倍加速模式"))
+  var modelLists = List(Model(0,"/carnie/static/img/coffee1.png","正常模式"),
+    Model(1,"/carnie/static/img/brain.png","反转模式"),Model(2,"/carnie/static/img/rocket1.png","2倍加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
-  var modelSelected = Model(0,"/carnie/static/img/Dva.png","反转模式")
+  var modelSelected = Model(0,"/carnie/static/img/coffee.png","正常模式")
   //游戏选择框
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int,Boolean]] = Var(Map())
@@ -47,7 +47,7 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
     games.map( game =>
       <div style="text-align:center;width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:250px;width:250px">
+          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:150px;width:150px">
             <img class="home-img" src={game.img}></img>
             <p style="text-align:center;margin-top:10px;font-size: 30px;color:white" > {game.name}</p>
           </div>
@@ -121,24 +121,23 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   }
   override def render: Elem = {
     {init()}
-    <html>
-      <body background="/carnie/static/img/background2.png" style=" background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;"
-            text="#68228B" >
+    <html style="background-color: darkgray;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;">
+      <body   id="body" >
         <div style="text-align: center;" id="selectPage">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-wrap: wrap;margin-left:18%" >
+            <div style="display:flex;flex-wrap: wrap;margin-left:18%;margin-right:18%" >
                 {modelDiv}
             </div>
           </div>
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" > 选择头像</p>
+              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" >选择头像</p>
             </div>
-            <div  style="text-align: center;display: flex; flex-wrap: wrap;margin-left:24%">
+            <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
                 {headDiv}
             </div>
           </div>
