@@ -18,15 +18,25 @@ import org.slf4j.LoggerFactory
 /**
   * Created by dry on 2018/10/29.
   **/
-class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: BackgroundCanvas
+class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background: BackgroundCanvas
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private var windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
+  private val imgMap: Map[Int, String] =
+    Map(
+      0 -> "img/luffy.png",
+      1 -> "img/fatTiger.png",
+      2 -> "img/Bob.png",
+      3 -> "img/yang.png",
+      4 -> "img/smile.png",
+      5 -> "img/pig.png"
+    )
+  val ab = imgMap(img)
   private val championHeaderImg = new Image("champion.png")
-  private val myHeaderImg = new Image("girl.png")
+  private val myHeaderImg = new Image(imgMap(img))
   private val otherHeaderImg = new Image("boy.png")
   private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
@@ -223,14 +233,14 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
     ctx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
         val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + direction * offsetTime.toFloat / frameRate
 
       case None =>
         Point(border.x / 2, border.y / 2)
@@ -322,7 +332,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas) {//,background: Backgrou
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / Protocol.frameRate
+      val off = direction * offsetTime.toFloat / frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       val img = if (s.id == championId) championHeaderImg else {

@@ -58,19 +58,18 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     }
   }
 
-  def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
-    Boot.addToPlatform {
-      val playGameScreen = new GameScene()
-      context.switchScene(playGameScreen.getScene, fullScreen = true)
-      new GameController(playerInfoInClient, context, playGameScreen).start(domain)
-    }
-  }
+//  def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
+//    Boot.addToPlatform {
+//      val playGameScreen = new GameScene()
+//      context.switchScene(playGameScreen.getScene, fullScreen = true)
+//      new GameController(playerInfoInClient, context, playGameScreen).start(domain)
+//    }
+//  }
 
-  def switchToSelecting():Unit = {
+  def switchToSelecting(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
     Boot.addToPlatform {
       val selectScene = new SelectScene()
-//      context.switchScene(selectScene.scene, "Select", false)
-      new SelectController(selectScene, context).showScene
+      new SelectController(playerInfoInClient, selectScene, context, domain).showScene
     }
   }
 }

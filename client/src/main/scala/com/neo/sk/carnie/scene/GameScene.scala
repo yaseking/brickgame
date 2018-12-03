@@ -20,7 +20,7 @@ object GameScene{
   }
 }
 
-class GameScene {
+class GameScene(img: Int, frameRate: Int) {
 
   import GameScene._
 
@@ -47,7 +47,7 @@ class GameScene {
   group.getChildren.add(viewCanvas)
   group.getChildren.add(rankCanvas)
 
-  val view = new GameViewCanvas(viewCanvas,rankCanvas)
+  val view = new GameViewCanvas(viewCanvas, rankCanvas, img)
   val rank = new RankCanvas(rankCanvas)
 
 
@@ -72,7 +72,7 @@ class GameScene {
   }
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
-    view.drawGrid(uid, data, offsetTime, grid, championId)
+    view.drawGrid(uid, data, offsetTime, grid, championId, frameRate)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 

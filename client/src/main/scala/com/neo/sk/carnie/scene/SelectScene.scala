@@ -101,7 +101,7 @@ class SelectScene {
   group.getChildren.add(img3)
   group.getChildren.add(img4)
   group.getChildren.add(img5)
-  group.getChildren.add(img6)
+//  group.getChildren.add(img6)
   group.getChildren.add(button)
   val scene = new Scene(group)
 

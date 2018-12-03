@@ -25,7 +25,8 @@ class GameController(player: PlayerInfoInClient,
                      stageCtx: Context,
                      gameScene: GameScene,
                      mode: Int =0,
-                     img: Int =0) {
+                     frameRate: Int
+                     ) {
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
@@ -88,8 +89,8 @@ class GameController(player: PlayerInfoInClient,
     rnd.nextInt(s)
   }
 
-  def start(domain: String): Unit = {
-    playActor ! PlayGameWebSocket.ConnectGame(player, domain)
+  def start(domain: String, mode: Int, img: Int): Unit = {
+    playActor ! PlayGameWebSocket.ConnectGame(player, domain, mode, img)
     addUserActionListen()
     startGameLoop()
   }
@@ -99,7 +100,7 @@ class GameController(player: PlayerInfoInClient,
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
 //    bgm.play(50)
-    val keyFrame = new KeyFrame(Duration.millis(Protocol.frameRate), { _ =>
+    val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>
       logicLoop()
     })
     timeline.getKeyFrames.add(keyFrame)
@@ -340,7 +341,8 @@ class GameController(player: PlayerInfoInClient,
     gameScene.viewCanvas.setOnKeyPressed{ event =>
       val key = event.getCode
       if (Constant.watchKeys.contains(key)) {
-        val frame = grid.frameCount + 2
+        val delay = if(mode==2) 4 else 2
+        val frame = grid.frameCount + delay
         val actionId = idGenerator.getAndIncrement()
         val keyCode = Constant.keyCode2Int(key)
         grid.addActionWithFrame(player.id, keyCode, frame)
@@ -365,15 +367,16 @@ class GameController(player: PlayerInfoInClient,
               isContinue = true
           }
         }
-        val newKeyCode = if(mode == 0) key else {
-          key match {
-            case KeyCode.LEFT => KeyCode.RIGHT
-            case KeyCode.RIGHT => KeyCode.LEFT
-            case KeyCode.DOWN => KeyCode.UP
-            case KeyCode.UP => KeyCode.DOWN
-            case _ => KeyCode.SPACE
-          }
-        }
+        val newKeyCode =
+          if(mode == 1)
+            key match {
+              case KeyCode.LEFT => KeyCode.RIGHT
+              case KeyCode.RIGHT => KeyCode.LEFT
+              case KeyCode.DOWN => KeyCode.UP
+              case KeyCode.UP => KeyCode.DOWN
+              case _ => KeyCode.SPACE
+            }
+          else key
         playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
       }
     }
