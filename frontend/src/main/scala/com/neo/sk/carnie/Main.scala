@@ -46,7 +46,7 @@ object Main extends js.JSApp {
     }
   }
 
-  def selectPage(): Cancelable = {
+  def selectPage() = {
     val url = dom.window.location.href.split("carnie/")(1)
     val info = url.split("\\?")
     val playerMsgMap = info(1).split("&").map {
@@ -61,13 +61,14 @@ object Main extends js.JSApp {
         val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
         currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
+        show()
 
       case _ =>
         println(s"not playGame ${info(0)}")
         currentPage = new CanvasPage().render
+        show()
         newGameHolder(playerMsgMap, info)
     }
-    show()
   }
 
   def refreshPage(newPage: Elem): Cancelable = {
