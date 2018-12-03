@@ -232,8 +232,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
-//    if(order == "watchGame")
-//      webSocketClient.sendMessage(NeedMsg4Watch(myId))
     if (order == "playGame") {
       startGame()
       rankCanvas.focus()
