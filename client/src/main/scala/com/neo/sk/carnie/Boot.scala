@@ -46,6 +46,6 @@ class Boot extends javafx.application.Application {
 //    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen, mode = 1).start("")
 
 //    val selectScreen = new SelectScene()
-//    new SelectController(selectScreen, context).showScene
+//    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
   }
 }
