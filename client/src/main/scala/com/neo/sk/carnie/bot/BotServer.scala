@@ -30,6 +30,7 @@ class BotServer(botActor:  ActorRef[BotActor.Command]) extends EsheepAgent {
 
   override def createRoom(request: Credit): Future[CreateRoomRsp] = {
     println(s"createRoom Called by [$request")
+    botActor ! BotActor.CreateRoom(request.playerId, request.apiToken)
     val state = State.init_game
     Future.successful(CreateRoomRsp(errCode = 101, state = state, msg = "ok"))
   }

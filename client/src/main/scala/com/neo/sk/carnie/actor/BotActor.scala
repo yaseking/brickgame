@@ -16,7 +16,7 @@ object BotActor {
 
   case object Work extends Command
 
-  case class CreateRoom() extends Command
+  case class CreateRoom(playerId: String, apiToken: String) extends Command
 
   case class JoinRoom() extends Command
 
