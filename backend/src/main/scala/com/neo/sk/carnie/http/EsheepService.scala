@@ -64,7 +64,7 @@ trait EsheepService extends ServiceUtils with CirceSupport {
 //    }
 //  }
 
-  private val watchGame = (path("watchGame") & get) {
+  private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
     log.info("success to render watchGame page.")
     getFromResource("html/index.html")
   }
@@ -77,7 +77,8 @@ trait EsheepService extends ServiceUtils with CirceSupport {
       'accessCode.as[String]
     ) {
       case (recordId, playerId, frame, accessCode) =>
-//        val gameId = AppSettings.esheepGameId
+        log.info("success to render watchRecord page.")
+        //        val gameId = AppSettings.esheepGameId
 //        dealFutureResult{
 //          val msg: Future[String] = tokenActor ? AskForToken
 //          msg.map {token =>
