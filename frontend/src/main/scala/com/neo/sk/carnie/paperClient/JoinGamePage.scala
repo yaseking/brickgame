@@ -27,10 +27,10 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   sealed case class Model(id:Int,img:String,name:String)
   sealed case class Head(id:Int,img:String)
 
-  var modelLists = List(Model(0,"/carnie/static/img/coffee1.png","正常模式"),
-    Model(1,"/carnie/static/img/brain.png","反转模式"),Model(2,"/carnie/static/img/rocket1.png","2倍加速模式"))
+  var modelLists = List(Model(0,"/carnie/static/img/coffee2.png","正常模式"),
+    Model(1,"/carnie/static/img/game.png","反转模式"),Model(2,"/carnie/static/img/rocket1.png","加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
-  var modelSelected = Model(0,"/carnie/static/img/coffee.png","正常模式")
+  var modelSelected = Model(0,"/carnie/static/img/coffee2.png","正常模式")
   //游戏选择框
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int,Boolean]] = Var(Map())
@@ -45,12 +45,12 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
 
   private val modelDiv = modelList.map{ games =>
     games.map( game =>
-      <div style="text-align:center;width:27%;margin:15px;">
+      <div style="width:27%;margin:15px;text-align: center;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:150px;width:150px">
+          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
-            <p style="text-align:center;margin-top:10px;font-size: 30px;color:white" > {game.name}</p>
           </div>
+          <p style="margin-top:10px;font-size: 15px;color:white; margin-left:30%;margin-right:30%;" > {game.name}</p>
         </div>
       </div>
     )
@@ -68,7 +68,8 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   }
   def init()={
     modelLists.foreach(game=>
-      modelSelectMap += (game.id -> false)
+      if(game.id == 0) modelSelectMap += (game.id -> true)
+      else modelSelectMap += (game.id -> false)
     )
     headLists.foreach(game=>
       headSelectMap += (game.id -> false)
@@ -121,17 +122,26 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
   }
   override def render: Elem = {
     {init()}
-    <html style="background-color: darkgray;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;">
-      <body   id="body" >
-        <div style="text-align: center;" id="selectPage">
+    <html >
+      <body  style="background-color: #333333;" id="body" >
+        <div  id="selectPage">
           <div  id="form">
-            <h1 style="font-family: Verdana;font-size: 30px;color:white" >欢迎来到carnie</h1>
+            <h1 style="font-family: Verdana;font-size:45px;color:white;text-align: center;" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-wrap: wrap;margin-left:18%;margin-right:18%" >
+            <div style="margin-top: 20px;">
+              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" >选择模式</p>
+            </div>
+            <div style="display:flex;flex-wrap: wrap;margin-left:30%;margin-right:30%;" >
                 {modelDiv}
             </div>
           </div>
+
+          <div style="text-align: center;">
+            <button type="button"   style="font-size: 30px ;" class="btn btn-primary" onclick=
+            {() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
+          </div>
+
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 20px;">
@@ -141,8 +151,6 @@ class JoinGamePage(order: String, webSocketPara: WebSocketPara) extends Componen
                 {headDiv}
             </div>
           </div>
-          <button type="button" style="font-size: 30px" class="btn btn-primary" onclick=
-          {() => gotoGame(modelSelected.id,headSelected.id)}>进入游戏</button>
           </div>
       </body>
     </html>
