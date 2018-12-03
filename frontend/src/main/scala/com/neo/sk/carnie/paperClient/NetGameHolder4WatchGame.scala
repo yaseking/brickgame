@@ -180,25 +180,22 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-        BGM.pause()
-        BGM = bgmList(getRandom(8))
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-        BGM.pause()
-        BGM = bgmList(getRandom(8))
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-        BGM.pause()
-        BGM = bgmList(getRandom(8))
+        if(!BGM.paused){
+          BGM.pause()
+          BGM = bgmList(getRandom(8))
+        }
         drawGame.drawGameWin(myId, winner, winData)
         audio1.play()
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
         if (playBgm) {
-          //          BGM.play()
           playBgm = false
         }
         if (BGM.paused) {
@@ -216,8 +213,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-        BGM.pause()
-        BGM = bgmList(getRandom(8))
+        if(!BGM.paused){
+          BGM.pause()
+          BGM = bgmList(getRandom(8))
+        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None

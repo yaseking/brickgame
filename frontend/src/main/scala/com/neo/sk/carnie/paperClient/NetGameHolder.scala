@@ -183,13 +183,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-        BGM.pause()
-        BGM = bgmList(getRandom(8))
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-        BGM.pause()
-        BGM = bgmList(getRandom(8))
+        if(!BGM.paused){
+          BGM.pause()
+          BGM = bgmList(getRandom(8))
+        }
         drawGame.drawGameWin(myId, winner, winData)
         audio1.play()
         isContinue = false
@@ -214,8 +214,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-        BGM.pause()
-        BGM = bgmList(getRandom(8))
+        if(!BGM.paused){
+          BGM.pause()
+          BGM = bgmList(getRandom(8))
+        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
