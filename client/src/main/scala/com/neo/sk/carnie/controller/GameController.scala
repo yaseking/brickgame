@@ -319,7 +319,6 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
-          println("get newFieldInfo.")
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
           newFieldInfo += data.frameCount -> data
