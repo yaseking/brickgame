@@ -355,7 +355,6 @@ class GameController(player: PlayerInfoInClient,
                 isWin = false
                 winnerName = "unknown"
               }
-//              fieldNum = 0
               animationTimer.start()
               isContinue = true
           }

@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.actor
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.scaladsl.{Keep, Sink}
 import com.neo.sk.carnie.bot.BotServer
 import org.slf4j.LoggerFactory
@@ -11,17 +11,20 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSock
 import akka.stream.OverflowStrategy
 import akka.stream.typed.scaladsl.ActorSource
 import akka.util.{ByteString, ByteStringBuilder}
-import com.neo.sk.carnie.actor.PlayGameWebSocket.log
-import com.neo.sk.carnie.controller.GameController
 import com.neo.sk.carnie.paperClient.Protocol._
-import org.seekloud.byteobject.ByteObject.bytesDecode
+import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
 
 import scala.concurrent.Future
+import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
+import com.neo.sk.carnie.common.Constant
+import com.neo.sk.carnie.paperClient.Protocol
+import org.seekloud.esheepapi.pb.actions.Move
 
 /**
   * Created by dry on 2018/12/3.
   **/
+
 object BotActor {
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
@@ -35,6 +38,10 @@ object BotActor {
   case class JoinRoom(roomId: String, playerId: String, apiToken: String) extends Command
 
   case class LeaveRoom(playerId: String) extends Command
+
+  case class Action(move: Move) extends Command
+
+  case class ReturnObservation(playerId: String) extends Command
 
   def create(): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
@@ -78,7 +85,7 @@ object BotActor {
         case CreateRoom(playerId, apiToken) =>
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerId, apiToken)))
           val source = getSource
-          val sink = getSink(gameController)
+          val sink = getSink()
           val ((stream, response), closed) =
             source
               .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
@@ -98,10 +105,30 @@ object BotActor {
           } //ws断开
           connected.onComplete(i => log.info(i.toString))
           gaming(stream)
-          Behaviors.same
 
         case JoinRoom(roomId, playerId, apiToken) =>
-          Behaviors.same
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUriWithRoomId(roomId, playerId, apiToken)))
+          val source = getSource
+          val sink = getSink()
+          val ((stream, response), closed) =
+            source
+              .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
+              .toMat(sink)(Keep.both) // also keep the Future[Done]
+              .run()
+
+          val connected = response.flatMap { upgrade =>
+            if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
+              Future.successful("connect success")
+            } else {
+              throw new RuntimeException(s"Connection failed: ${upgrade.response.status}")
+            }
+          } //ws建立
+
+          closed.onComplete { _ =>
+            log.info("connect to service closed!")
+          } //ws断开
+          connected.onComplete(i => log.info(i.toString))
+          gaming(stream)
 
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown")
@@ -110,9 +137,18 @@ object BotActor {
     }
   }
 
-  def gaming()(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+  def gaming(actor: ActorRef[Protocol.WsSendMsg])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case Action(move) =>
+          val actionNum = Constant.moveToKeyCode(move)
+//          if(actionNum != -1)
+//            actor ! Key
+          Behaviors.same
+
+        case ReturnObservation(playerId) =>
+          Behaviors.same
+
         case LeaveRoom(playerId) =>
           Behaviors.same
 
@@ -123,7 +159,7 @@ object BotActor {
     }
   }
 
-  private[this] def getSink(gameController: GameController) =
+  private[this] def getSink() =
     Sink.foreach[Message] {
       case TextMessage.Strict(msg) =>
         log.debug(s"msg from webSocket: $msg")
@@ -132,7 +168,7 @@ object BotActor {
         //decode process.
         val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
         bytesDecode[GameMessage](buffer) match {
-          case Right(v) => gameController.gameMessageReceiver(v)
+          case Right(v) => //todo
           case Left(e) =>
             println(s"decode error: ${e.message}")
         }
@@ -145,7 +181,7 @@ object BotActor {
         f.map { bMsg =>
           val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
           bytesDecode[GameMessage](buffer) match {
-            case Right(v) => gameController.gameMessageReceiver(v)
+            case Right(v) => //todo
             case Left(e) =>
               println(s"decode error: ${e.message}")
           }
@@ -172,12 +208,18 @@ object BotActor {
 
   }
 
-  def getWebSocketUri(playerId: String, apiToken: String): String = {//mode: Int, img: Int
+  def getWebSocketUri(playerId: String, apiToken: String): String = {
   val wsProtocol = "ws"
     val domain = "10.1.29.250:30368"
     //    val domain = "localhost:30368"
     s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&apiToken=$apiToken"
-    //    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName"
+  }
+
+  def getWebSocketUriWithRoomId(roomId: String, playerId: String, apiToken: String): String = {
+  val wsProtocol = "ws"
+    val domain = "10.1.29.250:30368"
+    //    val domain = "localhost:30368"
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&apiToken=$apiToken&roomId=$roomId"
   }
 
 }
