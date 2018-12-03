@@ -1,8 +1,6 @@
 package com.neo.sk.carnie.controller
 
-import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction, UserLeft}
@@ -36,15 +34,12 @@ class GameController(player: PlayerInfoInClient,
   var grid = new GridOnClient(bounds)
   var firstCome = true
   val idGenerator = new AtomicInteger(1)
-//  var scoreFlag = true
-//  var timeFlag = true
   var playBgm = true
   var isWin = false
   var exitFullScreen = false
   var winnerName = "unknown"
   var isContinues = true
   var winnerData : Option[Protocol.Data4TotalSync] = None
-//  private var fieldNum = 0
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
