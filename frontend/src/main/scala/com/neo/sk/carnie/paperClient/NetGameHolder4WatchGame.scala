@@ -19,7 +19,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara, img: Int = 0, frameRate: Int = 150) extends Component {
+class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
@@ -42,6 +42,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara, img: 
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
+  var frameRate: Int = 150
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
@@ -78,7 +79,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara, img: 
 
   private var logicFrameTime = System.currentTimeMillis()
 
-  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas, img)
+  private[this] var drawGame: DrawGame = _
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
   def init(): Unit = {
@@ -234,55 +235,55 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara, img: 
   private def connectOpenSuccess(event0: Event, order: String) = {
 //    if(order == "watchGame")
 //      webSocketClient.sendMessage(NeedMsg4Watch(myId))
-    if (order == "playGame") {
-      startGame()
-      rankCanvas.focus()
-      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
-        if (Constant.watchKeys.contains(e.keyCode)) {
-          val msg: Protocol.UserAction = {
-            val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
-            val frame = grid.frameCount + delay//2 4
-            //            println(s"frame : $frame")
-            val actionId = idGenerator.getAndIncrement()
-            val newKeyCode =
-              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
-                e.keyCode match {
-                  case KeyCode.Left => KeyCode.Right
-                  case KeyCode.Right => KeyCode.Left
-                  case KeyCode.Down => KeyCode.Up
-                  case KeyCode.Up => KeyCode.Down
-                  case _ => KeyCode.Space
-                } else e.keyCode
-            println(s"onkeydown：$newKeyCode")
-            grid.addActionWithFrame(myId, newKeyCode, frame)
-            if (newKeyCode != KeyCode.Space) {
-              myActionHistory += actionId -> (newKeyCode, frame)
-            } else { //重新开始游戏
-              drawFunction match {
-                case FrontProtocol.DrawBaseGame(_) =>
-                case _ =>
-                  drawFunction = FrontProtocol.DrawGameWait
-                  audio1.pause()
-                  audio1.currentTime = 0
-                  audioKilled.pause()
-                  audioKilled.currentTime = 0
-                  firstCome = true
-                  if (isWin) isWin = false
-                  myScore = BaseScore(0, 0, 0l, 0l)
-                  isContinue = true
-                  dom.window.requestAnimationFrame(gameRender())
-              }
-            }
-
-            Key(myId, newKeyCode, frame, actionId)
-          }
-          webSocketClient.sendMessage(msg)
-          e.preventDefault()
-        }
-      }
-      }
-    }
-    event0
+//    if (order == "playGame") {
+//      startGame()
+//      rankCanvas.focus()
+//      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
+//        if (Constant.watchKeys.contains(e.keyCode)) {
+//          val msg: Protocol.UserAction = {
+//            val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
+//            val frame = grid.frameCount + delay//2 4
+//            //            println(s"frame : $frame")
+//            val actionId = idGenerator.getAndIncrement()
+//            val newKeyCode =
+//              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
+//                e.keyCode match {
+//                  case KeyCode.Left => KeyCode.Right
+//                  case KeyCode.Right => KeyCode.Left
+//                  case KeyCode.Down => KeyCode.Up
+//                  case KeyCode.Up => KeyCode.Down
+//                  case _ => KeyCode.Space
+//                } else e.keyCode
+//            println(s"onkeydown：$newKeyCode")
+//            grid.addActionWithFrame(myId, newKeyCode, frame)
+//            if (newKeyCode != KeyCode.Space) {
+//              myActionHistory += actionId -> (newKeyCode, frame)
+//            } else { //重新开始游戏
+//              drawFunction match {
+//                case FrontProtocol.DrawBaseGame(_) =>
+//                case _ =>
+//                  drawFunction = FrontProtocol.DrawGameWait
+//                  audio1.pause()
+//                  audio1.currentTime = 0
+//                  audioKilled.pause()
+//                  audioKilled.currentTime = 0
+//                  firstCome = true
+//                  if (isWin) isWin = false
+//                  myScore = BaseScore(0, 0, 0l, 0l)
+//                  isContinue = true
+//                  dom.window.requestAnimationFrame(gameRender())
+//              }
+//            }
+//
+//            Key(myId, newKeyCode, frame, actionId)
+//          }
+//          webSocketClient.sendMessage(msg)
+//          e.preventDefault()
+//        }
+//      }
+//      }
+//    }
+//    event0
   }
 
   private def connectError(e: Event) = {
@@ -293,6 +294,11 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara, img: 
   private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id(id) => myId = id
+
+      case Protocol.StartWatching(mode, img) =>
+        drawGame = new DrawGame(ctx, canvas, img)
+        frameRate = if(mode==2) frameRate2 else frameRate1
+        startGame()
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         //        println(s"i got ${grid.frameCount}, frame : $frame")
