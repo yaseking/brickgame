@@ -342,7 +342,6 @@ class GameController(player: PlayerInfoInClient,
       val key = event.getCode
       if (Constant.watchKeys.contains(key)) {
         val delay = if(mode==2) 4 else 2
-        println(s"delay: $delay")
         val frame = grid.frameCount + delay
         val actionId = idGenerator.getAndIncrement()
         val keyCode = Constant.keyCode2Int(key)
