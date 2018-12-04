@@ -162,6 +162,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             if (firstCome) firstCome = false
+            if (BGM.paused) {
+              BGM = bgmList(getRandom(8))
+              BGM.play()
+            }
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
@@ -199,10 +203,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        if (BGM.paused) {
-          BGM = bgmList(getRandom(8))
-          BGM.play()
-        }
         //        println("draw---DrawBaseGame!!")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
