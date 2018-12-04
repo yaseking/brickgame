@@ -138,7 +138,6 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
   override def render: Elem = {
     {init()}
-    <div>
       <div  style="background-color: #333333;height:100%" id="body" >
         <div  id="selectPage">
           <div  id="form">
@@ -166,7 +165,6 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           </div>
           </div>
       </div>
-    </div>
   }
 
 
