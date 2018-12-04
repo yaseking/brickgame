@@ -49,7 +49,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     games.map(game =>
       <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:10px;height:17%;width:17%;">
+          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:10px;height:100%;width:100%;">
             <img class="home-img" src={game.img}></img>
           </div>
           <p style="font-size: 15px;color:white;margin-left:12%;margin-right:12%" > {game.name}</p>
