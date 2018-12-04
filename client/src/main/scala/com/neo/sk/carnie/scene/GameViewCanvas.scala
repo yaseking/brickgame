@@ -215,12 +215,12 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     }
   }
 
-  var a = 0
-  var b = 0
-  var c = 0
-  var d = 0
-  var e = 0
-  var f = 0
+//  var a = 0
+//  var b = 0
+//  var c = 0
+//  var d = 0
+//  var e = 0
+//  var f = 0
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
 //    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
     ctx.setFill(Color.rgb(105,105,105))
@@ -270,10 +270,10 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
         val end = turnPoints(i + 1)
-        f = f + 1
-        if(f % 200 == 0 || f == 0) {
-          debug(s"length:${turnPoints.length} turnPoints:$turnPoints ")
-        }
+//        f = f + 1
+//        if(f % 200 == 0 || f == 0) {
+//          debug(s"length:${turnPoints.length} turnPoints:$turnPoints ")
+//        }
         if (start.x == end.x) { //同x
           if (start.y > end.y) {
 //            a = a + 1
