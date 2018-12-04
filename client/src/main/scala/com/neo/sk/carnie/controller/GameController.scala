@@ -51,14 +51,12 @@ class GameController(player: PlayerInfoInClient,
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
   val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
-  val bgm2 = new AudioClip(getClass.getResource("/mp3/bgm2.mp3").toString)
   val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
   val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-  val bgm5 = new AudioClip(getClass.getResource("/mp3/bgm5.mp3").toString)
-  val bgm6 = new AudioClip(getClass.getResource("/mp3/bgm6.mp3").toString)
   val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
   val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
-  val bgmList = List(bgm1,bgm2,bgm3,bgm4,bgm5,bgm6,bgm7,bgm8)
+  val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
+  val bgmAmount = bgmList.length
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
 //  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
@@ -95,7 +93,7 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def startGameLoop(): Unit = { //渲染帧
-    BGM = bgmList(getRandom(8))
+    BGM = bgmList(getRandom(bgmAmount))
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
 //    bgm.play(50)
@@ -166,7 +164,7 @@ class GameController(player: PlayerInfoInClient,
           playBgm = false
         }
         if(!BGM.isPlaying){
-          BGM = bgmList(getRandom(8))
+          BGM = bgmList(getRandom(bgmAmount))
           BGM.play(30)
         }
         drawFunction = FrontProtocol.DrawBaseGame(gridData)

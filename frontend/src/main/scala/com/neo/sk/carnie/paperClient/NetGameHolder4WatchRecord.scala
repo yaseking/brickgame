@@ -70,7 +70,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
 
   def startGame(frameRate: Int): Unit = {
-    println(s"start game======")
+    println(s"start game======frameRate:$frameRate")
     drawGame.drawGameOn()
 //    val frameRate = webSocketPara match {
 //      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
@@ -82,20 +82,20 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
     //    pingInterval = dom.window.setInterval(() => {
     //      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     //    }, 100)
-    requestAnimationInterval = dom.window.requestAnimationFrame(gameRender())
+    requestAnimationInterval = dom.window.requestAnimationFrame(gameRender(frameRate))
   }
 
   private var tempRender = System.currentTimeMillis()
 
-  def gameRender(): Double => Unit = { _ =>
+  def gameRender(frameRate: Int): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
     //    println(s"drawRender time:${curTime - tempRender}")
     tempRender = curTime
-    draw(offsetTime)
+    draw(offsetTime, frameRate)
 
     if (isContinue)
-      nextFrame = dom.window.requestAnimationFrame(gameRender())
+      nextFrame = dom.window.requestAnimationFrame(gameRender(frameRate))
   }
 
 
@@ -149,7 +149,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   }
 
 
-  def draw(offsetTime: Long): Unit = {
+  def draw(offsetTime: Long, frameRate: Int): Unit = {
     if (webSocketClient.getWsState) {
       if (replayFinish) {
         drawGame.drawGameOff(firstCome, Some(true), false, false)
@@ -187,7 +187,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
                 audioFinish.play()
               }
               fieldNum = num
-              drawGameImage(myId, data, offsetTime)
+              drawGameImage(myId, data, offsetTime, frameRate)
               if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
                 drawGame.drawBarrage(killInfo._2, killInfo._3)
                 lastTime -= 1
@@ -216,8 +216,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
     }
   }
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true)
+  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, frameRate: Int): Unit = {
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
@@ -408,7 +408,11 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
               winnerName = "unknown"
             }
             isContinue = true
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
+            val frameRate = myMode match {
+              case 2 => frameRate2
+              case _ => frameRate1
+            }
+            nextFrame = dom.window.requestAnimationFrame(gameRender(frameRate))
 
           }
         }
