@@ -161,6 +161,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
+            println("draw BaseGame.")
             if (firstCome) firstCome = false
             if (BGM.paused) {
               BGM = bgmList(getRandom(bgmAmount))
@@ -169,6 +170,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
+            println("draw GameDie.")
             FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
