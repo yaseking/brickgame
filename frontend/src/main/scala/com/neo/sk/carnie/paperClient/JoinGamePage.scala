@@ -156,7 +156,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
 
           <div style="overflow: hidden;" >
-            <div style="margin-top: 10%;">
+            <div style="margin-top: 1%;">
               <p style="text-align: center; margin-top: 10%;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
