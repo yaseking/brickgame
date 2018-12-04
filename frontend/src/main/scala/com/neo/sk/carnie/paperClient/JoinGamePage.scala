@@ -153,7 +153,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           </div>
 
           <div style="text-align: center;">
-            <button type="button"   style="font-size: 30px ;" class="btn btn-primary" onclick=
+            <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
             {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
