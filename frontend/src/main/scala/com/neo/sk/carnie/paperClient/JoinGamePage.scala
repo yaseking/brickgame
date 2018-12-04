@@ -49,10 +49,10 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     games.map(game =>
       <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:20px;height:150px;width:150px;">
+          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:10px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
           </div>
-          <p style="margin-top:10px;font-size: 15px;color:white; margin-left:30%;margin-right:30%;" > {game.name}</p>
+          <p style="font-size: 15px;color:white;margin-left:12%;margin-right:12%" > {game.name}</p>
         </div>
       </div>
     )
@@ -62,7 +62,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     games.map(game =>
       <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:20px;height:100px;width:100px;text-align: center">
+          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:10px;height:100px;width:100px;text-align: center">
             <img class="home-img" src={game.img}></img>
           </div>
         </div>
@@ -74,9 +74,14 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       if(game.id == 0) modelSelectMap += (game.id -> true)
       else modelSelectMap += (game.id -> false)
     )
+    modelSelectFlag := modelSelectMap
+    val rnd = Random.nextInt(6)
     headLists.foreach(game =>
-      headSelectMap += (game.id -> false)
+      if(game.id == rnd) headSelectMap += (game.id -> true)
+      else headSelectMap += (game.id -> false)
     )
+    headSelectFlag := headSelectMap
+    headSelected = headLists(rnd)
   }
 
   def selectClass(id: Int): Rx[String] = modelSelectFlag.map { flag =>
@@ -126,39 +131,34 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
-      dom.document.getElementById("joinPage").setAttribute("display", "none")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
-//      println(s"JoinGamePage: $frameRate")
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), headId, frameRate).init()
     }
   }
   override def render: Elem = {
     {init()}
-    <div >
-      <div  style="background-color: #333333;" id="body" >
+    <div id="resizeDiv">
+      <div  style="background-color: #333333;height:750px" id="body" >
         <div  id="selectPage">
           <div  id="form">
-            <h1 style="font-family: Verdana;font-size:45px;color:white;text-align: center;" >欢迎来到carnie</h1>
+            <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" >选择模式</p>
-            </div>
-            <div style="display:flex;flex-wrap: wrap;margin-left:30%;margin-right:30%;" >
+            <div style="display:flex;flex-wrap: nowrap;margin-left:18%;margin-right:18%" >
                 {modelDiv}
             </div>
           </div>
 
           <div style="text-align: center;">
             <button type="button"   style="font-size: 30px ;" class="btn btn-primary" onclick=
-            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerName,webSocketPara.playerId)}>进入游戏</button>
+            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
 
           <div style="overflow: hidden;" >
-            <div style="margin-top: 20px;">
-              <p style="text-align: center; margin-top: 20px;font-size: 30px;color:white" >选择头像</p>
+            <div style="margin-top: 10px;">
+              <p style="text-align: center; margin-top: 20px;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
                 {headDiv}

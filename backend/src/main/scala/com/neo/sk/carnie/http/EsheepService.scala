@@ -64,9 +64,9 @@ trait EsheepService extends ServiceUtils with CirceSupport {
 //    }
 //  }
 
-  private val watchGame = (path("watchGame") & get) {
+  private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
     log.info("success to render watchGame page.")
-    getFromResource("html/netSnake.html")
+    getFromResource("html/index.html")
   }
 
   private val watchRecord = (path("watchRecord") & get & pathEndOrSingleSlash) {
@@ -77,7 +77,8 @@ trait EsheepService extends ServiceUtils with CirceSupport {
       'accessCode.as[String]
     ) {
       case (recordId, playerId, frame, accessCode) =>
-//        val gameId = AppSettings.esheepGameId
+        log.info("success to render watchRecord page.")
+        //        val gameId = AppSettings.esheepGameId
 //        dealFutureResult{
 //          val msg: Future[String] = tokenActor ? AskForToken
 //          msg.map {token =>
@@ -86,7 +87,7 @@ trait EsheepService extends ServiceUtils with CirceSupport {
 //                case Right(rsp) =>
 //                  //                    println(s"rsp: $rsp")
 ////                  if(rsp.playerId == playerId){
-                    getFromResource("html/netSnake.html")
+                    getFromResource("html/index.html")
 ////                  } else {
 ////                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
 ////                  }

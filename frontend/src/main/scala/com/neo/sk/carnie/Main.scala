@@ -1,7 +1,7 @@
 package com.neo.sk.carnie
 
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.paperClient.{JoinGamePage, NetGameHolder, CanvasPage,NetGameHolder4WatchRecord}
+import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -29,7 +29,7 @@ object Main extends js.JSApp {
         val playerId = playerMsgMap.getOrElse("playerId", "unknown")
         val accessCode = playerMsgMap.getOrElse("accessCode", "test123")
         println(s"Frontend-roomId: $roomId, playerId:$playerId, accessCode: $accessCode")
-        new NetGameHolder("watchGame", WatchGamePara(roomId, playerId, accessCode)).render//fixme 被观战者的头部图片需要从后台获取
+        new NetGameHolder4WatchGame("watchGame", WatchGamePara(roomId, playerId, accessCode)).init()
 
       case "watchRecord" =>
         val recordId = playerMsgMap.getOrElse("recordId", "1000001")
@@ -46,7 +46,7 @@ object Main extends js.JSApp {
     }
   }
 
-  def selectPage(): Cancelable = {
+  def selectPage() = {
     val url = dom.window.location.href.split("carnie/")(1)
     val info = url.split("\\?")
     val playerMsgMap = info(1).split("&").map {
@@ -54,18 +54,21 @@ object Main extends js.JSApp {
         val b = a.split("=")
         (b(0), b(1))
     }.toMap
-
+    println(s"hello ${info(0)}....")
     info(0) match {
       case "playGame" =>
+        println("playGame ...")
         val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
         currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
+        show()
 
       case _ =>
+        println(s"not playGame ${info(0)}")
         currentPage = new CanvasPage().render
+        show()
         newGameHolder(playerMsgMap, info)
     }
-    show()
   }
 
   def refreshPage(newPage: Elem): Cancelable = {

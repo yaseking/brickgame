@@ -3,14 +3,13 @@ package com.neo.sk.carnie.paperClient
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.common.Constant
-import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
-import org.scalajs.dom
-import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.html.{Document => _, _}
-import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.util.Component
+import org.scalajs.dom
+import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.html.{Canvas, Document => _}
+import org.scalajs.dom.raw._
 
 import scala.xml.Elem
 
@@ -20,7 +19,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, frameRate: Int = 150) extends Component {
+class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
@@ -40,10 +39,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
+  //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
+  var frameRate: Int = 150
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
@@ -65,7 +65,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
   private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
   private[this] val bgmList = List(bgm1, bgm2, bgm3, bgm4, bgm5, bgm6, bgm7, bgm8)
-  private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
+  private var BGM = dom.document.getElementById("bgm0").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
   dom.document.addEventListener("visibilitychange", { e: Event =>
@@ -77,7 +77,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
 
   private var logicFrameTime = System.currentTimeMillis()
 
-  private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas, img)
+  private[this] var drawGame: DrawGame = _
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
   def init(): Unit = {
@@ -231,54 +231,57 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
-    if (order == "playGame") {
-      startGame()
-      rankCanvas.focus()
-      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
-        if (Constant.watchKeys.contains(e.keyCode)) {
-          val msg: Protocol.UserAction = {
-            val frame = grid.frameCount + delay//2 4
-            //            println(s"frame : $frame")
-            val actionId = idGenerator.getAndIncrement()
-            val newKeyCode =
-              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
-                e.keyCode match {
-                  case KeyCode.Left => KeyCode.Right
-                  case KeyCode.Right => KeyCode.Left
-                  case KeyCode.Down => KeyCode.Up
-                  case KeyCode.Up => KeyCode.Down
-                  case _ => KeyCode.Space
-                } else e.keyCode
-            println(s"onkeydown：$newKeyCode")
-            grid.addActionWithFrame(myId, newKeyCode, frame)
-            if (newKeyCode != KeyCode.Space) {
-              myActionHistory += actionId -> (newKeyCode, frame)
-            } else { //重新开始游戏
-              drawFunction match {
-                case FrontProtocol.DrawBaseGame(_) =>
-                case _ =>
-                  drawFunction = FrontProtocol.DrawGameWait
-                  audio1.pause()
-                  audio1.currentTime = 0
-                  audioKilled.pause()
-                  audioKilled.currentTime = 0
-                  firstCome = true
-                  if (isWin) isWin = false
-                  myScore = BaseScore(0, 0, 0l, 0l)
-                  isContinue = true
-                  dom.window.requestAnimationFrame(gameRender())
-              }
-            }
-
-            Key(myId, newKeyCode, frame, actionId)
-          }
-          webSocketClient.sendMessage(msg)
-          e.preventDefault()
-        }
-      }
-      }
-    }
-    event0
+//    if(order == "watchGame")
+//      webSocketClient.sendMessage(NeedMsg4Watch(myId))
+//    if (order == "playGame") {
+//      startGame()
+//      rankCanvas.focus()
+//      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
+//        if (Constant.watchKeys.contains(e.keyCode)) {
+//          val msg: Protocol.UserAction = {
+//            val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
+//            val frame = grid.frameCount + delay//2 4
+//            //            println(s"frame : $frame")
+//            val actionId = idGenerator.getAndIncrement()
+//            val newKeyCode =
+//              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
+//                e.keyCode match {
+//                  case KeyCode.Left => KeyCode.Right
+//                  case KeyCode.Right => KeyCode.Left
+//                  case KeyCode.Down => KeyCode.Up
+//                  case KeyCode.Up => KeyCode.Down
+//                  case _ => KeyCode.Space
+//                } else e.keyCode
+//            println(s"onkeydown：$newKeyCode")
+//            grid.addActionWithFrame(myId, newKeyCode, frame)
+//            if (newKeyCode != KeyCode.Space) {
+//              myActionHistory += actionId -> (newKeyCode, frame)
+//            } else { //重新开始游戏
+//              drawFunction match {
+//                case FrontProtocol.DrawBaseGame(_) =>
+//                case _ =>
+//                  drawFunction = FrontProtocol.DrawGameWait
+//                  audio1.pause()
+//                  audio1.currentTime = 0
+//                  audioKilled.pause()
+//                  audioKilled.currentTime = 0
+//                  firstCome = true
+//                  if (isWin) isWin = false
+//                  myScore = BaseScore(0, 0, 0l, 0l)
+//                  isContinue = true
+//                  dom.window.requestAnimationFrame(gameRender())
+//              }
+//            }
+//
+//            Key(myId, newKeyCode, frame, actionId)
+//          }
+//          webSocketClient.sendMessage(msg)
+//          e.preventDefault()
+//        }
+//      }
+//      }
+//    }
+//    event0
   }
 
   private def connectError(e: Event) = {
@@ -289,6 +292,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id(id) => myId = id
+
+      case Protocol.StartWatching(mode, img) =>
+        println(s"startWatching mode-$mode, img-$img")
+        drawGame = new DrawGame(ctx, canvas, img)
+        frameRate = if(mode==2) frameRate2 else frameRate1
+        startGame()
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         //        println(s"i got ${grid.frameCount}, frame : $frame")
@@ -324,19 +333,19 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
           }
         }
 
-//      case ReStartGame =>
-//        audio1.pause()
-//        audio1.currentTime = 0
-//        audioKilled.pause()
-//        audioKilled.currentTime = 0
-//        //        scoreFlag = true
-//        firstCome = true
-//        myScore = BaseScore(0, 0, 0l, 0l)
-//        if (isWin) {
-//          isWin = false
-//          //          winnerName = "unknown"
-//        }
-//        isContinue = true
+      case ReStartGame =>
+        audio1.pause()
+        audio1.currentTime = 0
+        audioKilled.pause()
+        audioKilled.currentTime = 0
+        //        scoreFlag = true
+        firstCome = true
+        myScore = BaseScore(0, 0, 0l, 0l)
+        if (isWin) {
+          isWin = false
+          //          winnerName = "unknown"
+        }
+        isContinue = true
 
       case UserLeft(id) =>
         println(s"user $id left:::")
@@ -385,6 +394,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
         //        grid.cleanSnakeTurnPoint(id)
         myScore = BaseScore(kill, area, start, end)
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+
 
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info")

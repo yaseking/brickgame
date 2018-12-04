@@ -144,7 +144,7 @@ object RoomManager {
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")
           val truePlayerId = if (playerId.contains("Set")) playerId.drop(4).dropRight(1) else playerId
-          log.info(s"truePlayerId: $truePlayerId")
+//          log.info(s"truePlayerId: $truePlayerId")
           try {
             val mode = roomMap(roomId)._1
             getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
@@ -347,6 +347,7 @@ object RoomManager {
     val childName = s"gameReplay--$recordId--$playerId"
     ctx.child(childName).getOrElse {
       val actor = ctx.spawn(GameReplay.create(recordId, playerId), childName)
+      log.debug(s"new actor $childName!!!")
       actor
     }.upcast[GameReplay.Command]
   }

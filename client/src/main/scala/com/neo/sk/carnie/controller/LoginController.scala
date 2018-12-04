@@ -6,7 +6,7 @@ import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.actor.LoginSocketClient
 import com.neo.sk.carnie.actor.LoginSocketClient.EstablishConnection2Es
-import com.neo.sk.carnie.scene.{GameScene, LoginScene}
+import com.neo.sk.carnie.scene.{GameScene, LoginScene, SelectScene}
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
@@ -58,12 +58,18 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     }
   }
 
-  def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
+//  def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
+//    Boot.addToPlatform {
+//      val playGameScreen = new GameScene()
+//      context.switchScene(playGameScreen.getScene, fullScreen = true)
+//      new GameController(playerInfoInClient, context, playGameScreen).start(domain)
+//    }
+//  }
+
+  def switchToSelecting(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
     Boot.addToPlatform {
-      val playGameScreen = new GameScene()
-      context.switchScene(playGameScreen.getScene, fullScreen = true)
-      new GameController(playerInfoInClient, context, playGameScreen).start(domain)
+      val selectScene = new SelectScene()
+      new SelectController(playerInfoInClient, selectScene, context, domain).showScene
     }
   }
-
 }

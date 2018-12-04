@@ -70,6 +70,8 @@ object Protocol {
 
   case class Id(id: String) extends GameMessage
 
+  case class StartWatching(mode: Int, img: Int) extends GameMessage
+
   case class Mode(mode: Int) extends GameMessage
 
   case class StartLoading(frame: Int) extends GameMessage
@@ -116,7 +118,6 @@ object Protocol {
   case class SendPingPacket(id: String, createTime: Long) extends UserAction
 
   case class NeedToSync(id: String) extends UserAction
-
 
   //essf
   sealed trait GameEvent extends GameMessage

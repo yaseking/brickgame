@@ -141,6 +141,8 @@ object RoomActor {
           subscribersMap.put(userId, subscriber)
           ctx.watchWith(subscriber, WatcherLeftRoom(userId))
           dispatchTo(subscribersMap, userId, Protocol.Id(truePlayerId))
+          val img = headImgList(playerId)
+          dispatchTo(subscribersMap, userId, Protocol.StartWatching(mode, img))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
           userGroup.get(index%classify) match {

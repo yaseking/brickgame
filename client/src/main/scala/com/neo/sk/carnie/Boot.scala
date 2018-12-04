@@ -42,10 +42,10 @@ class Boot extends javafx.application.Application {
 
 //    val playGameScreen = new GameScene()
 //    context.switchScene(playGameScreen.getScene,fullScreen = true)
-//    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+    import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 //    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen, mode = 1).start("")
 
 //    val selectScreen = new SelectScene()
-//    new SelectController(selectScreen, context).showScene
+//    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
   }
 }
