@@ -227,9 +227,13 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
+  private val netSnake = (path("netSnake") & get) {
+    getFromResource("html/index.html")
+  }
+
 
   val roomApiRoutes: Route = {
-    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
+    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ netSnake ~
       getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList
   }
 

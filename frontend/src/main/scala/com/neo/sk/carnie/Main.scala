@@ -47,28 +47,29 @@ object Main extends js.JSApp {
   }
 
   def selectPage() = {
-    val url = dom.window.location.href.split("carnie/")(1)
-    val info = url.split("\\?")
-    val playerMsgMap = info(1).split("&").map {
-      a =>
-        val b = a.split("=")
-        (b(0), b(1))
-    }.toMap
-    println(s"hello ${info(0)}....")
-    info(0) match {
-      case "playGame" =>
-        println("playGame ...")
-        val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-        val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
-        show()
-
-      case _ =>
-        println(s"not playGame ${info(0)}")
-        currentPage = new CanvasPage().render
-        show()
-        newGameHolder(playerMsgMap, info)
-    }
+    currentPage = new JoinGamePage("playGame", PlayGamePara("test", "test")).render
+//    val url = dom.window.location.href.split("carnie/")(1)
+//    val info = url.split("\\?")
+//    val playerMsgMap = info(1).split("&").map {
+//      a =>
+//        val b = a.split("=")
+//        (b(0), b(1))
+//    }.toMap
+//    println(s"hello ${info(0)}....")
+//    info(0) match {
+//      case "playGame" =>
+//        println("playGame ...")
+//        val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+//        val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+//        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
+//        show()
+//
+//      case _ =>
+//        println(s"not playGame ${info(0)}")
+//        currentPage = new CanvasPage().render
+//        show()
+//        newGameHolder(playerMsgMap, info)
+//    }
   }
 
   def refreshPage(newPage: Elem): Cancelable = {
