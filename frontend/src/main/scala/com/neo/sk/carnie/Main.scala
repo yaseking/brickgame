@@ -46,8 +46,9 @@ object Main extends js.JSApp {
     }
   }
 
-  def selectPage() = {
+  def selectPage():Unit = {
     currentPage = new JoinGamePage("playGame", PlayGamePara("test", "test")).render
+    show()
 //    val url = dom.window.location.href.split("carnie/")(1)
 //    val info = url.split("\\?")
 //    val playerMsgMap = info(1).split("&").map {

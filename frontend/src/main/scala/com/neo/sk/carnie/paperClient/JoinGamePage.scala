@@ -29,11 +29,13 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   sealed case class Head(id: Int, img: String)
 
+  private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+
   var modelLists = List(Model(0,"/carnie/static/img/coffee2.png","正常模式"),
     Model(1,"/carnie/static/img/game.png","反转模式"),Model(2,"/carnie/static/img/rocket1.png","加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
   var modelSelected = Model(0,"/carnie/static/img/coffee2.png","正常模式")
-  //游戏选择框
+  //模式选择框
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
 
@@ -41,7 +43,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     Head(3, "/carnie/static/img/yang.png"), Head(4, "/carnie/static/img/smile.png"), Head(5, "/carnie/static/img/pig.png"))
   var headSelectMap: Map[Int, Boolean] = Map()
   var headSelected = Head(0, "/carnie/static/img/luffy.png")
-  //游戏选择框
+  //头像选择框
   private val headList: Var[List[Head]] = Var(headLists)
   private val headSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
 
@@ -128,6 +130,10 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     println(headSelected.id)
   }
 
+  def resetScreen(): Unit = {
+    if(dom.window.innerWidth.toFloat > windowBoundary.x)
+    windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+  }
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
@@ -138,8 +144,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
   override def render: Elem = {
     {init()}
-    <div >
-      <div  style="background-color: #333333;" id="body" >
+    <div id ="resizeDiv">
+      <div  style="background-color: #333333;height:750px" id="body" >
         <div  id="selectPage">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
