@@ -105,11 +105,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   }
 
   def gameRender(): Double => Unit = { _ =>
+    println("start gameRender.")
     val curTime = System.currentTimeMillis()
     //    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
     //    lastTime1 = curTime
+    println(s"isContinue: $isContinue")
     if (isContinue)
       dom.window.requestAnimationFrame(gameRender())
   }
@@ -161,6 +163,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
+            println("draw BaseGame.")
             if (firstCome) firstCome = false
             if (BGM.paused) {
               BGM = bgmList(getRandom(bgmAmount))
@@ -169,6 +172,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
+            println("draw GameDie.")
             FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
