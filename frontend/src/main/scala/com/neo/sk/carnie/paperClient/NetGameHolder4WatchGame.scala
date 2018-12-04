@@ -105,13 +105,11 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   def gameRender(): Double => Unit = { _ =>
-    println("start gameRender.")
     val curTime = System.currentTimeMillis()
     //    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
     //    lastTime1 = curTime
-    println(s"isContinue: $isContinue")
     if (isContinue)
       dom.window.requestAnimationFrame(gameRender())
   }
@@ -163,7 +161,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
-            println("draw BaseGame.")
             if (firstCome) firstCome = false
             if (BGM.paused) {
               BGM = bgmList(getRandom(bgmAmount))
@@ -172,7 +169,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
-            println("draw GameDie.")
             FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
@@ -296,11 +292,9 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id(id) =>
-        println(s"got id: $id")
         myId = id
 
       case Protocol.StartWatching(mode, img) =>
-        println(s"startWatching mode-$mode, img-$img")
         drawGame = new DrawGame(ctx, canvas, img)
         frameRate = if(mode==2) frameRate2 else frameRate1
         startGame()
@@ -340,7 +334,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case ReStartGame =>
-        println("got reStartGame Msg.")
         drawFunction = FrontProtocol.DrawGameWait
         audio1.pause()
         audio1.currentTime = 0
