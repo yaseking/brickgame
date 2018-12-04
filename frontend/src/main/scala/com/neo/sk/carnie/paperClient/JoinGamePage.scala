@@ -131,6 +131,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
+      dom.document.getElementById("selectPage").setAttribute("display","none")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), headId, frameRate).init()
@@ -138,7 +139,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
   override def render: Elem = {
     {init()}
-      <div  style="background-color: #333333;" id="body" >
+      <div  style="background-color: #333333;height:100%" id="body" >
         <div  id="selectPage">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
