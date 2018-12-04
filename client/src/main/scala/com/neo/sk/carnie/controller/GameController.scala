@@ -161,6 +161,14 @@ class GameController(player: PlayerInfoInClient,
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         firstCome = false
+        if(playBgm) {
+          BGM.play(30)
+          playBgm = false
+        }
+        if(!BGM.isPlaying){
+          BGM = bgmList(getRandom(8))
+          BGM.play(30)
+        }
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None if isWin =>
@@ -196,14 +204,6 @@ class GameController(player: PlayerInfoInClient,
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        if(playBgm) {
-          BGM.play(30)
-          playBgm = false
-        }
-        if(!BGM.isPlaying){
-          BGM = bgmList(getRandom(8))
-          BGM.play(30)
-        }
         gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo.nonEmpty) {
           val killBaseInfo = grid.killInfo.get
