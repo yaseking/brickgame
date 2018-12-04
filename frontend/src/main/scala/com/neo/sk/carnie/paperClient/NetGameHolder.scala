@@ -288,7 +288,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
 
   private def messageHandler(data: GameMessage): Unit = {
     data match {
-      case Protocol.Id(id) => myId = id
+      case Protocol.Id(id) =>
+        println(s"got id: $id")
+        myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         //        println(s"i got ${grid.frameCount}, frame : $frame")
