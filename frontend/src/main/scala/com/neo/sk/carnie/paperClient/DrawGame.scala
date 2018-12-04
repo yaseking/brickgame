@@ -64,7 +64,7 @@ class DrawGame(
   }
 
   def drawGameOn(): Unit = {
-//    bodyAttribute.style_=("overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
+    bodyAttribute.style_=("overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
 
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
