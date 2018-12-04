@@ -111,6 +111,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
     //    lastTime1 = curTime
+    println(s"isContinue: $isContinue")
     if (isContinue)
       dom.window.requestAnimationFrame(gameRender())
   }
