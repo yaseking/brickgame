@@ -131,7 +131,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
-      dom.document.getElementById("body").setAttribute("display","none")
+//      dom.document.getElementById("body").setAttribute("display","none")
 //      dom.document.getElementById("body").setAttribute("hidden","hidden")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1

@@ -73,7 +73,7 @@ object Main extends js.JSApp {
 
   def refreshPage(newPage: Elem): Cancelable = {
     println("refreshPage!!!")
-//    dom.document.body.removeChild(dom.document.body.firstChild)
+    dom.document.body.removeChild(dom.document.body.firstChild)
     currentPage = newPage
     show()
   }
