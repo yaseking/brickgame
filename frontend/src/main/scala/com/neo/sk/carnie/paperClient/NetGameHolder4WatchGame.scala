@@ -217,9 +217,9 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-        if(!BGM.paused){
-          BGM.pause()
-        }
+//        if(!BGM.paused){
+//          BGM.pause()
+//        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
