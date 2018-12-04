@@ -119,6 +119,10 @@ object GameReplay {
               //todo dispatch gameInformation
               dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
               dispatchTo(msg.subscriber, Protocol.Mode(metaData.mode))
+              val frameRate = metaData.mode match {
+                case 2 => frameRate2
+                case _ => frameRate1
+              }
               log.info(s" set replay from frame=${msg.f}")
               log.debug(s"get snapshot index::${fileReader.getSnapshotIndexes}")
               val nearSnapshotIndex = fileReader.gotoSnapshot(msg.f)
@@ -149,7 +153,7 @@ object GameReplay {
               dispatchTo(msg.subscriber, Protocol.StartReplay(nearSnapshotIndex, fileReader.getFramePosition))
 
               if(fileReader.hasMoreFrame){
-                timer.startPeriodicTimer(GameLoopKey, GameLoop, Protocol.frameRate.millis)
+                timer.startPeriodicTimer(GameLoopKey, GameLoop, frameRate.millis)
                 work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber), msg.userId)
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
