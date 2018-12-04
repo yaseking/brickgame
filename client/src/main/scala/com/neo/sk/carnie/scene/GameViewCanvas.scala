@@ -37,7 +37,6 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
   val ab = imgMap(img)
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = new Image(imgMap(img))
-  private val bloodImg = new Image("blood.png")
   private val crownImg = new Image("crown.png")
   private var canvasUnit = (windowBoundary.x / window.x).toInt
   private var canvasUnitY = (windowBoundary.y / window.y).toInt
