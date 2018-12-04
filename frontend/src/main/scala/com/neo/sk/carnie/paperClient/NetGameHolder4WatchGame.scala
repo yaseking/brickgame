@@ -65,7 +65,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
   private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
   private[this] val bgmList = List(bgm1, bgm2, bgm3, bgm4, bgm5, bgm6, bgm7, bgm8)
-  private var BGM = dom.document.getElementById("bgm0").asInstanceOf[HTMLAudioElement]
+  private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
   dom.document.addEventListener("visibilitychange", { e: Event =>
@@ -291,7 +291,9 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   private def messageHandler(data: GameMessage): Unit = {
     data match {
-      case Protocol.Id(id) => myId = id
+      case Protocol.Id(id) =>
+        println(s"got id: $id")
+        myId = id
 
       case Protocol.StartWatching(mode, img) =>
         println(s"startWatching mode-$mode, img-$img")
@@ -334,16 +336,15 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case ReStartGame =>
+        println("got reStartGame Msg.")
         audio1.pause()
         audio1.currentTime = 0
         audioKilled.pause()
         audioKilled.currentTime = 0
-        //        scoreFlag = true
         firstCome = true
         myScore = BaseScore(0, 0, 0l, 0l)
         if (isWin) {
           isWin = false
-          //          winnerName = "unknown"
         }
         isContinue = true
 
