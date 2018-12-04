@@ -163,6 +163,7 @@ object RoomActor {
               log.debug(s"user ${id} dead===kill::${u._2}, area::${u._3}, starTime:$startTime")
               val endTime = System.currentTimeMillis()
               dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
+              watcherMap.filter(_._2._1==id).foreach(user => dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, startTime, endTime)))
               //上传战绩
               val msgFuture: Future[String] = tokenActor ? AskForToken
               msgFuture.map { token =>
@@ -283,13 +284,6 @@ object RoomActor {
               }
           }
 
-//          killedSkData.killedSkInfo.foreach { i =>
-//            val msgFuture: Future[String] = tokenActor ? AskForToken
-//            msgFuture.map { token =>
-//              EsheepClient.inputBatRecord(i.id, i.nickname, i.killing, 1, i.score, "", i.startTime, i.endTime, token)
-//            }
-//          }
-//          grid.cleanKilledSkData()
           if(grid.newInfo.nonEmpty) {
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
