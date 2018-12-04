@@ -231,57 +231,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
-//    if(order == "watchGame")
-//      webSocketClient.sendMessage(NeedMsg4Watch(myId))
-//    if (order == "playGame") {
-//      startGame()
-//      rankCanvas.focus()
-//      rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
-//        if (Constant.watchKeys.contains(e.keyCode)) {
-//          val msg: Protocol.UserAction = {
-//            val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
-//            val frame = grid.frameCount + delay//2 4
-//            //            println(s"frame : $frame")
-//            val actionId = idGenerator.getAndIncrement()
-//            val newKeyCode =
-//              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
-//                e.keyCode match {
-//                  case KeyCode.Left => KeyCode.Right
-//                  case KeyCode.Right => KeyCode.Left
-//                  case KeyCode.Down => KeyCode.Up
-//                  case KeyCode.Up => KeyCode.Down
-//                  case _ => KeyCode.Space
-//                } else e.keyCode
-//            println(s"onkeydown：$newKeyCode")
-//            grid.addActionWithFrame(myId, newKeyCode, frame)
-//            if (newKeyCode != KeyCode.Space) {
-//              myActionHistory += actionId -> (newKeyCode, frame)
-//            } else { //重新开始游戏
-//              drawFunction match {
-//                case FrontProtocol.DrawBaseGame(_) =>
-//                case _ =>
-//                  drawFunction = FrontProtocol.DrawGameWait
-//                  audio1.pause()
-//                  audio1.currentTime = 0
-//                  audioKilled.pause()
-//                  audioKilled.currentTime = 0
-//                  firstCome = true
-//                  if (isWin) isWin = false
-//                  myScore = BaseScore(0, 0, 0l, 0l)
-//                  isContinue = true
-//                  dom.window.requestAnimationFrame(gameRender())
-//              }
-//            }
-//
-//            Key(myId, newKeyCode, frame, actionId)
-//          }
-//          webSocketClient.sendMessage(msg)
-//          e.preventDefault()
-//        }
-//      }
-//      }
-//    }
-//    event0
   }
 
   private def connectError(e: Event) = {
@@ -365,7 +314,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
       case Protocol.WinnerBestScore(score) =>
         maxArea = Math.max(maxArea, score)
-
 
       case Protocol.Ranks(current) =>
         currentRank = current

@@ -269,7 +269,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
                   dom.window.requestAnimationFrame(gameRender())
               }
             }
-
             Key(myId, newKeyCode, frame, actionId)
           }
           webSocketClient.sendMessage(msg)
