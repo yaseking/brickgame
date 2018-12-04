@@ -105,6 +105,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   def gameRender(): Double => Unit = { _ =>
+    println("start gameRender.")
     val curTime = System.currentTimeMillis()
     //    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
