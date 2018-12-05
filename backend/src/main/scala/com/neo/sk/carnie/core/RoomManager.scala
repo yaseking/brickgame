@@ -149,10 +149,10 @@ object RoomManager {
           try {
             val mode = roomMap(roomId)._1
             val temp = roomMap4Watcher.getOrElse(roomId, (mode, mutable.HashSet.empty[String]))._2 + userId
-            println(s"temp: $temp")
+//            println(s"temp: $temp")
 //            roomMap4Watcher.put(roomId, (mode, temp))
             roomMap4Watcher += roomId -> (mode, temp)
-            println(s"room4watch: $roomMap4Watcher")
+//            println(s"room4watch: $roomMap4Watcher")
             getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
           } catch {
             case e: Exception =>
@@ -185,7 +185,7 @@ object RoomManager {
                 roomMap4Watcher += (roomId -> v)
               case _ =>
             }
-            println(s"watchLeft room4watch: $roomMap4Watcher")
+//            println(s"watchLeft room4watch: $roomMap4Watcher")
             getRoomActor(ctx, roomId, mode) ! RoomActor.WatcherLeftRoom(userId)
           } catch {
             case e: Exception =>

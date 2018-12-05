@@ -257,8 +257,6 @@ object RoomActor {
                 dispatch(subscribersMap, Protocol.SnakeAction(id, keyCode, realFrame, actionId))
               }
             case SendPingPacket(_, createTime) =>
-              if(id.contains("user"))
-                log.info("got pingPacket Msg.")
               dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(createTime))
 
             case NeedToSync(_) =>
