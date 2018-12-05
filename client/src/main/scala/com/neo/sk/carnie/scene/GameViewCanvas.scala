@@ -130,7 +130,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     text.setFill(ColorsSetting.gameNameColor)
     val length = text.getLayoutBounds.getWidth
     val offx = length / 2
-    ctx.drawImage(bloodImg, windowBoundary.x / 2 - offx, 115, 300, 50)
+//    ctx.drawImage(bloodImg, windowBoundary.x / 2 - offx, 115, 300, 50)
     ctx.fillText(s"$killedName is killed by $killerName", windowBoundary.x / 2 - offx, 150)
     ctx.restore()
   }
@@ -183,7 +183,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
   def drawDieBarrage(killedName: String, killerName: String): Unit = {
     ctx.save()
     ctx.setGlobalAlpha(0.6)
-    ctx.drawImage(bloodImg, 670, 115, 300, 50)
+//    ctx.drawImage(bloodImg, 670, 115, 300, 50)
     ctx.restore()
     ctx.save()
     ctx.setFill(Color.rgb(255, 88, 9))

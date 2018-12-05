@@ -29,11 +29,13 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   sealed case class Head(id: Int, img: String)
 
+  private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+
   var modelLists = List(Model(0,"/carnie/static/img/coffee2.png","正常模式"),
     Model(1,"/carnie/static/img/game.png","反转模式"),Model(2,"/carnie/static/img/rocket1.png","加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
   var modelSelected = Model(0,"/carnie/static/img/coffee2.png","正常模式")
-  //游戏选择框
+  //模式选择框
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
 
@@ -41,18 +43,18 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     Head(3, "/carnie/static/img/yang.png"), Head(4, "/carnie/static/img/smile.png"), Head(5, "/carnie/static/img/pig.png"))
   var headSelectMap: Map[Int, Boolean] = Map()
   var headSelected = Head(0, "/carnie/static/img/luffy.png")
-  //游戏选择框
+  //头像选择框
   private val headList: Var[List[Head]] = Var(headLists)
   private val headSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
 
   private val modelDiv = modelList.map { games =>
     games.map(game =>
-      <div style="width:27%;margin:15px;">
+      <div style="width:27%;margin:10px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:10px;height:150px;width:150px;">
+          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:0px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
           </div>
-          <p style="font-size: 15px;color:white;margin-left:12%;margin-right:12%" > {game.name}</p>
+          <p style="font-size: 15px;color:white;margin-left:15%;margin-right:15%" > {game.name}</p>
         </div>
       </div>
     )
@@ -128,6 +130,10 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     println(headSelected.id)
   }
 
+  def resetScreen(): Unit = {
+    if(dom.window.innerWidth.toFloat > windowBoundary.x)
+    windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+  }
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
@@ -138,27 +144,27 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
   override def render: Elem = {
     {init()}
-    <div id="resizeDiv">
+    <div id ="resizeDiv">
       <div  style="background-color: #333333;height:750px" id="body" >
         <div  id="selectPage">
           <div  id="form">
             <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-wrap: nowrap;margin-left:18%;margin-right:18%" >
+            <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;margin-left:20%;margin-right:20%" >
                 {modelDiv}
             </div>
           </div>
 
           <div style="text-align: center;">
-            <button type="button"   style="font-size: 30px ;" class="btn btn-primary" onclick=
+            <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
             {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 10px;">
-              <p style="text-align: center; margin-top: 20px;font-size: 20px;color:white" >选择头像</p>
+              <p style="text-align: center; margin-top: 0px;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
                 {headDiv}

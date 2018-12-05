@@ -245,6 +245,7 @@ object RoomActor {
                 }
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2._1 == id).foreach { w =>
+                  log.info(s"send reStart to ${w._1}")
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
                 gameEvent += ((grid.frameCount, SpaceEvent(id)))
