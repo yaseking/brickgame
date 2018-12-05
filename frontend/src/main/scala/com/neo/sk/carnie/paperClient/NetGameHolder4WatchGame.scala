@@ -77,7 +77,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   private var logicFrameTime = System.currentTimeMillis()
 
-  private[this] var drawGame: DrawGame = _
+  private[this] var drawGame: DrawGame = new DrawGame(ctx, canvas)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
   def init(): Unit = {
