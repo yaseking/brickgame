@@ -29,11 +29,13 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   sealed case class Head(id: Int, img: String)
 
+  private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+
   var modelLists = List(Model(0,"/carnie/static/img/coffee2.png","正常模式"),
     Model(1,"/carnie/static/img/game.png","反转模式"),Model(2,"/carnie/static/img/rocket1.png","加速模式"))
   var modelSelectMap : Map[Int,Boolean] =Map()
   var modelSelected = Model(0,"/carnie/static/img/coffee2.png","正常模式")
-  //游戏选择框
+  //模式选择框
   private val modelList: Var[List[Model]] = Var(modelLists)
   private val modelSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
 
@@ -41,18 +43,18 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     Head(3, "/carnie/static/img/yang.png"), Head(4, "/carnie/static/img/smile.png"), Head(5, "/carnie/static/img/pig.png"))
   var headSelectMap: Map[Int, Boolean] = Map()
   var headSelected = Head(0, "/carnie/static/img/luffy.png")
-  //游戏选择框
+  //头像选择框
   private val headList: Var[List[Head]] = Var(headLists)
   private val headSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
 
   private val modelDiv = modelList.map { games =>
     games.map(game =>
-      <div style="width:27%;margin:0px;padding:15px;">
+      <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)}>
+          <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:10px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
           </div>
-          <p style="font-size: 15px;color:white;margin-left:12%;margin-right:12%" > {game.name}</p>
+          <p style="font-size: 15px;color:white;margin-left:15%;margin-right:15%" > {game.name}</p>
         </div>
       </div>
     )
@@ -60,9 +62,9 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   private val headDiv = headList.map { games =>
     games.map(game =>
-      <div style="width:27%;margin:0px;padding:15px;">
+      <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:0px;padding:10px;height:100px;width:100px;text-align: center">
+          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:10px;height:100px;width:100px;text-align: center">
             <img class="home-img" src={game.img}></img>
           </div>
         </div>
@@ -128,11 +130,13 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     println(headSelected.id)
   }
 
+  def resetScreen(): Unit = {
+    if(dom.window.innerWidth.toFloat > windowBoundary.x)
+    windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+  }
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
-      dom.document.getElementById("all").setAttribute("display","none")
-      dom.document.getElementById("all").setAttribute("hidden","hidden")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), headId, frameRate).init()
@@ -140,14 +144,14 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
   override def render: Elem = {
     {init()}
-    <div id="all">
-      <div  style="background-color: #333333; height:100%"  >
+    <div id ="resizeDiv">
+      <div  style="background-color: #333333;height:750px" id="body" >
         <div  id="selectPage">
           <div  id="form">
-            <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center; margin-top: 0px;padding-top: 20px;" >欢迎来到carnie</h1>
+            <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-wrap: nowrap;padding-left:22%;padding-right:22%" >
+            <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;margin-left:23%;margin-right:23%" >
                 {modelDiv}
             </div>
           </div>
@@ -159,7 +163,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
 
           <div style="overflow: hidden;" >
-            <div style="padding-top: 10px;">
+            <div style="margin-top: 10px;">
               <p style="text-align: center; margin-top: 20px;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
