@@ -287,7 +287,7 @@ object RoomManager {
     val in = Flow[Protocol.UserAction]
       .map {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
-        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(id, _) => log.info("rcv SendPingPacket Msg.");UserActionOnServer(id, action)
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
         case _ => UnKnowAction
       }
