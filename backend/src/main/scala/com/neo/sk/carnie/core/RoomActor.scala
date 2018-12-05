@@ -259,8 +259,6 @@ object RoomActor {
             case SendPingPacket(_, createTime) =>
               if(id.contains("user"))
                 log.info("got pingPacket Msg.")
-              if(id.contains("guest"))
-                log.info("got pingPacket Msg 4 guest.")
               dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(createTime))
 
             case NeedToSync(_) =>
