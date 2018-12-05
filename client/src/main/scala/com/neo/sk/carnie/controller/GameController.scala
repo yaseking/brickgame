@@ -51,10 +51,10 @@ class GameController(player: PlayerInfoInClient,
   val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
   val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
   val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
-  val bgmAmount = bgmList.length
+
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
-//  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
+  private val bgmAmount = bgmList.length
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
@@ -73,7 +73,6 @@ class GameController(player: PlayerInfoInClient,
 
   def loseConnect(): Unit = {
     gameScene.drawGameOff(firstCome)
-//    animationTimer.stop()
   }
 
   def getRandom(s: Int) ={
@@ -91,7 +90,6 @@ class GameController(player: PlayerInfoInClient,
     BGM = bgmList(getRandom(bgmAmount))
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
-//    bgm.play(50)
     val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>
       logicLoop()
     })
@@ -102,9 +100,9 @@ class GameController(player: PlayerInfoInClient,
 
   private def logicLoop(): Unit = { //逻辑帧
     if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
-      gameScene.resetScreen(1200,750,1200,250)
-      stageCtx.getStage.setWidth(1200)
-      stageCtx.getStage.setHeight(750)
+      gameScene.resetScreen(Constant.CanvasWidth,Constant.CanvasHeight,Constant.CanvasWidth,Constant.CanvasHeight)
+      stageCtx.getStage.setWidth(Constant.CanvasWidth)
+      stageCtx.getStage.setHeight(Constant.CanvasHeight)
       exitFullScreen = true
     }
 

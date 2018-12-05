@@ -14,10 +14,10 @@ import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
-
 import scala.concurrent.Future
 import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
 import com.neo.sk.carnie.common.Constant
+import com.neo.sk.carnie.controller.BotController
 import com.neo.sk.carnie.paperClient.Protocol
 import org.seekloud.esheepapi.pb.actions.Move
 
@@ -43,16 +43,20 @@ object BotActor {
 
   case class ReturnObservation(playerId: String) extends Command
 
-  def create(): Behavior[Command] = {
+  case class MsgToService(sendMsg: WsSendMsg) extends Command
+
+
+  def create(botController: BotController): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
       implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers { implicit timer =>
-        waitingWork()
+        ctx.self ! Work
+        waitingGaming(botController)
       }
     }
   }
 
-  def waitingWork()(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+  def waitingGaming(botController: BotController)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Work =>
@@ -70,7 +74,7 @@ object BotActor {
           }
           server.awaitTermination()
           log.debug("DONE.")
-          waitingGame()
+          waitingGame(botController)
 
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown")
@@ -79,13 +83,13 @@ object BotActor {
     }
   }
 
-  def waitingGame()(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+  def waitingGame(botController: BotController)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case CreateRoom(playerId, apiToken) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerId, apiToken)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getCreateRoomWebSocketUri(playerId, apiToken)))
           val source = getSource
-          val sink = getSink()
+          val sink = getSink(botController)
           val ((stream, response), closed) =
             source
               .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
@@ -107,9 +111,9 @@ object BotActor {
           gaming(stream)
 
         case JoinRoom(roomId, playerId, apiToken) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUriWithRoomId(roomId, playerId, apiToken)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getJoinRoomWebSocketUri(roomId, playerId, apiToken)))
           val source = getSource
-          val sink = getSink()
+          val sink = getSink(botController)
           val ((stream, response), closed) =
             source
               .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
@@ -159,7 +163,7 @@ object BotActor {
     }
   }
 
-  private[this] def getSink() =
+  private[this] def getSink(botController: BotController) =
     Sink.foreach[Message] {
       case TextMessage.Strict(msg) =>
         log.debug(s"msg from webSocket: $msg")
@@ -168,7 +172,7 @@ object BotActor {
         //decode process.
         val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
         bytesDecode[GameMessage](buffer) match {
-          case Right(v) => //todo
+          case Right(v) => botController.gameMessageReceiver(v)
           case Left(e) =>
             println(s"decode error: ${e.message}")
         }
@@ -181,7 +185,7 @@ object BotActor {
         f.map { bMsg =>
           val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
           bytesDecode[GameMessage](buffer) match {
-            case Right(v) => //todo
+            case Right(v) => botController.gameMessageReceiver(v)
             case Left(e) =>
               println(s"decode error: ${e.message}")
           }
@@ -205,21 +209,20 @@ object BotActor {
       BinaryMessage.Strict(ByteString(
         message.fillMiddleBuffer(sendBuffer).result()
       ))
-
   }
 
-  def getWebSocketUri(playerId: String, apiToken: String): String = {
+  def getJoinRoomWebSocketUri(roomId: String, playerId: String, accessCode: String): String = {
   val wsProtocol = "ws"
     val domain = "10.1.29.250:30368"
     //    val domain = "localhost:30368"
-    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&apiToken=$apiToken"
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&accessCode=$accessCode"
   }
 
-  def getWebSocketUriWithRoomId(roomId: String, playerId: String, apiToken: String): String = {
-  val wsProtocol = "ws"
+  def getCreateRoomWebSocketUri(playerId: String, accessCode: String): String = {
+    val wsProtocol = "ws"
     val domain = "10.1.29.250:30368"
     //    val domain = "localhost:30368"
-    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&apiToken=$apiToken&roomId=$roomId"
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&accessCode=$accessCode"
   }
 
 }

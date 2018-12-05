@@ -33,6 +33,10 @@ class Boot extends javafx.application.Application {
   import Boot._
 
   override def start(mainStage: Stage): Unit = {
+    val para = getParameters.getRaw
+
+    println("!!!!" + para)
+
     val context = new Context(mainStage)
 
     val loginScene = new LoginScene()

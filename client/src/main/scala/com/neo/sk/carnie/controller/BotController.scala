@@ -1,11 +1,12 @@
 package com.neo.sk.carnie.controller
 
 import com.neo.sk.carnie.Boot
-import com.neo.sk.carnie.actor.{BotActor, PlayGameWebSocket}
+import com.neo.sk.carnie.actor.BotActor
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserLeft}
+import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction, UserLeft}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.util.Duration
+
 import org.slf4j.LoggerFactory
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
@@ -15,7 +16,7 @@ import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
   **/
 class BotController(player: PlayerInfoInClient) {
 
-  private val botActor = Boot.system.spawn(BotActor.create(), "botActor")
+  private val botActor = Boot.system.spawn(BotActor.create(this), "botActor")
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
@@ -24,38 +25,27 @@ class BotController(player: PlayerInfoInClient) {
   private val frameRate = 150
   var grid = new GridOnClient(Point(Boundary.w, Boundary.h))
   private val timeline = new Timeline()
-  private var logicFrameTime = System.currentTimeMillis()
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
-  private val animationTimer = new AnimationTimer() {
-    override def handle(now: Long): Unit = {
-//      draw(System.currentTimeMillis() - logicFrameTime)
-    }
-  }
 
   def startGameLoop(): Unit = { //渲染帧
-    logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
     val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>
       logicLoop()
     })
     timeline.getKeyFrames.add(keyFrame)
-    animationTimer.start()
     timeline.play()
   }
 
   private def logicLoop(): Unit = { //逻辑帧
-
-    logicFrameTime = System.currentTimeMillis()
-
     if (newSnakeInfo.nonEmpty) {
       grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
       newSnakeInfo = None
     }
 
-    if(syncGridData.nonEmpty) {
+    if (syncGridData.nonEmpty) {
       grid.initSyncGridData(syncGridData.get)
       syncGridData = None
     } else {
@@ -67,7 +57,7 @@ class BotController(player: PlayerInfoInClient) {
           grid.addNewFieldInfo(newFieldData)
           newFieldInfo -= frame
         } else if (frame < grid.frameCount) {
-//          playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+          botActor ! BotActor.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
         }
       }
     }
@@ -77,7 +67,7 @@ class BotController(player: PlayerInfoInClient) {
       case Some(_) =>
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
-      case None  =>
+      case None =>
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
       case _ =>
