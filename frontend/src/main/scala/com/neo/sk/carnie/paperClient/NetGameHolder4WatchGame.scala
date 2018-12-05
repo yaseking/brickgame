@@ -242,6 +242,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id4Watcher(id, watcher) =>
+        println(s"watcher: $watcher")
         myId = id
         watcherId = watcher
 
@@ -353,6 +354,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         newFieldInfo += data.frameCount -> data
 
       case x@Protocol.ReceivePingPacket(_) =>
+        println("got pingPacket.")
         PerformanceTool.receivePingPackage(x)
 
 
