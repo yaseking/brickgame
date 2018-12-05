@@ -39,6 +39,19 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     }
   })
 
+  def init(): Unit = {
+    getLoginRspFromEs().map {
+      case Right(r) =>
+        val wsUrl = r.wsUrl
+        val scanUrl = r.scanUrl
+        loginScene.drawScanUrl(imageFromBase64(scanUrl))
+        loginSocketClient ! EstablishConnection2Es(wsUrl)
+
+      case Left(_) =>
+        log.debug("failed to getLoginRspFromEs.")
+    }
+  }
+
   def imageFromBase64(base64Str:String): ByteArrayInputStream  = {
     if(base64Str == null) null
 
