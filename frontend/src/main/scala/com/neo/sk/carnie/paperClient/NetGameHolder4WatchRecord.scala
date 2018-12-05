@@ -303,9 +303,6 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         startGame(frameRate)
       //        grid.frameCount = firstReplayframe.toLong
 
-      case Protocol.InitReplayError(info) =>
-        drawGame.drawGameOff(firstCome, Some(false), loading, true)
-
       case x@Protocol.ReplayFinish(_) =>
         println("get message replay finish")
         replayFinish = true
