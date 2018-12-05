@@ -85,7 +85,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   def updateListener(): Unit = {
-    webSocketClient.sendMessage(NeedToSync4Watcher(watcherId).asInstanceOf[UserAction])
+    webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
   }
 
   def getRandom(s: Int) = {
@@ -99,7 +99,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket4Watcher(watcherId, System.currentTimeMillis()).asInstanceOf[UserAction])
+      webSocketClient.sendMessage(SendPingPacket(watcherId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -152,7 +152,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
             grid.addNewFieldInfo(newFieldData)
             newFieldInfo -= frame
           } else if (frame < grid.frameCount) {
-            webSocketClient.sendMessage(NeedToSync4Watcher(watcherId).asInstanceOf[UserAction])
+            webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
           }
         }
       }

@@ -119,11 +119,7 @@ object Protocol {
 
   case class SendPingPacket(id: String, createTime: Long) extends UserAction
 
-  case class SendPingPacket4Watcher(id: String, createTime: Long) extends UserAction
-
   case class NeedToSync(id: String) extends UserAction
-
-  case class NeedToSync4Watcher(id: String) extends UserAction
 
   //essf
   sealed trait GameEvent extends GameMessage
