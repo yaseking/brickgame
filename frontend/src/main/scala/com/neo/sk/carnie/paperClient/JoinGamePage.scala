@@ -151,7 +151,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;margin-left:20%;margin-right:20%" >
+            <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;margin-left:20%;margin-right:20%;text-align:center" >
                 {modelDiv}
             </div>
           </div>
