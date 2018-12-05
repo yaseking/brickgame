@@ -242,7 +242,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private def messageHandler(data: GameMessage): Unit = {
     data match {
       case Protocol.Id4Watcher(id, watcher) =>
-        println(s"watcher: $watcher")
+        println(s"id: $id, watcher: $watcher")
         myId = id
         watcherId = watcher
 
