@@ -265,10 +265,10 @@ class DrawGame(
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = "#000000"
-    val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
     val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
-    val length1 = ctx.measureText(txt3).width
+    val length1 = ctx.measureText(txt4).width
     if(winningData.yourScore.isDefined){
+      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
       ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2)
     }
     ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2 + 40)

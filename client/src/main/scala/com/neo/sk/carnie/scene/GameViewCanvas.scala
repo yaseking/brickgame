@@ -112,14 +112,12 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20))
 //    ctx.setfont = "bold 24px Helvetica"
     ctx.setFill(ColorsSetting.fontColor2)
-
-    if(winningData.yourScore.isDefined) {
-      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
-      val length2 = new Text(txt3).getLayoutBounds.getWidth
-      ctx.fillText(txt3, (windowBoundary.x - length2) / 2 , windowBoundary.y / 4)
-    }
     val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
     val length1 = new Text(txt4).getLayoutBounds.getWidth
+    if(winningData.yourScore.isDefined) {
+      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+      ctx.fillText(txt3, (windowBoundary.x - length1) / 2 , windowBoundary.y / 4)
+    }
     ctx.fillText(txt4, (windowBoundary.x - length1) / 2 , windowBoundary.y / 4 + 40)
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
     ctx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
