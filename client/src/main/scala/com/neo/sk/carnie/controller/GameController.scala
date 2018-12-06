@@ -45,6 +45,7 @@ class GameController(player: PlayerInfoInClient,
   var winnerName = "unknown"
   var isContinues = true
   var winnerData : Option[Protocol.Data4TotalSync] = None
+  private var fieldNum = 0
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
@@ -173,6 +174,7 @@ class GameController(player: PlayerInfoInClient,
       case None if !firstCome =>
 //        println(s"killer: ${grid.getKiller(player.id).map(_._2)}")
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
+
 
       case _ =>
         drawFunction = FrontProtocol.DrawGameWait
@@ -354,6 +356,7 @@ class GameController(player: PlayerInfoInClient,
           drawFunction match {
             case FrontProtocol.DrawBaseGame(_) =>
             case _ =>
+              grid.cleanData()
               drawFunction = FrontProtocol.DrawGameWait
               audioWin.stop()
               audioDie.stop()
@@ -362,6 +365,7 @@ class GameController(player: PlayerInfoInClient,
                 isWin = false
                 winnerName = "unknown"
               }
+//              fieldNum = 0
               animationTimer.start()
               isContinue = true
           }
