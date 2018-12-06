@@ -203,7 +203,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
                 currentRank.filter(_.id == myId).foreach { score =>
                   myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
                 }
-                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+//                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+                drawGame.drawGameDie4Replay()
                 killInfo = ("", "", "")
                 dom.window.cancelAnimationFrame(nextFrame)
                 isContinue = false

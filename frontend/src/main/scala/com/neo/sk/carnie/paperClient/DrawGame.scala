@@ -133,6 +133,20 @@ class DrawGame(
     }
   }
 
+  def drawGameDie4Replay(): Unit = {
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    canvas.width = 800
+    canvas.height = 400
+    ctx.fillRect(0, 0, 800.0, 400.0)
+    ctx.fillStyle = ColorsSetting.fontColor
+    //      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+    ctx.font = "36px Helvetica"
+    ctx.fillText("您观看的玩家已死亡...", 150, 180)
+  }
+
   def drawGameWait(): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
