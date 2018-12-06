@@ -188,12 +188,14 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case FrontProtocol.DrawGameOff =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
         drawGame.drawGameWin(myId, winner, winData)
         audio1.play()
@@ -213,6 +215,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case FrontProtocol.DrawGameDie(killerName) =>
 //        if(!BGM.paused){
 //          BGM.pause()
+//        BGM.currentTime = 0
 //        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
