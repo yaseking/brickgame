@@ -225,7 +225,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData = WinData(0,Some(0))):Unit = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData):Unit = {
     ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
@@ -263,15 +263,15 @@ class DrawGame(
 //    println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
-      ctx.font = "bold 24px Helvetica"
-      ctx.fillStyle = "#000000"
-      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
-      val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
-      val length1 = ctx.measureText(txt3).width
-      if(winningData.yourScore.isDefined){
-        ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2)
-      }
-      ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2 + 40)
+    ctx.font = "bold 24px Helvetica"
+    ctx.fillStyle = "#000000"
+    val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+    val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
+    val length1 = ctx.measureText(txt3).width
+    if(winningData.yourScore.isDefined){
+      ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2)
+    }
+    ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2 + 40)
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
     ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2, 75, 50, 50)
