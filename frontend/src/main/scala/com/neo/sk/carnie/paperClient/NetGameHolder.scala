@@ -183,9 +183,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-        if(!BGM.paused){
-          BGM.pause()
-        }
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
