@@ -265,15 +265,16 @@ class DrawGame(
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     if(winningData.winnerScore != 0){
       val x = (dom.window.innerWidth / 2).toInt - 145
-      val y = (dom.window.innerHeight / 2).toInt - 180
+      val y = (dom.window.innerHeight / 2).toInt
       ctx.font = "bold 24px Helvetica"
-      ctx.fillStyle = ColorsSetting.fontColor
-      ctx.fillText("YOUR SCORE:", x, y + 70)
-      ctx.fillText(f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
+      ctx.fillStyle = "#000000"
+      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+      val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
+      val length1 = ctx.measureText(txt3).width
       if(winningData.yourScore.isDefined){
-        ctx.fillText("BEST SCORE:", x, y + 110)
-        ctx.fillText(f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%", x + 230, y + 110)
+        ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 4)
       }
+      ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 4 + 40)
     }
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)

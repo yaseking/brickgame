@@ -109,17 +109,17 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     val txt2 = s"Press space to reStart"
     val length = new Text(txt1).getLayoutBounds.getWidth
     ctx.fillText(txt1, (windowBoundary.x - length) / 2 , windowBoundary.y / 5)
-    val x = (windowBoundary.x / 2).toInt - 145
-    val y = (windowBoundary.y / 2).toInt - 180
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20))
 //    ctx.setfont = "bold 24px Helvetica"
     ctx.setFill(ColorsSetting.fontColor2)
-    ctx.fillText("YOUR SCORE:", x, y + 70)
-    ctx.fillText(f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
-    if(winningData.yourScore.isDefined){
-      ctx.fillText("BEST SCORE:", x, y + 110)
-      ctx.fillText(f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%", x + 230, y + 110)
+    val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+    val length2 = new Text(txt3).getLayoutBounds.getWidth
+    if(winningData.yourScore.isDefined) {
+      ctx.fillText(txt3, (windowBoundary.x - length2) / 2 , windowBoundary.y / 4)
     }
+    val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
+//    val length1 = new Text(txt4).getLayoutBounds.getWidth
+    ctx.fillText(txt4, (windowBoundary.x - length2) / 2 , windowBoundary.y / 4 + 40)
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
     ctx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
     ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, windowBoundary.y / 5 - 75, 50, 50)
