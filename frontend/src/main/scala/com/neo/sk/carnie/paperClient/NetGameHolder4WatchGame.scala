@@ -359,7 +359,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         println("got pingPacket.")
         PerformanceTool.receivePingPackage(x)
 
-      case x@WinData(winnerScore,yourScore) =>
+      case x@Protocol.WinData(winnerScore,yourScore) =>
         winningData = x
 
       case x@_ =>

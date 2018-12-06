@@ -331,7 +331,7 @@ class GameController(player: PlayerInfoInClient,
           PerformanceTool.receivePingPackage(x)
         }
 
-      case x@WinData(winnerScore,yourScore) =>
+      case x@Protocol.WinData(winnerScore,yourScore) =>
         log.debug(s"receive winningData msg:$x")
         winningData = x
 
