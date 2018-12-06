@@ -270,9 +270,9 @@ class DrawGame(
       val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
       val length1 = ctx.measureText(txt3).width
       if(winningData.yourScore.isDefined){
-        ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 4)
+        ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2)
       }
-      ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 4 + 40)
+      ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2 + 40)
     }
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
