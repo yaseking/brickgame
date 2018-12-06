@@ -216,6 +216,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 //        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
+        grid.cleanData()
         killInfo = None
         isContinue = false
     }

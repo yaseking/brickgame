@@ -45,19 +45,19 @@ class GameController(player: PlayerInfoInClient,
   var winnerName = "unknown"
   var isContinues = true
   var winnerData : Option[Protocol.Data4TotalSync] = None
-//  private var fieldNum = 0
-//  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
-//  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
-//  val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
-//  val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
-//  val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
-//  val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
-//  val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-//  val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
-//  val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
-//  val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
-//  val bgmAmount = bgmList.length
-//  var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
+  private var fieldNum = 0
+  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
+  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
+  val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
+  val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
+  val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
+  val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
+  val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
+  val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
+  val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
+  val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
+  val bgmAmount = bgmList.length
+  var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
 //  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
@@ -175,6 +175,7 @@ class GameController(player: PlayerInfoInClient,
 //        println(s"killer: ${grid.getKiller(player.id).map(_._2)}")
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
+
       case _ =>
         drawFunction = FrontProtocol.DrawGameWait
     }
@@ -214,8 +215,9 @@ class GameController(player: PlayerInfoInClient,
 //        if(BGM.isPlaying){
 //          BGM.stop()
 //        }
-//        if (isContinue) audioDie.play()
+        if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
+        grid.cleanData()
         grid.killInfo = None
         isContinue = false
     }

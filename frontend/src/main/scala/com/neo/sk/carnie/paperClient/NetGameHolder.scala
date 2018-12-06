@@ -216,6 +216,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
         }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
+        grid.cleanData()
         killInfo = None
         isContinue = false
     }
