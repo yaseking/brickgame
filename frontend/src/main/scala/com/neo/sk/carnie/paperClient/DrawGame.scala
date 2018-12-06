@@ -264,8 +264,6 @@ class DrawGame(
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     if(winningData.winnerScore != 0){
-      val x = (dom.window.innerWidth / 2).toInt - 145
-      val y = (dom.window.innerHeight / 2).toInt
       ctx.font = "bold 24px Helvetica"
       ctx.fillStyle = "#000000"
       val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
