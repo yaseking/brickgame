@@ -130,6 +130,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
         } else (id, -1, -1)
       }
       roomManager ! UserDead(deadSnakesInfo)
+      log.debug(s"!!!!!!!dead snakes: ${deadSnakesInfo.map(_._1)}")
     }
     updateRanks()
     isFinish
