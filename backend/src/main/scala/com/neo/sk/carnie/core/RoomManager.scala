@@ -110,8 +110,6 @@ object RoomManager {
             case e: Exception =>
               log.error(s"user dead error:$e")
           }
-
-
           Behaviors.same
 
         case StartReplay(recordId, playedId, frame, subscriber, playerId) =>

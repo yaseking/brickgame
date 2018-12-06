@@ -251,6 +251,7 @@ object RoomActor {
                 gameEvent += ((grid.frameCount, SpaceEvent(id)))
                 userDeadList -= id
               } else {
+                log.debug(s"receive!!!!!$id -- $action")
                 val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
                 grid.addActionWithFrame(id, keyCode, realFrame)
 //                userMap.foreach(u => dispatchTo(subscribersMap, u._1, Protocol.SnakeAction(id, keyCode, realFrame, actionId)))
