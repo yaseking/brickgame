@@ -4,7 +4,7 @@ import java.awt.Graphics
 import java.io.File
 
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
+import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
 import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
@@ -73,7 +73,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
     val snakesFields = data.fieldDetails
@@ -110,6 +110,17 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     val txt2 = s"Press space to reStart"
     val length = new Text(txt1).getLayoutBounds.getWidth
     ctx.fillText(txt1, (windowBoundary.x - length) / 2 , windowBoundary.y / 5)
+    val x = (windowBoundary.x / 2).toInt - 145
+    val y = (windowBoundary.y / 2).toInt - 180
+    ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20))
+//    ctx.setfont = "bold 24px Helvetica"
+    ctx.setFill(ColorsSetting.fontColor2)
+    ctx.fillText("YOUR SCORE:", x, y + 70)
+    ctx.fillText(f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
+    if(winningData.yourScore.isDefined){
+      ctx.fillText("BEST SCORE:", x, y + 110)
+      ctx.fillText(f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%", x + 230, y + 110)
+    }
     ctx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
     ctx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
     ctx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, windowBoundary.y / 5 - 75, 50, 50)

@@ -331,7 +331,14 @@ object RoomActor {
             log.debug("winwinwinwin!!")
             val finalData = grid.getGridData
             grid.cleanData()
-            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData))
+            userMap.foreach{ u =>
+              if(u._1 == grid.currentRank.head.id)
+                dispatchTo(subscribersMap,u._1,Protocol.WinData(grid.currentRank.head.area,None))
+              else
+                dispatchTo(subscribersMap,u._1,Protocol.WinData(grid.currentRank.head.area,grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
+
+            }
+            dispatch(subscribersMap,Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData))
             dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData)))
             userMap.foreach { u =>

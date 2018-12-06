@@ -48,6 +48,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
+  private var winningData = WinData(0,Some(0))
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -123,7 +124,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       if (!isContinue) {
         if (isWin) {
           val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
-          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData)
+          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData,winningData)
         } else {
           drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
         }
@@ -197,7 +198,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           BGM.pause()
           BGM.currentTime = 0
         }
-        drawGame.drawGameWin(myId, winner, winData)
+        drawGame.drawGameWin(myId, winner, winData,winningData)
         audio1.play()
         isContinue = false
 
@@ -358,6 +359,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         println("got pingPacket.")
         PerformanceTool.receivePingPackage(x)
 
+      case x@WinData(winnerScore,yourScore) =>
+        winningData = x
 
       case x@_ =>
         println(s"receive unknown msg:$x")

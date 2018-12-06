@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
-import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction, UserLeft}
+import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
@@ -68,6 +68,7 @@ class GameController(player: PlayerInfoInClient,
   private var isContinue = true
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
+  private var winningData = WinData(0,Some(0))
   private val timeline = new Timeline()
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
@@ -199,7 +200,7 @@ class GameController(player: PlayerInfoInClient,
 //        if(BGM.isPlaying){
 //          BGM.stop()
 //        }
-        gameScene.drawGameWin(player.id, winner, winData)
+        gameScene.drawGameWin(player.id, winner, winData,winningData)
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
@@ -331,6 +332,8 @@ class GameController(player: PlayerInfoInClient,
           PerformanceTool.receivePingPackage(x)
         }
 
+      case x@WinData(winnerScore,yourScore) =>
+        winningData = x
 
       case unknown@_ =>
         log.debug(s"i receive an unknown msg:$unknown")
