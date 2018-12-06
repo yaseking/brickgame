@@ -82,7 +82,7 @@ object RoomActor {
           val userMap = mutable.HashMap[String, UserInfo]()
           val watcherMap = mutable.HashMap[String, (String, Long)]()
           val grid = new GridOnServer(border)
-          val winStandard = fullSize * 0.1//0.4
+          val winStandard = fullSize * 0.4//0.4
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           val frameRate = mode match {
             case 2 => Protocol.frameRate2
