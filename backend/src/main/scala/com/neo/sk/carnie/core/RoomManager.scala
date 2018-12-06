@@ -98,7 +98,7 @@ object RoomManager {
           }
           Behaviors.same
 
-        case UserDead(roomId, users) =>
+        case UserDead(roomId, mode, users) =>
           try {
             //            val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
             //            groupDeadUsers.keys.foreach { roomId =>
@@ -107,8 +107,7 @@ object RoomManager {
             //              getRoomActor(ctx, roomId, mode) ! UserDead(deadUsersInOneRoom)
             //            }
 
-            val mode = roomMap(roomId)._1
-            getRoomActor(ctx, roomId, mode) ! RoomActor.UserDead(roomId, users)
+            getRoomActor(ctx, roomId, mode) ! RoomActor.UserDead(roomId, mode, users)
           } catch {
             case e: Exception =>
               log.error(s"user dead error:$e")

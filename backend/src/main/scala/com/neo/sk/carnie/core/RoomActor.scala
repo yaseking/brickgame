@@ -50,7 +50,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(roomId: Int, users: List[(String, Int, Int)]) extends Command with RoomManager.Command // (id, kill, area)
+  case class UserDead(roomId: Int, mode: Int, users: List[(String, Int, Int)]) extends Command with RoomManager.Command // (id, kill, area)
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -152,7 +152,7 @@ object RoomActor {
 //          Behaviors.same
           idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, headImgList)
 
-        case UserDead(users) =>
+        case UserDead(roomId, mode, users) =>
           users.foreach { u =>
             val id = u._1
             if(userMap.get(id).nonEmpty) {
@@ -274,7 +274,7 @@ object RoomActor {
           val shouldNewSnake = if (grid.waitingListState) true else false
           val shouldSync = if (tickCount % 20 == 1) true else false
 //          val waitingSnakesList = grid.waitingJoinList
-          val finishFields = grid.updateInService(shouldNewSnake, roomId) //frame帧的数据执行完毕
+          val finishFields = grid.updateInService(shouldNewSnake, roomId, mode) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
 //          val killedSkData = grid.getKilledSkData

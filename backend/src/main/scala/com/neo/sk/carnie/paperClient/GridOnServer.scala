@@ -117,7 +117,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  def updateInService(newSnake: Boolean, roomId: Long): List[(String, List[Point])] = {
+  def updateInService(newSnake: Boolean, roomId: Int, mode: Int): List[(String, List[Point])] = {
     val update = super.update("b")
     val isFinish = update._1
     if (newSnake) newInfo = genWaitingSnake()
@@ -129,7 +129,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
           (id, info.k, info.area)
         } else (id, -1, -1)
       }
-      roomManager ! UserDead(roomId, deadSnakesInfo)
+      roomManager ! UserDead(roomId, mode, deadSnakesInfo)
       log.debug(s"!!!!!!!dead snakes: ${deadSnakesInfo.map(_._1)}")
     }
     updateRanks()
