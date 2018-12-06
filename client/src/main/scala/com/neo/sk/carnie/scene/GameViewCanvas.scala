@@ -25,18 +25,17 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
   private val ctx = canvas.getGraphicsContext2D
   private val rankCtx = rankCanvas.getGraphicsContext2D
   private val canvasSize = (border.x - 2) * (border.y - 2)
-  private val imgMap: Map[Int, String] =
+  private val imgMap: Map[Int, Image] =
     Map(
-      0 -> "img/luffy.png",
-      1 -> "img/fatTiger.png",
-      2 -> "img/Bob.png",
-      3 -> "img/yang.png",
-      4 -> "img/smile.png",
-      5 -> "img/pig.png"
+      0 -> new Image("img/luffy.png"),
+      1 -> new Image("img/fatTiger.png"),
+      2 -> new Image("img/Bob.png"),
+      3 -> new Image("img/yang.png"),
+      4 -> new Image("img/smile.png"),
+      5 -> new Image("img/pig.png")
     )
-  val ab = imgMap(img)
   private val championHeaderImg = new Image("champion.png")
-  private val myHeaderImg = new Image(imgMap(img))
+  private val myHeaderImg = imgMap(img)
   private val crownImg = new Image("crown.png")
   private var canvasUnit = (windowBoundary.x / window.x).toInt
   private var canvasUnitY = (windowBoundary.y / window.y).toInt
@@ -336,6 +335,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
       }
     }
 
+
     snakeWithOff.foreach { s =>
       ctx.setFill(Constant.hex2Rgb(s.color))
 
@@ -346,7 +346,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
 
       if (s.id == championId)
         ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-      val otherHeaderImg = new Image(imgMap(s.img))
+      val otherHeaderImg = imgMap(s.img)
       val img = if (s.id == uid) myHeaderImg else otherHeaderImg
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
@@ -360,6 +360,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
 
     rankCtx.clearRect(20, textLineHeight * 5, 650, textLineHeight * 2)//* 5, * 2
     PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {

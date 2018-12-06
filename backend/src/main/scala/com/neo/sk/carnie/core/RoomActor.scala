@@ -160,7 +160,7 @@ object RoomActor {
               val startTime = userMap(id).startTime
               grid.cleanSnakeTurnPoint(id)
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
-              log.debug(s"user ${id} dead===kill::${u._2}, area::${u._3}, starTime:$startTime")
+              log.debug(s"user ${id} dead:::::")
               val endTime = System.currentTimeMillis()
               dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
               watcherMap.filter(_._2._1==id).foreach(user => dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, startTime, endTime)))
@@ -236,7 +236,7 @@ object RoomActor {
               if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
                 val name = userMap.getOrElse(id, UserInfo("unknown", -1, -1)).name
                 userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
-                log.debug(s"headImgList::$headImgList")
+                log.debug(s"recv space from id ====$id")
                 if (headImgList.contains(id)) {
                   grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, headImgList(id))
                 } else {
@@ -369,7 +369,7 @@ object RoomActor {
 //          if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
           val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
-            if ((maxSize + fullSize * 0.1) < winStandard) Math.max(fullSize * (upperLimit - userMap.size * 0.05), lowerLimit) else winStandard
+            if ((maxSize + fullSize * 0.1) < winStandard) fullSize * Math.max(upperLimit - userMap.size * 0.05, lowerLimit) else winStandard
           } else winStandard
 
           //for gameRecorder...
