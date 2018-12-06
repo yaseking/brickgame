@@ -45,19 +45,18 @@ class GameController(player: PlayerInfoInClient,
   var winnerName = "unknown"
   var isContinues = true
   var winnerData : Option[Protocol.Data4TotalSync] = None
-//  private var fieldNum = 0
-//  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
-//  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
-//  val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
-//  val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
-//  val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
-//  val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
-//  val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-//  val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
-//  val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
-//  val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
-//  val bgmAmount = bgmList.length
-//  var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
+  val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
+  val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
+  val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
+  val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
+  val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
+  val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
+  val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
+  val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
+  val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
+  val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
+  val bgmAmount = bgmList.length
+  var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
 //  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
@@ -93,10 +92,9 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def startGameLoop(): Unit = { //渲染帧
-//    BGM = bgmList(getRandom(bgmAmount))
+    BGM = bgmList(getRandom(bgmAmount))
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
-//    bgm.play(50)
     val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>
       logicLoop()
     })
@@ -158,15 +156,16 @@ class GameController(player: PlayerInfoInClient,
     val gridData = grid.getGridData
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
-        firstCome = false
-//        if(playBgm) {
-//          BGM.play(30)
-//          playBgm = false
-//        }
-//        if(!BGM.isPlaying){
-//          BGM = bgmList(getRandom(bgmAmount))
-//          BGM.play(30)
-//        }
+        if(firstCome)
+          firstCome = false
+        if(playBgm) {
+          BGM.play(30)
+          playBgm = false
+        }
+        if(!BGM.isPlaying){
+          BGM = bgmList(getRandom(bgmAmount))
+          BGM.play(30)
+        }
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None if isWin =>
@@ -183,21 +182,21 @@ class GameController(player: PlayerInfoInClient,
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-//        if(BGM.isPlaying){
-//          BGM.stop()
-//        }
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
         gameScene.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-//        if(BGM.isPlaying){
-//          BGM.stop()
-//        }
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
         gameScene.drawGameOff(firstCome)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-//        if(BGM.isPlaying){
-//          BGM.stop()
-//        }
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
         gameScene.drawGameWin(player.id, winner, winData)
         isContinue = false
 
@@ -211,10 +210,10 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-//        if(BGM.isPlaying){
-//          BGM.stop()
-//        }
-//        if (isContinue) audioDie.play()
+        if(BGM.isPlaying){
+          BGM.stop()
+        }
+        if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = None
         isContinue = false
@@ -267,7 +266,7 @@ class GameController(player: PlayerInfoInClient,
           winnerName = winner
           winnerData = Some(finalData)
           isWin = true
-//          audioWin.play()
+          audioWin.play()
           //        gameScene.drawGameWin(player.id, winner, finalData)
           grid.cleanData()
         }
@@ -321,7 +320,7 @@ class GameController(player: PlayerInfoInClient,
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
           if(data.fieldDetails.exists(_.uid == player.id))
-//            audioFinish.play()
+            audioFinish.play()
           newFieldInfo += data.frameCount -> data
         }
 
@@ -356,14 +355,13 @@ class GameController(player: PlayerInfoInClient,
             case FrontProtocol.DrawBaseGame(_) =>
             case _ =>
               drawFunction = FrontProtocol.DrawGameWait
-//              audioWin.stop()
-//              audioDie.stop()
+              audioWin.stop()
+              audioDie.stop()
               firstCome = true
               if(isWin){
                 isWin = false
                 winnerName = "unknown"
               }
-//              fieldNum = 0
               animationTimer.start()
               isContinue = true
           }
