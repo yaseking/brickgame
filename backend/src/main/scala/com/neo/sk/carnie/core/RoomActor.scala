@@ -82,7 +82,7 @@ object RoomActor {
           val userMap = mutable.HashMap[String, UserInfo]()
           val watcherMap = mutable.HashMap[String, (String, Long)]()
           val grid = new GridOnServer(border)
-          val winStandard = fullSize * 0.4//0.4
+          val winStandard = fullSize * upperLimit//0.4
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           val frameRate = mode match {
             case 2 => Protocol.frameRate2
@@ -363,7 +363,7 @@ object RoomActor {
 //          if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
           val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
-            if ((maxSize + fullSize * 0.1) < winStandard) Math.max(fullSize * (upperLimit - userMap.size * lowerLimit), 0.15) else winStandard
+            if ((maxSize + fullSize * 0.1) < winStandard) Math.max(fullSize * (upperLimit - userMap.size * 0.05), lowerLimit) else winStandard
           } else winStandard
 
           //for gameRecorder...
