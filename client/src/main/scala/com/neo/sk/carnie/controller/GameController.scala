@@ -273,7 +273,8 @@ class GameController(player: PlayerInfoInClient,
           grid.cleanData()
         }
 
-      case Protocol.WinnerBestScore(score) =>
+      case x@Protocol.WinnerBestScore(score) =>
+        log.debug(s"receive winnerBestScore msg:$x")
           maxArea = Math.max(maxArea,score)
 
       case UserLeft(id) =>

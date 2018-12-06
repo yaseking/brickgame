@@ -225,7 +225,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData):Unit = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData = WinData(0,Some(0))):Unit = {
     ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
@@ -263,15 +263,17 @@ class DrawGame(
 //    println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
-    val x = (dom.window.innerWidth / 2).toInt - 145
-    val y = (dom.window.innerHeight / 2).toInt - 180
-    ctx.font = "bold 24px Helvetica"
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.fillText("YOUR SCORE:", x, y + 70)
-    ctx.fillText(f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
-    if(winningData.yourScore.isDefined){
-      ctx.fillText("BEST SCORE:", x, y + 110)
-      ctx.fillText(f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%", x + 230, y + 110)
+    if(winningData.winnerScore != 0){
+      val x = (dom.window.innerWidth / 2).toInt - 145
+      val y = (dom.window.innerHeight / 2).toInt - 180
+      ctx.font = "bold 24px Helvetica"
+      ctx.fillStyle = ColorsSetting.fontColor
+      ctx.fillText("YOUR SCORE:", x, y + 70)
+      ctx.fillText(f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
+      if(winningData.yourScore.isDefined){
+        ctx.fillText("BEST SCORE:", x, y + 110)
+        ctx.fillText(f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%", x + 230, y + 110)
+      }
     }
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)

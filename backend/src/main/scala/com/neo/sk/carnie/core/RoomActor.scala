@@ -331,7 +331,7 @@ object RoomActor {
             log.debug("winwinwinwin!!")
             val finalData = grid.getGridData
             grid.cleanData()
-            userMap.foreach{ u =>
+            subscribersMap.foreach{ u =>
               if(u._1 == grid.currentRank.head.id)
                 dispatchTo(subscribersMap,u._1,Protocol.WinData(grid.currentRank.head.area,None))
               else
