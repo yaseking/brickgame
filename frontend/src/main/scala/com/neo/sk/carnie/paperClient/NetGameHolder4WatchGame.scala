@@ -216,7 +216,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 //        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
-        grid.cleanData()
         killInfo = None
         isContinue = false
     }
@@ -283,6 +282,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case ReStartGame =>
+        grid.cleanData()
         drawFunction = FrontProtocol.DrawGameWait
         audio1.pause()
         audio1.currentTime = 0

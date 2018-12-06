@@ -217,7 +217,6 @@ class GameController(player: PlayerInfoInClient,
 //        }
         if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
-        grid.cleanData()
         grid.killInfo = None
         isContinue = false
     }
@@ -357,6 +356,7 @@ class GameController(player: PlayerInfoInClient,
           drawFunction match {
             case FrontProtocol.DrawBaseGame(_) =>
             case _ =>
+              grid.cleanData()
               drawFunction = FrontProtocol.DrawGameWait
 //              audioWin.stop()
 //              audioDie.stop()
