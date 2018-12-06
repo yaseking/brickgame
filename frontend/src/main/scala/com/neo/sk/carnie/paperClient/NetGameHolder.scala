@@ -88,7 +88,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
     webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
   }
 
-  def getRandom(s: Int) = {
+  def getRandom(s: Int):Int = {
     val rnd = new scala.util.Random
     rnd.nextInt(s)
   }

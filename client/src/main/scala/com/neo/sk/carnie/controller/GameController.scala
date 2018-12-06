@@ -1,6 +1,5 @@
 package com.neo.sk.carnie.controller
 
-import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.Boot
@@ -15,7 +14,7 @@ import akka.actor.typed.scaladsl.adapter._
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-import javafx.scene.media.{AudioClip, Media, MediaPlayer}
+import javafx.scene.media.AudioClip
 
 /**
   * Created by dry on 2018/10/29.
@@ -56,7 +55,7 @@ class GameController(player: PlayerInfoInClient,
   val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
   val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
   val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
-  val bgmAmount = bgmList.length
+  private val bgmAmount = bgmList.length
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
 //  var newFieldInfo: scala.Option[Protocol.NewFieldInfo] = None
@@ -81,7 +80,7 @@ class GameController(player: PlayerInfoInClient,
 //    animationTimer.stop()
   }
 
-  def getRandom(s: Int) ={
+  def getRandom(s: Int):Int ={
     val rnd = new scala.util.Random
     rnd.nextInt(s)
   }
@@ -336,7 +335,7 @@ class GameController(player: PlayerInfoInClient,
     }
   }
 
-  def addUserActionListen() = {
+  def addUserActionListen():Unit = {
     gameScene.viewCanvas.requestFocus()
 
     gameScene.viewCanvas.setOnKeyPressed{ event =>
