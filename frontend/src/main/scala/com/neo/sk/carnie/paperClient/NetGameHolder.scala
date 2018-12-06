@@ -399,6 +399,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
         PerformanceTool.receivePingPackage(x)
 
       case x@WinData(winnerScore,yourScore) =>
+        println(s"receive winningData msg:$x")
         winningData = x
 
       case x@_ =>

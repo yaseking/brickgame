@@ -332,6 +332,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case x@WinData(winnerScore,yourScore) =>
+        log.debug(s"receive winningData msg:$x")
         winningData = x
 
       case unknown@_ =>
