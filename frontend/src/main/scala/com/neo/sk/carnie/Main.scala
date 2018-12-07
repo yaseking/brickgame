@@ -60,7 +60,7 @@ object Main extends js.JSApp {
         println("playGame ...")
         val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-        currentPage = new CreateRoomPage("playGame", PlayGamePara(playerId, playerName)).render
+        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
         show()
 
       case _ =>

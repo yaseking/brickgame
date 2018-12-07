@@ -87,6 +87,12 @@ class GameController(player: PlayerInfoInClient,
     startGameLoop()
   }
 
+  def createRoom(domain: String, mode: Int, img: Int, pwd: String): Unit = {
+    playActor ! PlayGameWebSocket.CreateRoom(player, domain, mode, img, pwd)
+    addUserActionListen()
+    startGameLoop()
+  }
+
   def startGameLoop(): Unit = { //渲染帧
     BGM = bgmList(getRandom(bgmAmount))
     logicFrameTime = System.currentTimeMillis()

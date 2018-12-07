@@ -43,7 +43,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  val delay = if(mode == 2) 4 else 2
+  val delay:Int = if(mode == 2) 4 else 2
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0

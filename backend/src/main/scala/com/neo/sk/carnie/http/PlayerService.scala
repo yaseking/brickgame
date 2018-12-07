@@ -107,11 +107,6 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                           handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId, data.playerId))
                       }
                     }
-//                    if(data.playerId == playerId){
-//                      getFromResource("html/errPage.html")
-//                    } else {
-//                    }
-//                    handleWebSocketMessages(webSocketChatFlow4WatchGame(roomId, playerId, data.playerId))
                   case Left(e) =>
                     log.error(s"watchGame error. fail to verifyAccessCode err: $e")
                     complete(ErrorRsp(120003, "Some errors happened in parse verifyAccessCode."))
@@ -157,7 +152,6 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             val msg: Future[String] = tokenActor ? AskForToken
             msg.map {token =>
               dealFutureResult{
-                log.info("start to verifyAccessCode4Client.")
                 val playerName = URLDecoder.decode(name, "UTF-8")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
@@ -165,6 +159,34 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
 //                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
+                    handleWebSocketMessages(webSocketChatFlow(id, playerName, mode, img))
+                }
+              }
+            }
+          }
+        }
+      }~
+      (path("joinGame4ClientCreateRoom") & get ) {
+        parameter(
+          'id.as[String],
+          'name.as[String],
+          'accessCode.as[String],
+          'mode.as[Int],
+          'img.as[Int],
+          'pwd.as[String]
+        ) { (id, name, accessCode, mode, img, pwd) =>
+          val gameId = AppSettings.esheepGameId
+          dealFutureResult{
+            val msg: Future[String] = tokenActor ? AskForToken
+            msg.map {token =>
+              dealFutureResult{
+                val playerName = URLDecoder.decode(name, "UTF-8")
+                EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
+                  case Right(_) =>
+                    handleWebSocketMessages(webSocketChatFlow(id, playerName, mode, img))
+                  case Left(e) =>
+                    log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
+                    //                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
                     handleWebSocketMessages(webSocketChatFlow(id, playerName, mode, img))
                 }
               }

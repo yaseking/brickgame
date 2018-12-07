@@ -11,12 +11,20 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
 
   selectScene.setListener(new SelectSceneListener{
     override def joinGame(mode: Int, img: Int): Unit = {
-      println(s"mode-$mode, img-$img")
       Boot.addToPlatform {
         val frameRate = if(mode==2) frameRate2 else frameRate1
         val playGameScreen = new GameScene(img, frameRate)
         context.switchScene(playGameScreen.getScene, fullScreen = true)
         new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).start(domain, mode, img)
+      }
+    }
+
+    override def createRoom(mode: Int, img: Int, pwd: String): Unit = {
+      Boot.addToPlatform {
+        val frameRate = if(mode==2) frameRate2 else frameRate1
+        val playGameScreen = new GameScene(img, frameRate)
+        context.switchScene(playGameScreen.getScene, fullScreen = true)
+        new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).createRoom(domain, mode, img, pwd)
       }
     }
   })
