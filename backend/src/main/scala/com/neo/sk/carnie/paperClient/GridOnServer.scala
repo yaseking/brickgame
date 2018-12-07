@@ -37,8 +37,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
   private[this] def genWaitingSnake() = {
     val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor, img)) =>
       val startTime = System.currentTimeMillis()
-      val indexSize = 10 //5
-    val basePoint = randomEmptyPoint(indexSize)
+      val indexSize = 5
+      val basePoint = randomEmptyPoint(indexSize)
       val newFiled = (0 until indexSize).flatMap { x =>
         (0 until indexSize).map { y =>
           val point = Point(basePoint.x + x, basePoint.y + y)
@@ -47,14 +47,13 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }.toList
       }.toList
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime, img = img)//img: Int
+      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime, img = img) //img: Int
       snakes += id -> snakeInfo
       killHistory -= id
       (id, snakeInfo, newFiled)
     }.toList
     waitingJoin = Map.empty[String, (String, String, Int)]
     newInfo
-
   }
 
   private[this] def updateRanks() = {
@@ -117,7 +116,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  def updateInService(newSnake: Boolean): List[(String, List[Point])] = {
+  def updateInService(newSnake: Boolean, roomId: Int, mode: Int): List[(String, List[Point])] = {
     val update = super.update("b")
     val isFinish = update._1
     if (newSnake) newInfo = genWaitingSnake()
@@ -129,7 +128,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
           (id, info.k, info.area)
         } else (id, -1, -1)
       }
-      roomManager ! UserDead(deadSnakesInfo)
+      roomManager ! UserDead(roomId, mode, deadSnakesInfo)
+      log.debug(s"!!!!!!!dead snakes: ${deadSnakesInfo.map(_._1)}")
     }
     updateRanks()
     isFinish

@@ -47,6 +47,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
+  private var winningData = WinData(0,Some(0))
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -88,7 +89,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
     webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
   }
 
-  def getRandom(s: Int) = {
+  def getRandom(s: Int):Int = {
     val rnd = new scala.util.Random
     rnd.nextInt(s)
   }
@@ -123,7 +124,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       if (!isContinue) {
         if (isWin) {
           val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
-          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData)
+          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData,winningData)
         } else {
           drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
         }
@@ -183,22 +184,21 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-        if(!BGM.paused){
-          BGM.pause()
-        }
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
-        drawGame.drawGameWin(myId, winner, winData)
+        drawGame.drawGameWin(myId, winner, winData,winningData)
         audio1.play()
         isContinue = false
 
@@ -216,6 +216,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       case FrontProtocol.DrawGameDie(killerName) =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
@@ -257,6 +258,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
+                  grid.cleanData()
                   drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
                   audio1.currentTime = 0
@@ -395,6 +397,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
+      case x@Protocol.WinData(winnerScore,yourScore) =>
+        println(s"receive winningData msg:$x")
+        winningData = x
 
       case x@_ =>
         println(s"receive unknown msg:$x")

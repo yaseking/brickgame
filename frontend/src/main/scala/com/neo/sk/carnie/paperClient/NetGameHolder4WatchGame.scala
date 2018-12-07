@@ -25,6 +25,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   private var myId = ""
+  private var watcherId = ""
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -47,6 +48,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
+  private var winningData = WinData(0,Some(0))
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -66,7 +68,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private[this] val bgmList = List(bgm1, bgm2, bgm3, bgm4, bgm5, bgm7, bgm8)
   private val bgmAmount = bgmList.length
   private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
-  private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
   dom.document.addEventListener("visibilitychange", { e: Event =>
     if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
@@ -85,7 +86,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   def updateListener(): Unit = {
-    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+    webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
   }
 
   def getRandom(s: Int) = {
@@ -99,7 +100,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
+      webSocketClient.sendMessage(SendPingPacket(watcherId, System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -123,7 +124,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       if (!isContinue) {
         if (isWin) {
           val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
-          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData)
+          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData,winningData)
         } else {
           drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
         }
@@ -152,7 +153,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
             grid.addNewFieldInfo(newFieldData)
             newFieldInfo -= frame
           } else if (frame < grid.frameCount) {
-            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+            webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
           }
         }
       }
@@ -183,22 +184,21 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-        if(!BGM.paused){
-          BGM.pause()
-        }
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
-        drawGame.drawGameWin(myId, winner, winData)
+        drawGame.drawGameWin(myId, winner, winData,winningData)
         audio1.play()
         isContinue = false
 
@@ -216,6 +216,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case FrontProtocol.DrawGameDie(killerName) =>
 //        if(!BGM.paused){
 //          BGM.pause()
+//        BGM.currentTime = 0
 //        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
@@ -241,8 +242,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   private def messageHandler(data: GameMessage): Unit = {
     data match {
-      case Protocol.Id(id) =>
+      case Protocol.Id4Watcher(id, watcher) =>
+        println(s"id: $id, watcher: $watcher")
         myId = id
+        watcherId = watcher
 
       case Protocol.StartWatching(mode, img) =>
         drawGame = new DrawGame(ctx, canvas, img)
@@ -283,6 +286,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case ReStartGame =>
+        grid.cleanData()
         drawFunction = FrontProtocol.DrawGameWait
         audio1.pause()
         audio1.currentTime = 0
@@ -352,8 +356,11 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         newFieldInfo += data.frameCount -> data
 
       case x@Protocol.ReceivePingPacket(_) =>
+        println("got pingPacket.")
         PerformanceTool.receivePingPackage(x)
 
+      case x@Protocol.WinData(winnerScore,yourScore) =>
+        winningData = x
 
       case x@_ =>
         println(s"receive unknown msg:$x")

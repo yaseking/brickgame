@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.scene
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.Data4TotalSync
+import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, WinData}
 import com.neo.sk.carnie.paperClient._
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
@@ -102,9 +102,9 @@ class GameScene(img: Int, frameRate: Int) {
     viewCtx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
     rank.drawClearRank()
-    view.drawGameWin(myId: String, winner: String, data: Data4TotalSync)
+    view.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
   }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {

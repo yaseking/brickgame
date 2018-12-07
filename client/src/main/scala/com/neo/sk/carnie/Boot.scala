@@ -42,6 +42,7 @@ class Boot extends javafx.application.Application {
     val loginScene = new LoginScene()
     val loginController = new LoginController(loginScene, context)
     loginController.showScene()
+    loginController.init()
 
 
 //    val playGameScreen = new GameScene()

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import org.slf4j.LoggerFactory
+
 import scala.collection.mutable
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
@@ -24,6 +25,7 @@ object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
 
   private val roomMap = mutable.HashMap[Int, (Int, mutable.HashSet[(String, String)])]() //roomId->(mode,Set((userId, name)))
+  private val roomMap4Watcher = mutable.HashMap[Int, (Int, mutable.HashSet[String])]() //roomId->(mode,Set((userId)))
   private val limitNum = AppSettings.limitNum
 
   trait Command
@@ -96,20 +98,20 @@ object RoomManager {
           }
           Behaviors.same
 
-        case UserDead(users) =>
+        case UserDead(roomId, mode, users) =>
           try {
-            val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
-            groupDeadUsers.keys.foreach { roomId =>
-              val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
-              val mode = roomMap(roomId)._1
-              getRoomActor(ctx, roomId, mode) ! UserDead(deadUsersInOneRoom)
-            }
+            //            val groupDeadUsers = users.map(u => (roomMap.filter(r => r._2._2.exists(u => u._1 == u._1)).head._1, u)).groupBy(_._1)
+            //            groupDeadUsers.keys.foreach { roomId =>
+            //              val deadUsersInOneRoom = groupDeadUsers(roomId).map(_._2)
+            //              val mode = roomMap(roomId)._1
+            //              getRoomActor(ctx, roomId, mode) ! UserDead(deadUsersInOneRoom)
+            //            }
+
+            getRoomActor(ctx, roomId, mode) ! RoomActor.UserDead(roomId, mode, users)
           } catch {
             case e: Exception =>
               log.error(s"user dead error:$e")
           }
-
-
           Behaviors.same
 
         case StartReplay(recordId, playedId, frame, subscriber, playerId) =>
@@ -144,9 +146,13 @@ object RoomManager {
         case m@PreWatchGame(roomId, playerId, userId, subscriber) =>
           log.info(s"got $m")
           val truePlayerId = if (playerId.contains("Set")) playerId.drop(4).dropRight(1) else playerId
-//          log.info(s"truePlayerId: $truePlayerId")
           try {
             val mode = roomMap(roomId)._1
+            val temp = roomMap4Watcher.getOrElse(roomId, (mode, mutable.HashSet.empty[String]))._2 + userId
+//            println(s"temp: $temp")
+//            roomMap4Watcher.put(roomId, (mode, temp))
+            roomMap4Watcher += roomId -> (mode, temp)
+//            println(s"room4watch: $roomMap4Watcher")
             getRoomActor(ctx, roomId, mode) ! RoomActor.WatchGame(truePlayerId, userId, subscriber)
           } catch {
             case e: Exception =>
@@ -173,6 +179,13 @@ object RoomManager {
           log.info(s"got $msg")
           try {
             val mode = roomMap(roomId)._1
+            roomMap4Watcher.get(roomId) match {
+              case Some(v) =>
+                v._2 -= userId
+                roomMap4Watcher += (roomId -> v)
+              case _ =>
+            }
+//            println(s"watchLeft room4watch: $roomMap4Watcher")
             getRoomActor(ctx, roomId, mode) ! RoomActor.WatcherLeftRoom(userId)
           } catch {
             case e: Exception =>
@@ -193,6 +206,12 @@ object RoomManager {
             val mode = roomMap(roomId)._1
             getRoomActor(ctx, roomId, mode) ! RoomActor.UserActionOnServer(id, action)
           }
+          if(roomMap4Watcher.exists(_._2._2.contains(id))) {
+            val roomId = roomMap4Watcher.filter(_._2._2.contains(id)).head._1
+            val mode = roomMap4Watcher(roomId)._1
+            getRoomActor(ctx, roomId, mode) ! RoomActor.UserActionOnServer(id, action)
+          }
+
           Behaviors.same
 
 

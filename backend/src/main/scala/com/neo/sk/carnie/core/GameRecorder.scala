@@ -100,7 +100,7 @@ object GameRecorder {
             case Protocol.JoinEvent(id, name) =>
               userMap.put(id, name)
               userHistoryMap.put(id, name)
-              log.debug(s"history map:$userHistoryMap when join")
+//              log.debug(s"history map:$userHistoryMap when join")
               if(essfMap.get(UserBaseInfo(id, name)).nonEmpty) {
                 essfMap.put(UserBaseInfo(id, name), essfMap(UserBaseInfo(id, name)) ::: List(UserJoinLeft(frame, -1l)))
               } else {
@@ -108,9 +108,9 @@ object GameRecorder {
               }
 
             case Protocol.LeftEvent(id, nickName) =>
-              log.debug(s"===============history map:$userHistoryMap before left")
+//              log.debug(s"===============history map:$userHistoryMap before left")
               userMap.remove(id)
-              log.debug(s"!!!!!!!!!!!!!!!history map:$userHistoryMap when left")
+//              log.debug(s"!!!!!!!!!!!!!!!history map:$userHistoryMap when left")
               essfMap.get(UserBaseInfo(id, nickName)) match {
                 case Some(joinOrLeftInfo) =>
                   if(joinOrLeftInfo.lengthCompare(1) == 0)

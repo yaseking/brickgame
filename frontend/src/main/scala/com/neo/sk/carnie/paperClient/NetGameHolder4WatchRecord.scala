@@ -47,6 +47,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
+  private var winningData = WinData(0,Some(0))
 
 
   //  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -159,7 +160,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         val data = grid.getGridData
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-          drawGame.drawGameWin(myId, winnerName, winData)
+          drawGame.drawGameWin(myId, winnerName, winData,winningData)
           audio1.play()
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
@@ -203,7 +204,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
                 currentRank.filter(_.id == myId).foreach { score =>
                   myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
                 }
-                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+//                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+                drawGame.drawGameDie4Replay()
                 killInfo = ("", "", "")
                 dom.window.cancelAnimationFrame(nextFrame)
                 isContinue = false
@@ -413,6 +415,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
           }
         }
+
+      case x@Protocol.WinData(winnerScore,yourScore) =>
+        println(s"receive winningData msg:$x")
+        winningData = x
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         killInfo = (killedId, killedName, killerName)
