@@ -68,8 +68,8 @@ object GameReplay {
           case Some(r)=>
             try{
 //            log.debug(s"game path ${r.filePath}")
-//              val replay=initInput("../backend/" + r.filePath) //for reStart
-            val replay=initInput(r.filePath) //for nohup
+              val replay=initInput("../backend/" + r.filePath) //for reStart
+//            val replay=initInput(r.filePath) //for nohup
               val info=replay.init()
 
 //              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
