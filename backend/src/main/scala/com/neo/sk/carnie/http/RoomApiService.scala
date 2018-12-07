@@ -43,23 +43,23 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
-  // TODO:  
-//  private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-//    dealPostReq[RoomIdReq] { req =>
-//      val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-//      msg.map { plist =>
-//        if(plist.nonEmpty){
-////          log.info(s"plist:$plist")
-//          complete(PlayerListRsp(PlayerInfo(plist)))
-//        }
-//         else{
-//          log.info("get player list error: this room doesn't exist")
-//          complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
-//        }
-//
-//      }
-//    }
-//  }
+  // TODO:
+  private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
+    dealPostReq[RoomIdReq] { req =>
+      val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+      msg.map { plist =>
+        if(plist.nonEmpty){
+//          log.info(s"plist:$plist")
+          complete(PlayerListRsp(PlayerInfo(plist)))
+        }
+         else{
+          log.info("get player list error: this room doesn't exist")
+          complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
+        }
+
+      }
+    }
+  }
 
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
@@ -80,9 +80,9 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
     dealPostReq[RecordListReq] { req =>
       RecordDAO.getRecordList(req.lastRecordId, req.count).map { recordL =>
-        val data = recordL.groupBy(_._1).map { case (record, res) =>
-          val userList = res.filter(_._2.nonEmpty).map(i => (i._2.get.userId,i._2.get.nickname))
-          recordInfo(record.recordId, record.roomId, record.startTime, record.endTime, userList.length, userList)
+        val data = recordL.groupBy(_._1).map { record => //可能会造成每页显示不到10条录像
+          val userList = record._2.map(i => (i._2.userId,i._2.nickname))
+          recordInfo(record._1.recordId, record._1.roomId, record._1.startTime, record._1.endTime, userList.length, userList)
         }
 
         complete(RecordListRsp(data.toList.sortBy(_.recordId)))
@@ -227,9 +227,10 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
+
   val roomApiRoutes: Route = {
     getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
-      getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList
+      getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList
   }
 
 

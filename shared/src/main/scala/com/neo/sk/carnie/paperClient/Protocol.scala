@@ -32,6 +32,12 @@ object Protocol {
 //                             killHistory: List[Kill]
                            ) extends GameMessage
 
+  case class NewSnakeInfo(
+                         frameCount: Long,
+                         snake: List[SkDt],
+                         filedDetails: List[FieldByColumn]
+                         ) extends GameMessage
+
   case class KilledSkData(
                          killedSkInfo: List[KilledSkDt]
                          )
@@ -64,11 +70,19 @@ object Protocol {
 
   case class Id(id: String) extends GameMessage
 
+  case class Id4Watcher(id: String, watcher: String) extends GameMessage
+
+  case class StartWatching(mode: Int, img: Int) extends GameMessage
+
+  case class Mode(mode: Int) extends GameMessage
+
   case class StartLoading(frame: Int) extends GameMessage
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
 
-  case class DeadPage(kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+  case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+
+  case class UserLeft(userId: String) extends GameMessage
 
   case class InitReplayError(info: String) extends GameMessage
 
@@ -87,9 +101,13 @@ object Protocol {
 
   case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage with GameEvent
 
+  case class WinData(winnerScore: Int,yourScore: Option[Int]) extends GameMessage with GameEvent
+
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
+
+  case class WinnerBestScore(Score: Int) extends GameMessage
 
   sealed trait WsSendMsg
   case object WsSendComplete extends WsSendMsg
@@ -104,7 +122,6 @@ object Protocol {
   case class SendPingPacket(id: String, createTime: Long) extends UserAction
 
   case class NeedToSync(id: String) extends UserAction
-
 
   //essf
   sealed trait GameEvent extends GameMessage
@@ -127,7 +144,7 @@ object Protocol {
 
   case class DecodeError() extends GameEvent
 
-  case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long)
+  case class GameInformation(roomId: Int, startTime: Long, index: Int, initFrame: Long, mode: Int)
 
   case class UserJoinLeft(joinFrame: Long, leftFrame: Long)
 
@@ -143,6 +160,8 @@ object Protocol {
 //  case class ReplayFrameData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]]) extends GameMessage
   case class ReplayFrameData(frameIndex: Int, eventsData: GameEvent, stateData: Option[GameEvent]) extends GameMessage
 
-  val frameRate = 150
+  val frameRate = 150 //normal-mode
+  val frameRate1 = 150 //normal-mode
+  val frameRate2 = 75 //doubleSpeed-mode
 
 }

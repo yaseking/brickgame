@@ -1,13 +1,12 @@
 package com.neo.sk.carnie.paperClient
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
-import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Canvas, Document => _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
+import com.neo.sk.carnie.util.Component
+import scala.xml.Elem
 
 /**
   * User: Taoz
@@ -15,11 +14,12 @@ import com.neo.sk.carnie.paperClient.WebSocketProtocol._
   * Time: 12:45 PM
   */
 //@JSExportTopLevel("paperClient.NetGameHolder")
-class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
+class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Component {
 
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   private var myId = ""
+  private var myMode = -1
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -42,27 +42,25 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var replayFinish = false
   var gameLoopInterval = -1
-//  var pingInterval = -1
+  //  var pingInterval = -1
   var requestAnimationInterval = -1
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
-  private var scale = 1.0
+  private var winningData = WinData(0,Some(0))
 
 
-//  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
-//  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
+  //  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
+  //  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-
   private var nextFrame = 0
   private var isContinue = true
   private var logicFrameTime = System.currentTimeMillis()
-
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
@@ -72,42 +70,48 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   }
 
 
-  def startGame(): Unit = {
-    println(s"start game======")
+  def startGame(frameRate: Int): Unit = {
+    println(s"start game======frameRate:$frameRate")
     drawGame.drawGameOn()
-    gameLoopInterval = dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
-//    pingInterval = dom.window.setInterval(() => {
-//      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
-//    }, 100)
-    requestAnimationInterval = dom.window.requestAnimationFrame(gameRender())
+//    val frameRate = webSocketPara match {
+//      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
+//        if(mode == 2) frameRate2 else frameRate1
+//      case _ =>
+//        frameRate1
+//    }
+    gameLoopInterval = dom.window.setInterval(() => gameLoop(), frameRate)
+    //    pingInterval = dom.window.setInterval(() => {
+    //      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
+    //    }, 100)
+    requestAnimationInterval = dom.window.requestAnimationFrame(gameRender(frameRate))
   }
 
   private var tempRender = System.currentTimeMillis()
 
-  def gameRender(): Double => Unit = { _ =>
+  def gameRender(frameRate: Int): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
     //    println(s"drawRender time:${curTime - tempRender}")
     tempRender = curTime
-    draw(offsetTime)
+    draw(offsetTime, frameRate)
 
     if (isContinue)
-      nextFrame = dom.window.requestAnimationFrame(gameRender())
+      nextFrame = dom.window.requestAnimationFrame(gameRender(frameRate))
   }
 
 
   def gameLoop(): Unit = {
     logicFrameTime = System.currentTimeMillis()
-    if((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
+    if ((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.resetScreen()
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-//      if(!isContinue) {
-//        if(isWin) {
-//          drawGame.drawGameWin(myId, winnerName, winData)
-//        } else {
-//          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-//        }
-//      }
+      //      if(!isContinue) {
+      //        if(isWin) {
+      //          drawGame.drawGameWin(myId, winnerName, winData)
+      //        } else {
+      //          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+      //        }
+      //      }
     }
 
     if (webSocketClient.getWsState) {
@@ -115,27 +119,27 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         grid.initSyncGridData(syncGridData4Replay.get)
         syncGridData4Replay = None
         justSynced = false
-      } else if(snapshotMap.contains(grid.frameCount)) {
+      } else if (snapshotMap.contains(grid.frameCount)) {
         val data = snapshotMap(grid.frameCount)
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails))
-//        println(s"state 重置 via Map")
+        //        println(s"state 重置 via Map")
         snapshotMap -= grid.frameCount
       }
 
-      if(spaceEvent.contains(grid.frameCount)) {
-//        println(s"space event exists:${spaceEvent(grid.frameCount).id}, frame: ${grid.frameCount}")
+      if (spaceEvent.contains(grid.frameCount)) {
+        //        println(s"space event exists:${spaceEvent(grid.frameCount).id}, frame: ${grid.frameCount}")
         replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
         spaceEvent -= grid.frameCount
       }
 
-      if(encloseMap.contains(grid.frameCount)) {
+      if (encloseMap.contains(grid.frameCount)) {
         encloseMap(grid.frameCount).fieldDetails.map(_.uid).foreach { id =>
           grid.cleanSnakeTurnPoint(id)
         }
-//        grid.cleanTurnPoint4Reply(myId)
+        //        grid.cleanTurnPoint4Reply(myId)
         grid.addNewFieldInfo(encloseMap(grid.frameCount))
         encloseMap -= grid.frameCount
-//        println(s"圈地 via Map")
+        //        println(s"圈地 via Map")
       }
 
       if (!justSynced) { //前端更新
@@ -146,9 +150,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
   }
 
 
-  def draw(offsetTime: Long): Unit = {
+  def draw(offsetTime: Long, frameRate: Int): Unit = {
     if (webSocketClient.getWsState) {
-      if(replayFinish) {
+      if (replayFinish) {
         drawGame.drawGameOff(firstCome, Some(true), false, false)
       } else if (loading) {
         drawGame.drawGameOff(firstCome, Some(false), true, false)
@@ -156,7 +160,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         val data = grid.getGridData
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-          drawGame.drawGameWin(myId, winnerName, winData)
+          drawGame.drawGameWin(myId, winnerName, winData,winningData)
           audio1.play()
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
@@ -166,13 +170,13 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               firstCome = false
               if (scoreFlag) {
                 myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-//                drawGame.cleanMyScore
+                //                drawGame.cleanMyScore
                 scoreFlag = false
               }
-//              data.killHistory.foreach {
-//                i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
-//              }
-              if(killInfo._3 == myId) audioKill.play()
+              //              data.killHistory.foreach {
+              //                i => if (i.frameCount + 1 == data.frameCount && i.killerId == myId) audioKill.play()
+              //              }
+              if (killInfo._3 == myId) audioKill.play()
               var num = 0
               data.fieldDetails.find(_.uid == myId).get.scanField.foreach {
                 row =>
@@ -184,9 +188,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
                 audioFinish.play()
               }
               fieldNum = num
-              drawGameImage(myId, data, offsetTime)
+              drawGameImage(myId, data, offsetTime, frameRate)
               if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
-                drawGame.drawUserDieInfo(killInfo._2, killInfo._3)
+                drawGame.drawBarrage(killInfo._2, killInfo._3)
                 lastTime -= 1
                 if (lastTime == 0) {
                   killInfo = ("", "", "")
@@ -200,7 +204,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
                 currentRank.filter(_.id == myId).foreach { score =>
                   myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
                 }
-                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+//                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+                drawGame.drawGameDie4Replay()
                 killInfo = ("", "", "")
                 dom.window.cancelAnimationFrame(nextFrame)
                 isContinue = false
@@ -213,14 +218,14 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     }
   }
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    scale = drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),scale, true)
+  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, frameRate: Int): Unit = {
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-//    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+    //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
 
   private def connectOpenSuccess(event0: Event, order: String) = {
-//    startGame()
+    //    startGame()
     event0
   }
 
@@ -231,14 +236,22 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
   private def messageHandler(data: GameMessage): Unit = {
     data match {
+
+      case Protocol.InitReplayError(msg) =>
+        drawGame.drawGameOff(true, None, false, true)
+
       case Protocol.Id(id) => myId = id
         println(s"receive ID = $id")
+
+      case Protocol.Mode(mode) =>
+        println(s"receive mode = $mode")
+        myMode = mode
 
       case Protocol.StartLoading(frame) =>
         println(s"start loading  =========")
         replayFinish = false
         dom.window.clearInterval(gameLoopInterval)
-//        dom.window.clearInterval(pingInterval)
+        //        dom.window.clearInterval(pingInterval)
         dom.window.clearInterval(requestAnimationInterval)
         loading = true
         drawGame.drawGameOff(firstCome, Some(false), loading, false)
@@ -248,29 +261,28 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         encloseMap = Map.empty[Long, NewFieldInfo]
 
 
-
-      case Protocol.StartReplay(firstSnapshotFrame,firstReplayFrame) =>
-//        println(s"firstSnapshotFrame::$firstSnapshotFrame")
-//        println(s"firstReplayFrame::$firstReplayFrame")
-        for(i <- firstSnapshotFrame until firstReplayFrame -1)  {
+      case Protocol.StartReplay(firstSnapshotFrame, firstReplayFrame) =>
+        //        println(s"firstSnapshotFrame::$firstSnapshotFrame")
+        //        println(s"firstReplayFrame::$firstReplayFrame")
+        for (i <- firstSnapshotFrame until firstReplayFrame - 1) {
           if (webSocketClient.getWsState) {
-             if(snapshotMap.contains(grid.frameCount)) {
+            if (snapshotMap.contains(grid.frameCount)) {
               val data = snapshotMap(grid.frameCount)
               grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, data.snakes, data.bodyDetails, data.fieldDetails))
-               if(data.snakes.exists(_.id == myId)) firstCome = false
+              if (data.snakes.exists(_.id == myId)) firstCome = false
               //        println(s"state 重置 via Map")
               snapshotMap = snapshotMap.filter(_._1 > grid.frameCount)
             }
-            if(spaceEvent.contains(grid.frameCount)) {
+            if (spaceEvent.contains(grid.frameCount)) {
               replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
               spaceEvent -= grid.frameCount
             }
-            if(rankEvent.contains(grid.frameCount)) {
+            if (rankEvent.contains(grid.frameCount)) {
               replayMessageHandler(rankEvent(grid.frameCount), grid.frameCount.toInt)
               rankEvent -= grid.frameCount
             }
 
-            if(encloseMap.contains(grid.frameCount)) {
+            if (encloseMap.contains(grid.frameCount)) {
               encloseMap(grid.frameCount).fieldDetails.map(_.uid).foreach { id =>
                 grid.cleanSnakeTurnPoint(id)
               }
@@ -278,33 +290,34 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               encloseMap -= grid.frameCount
               //        println(s"圈地 via Map")
             }
-              grid.update("f")
+            grid.update("f")
           }
 
         }
-//        val snakes = grid.getGridData.snakes.map(_.id)
-//        println(s"snakes:::::$snakes")
-        if(!isContinue) firstCome = false
+        //        val snakes = grid.getGridData.snakes.map(_.id)
+        //        println(s"snakes:::::$snakes")
+        if (!isContinue) firstCome = false
         loading = false
-        startGame()
-//        grid.frameCount = firstReplayframe.toLong
-
-      case Protocol.InitReplayError(info) =>
-        drawGame.drawGameOff(firstCome, Some(false), loading, true)
+        val frameRate = myMode match {
+          case 2 => frameRate2
+          case _ => frameRate1
+        }
+        startGame(frameRate)
+      //        grid.frameCount = firstReplayframe.toLong
 
       case x@Protocol.ReplayFinish(_) =>
         println("get message replay finish")
         replayFinish = true
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
-//        println(s"replayFrameData,grid.frameCount:${grid.frameCount},frameIndex:$frameIndex")
-        println(s"grid.frameCount:${grid.frameCount}")
-        println(s"frameIndex     :$frameIndex")
-        if(frameIndex == 0) grid.frameCount = 0
-        if(stateData.nonEmpty) {
+        //        println(s"replayFrameData,grid.frameCount:${grid.frameCount},frameIndex:$frameIndex")
+//        println(s"grid.frameCount:${grid.frameCount}")
+//        println(s"frameIndex     :$frameIndex")
+        if (frameIndex == 0) grid.frameCount = 0
+        if (stateData.nonEmpty) {
           stateData.get match {
             case msg: Snapshot =>
-//              println(s"snapshot get:$msg")
+              //              println(s"snapshot get:$msg")
               replayMessageHandler(msg, frameIndex + 1)
             case Protocol.DecodeError() =>
               println("state decode error")
@@ -315,7 +328,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
         eventsData match {
           case EventData(events) =>
-//            println(s"eventsData:$eventsData")
+            //            println(s"eventsData:$eventsData")
             events.foreach { event =>
               (event, loading) match {
                 case (EncloseEvent(_), true) => replayMessageHandler(event, frameIndex)
@@ -333,42 +346,38 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         }
 
 
-
-
       case x@_ =>
         println(s"receive unknown msg:$x")
     }
   }
 
 
-
   private def replayMessageHandler(data: GameEvent, frameIndex: Int): Unit = {
     data match {
       case Protocol.JoinEvent(id, snakeInfo) =>
-//        println(s"receive data: $data")
-//        println(s"grid.frameCount:${grid.frameCount}")
-//        if (grid.frameCount < frameIndex) {
-//          if(joinOrLeftMap.get(frameIndex).nonEmpty) {
-//            joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
-//          } else {
-//            joinOrLeftMap += ((frameIndex, List(data)))
-//          }
-//        } else {
-//          grid.snakes += (id -> snakeInfo.get)
-//        }
-
+      //        println(s"receive data: $data")
+      //        println(s"grid.frameCount:${grid.frameCount}")
+      //        if (grid.frameCount < frameIndex) {
+      //          if(joinOrLeftMap.get(frameIndex).nonEmpty) {
+      //            joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+      //          } else {
+      //            joinOrLeftMap += ((frameIndex, List(data)))
+      //          }
+      //        } else {
+      //          grid.snakes += (id -> snakeInfo.get)
+      //        }
 
 
       case Protocol.LeftEvent(id, name) =>
-//        if (grid.frameCount < frameIndex) {
-//          if(joinOrLeftMap.get(frameIndex).nonEmpty) {
-//            joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
-//          } else {
-//            joinOrLeftMap += ((frameIndex, List(data)))
-//          }
-//        } else {
-//          grid.snakes -= id
-//        }
+      //        if (grid.frameCount < frameIndex) {
+      //          if(joinOrLeftMap.get(frameIndex).nonEmpty) {
+      //            joinOrLeftMap += ((frameIndex, data :: joinOrLeftMap(frameIndex)))
+      //          } else {
+      //            joinOrLeftMap += ((frameIndex, List(data)))
+      //          }
+      //        } else {
+      //          grid.snakes -= id
+      //        }
       case Protocol.SomeOneWin(winner, finalData) =>
         println(s"recv someONeWin==============, winner:$winner")
         isWin = true
@@ -381,8 +390,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
 
       case msg@SpaceEvent(id) =>
-//        println(s"get space event:$id, frame: $frameIndex")
-        if(grid.frameCount < frameIndex.toLong) {
+        //        println(s"get space event:$id, frame: $frameIndex")
+        if (grid.frameCount < frameIndex.toLong) {
           spaceEvent += (frameIndex.toLong -> msg)
         } else {
           if (id == myId) {
@@ -398,41 +407,49 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
               winnerName = "unknown"
             }
             isContinue = true
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
+            val frameRate = myMode match {
+              case 2 => frameRate2
+              case _ => frameRate1
+            }
+            nextFrame = dom.window.requestAnimationFrame(gameRender(frameRate))
 
           }
         }
+
+      case x@Protocol.WinData(winnerScore,yourScore) =>
+        println(s"receive winningData msg:$x")
+        winningData = x
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         killInfo = (killedId, killedName, killerName)
         lastTime = 100
 
       case EncloseEvent(enclosure) =>
-//        println(s"got enclose event")
-//        println(s"当前帧号：${grid.frameCount}")
-//        println(s"传输帧号：$frameIndex")
-        if(grid.frameCount < frameIndex.toLong) {
+        //        println(s"got enclose event")
+        //        println(s"当前帧号：${grid.frameCount}")
+        //        println(s"传输帧号：$frameIndex")
+        if (grid.frameCount < frameIndex.toLong) {
           encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
-        } else if(grid.frameCount == frameIndex.toLong){
-//          println(s"圈地")
-//          println(s"enclosure:$enclosure")
+        } else if (grid.frameCount == frameIndex.toLong) {
+          //          println(s"圈地")
+          //          println(s"enclosure:$enclosure")
           enclosure.map(_.uid).foreach { id =>
             grid.cleanSnakeTurnPoint(id)
           }
-//          grid.cleanTurnPoint4Reply(myId)
+          //          grid.cleanTurnPoint4Reply(myId)
           grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
         }
 
       case RankEvent(current) =>
         currentRank = current
         maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
-        if(grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
 
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails) =>
-//        println(s"snapshot, frame:$frameIndex, snakes:${snakes.map(_.id)}")
+        //        println(s"snapshot, frame:$frameIndex, snakes:${snakes.map(_.id)}")
         snapshotMap += frameIndex.toLong -> msg
-        if(grid.frameCount >= frameIndex.toLong) { //重置
+        if (grid.frameCount >= frameIndex.toLong) { //重置
           syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong + 1, snakes, bodyDetails, fieldDetails))
           justSynced = true
         }
@@ -446,7 +463,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
 
   import scala.scalajs.js.typedarray.ArrayBuffer
 
-  private def replayEventDecode(a:ArrayBuffer): GameEvent={
+  private def replayEventDecode(a: ArrayBuffer): GameEvent = {
     val middleDataInJs = new MiddleBufferInJs(a)
     if (a.byteLength > 0) {
       bytesDecode[List[GameEvent]](middleDataInJs) match {
@@ -455,12 +472,12 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
         case Left(e) =>
           Protocol.DecodeError()
       }
-    }else{
+    } else {
       Protocol.DecodeError()
     }
   }
 
-  private def replayStateDecode(a:ArrayBuffer): GameEvent={
+  private def replayStateDecode(a: ArrayBuffer): GameEvent = {
     val middleDataInJs = new MiddleBufferInJs(a)
     bytesDecode[Snapshot](middleDataInJs) match {
       case Right(r) =>
@@ -471,5 +488,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara){
     }
   }
 
-
+  override def render: Elem = {
+    init()
+    <div></div>
+  }
 }

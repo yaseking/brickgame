@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
+import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Canvas, Image}
@@ -10,9 +10,10 @@ import org.scalajs.dom.html.{Canvas, Image}
   * Created by dry on 2018/9/3.
   **/
 class DrawGame(
-              ctx: CanvasRenderingContext2D,
-              canvas: Canvas
-              ) {
+  ctx: CanvasRenderingContext2D,
+  canvas: Canvas,
+  img: Int = 0
+) {
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   private val border = Point(BorderSize.w, BorderSize.h)
@@ -31,13 +32,24 @@ class DrawGame(
   private[this] val borderCtx = borderCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   private val championHeaderImg = dom.document.getElementById("championHeaderImg").asInstanceOf[Image]
-  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
-  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
+  private val imgMap: Map[Int, String] =
+    Map(
+      0 -> "luffyImg",
+      1 -> "fatTigerImg",
+      2 -> "BobImg",
+      3 -> "yangImg",
+      4 -> "smileImg",
+      5 -> "pigImg"
+    )
+//  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
+  private val myHeaderImg = dom.document.getElementById(imgMap(img)).asInstanceOf[Image]
+//  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
   private val goldImg = dom.document.getElementById("goldImg").asInstanceOf[Image]
   private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
+  private var scale = 1.0
 
   def resetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -52,7 +64,7 @@ class DrawGame(
   }
 
   def drawGameOn(): Unit = {
-    bodyAttribute.style_=("background-color:#F5F5F5;overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
+    bodyAttribute.style_=("overflow:Scroll;overflow-y:hidden;overflow-x:hidden;")
 
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
@@ -92,7 +104,13 @@ class DrawGame(
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     if (readFileError) {
-      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+      println("==============read file error")
+      ctx.fillStyle = ColorsSetting.backgroundColor2
+      canvas.width = 800
+      canvas.height = 400
+      ctx.fillRect(0, 0, 800.0, 400.0)
+      ctx.fillStyle = ColorsSetting.fontColor
+//      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
       ctx.fillText("文件不存在或文件已损坏...", 150, 180)
     } else if (replayFinish.nonEmpty && replayFinish.get) {
@@ -115,6 +133,20 @@ class DrawGame(
     }
   }
 
+  def drawGameDie4Replay(): Unit = {
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    canvas.width = 800
+    canvas.height = 400
+    ctx.fillRect(0, 0, 800.0, 400.0)
+    ctx.fillStyle = ColorsSetting.fontColor
+    //      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+    ctx.font = "36px Helvetica"
+    ctx.fillText("您观看的玩家已死亡...", 150, 180)
+  }
+
   def drawGameWait(): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -122,6 +154,14 @@ class DrawGame(
     ctx.font = "36px Helvetica"
     ctx.fillText("Please wait.", 150, 180)
   }
+
+//  def drawRecordError(): Unit = {
+//    ctx.fillStyle = ColorsSetting.backgroundColor2
+//    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    ctx.fillStyle = ColorsSetting.fontColor
+//    ctx.font = "36px Helvetica"
+//    ctx.fillText("文件不存在或已损坏...", 150, 180)
+//  }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
@@ -141,7 +181,7 @@ class DrawGame(
     val offx = length / 2
     val x = (dom.window.innerWidth / 2).toInt - 145
     val y = if (isReplay) (dom.window.innerHeight / 2).toInt - 80 else (dom.window.innerHeight / 2).toInt - 180
-//    val y = (dom.window.innerHeight / 2).toInt - 180
+    //    val y = (dom.window.innerHeight / 2).toInt - 180
 
     val gameTime = (myScore.endTime - myScore.startTime) / 1000
     val bestScore = maxArea / canvasSize * 100
@@ -169,7 +209,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawUserDieInfo(killedName: String, killerName: String) = {
+  def drawBarrage(killedName: String, killerName: String) = {
     ctx.save()
     ctx.globalAlpha = 0.6
     ctx.restore()
@@ -180,12 +220,13 @@ class DrawGame(
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
     val offx = length / 2
-//    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
+    //    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
     ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 5).toInt )
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData):Unit = {
+    ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
@@ -218,23 +259,49 @@ class DrawGame(
     ctx.fillStyle = "#000000"
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
-    println(ctx.measureText(txt2).width.toString)
+
+//    println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
+    ctx.font = "bold 24px Helvetica"
+    ctx.fillStyle = "#000000"
+    val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
+    val length1 = ctx.measureText(txt4).width
+    if(winningData.yourScore.isDefined){
+      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+      ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2)
+    }
+    ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2 + 40)
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
     ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2, 75, 50, 50)
     ctx.restore()
   }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, scale: Double, isReplay: Boolean = false): Double = { //头所在的点是屏幕的正中心
+  //  def drawField(fieldData: List[Protocol.FieldByColumn], snakes: List[SkDt]): Unit = {
+  //    fieldCtx.clearRect(0, 0, fieldCanvas.width, fieldCanvas.height)
+  //    fieldData.foreach { field => //按行渲染
+  //      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+  //      fieldCtx.fillStyle = color
+  //      field.scanField.foreach { point =>
+  //        point.x.foreach { x =>
+  //          fieldCtx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+  //        }
+  //      }
+  //    }
+  //  }
+
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150): Unit = { //头所在的点是屏幕的正中心
+//    println(s"drawGrid-frameRate: $frameRate")
+    val startTime = System.currentTimeMillis()
     val snakes = data.snakes
+//    val trueFrame = if(mode ==1) Protocol.frameRate2 else Protocol.frameRate1
 
     val lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
         val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / Protocol.frameRate
+        s.header + direction * offsetTime.toFloat / frameRate
 
       case None =>
         Point(border.x / 2, border.y / 2)
@@ -251,9 +318,9 @@ class DrawGame(
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
-    val newScale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
-    setScale(newScale, windowBoundary.x / 2, windowBoundary.y / 2)
+    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
     ctx.globalAlpha = 0.6
     data.bodyDetails.foreach { bds =>
@@ -279,7 +346,10 @@ class DrawGame(
       }
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
-
+    //绘制领地
+    //    ctx.save()
+    //    ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
+    //    ctx.restore()
 
     ctx.globalAlpha = 1.0
     fieldInWindow.foreach { field => //按行渲染
@@ -292,22 +362,24 @@ class DrawGame(
       }
     }
 
-    snakeWithOff.foreach { s =>
+    snakeWithOff.foreach { s => //draw headers
       ctx.fillStyle = s.color
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / Protocol.frameRate
+      val off = direction * offsetTime.toFloat / frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      val img = if (s.id == championId) championHeaderImg else {
-        if (s.id == uid) myHeaderImg else otherHeaderImg
-      }
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+
+      if(s.id == championId)
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
-      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y) * canvasUnit - 10)
+      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y - 1) * canvasUnit - 3)//-10
     }
 
     //边界
@@ -317,18 +389,16 @@ class DrawGame(
     //    //排行榜
     if(!isReplay) {
       rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
-      PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
+      PerformanceTool.renderFps(rankCtx, 20, textLineHeight, startTime)
     }
-
-    newScale
   }
 
   def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.fillStyle = ColorsSetting.mapColor
-    val w = canvas.width - littleMap.w * canvasUnit * 1.042
-    val h = canvas.height - littleMap.h * canvasUnit * 1.030
+    val w = canvas.width * 0.99 - littleMap.w * canvasUnit //* 1.042
+    val h = canvas.height * 0.985 - littleMap.h * canvasUnit //* 1.030
     ctx.save()
     ctx.globalAlpha = 0.5
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
@@ -420,9 +490,9 @@ class DrawGame(
     ctx.translate(-x, -y)
   }
 
-//  def cleanMyScore: Unit = {
-//    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-//  }
+  //  def cleanMyScore: Unit = {
+  //    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+  //  }
 
 
 }

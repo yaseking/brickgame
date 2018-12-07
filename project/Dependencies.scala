@@ -56,12 +56,16 @@ object Dependencies {
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
   val codec = "commons-codec" % "commons-codec" % "1.10"
   val postgresql = "org.postgresql" % "postgresql" % "9.4.1208"
-  val asynchttpclient = "org.asynchttpclient" % "async-http-client" % "2.0.32"
+  val asynchttpclient = "org.asynchttpclient" % "async-http-client" % "2.5.2"
   val ehcache = "net.sf.ehcache" % "ehcache" % "2.10.4"
   val essf = "org.seekloud" %% "essf" % "0.0.1-beta3"
 
   val byteObject = "org.seekloud" %% "byteobject" % "0.1.1"
 
+  val grpcSeq = Seq(
+    "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+    "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
+  )
 
   val backendDependencies: Seq[ModuleID] =
     Dependencies.akkaSeq ++
@@ -84,7 +88,7 @@ object Dependencies {
         Dependencies.essf,
         Dependencies.byteObject
         // "com.lihaoyi" %% "upickle" % "0.6.6"
-      )
+      ) ++ Dependencies.grpcSeq
 
 
 }

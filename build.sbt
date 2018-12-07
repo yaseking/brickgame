@@ -9,7 +9,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "carnie"
-val projectVersion = "2018.11.15"
+val projectVersion = "2018.12.06"
 
 val projectMainClass = "com.neo.sk.carnie.Boot"
 
@@ -86,9 +86,12 @@ lazy val client = (project in file("client")).enablePlugins(PackPlugin)
     packExtraClasspath := Map("carnie" -> Seq("."))
   )
   .settings(
-    libraryDependencies ++= Dependencies.backendDependencies
+    libraryDependencies ++= Dependencies.backendDependencies ++ Dependencies.grpcSeq
+  ).settings(
+  PB.targets in Compile := Seq(
+    scalapb.gen() -> (sourceManaged in Compile).value
   )
-  .dependsOn(sharedJvm)
+).dependsOn(sharedJvm)
 
 // Akka Http based backend
 lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
@@ -108,7 +111,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     packExtraClasspath := Map("carnie" -> Seq("."))
   )
   .settings(
-    libraryDependencies ++= Dependencies.backendDependencies
+    libraryDependencies ++= Dependencies.backendDependencies  ++ Dependencies.grpcSeq
   )
   .settings {
     (resourceGenerators in Compile) += Def.task {

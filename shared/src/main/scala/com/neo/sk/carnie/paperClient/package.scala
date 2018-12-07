@@ -63,7 +63,8 @@ package object paperClient {
                    direction: Point = Point(0, 0),
                    kill: Int = 0,
                    startTime: Long,
-                   endTime: Long
+                   endTime: Long,
+                   img: Int =0//头部图片
                  )
 
   case class UpdateSnakeInfo(

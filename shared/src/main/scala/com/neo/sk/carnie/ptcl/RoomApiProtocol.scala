@@ -54,7 +54,8 @@ object RoomApiProtocol {
 
   case class RecordFrameInfo(
                             frame: Int,
-                            frameNum: Int
+                            frameNum: Int,
+                            frameDuration: Int
                             )
 
   case class RecordPlayerList(

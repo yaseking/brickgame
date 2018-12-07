@@ -31,7 +31,7 @@ object PlayGameWebSocket {
 
   sealed trait WsCommand
 
-  case class ConnectGame(playerInfo: PlayerInfoInClient, domain: String) extends WsCommand
+  case class ConnectGame(playerInfo: PlayerInfoInClient, domain: String, mode: Int, img: Int) extends WsCommand//mode: Int, img: Int
 
   case class MsgToService(sendMsg: WsSendMsg) extends WsCommand
 
@@ -47,8 +47,8 @@ object PlayGameWebSocket {
   def idle(gameController: GameController)(implicit stashBuffer: StashBuffer[WsCommand], timer: TimerScheduler[WsCommand]): Behavior[WsCommand] = {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
-        case ConnectGame(playerInfo, domain) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain)))
+        case ConnectGame(playerInfo, domain, mode, img) =>
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, mode, img)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
@@ -142,12 +142,13 @@ object PlayGameWebSocket {
 
   }
 
-  def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String): String = {
+  def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String, mode: Int, img: Int): String = {//mode: Int, img: Int
     val wsProtocol = "ws"
-    val domain = "10.1.29.250:30368"
-//    val domain = "localhost:30368"
+//    val domain = "10.1.29.250:30368"
+    println(s"domain: $domain")
+    //    val domain = "localhost:30368"
     val name = URLEncoder.encode(playerName, "UTF-8")
-    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode"
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode&mode=$mode&img=$img"//todo domain
 //    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName"
   }
 

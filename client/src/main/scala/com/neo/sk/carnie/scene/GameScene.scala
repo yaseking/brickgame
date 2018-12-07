@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.scene
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.Data4TotalSync
+import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, WinData}
 import com.neo.sk.carnie.paperClient._
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
@@ -20,7 +20,7 @@ object GameScene{
   }
 }
 
-class GameScene {
+class GameScene(img: Int, frameRate: Int) {
 
   import GameScene._
 
@@ -47,7 +47,7 @@ class GameScene {
   group.getChildren.add(viewCanvas)
   group.getChildren.add(rankCanvas)
 
-  val view = new GameViewCanvas(viewCanvas,rankCanvas)
+  val view = new GameViewCanvas(viewCanvas, rankCanvas, img)
   val rank = new RankCanvas(rankCanvas)
 
 
@@ -72,7 +72,7 @@ class GameScene {
   }
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
-    view.drawGrid(uid, data, offsetTime, grid, championId)
+    view.drawGrid(uid, data, offsetTime, grid, championId, frameRate)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
@@ -102,14 +102,14 @@ class GameScene {
     viewCtx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync): Unit = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
     rank.drawClearRank()
-    view.drawGameWin(myId: String, winner: String, data: Data4TotalSync)
+    view.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
   }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore): Unit = {
+  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
     rank.drawClearRank()
-    view.drawGameDie(killerOpt, myScore)
+    view.drawGameDie(killerOpt, myScore,maxArea)
   }
 
 
@@ -117,7 +117,7 @@ class GameScene {
     rank.drawRank(myId, snakes, currentRank)
   }
 
-  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+  def drawBarrage(killedName: String, killerName: String): Unit = {
     view.drawUserDieInfo(killedName,killerName)
   }
 

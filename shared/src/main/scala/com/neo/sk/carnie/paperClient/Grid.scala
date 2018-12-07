@@ -246,26 +246,29 @@ trait Grid {
 
     finishFields = mayBeSuccess.map(i => (i._1, i._2.keys.toList)).toList
 
-    val noHeaderSnake = snakes.filter(s => finishFields.flatMap(_._2).contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l))).data.header)).keySet
+    val finishPoints = finishFields.flatMap(_._2)
+
+    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l, img = 0))).data.header)).keySet
+    val bodyInNewFieldSnake = finishPoints.map{ fp =>
+      grid.get(fp) match {
+        case Some(Body(bid, _)) => Some(bid)
+        case _ => None
+      }
+    }.filter(_.nonEmpty).map(_.get)
 
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
-    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList
+    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList ::: bodyInNewFieldSnake
 
-    val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
     finalDie.foreach { sid =>
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
-      val score = grid.filter(_._2 match { case Field(fid) if fid == sid => true case _ => false }).toList.length.toFloat*100 / fullSize
-      val endTime = System.currentTimeMillis()
-//      snakes.get(sid).foreach { s =>
-//        killedSks += sid -> (sid, s.name, s.kill, score.formatted("%.2f").toFloat, s.startTime, endTime)
-//      }
+
       snakeTurnPoints -= sid
     }
 
@@ -313,6 +316,7 @@ trait Grid {
           for (y <- yMin until yMax) {
             grid.get(Point(x, y)) match {
               case Some(x: Field) if x.id == snake.id => //donothing
+              case Some(x: Body)  if x.fid.nonEmpty && x.fid.get == snake.id=>
               case _ => targets = targets + Point(x, y)
             }
           }
@@ -461,10 +465,9 @@ trait Grid {
 
   def cleanSnakeTurnPoint(sid: String) = {
     if(snakeTurnPoints.contains(sid)) {
+      println(s"cleanTurnPoint-id: ${sid}")
       snakeTurnPoints -= sid
     }
   }
-
-
 }
 
