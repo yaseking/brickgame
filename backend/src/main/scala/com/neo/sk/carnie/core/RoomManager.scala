@@ -24,7 +24,7 @@ import com.neo.sk.carnie.common.AppSettings
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  private val roomMap = mutable.HashMap[Int, (Int, mutable.HashSet[(String, String)])]() //roomId->(mode,Set((userId, name)))
+  private val roomMap = mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]() //roomId->(mode,pwd,Set((userId, name)))
   private val roomMap4Watcher = mutable.HashMap[Int, (Int, mutable.HashSet[String])]() //roomId->(mode,Set((userId)))
   private val limitNum = AppSettings.limitNum
 
@@ -33,6 +33,8 @@ object RoomManager {
   trait UserAction extends Command
 
   case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
+
+  case class CreateRoom(mode: Int, pwd: Option[String] = None) extends Command
 
   case class Join(id: String, name: String, mode: Int, img: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
@@ -85,15 +87,22 @@ object RoomManager {
   def idle(roomIdGenerator: AtomicInteger)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case m@CreateRoom(mode, pwd) =>
+          log.info(s"got $m")
+          val roomId = roomIdGenerator.getAndIncrement()
+          roomMap += roomId -> (mode , pwd, mutable.HashSet.empty[(String, String)])
+          println(roomMap)
+          Behaviors.same
+
         case msg@Join(id, name, mode, img, subscriber) =>
           log.info(s"got $msg")
           if (roomMap.nonEmpty && roomMap.exists(r => r._2._1 == mode && r._2._2.size < limitNum)) {
             val roomId = roomMap.filter(r => r._2._1 == mode && r._2._2.size < limitNum).head._1
-            roomMap.put(roomId, (mode, roomMap(roomId)._2 + ((id, name))))
+            roomMap.put(roomId, (mode, roomMap(roomId)._2, roomMap(roomId)._3 + ((id, name))))
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
-          } else {
+          } else { //创建新房间不带密码
             val roomId = roomIdGenerator.getAndIncrement()
-            roomMap.put(roomId, (mode, mutable.HashSet((id, name))))
+            roomMap.put(roomId, (mode, None, mutable.HashSet((id, name))))
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           }
           Behaviors.same
@@ -129,13 +138,13 @@ object RoomManager {
           Behaviors.same
 
         case JudgePlaying(userId, reply) =>
-          val rst = roomMap.map(_._2._2.exists(_._1 == userId)).toList.contains(true)
+          val rst = roomMap.map(_._2._3.exists(_._1 == userId)).toList.contains(true)
           reply ! rst
           Behaviors.same
 
         case JudgePlaying4Watch(roomId, userId, reply) =>
           if(roomMap.contains(roomId)) {
-            val msg = roomMap.filter(_._1==roomId).head._2._2.exists(_._1==userId)//userId是否在游戏中
+            val msg = roomMap.filter(_._1==roomId).head._2._3.exists(_._1==userId)//userId是否在游戏中
             reply ! msg
             Behaviors.same
           } else {
@@ -164,8 +173,8 @@ object RoomManager {
         case msg@Left(id, name) =>
           log.info(s"got $msg")
           try {
-            val roomId = roomMap.filter(r => r._2._2.exists(u => u._1 == id)).head._1
-            roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2 -((id, name))))
+            val roomId = roomMap.filter(r => r._2._3.exists(u => u._1 == id)).head._1
+            roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2, roomMap(roomId)._3 -((id, name))))
             val mode = roomMap(roomId)._1
             getRoomActor(ctx, roomId, mode) ! RoomActor.LeftRoom(id, name)
           } catch {
@@ -201,8 +210,8 @@ object RoomManager {
             case _ =>
 //              log.debug(s"receive $m...roomMap:$roomMap")
           }
-          if (roomMap.exists(r => r._2._2.exists(u => u._1 == id))) {
-            val roomId = roomMap.filter(r => r._2._2.exists(u => u._1 == id)).head._1
+          if (roomMap.exists(r => r._2._3.exists(u => u._1 == id))) {
+            val roomId = roomMap.filter(r => r._2._3.exists(u => u._1 == id)).head._1
             val mode = roomMap(roomId)._1
             getRoomActor(ctx, roomId, mode) ! RoomActor.UserActionOnServer(id, action)
           }
@@ -223,31 +232,31 @@ object RoomManager {
 
         case UserLeft(id) =>
           log.debug(s"got Terminated id = $id")
-          val roomInfoOpt = roomMap.find(r => r._2._2.exists(u => u._1 == id))
+          val roomInfoOpt = roomMap.find(r => r._2._3.exists(u => u._1 == id))
           if (roomInfoOpt.nonEmpty) {
             val roomId = roomInfoOpt.get._1
-            val filterUserInfo = roomMap(roomId)._2.find(_._1 == id)
+            val filterUserInfo = roomMap(roomId)._3.find(_._1 == id)
             if (filterUserInfo.nonEmpty) {
-              roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2 - filterUserInfo.get))
+              roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2, roomMap(roomId)._3 - filterUserInfo.get))
             }
           }
           Behaviors.same
 
         case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
-          reply ! roomMap.find(r => r._2._2.exists(i => i._1 == pid)).map(_._1)
+          reply ! roomMap.find(r => r._2._3.exists(i => i._1 == pid)).map(_._1)
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
           log.debug(s"${ctx.self.path} got roomId = $roomId")
           val roomInfo = roomMap.get(roomId)
           val replyMsg = if (roomInfo.nonEmpty) {
-            roomInfo.get._2.toList.map { p => PlayerIdName(p._1, p._2) }
+            roomInfo.get._3.toList.map { p => PlayerIdName(p._1, p._2) }
           } else Nil
           reply ! replyMsg
           Behaviors.same
 
-        case FindAllRoom(reply) =>
+        case FindAllRoom(reply) => //或许可以用个计时器，定时请求房间列表，清除无人的房间
           log.debug(s"got all room")
           reply ! roomMap.keySet.toList
           Behaviors.same

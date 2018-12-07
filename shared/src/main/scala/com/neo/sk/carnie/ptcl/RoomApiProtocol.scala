@@ -77,6 +77,11 @@ object RoomApiProtocol {
                            playerId: String
                          )
 
+  case class CreateRoomInfo(
+                           mode: Int,
+                           pwd: Option[String]
+                         )
+
   case class PlayerInfo(
                          playerList: List[PlayerIdName]
                        )

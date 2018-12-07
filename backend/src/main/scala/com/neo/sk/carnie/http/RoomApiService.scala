@@ -31,6 +31,18 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
   val roomManager: akka.actor.typed.ActorRef[RoomManager.Command]
 
+  private val createRoom = (path("createRoom") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, CreateRoomInfo]]) {
+      case Right(r) =>
+        println(r)
+        roomManager ! RoomManager.CreateRoom(r.mode, r.pwd)
+        complete(SuccessRsp())
+      case Left(e) =>
+        log.debug(s"got errMsg: $e")
+        complete(ErrorRsp(100020, s"createRoom error: $e"))
+    }
+  }
+
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
     dealPostReq[PlayerIdInfo] { req =>
       val msg: Future[Option[Int]] = roomManager ? (RoomManager.FindRoomId(req.playerId, _))
@@ -229,7 +241,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
 
   val roomApiRoutes: Route = {
-    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
+    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ createRoom ~
       getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList
   }
 
