@@ -34,7 +34,7 @@ object RoomManager {
 
   case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
 
-  case class CreateRoom(mode: Int, pwd: Option[String] = None) extends Command
+  case class CreateRoom(userId: String, name: String, mode: Int, img: Int, pwd: Option[String] = None, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   case class Join(id: String, name: String, mode: Int, img: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
@@ -87,11 +87,11 @@ object RoomManager {
   def idle(roomIdGenerator: AtomicInteger)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case m@CreateRoom(mode, pwd) =>
+        case m@CreateRoom(id, name, mode, img, pwd, subscriber) =>
           log.info(s"got $m")
           val roomId = roomIdGenerator.getAndIncrement()
-          roomMap += roomId -> (mode , pwd, mutable.HashSet.empty[(String, String)])
-          println(roomMap)
+          roomMap += roomId -> (mode , pwd, mutable.HashSet((id, name)))
+          getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           Behaviors.same
 
         case msg@Join(id, name, mode, img, subscriber) =>
@@ -307,6 +307,31 @@ object RoomManager {
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
       ).mapMaterializedValue(outActor => actor ! Join(userId, name, mode, img, outActor))
+
+    Flow.fromSinkAndSource(in, out)
+  }
+
+  def createRoom(actor: ActorRef[RoomManager.Command], userId: String, name: String, mode: Int, img: Int, pwd: Option[String]): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+    val in = Flow[Protocol.UserAction]
+      .map {
+        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
+        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case _ => UnKnowAction
+      }
+      .to(sink(actor, userId, name))
+
+    val out =
+      ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
+        completionMatcher = {
+          case WsSourceProtocol.CompleteMsgServer ⇒
+        },
+        failureMatcher = {
+          case WsSourceProtocol.FailMsgServer(e) ⇒ e
+        },
+        bufferSize = 64,
+        overflowStrategy = OverflowStrategy.dropHead
+      ).mapMaterializedValue(outActor => actor ! CreateRoom(userId, name, mode, img, pwd, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }
