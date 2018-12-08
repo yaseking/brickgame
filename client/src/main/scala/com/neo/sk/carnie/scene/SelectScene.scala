@@ -1,10 +1,8 @@
 package com.neo.sk.carnie.scene
 
-import java.awt.TextField
-
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
-import javafx.scene.control.{Button, RadioButton, ToggleGroup}
+import javafx.scene.control.{Button, PasswordField, RadioButton, ToggleGroup, TextField}
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
@@ -117,10 +115,12 @@ class SelectScene {
   canvasCtx.drawImage(headerImg4, 300, 250, 40, 40)
   canvasCtx.drawImage(headerImg5, 350, 250, 40, 40)
 
+//  val pwdField = new PasswordField()
   val pwdField = new TextField()
-  pwdField.setLocation(360, 400)
-  pwdField.setSize(30,10)
-  pwdField.setName("test")
+  pwdField.setLayoutX(360)
+  pwdField.setLayoutY(400)
+//  pwdField.setSize(30,10)
+//  pwdField.setName("test")
 
   val button2 = new  Button("创建房间")
   button2.setLayoutX(450)
@@ -136,8 +136,9 @@ class SelectScene {
   group.getChildren.add(img3)
   group.getChildren.add(img4)
   group.getChildren.add(img5)
-//  group.getChildren.add(img6)
+  group.getChildren.add(pwdField)
   group.getChildren.add(button1)
+  group.getChildren.add(button2)
   val scene = new Scene(group)
 
   button1.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))

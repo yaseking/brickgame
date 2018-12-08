@@ -22,6 +22,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
     override def createRoom(mode: Int, img: Int, pwd: String): Unit = {
       Boot.addToPlatform {
         val frameRate = if(mode==2) frameRate2 else frameRate1
+        println(s"pwd: $pwd")
         val playGameScreen = new GameScene(img, frameRate)
         context.switchScene(playGameScreen.getScene, fullScreen = true)
         new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).createRoom(domain, mode, img, pwd)
