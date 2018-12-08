@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.controller
 
 import com.neo.sk.carnie.Boot
-import com.neo.sk.carnie.scene.{GameScene, SelectScene, SelectSceneListener}
+import com.neo.sk.carnie.scene.{GameScene,LayeredGameScene, SelectScene, SelectSceneListener}
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.paperClient.Protocol.{frameRate1, frameRate2}
@@ -15,8 +15,17 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
       Boot.addToPlatform {
         val frameRate = if(mode==2) frameRate2 else frameRate1
         val playGameScreen = new GameScene(img, frameRate)
-        context.switchScene(playGameScreen.getScene, fullScreen = true)
-        new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).start(domain, mode, img)
+        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+        val x = true
+        if(!x) {
+          context.switchScene(playGameScreen.getScene, fullScreen = true)
+          new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
+        }
+        else {
+          context.switchScene(LayeredGameScreen.getScene,fullScreen = false)
+          new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
+        }
+
       }
     }
   })

@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.scene
 
-import java.awt.Graphics
-import java.io.File
+//import java.awt.Graphics
+//import java.io.File
 
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
@@ -11,8 +11,8 @@ import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
-import javafx.scene.SnapshotParameters
-import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
+//import javafx.scene.SnapshotParameters
+//import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
 import org.slf4j.LoggerFactory
 
 /**
@@ -40,14 +40,13 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
   private var canvasUnit = (windowBoundary.x / window.x).toInt
   private var canvasUnitY = (windowBoundary.y / window.y).toInt
   private var scale = 1.0
-  private var maxArea: Int = 0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
-  def debug(str: String) = log.debug(s"$str")
+  def debug(str: String):Unit = log.debug(s"$str")
 
-  def resetScreen(viewWidth:Int, viewHeight:Int, rankWidth:Int, rankHeight:Int) = {
+  def resetScreen(viewWidth:Int, viewHeight:Int, rankWidth:Int, rankHeight:Int):Unit = {
     canvas.setWidth(viewWidth)
     canvas.setHeight(viewHeight)
     rankCanvas.setWidth(rankWidth)

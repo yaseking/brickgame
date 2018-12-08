@@ -1,11 +1,12 @@
 package com.neo.sk.carnie.controller
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.scene.{GameScene, PerformanceTool}
+import com.neo.sk.carnie.scene.{GameScene, LayeredCanvas, LayeredGameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
@@ -22,6 +23,7 @@ import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 class GameController(player: PlayerInfoInClient,
                      stageCtx: Context,
                      gameScene: GameScene,
+                     layeredGameScene: LayeredGameScene,
                      mode: Int =0,
                      frameRate: Int
                      ) {
@@ -74,6 +76,7 @@ class GameController(player: PlayerInfoInClient,
 
   def loseConnect(): Unit = {
     gameScene.drawGameOff(firstCome)
+    layeredGameScene.drawGameOff(firstCome)
   }
 
   def getRandom(s: Int) ={
@@ -106,7 +109,6 @@ class GameController(player: PlayerInfoInClient,
       stageCtx.getStage.setHeight(Constant.CanvasHeight)
       exitFullScreen = true
     }
-
     if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
       stageWidth = stageCtx.getStage.getWidth.toInt
       stageHeight = stageCtx.getStage.getHeight.toInt
@@ -154,14 +156,14 @@ class GameController(player: PlayerInfoInClient,
       case Some(_) =>
         if(firstCome)
           firstCome = false
-        if(playBgm) {
-          BGM.play(30)
-          playBgm = false
-        }
-        if(!BGM.isPlaying){
-          BGM = bgmList(getRandom(bgmAmount))
-          BGM.play(30)
-        }
+//        if(playBgm) {
+//          BGM.play(30)
+//          playBgm = false
+//        }
+//        if(!BGM.isPlaying){
+//          BGM = bgmList(getRandom(bgmAmount))
+//          BGM.play(30)
+//        }
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None if isWin =>
@@ -183,22 +185,26 @@ class GameController(player: PlayerInfoInClient,
           BGM.stop()
         }
         gameScene.drawGameWait()
+        layeredGameScene.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
         if(BGM.isPlaying){
           BGM.stop()
         }
         gameScene.drawGameOff(firstCome)
+        layeredGameScene.drawGameOff(firstCome)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         if(BGM.isPlaying){
           BGM.stop()
         }
         gameScene.drawGameWin(player.id, winner, winData,winningData)
+        layeredGameScene.drawGameWin(player.id, winner, winData,winningData)
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
         gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        layeredGameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         if (grid.killInfo.nonEmpty) {
           val killBaseInfo = grid.killInfo.get
           gameScene.drawBarrage(killBaseInfo._2, killBaseInfo._3)
@@ -212,6 +218,7 @@ class GameController(player: PlayerInfoInClient,
         }
         if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
+        layeredGameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = None
         isContinue = false
     }
@@ -293,8 +300,8 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           currentRank = current
           maxArea = Math.max(maxArea,currentRank.find(_.id == player.id).map(_.area).getOrElse(0))
-          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
-            gameScene.drawRank(player.id, grid.getGridData.snakes, current)
+//          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
+//            gameScene.drawRank(player.id, grid.getGridData.snakes, current)
         }
 
       case data: Protocol.Data4TotalSync =>
@@ -337,6 +344,50 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def addUserActionListen() = {
+    layeredGameScene.positionCanvas.requestFocus()
+
+    layeredGameScene.positionCanvas.setOnKeyPressed{ event =>
+      val key = event.getCode
+      if (Constant.watchKeys.contains(key)) {
+        val delay = if(mode==2) 4 else 2
+        val frame = grid.frameCount + delay
+        val actionId = idGenerator.getAndIncrement()
+        val keyCode = Constant.keyCode2Int(key)
+        grid.addActionWithFrame(player.id, keyCode, frame)
+
+        if (key != KeyCode.SPACE) {
+          grid.myActionHistory += actionId -> (keyCode, frame)
+        } else {
+          //数据重置
+          drawFunction match {
+            case FrontProtocol.DrawBaseGame(_) =>
+            case _ =>
+              grid.cleanData()
+              drawFunction = FrontProtocol.DrawGameWait
+              audioWin.stop()
+              audioDie.stop()
+              firstCome = true
+              if(isWin){
+                isWin = false
+                winnerName = "unknown"
+              }
+              animationTimer.start()
+              isContinue = true
+          }
+        }
+        val newKeyCode =
+          if(mode == 1)
+            key match {
+              case KeyCode.LEFT => KeyCode.RIGHT
+              case KeyCode.RIGHT => KeyCode.LEFT
+              case KeyCode.DOWN => KeyCode.UP
+              case KeyCode.UP => KeyCode.DOWN
+              case _ => KeyCode.SPACE
+            }
+          else key
+        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
+      }
+    }
     gameScene.viewCanvas.requestFocus()
 
     gameScene.viewCanvas.setOnKeyPressed{ event =>

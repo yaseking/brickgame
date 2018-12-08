@@ -15,6 +15,8 @@ class Context(stage: Stage) {
     stage.sizeToScene()
     stage.setResizable(true)
     stage.setTitle(title)
+    stage.setWidth(400)
+    stage.setHeight(300)
 //    stage.setIconified(fullScreen)
     stage.setFullScreen(fullScreen)
 //    stage.setMaximized(fullScreen)
