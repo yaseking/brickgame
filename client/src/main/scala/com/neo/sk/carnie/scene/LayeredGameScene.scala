@@ -57,13 +57,15 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   BorderCanvas.setLayoutY(50)
   BorderCanvas.setLayoutX(600)
 
-  selfViewCanvas.setHeight(viewHeight)
+  selfViewCanvas.setHeight(200)
   selfViewCanvas.setWidth(viewWidth)
   selfViewCanvas.setLayoutY(50)
   selfViewCanvas.setLayoutX(1200)
 
   selfCanvas.setHeight(viewHeight)
   selfCanvas.setWidth(viewWidth)
+  selfCanvas.setLayoutY(400)
+  selfCanvas.setLayoutX(50)
 
   group.getChildren.add(viewCanvas)
   group.getChildren.add(rankCanvas)
@@ -105,6 +107,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     layered.drawPosition(data.snakes.filter(_.id == uid).map(_.header).head,data.snakes.find(_.id == championId).map(_.header),uid == championId)
     layered.drawBorder()
     layered.drawSelfView(uid, data, offsetTime, grid, championId, frameRate)
+    layered.drawSelf(uid, data, offsetTime, grid, championId, frameRate)
   }
 
   def drawGameWait(): Unit = {
@@ -135,12 +138,12 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
     rank.drawClearRank()
-    view.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
+    layered.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
   }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
     rank.drawClearRank()
-    view.drawGameDie(killerOpt, myScore,maxArea)
+    layered.drawGameDie(killerOpt, myScore,maxArea)
   }
 
 
@@ -149,7 +152,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   }
 
   def drawBarrage(killedName: String, killerName: String): Unit = {
-    view.drawUserDieInfo(killedName,killerName)
+    layered.drawUserDieInfo(killedName,killerName)
   }
 
 }
