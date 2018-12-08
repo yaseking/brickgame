@@ -91,6 +91,7 @@ object RoomManager {
           log.info(s"got $m")
           val roomId = roomIdGenerator.getAndIncrement()
           roomMap += roomId -> (mode , pwd, mutable.HashSet((id, name)))
+          println(roomMap)
           getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           Behaviors.same
 
