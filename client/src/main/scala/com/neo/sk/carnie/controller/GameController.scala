@@ -103,19 +103,19 @@ class GameController(player: PlayerInfoInClient,
   }
 
   private def logicLoop(): Unit = { //逻辑帧
-//    if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
-//      gameScene.resetScreen(Constant.CanvasWidth,Constant.CanvasHeight,Constant.CanvasWidth,Constant.CanvasHeight)
-//      stageCtx.getStage.setWidth(Constant.CanvasWidth)
-//      stageCtx.getStage.setHeight(Constant.CanvasHeight)
-//      exitFullScreen = true
-//    }
-//    if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
-//      stageWidth = stageCtx.getStage.getWidth.toInt
-//      stageHeight = stageCtx.getStage.getHeight.toInt
-//      gameScene.resetScreen(stageWidth,stageHeight,stageWidth,stageHeight)
-//      stageCtx.getStage.setWidth(stageWidth)
-//      stageCtx.getStage.setHeight(stageHeight)
-//    }
+    if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
+      gameScene.resetScreen(Constant.CanvasWidth,Constant.CanvasHeight,Constant.CanvasWidth,Constant.CanvasHeight)
+      stageCtx.getStage.setWidth(Constant.CanvasWidth)
+      stageCtx.getStage.setHeight(Constant.CanvasHeight)
+      exitFullScreen = true
+    }
+    if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
+      stageWidth = stageCtx.getStage.getWidth.toInt
+      stageHeight = stageCtx.getStage.getHeight.toInt
+      gameScene.resetScreen(stageWidth,stageHeight,stageWidth,stageHeight)
+      stageCtx.getStage.setWidth(stageWidth)
+      stageCtx.getStage.setHeight(stageHeight)
+    }
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
 
@@ -300,8 +300,9 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           currentRank = current
           maxArea = Math.max(maxArea,currentRank.find(_.id == player.id).map(_.area).getOrElse(0))
-//          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
-//            gameScene.drawRank(player.id, grid.getGridData.snakes, current)
+          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
+            gameScene.drawRank(player.id, grid.getGridData.snakes, current)
+            layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
         }
 
       case data: Protocol.Data4TotalSync =>

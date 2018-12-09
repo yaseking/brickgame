@@ -43,12 +43,14 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 
   viewCanvas.setHeight(viewHeight)
   viewCanvas.setWidth(viewWidth)
-//  viewCanvas.setLayoutY(50)
-//  viewCanvas.setLayoutX(500)
+  viewCanvas.setLayoutY(400)
+  viewCanvas.setLayoutX(600)
 
 
-  rankCanvas.setHeight(rankHeight)
-  rankCanvas.setWidth(rankWidth)
+  rankCanvas.setHeight(viewHeight)
+  rankCanvas.setWidth(viewWidth)
+  rankCanvas.setLayoutY(400)
+  rankCanvas.setLayoutX(600)
 
 
 
@@ -57,7 +59,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   BorderCanvas.setLayoutY(50)
   BorderCanvas.setLayoutX(600)
 
-  selfViewCanvas.setHeight(200)
+  selfViewCanvas.setHeight(viewHeight)
   selfViewCanvas.setWidth(viewWidth)
   selfViewCanvas.setLayoutY(50)
   selfViewCanvas.setLayoutX(1200)
@@ -74,36 +76,18 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   group.getChildren.add(selfViewCanvas)
   group.getChildren.add(selfCanvas)
 
-  val view = new GameViewCanvas(viewCanvas, rankCanvas, img)
   val rank = new RankCanvas(rankCanvas)
   val layered = new LayeredCanvas(viewCanvas,rankCanvas,positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,img)
 
 
-  private val viewCtx = viewCanvas.getGraphicsContext2D
   private val selfViewCtx = selfViewCanvas.getGraphicsContext2D
 
   val getScene: Scene = new Scene(group)
 
-  def resetScreen(viewWidth: Int,viewHeight: Int,rankWidth: Int,rankHeight: Int): Unit = {
-    //    val viewWidth = 1200//1800
-    //    val viewHeight = 750//900
-    //    val rankWidth = 1200//1800
-    //    val rankHeight = 250//300
-
-    rank.resetRankView(rankWidth, rankHeight)
-    view.resetScreen(viewWidth, viewHeight, rankWidth, rankHeight)
-
-    //    viewCanvas.setWidth(viewWidth)
-    //    viewCanvas.setHeight(viewHeight)
-    //
-    //    rankCanvas.setWidth(rankWidth)
-    //    rankCanvas.setHeight(rankHeight)
-  }
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
 //    view.drawGrid(uid, data, offsetTime, grid, championId, frameRate)
 //    view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-
     layered.drawPosition(data.snakes.filter(_.id == uid).map(_.header).head,data.snakes.find(_.id == championId).map(_.header),uid == championId)
     layered.drawBorder()
     layered.drawSelfView(uid, data, offsetTime, grid, championId, frameRate)
@@ -148,7 +132,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 
 
   def drawRank(myId: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
-    rank.drawRank(myId, snakes, currentRank)
+    layered.drawRank(myId, snakes, currentRank)
   }
 
   def drawBarrage(killedName: String, killerName: String): Unit = {

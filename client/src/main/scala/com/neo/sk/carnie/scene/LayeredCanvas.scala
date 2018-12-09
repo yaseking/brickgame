@@ -11,6 +11,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
+import javafx.geometry.VPos
 //import javafx.scene.SnapshotParameters
 //import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
 import org.slf4j.LoggerFactory
@@ -48,8 +49,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = imgMap(img)
   private val crownImg = new Image("crown.png")
-  private var canvasUnit = (positionWindowBoundary.x / window.x)
-  private var canvasUnitY = (positionWindowBoundary.y / window.y)
+  private var canvasUnit = positionWindowBoundary.x / window.x
+  private var canvasUnitY =   positionWindowBoundary.y / window.y
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
@@ -81,8 +82,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val w = positionWindowBoundary.x //400
     val h = positionWindowBoundary.y //300
     positionCtx.clearRect(0,0,w,h)
-    a += 1
-    if(a % 200 ==0) println(w,h,positionCanvasUnit)
+//    a += 1
+//    if(a % 200 ==0) println(w,h,positionCanvasUnit)
     positionCtx.save()
     positionCtx.setGlobalAlpha(0.5)
     positionCtx.fillRect(0, 0, w , h )
@@ -399,7 +400,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     selfCtx.save()
 
 //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-//    selfCtx.setFill(Color.rgb(105,105,105))
+    selfCtx.setFill(Color.rgb(105,105,105))
 //
 //  //画边界
     selfCtx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit * BorderSize.w, canvasUnit)
@@ -409,18 +410,6 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     selfCtx.setGlobalAlpha(0.6)
 
 
-    fieldInWindow.filter(_.uid == uid).foreach { field => //按行渲染
-      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      selfCtx.setFill(color)
-
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-        }
-      }
-    }
-
-    selfCtx.setGlobalAlpha(1)
     val bd = data.bodyDetails.find(_.uid == uid)
 
     if(bd.isDefined){
@@ -452,6 +441,18 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       }
     }
 
+    selfCtx.setGlobalAlpha(1)
+    fieldInWindow.filter(_.uid == uid).foreach { field => //按行渲染
+      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      selfCtx.setFill(color)
+
+      field.scanField.foreach { point =>
+        point.x.foreach { x =>
+          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+        }
+      }
+    }
+
     snakeWithOff.filter(_.id == uid).foreach { s =>
       selfCtx.setFill(Constant.hex2Rgb(s.color))
 
@@ -474,9 +475,77 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
     selfCtx.restore()
 
-    //    rankCtx.clearRect(20, textLineHeight * 5, 650, textLineHeight * 2)//* 5, * 2
-    //    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
 
+  }
+
+  private val realWindowWidth = rankCanvas.getWidth
+  private val realWindowHeight = rankCanvas.getHeight
+  private val rankWindowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
+  private val goldImg = new Image("gold.png")
+  private val silverImg = new Image("silver.png")
+  private val bronzeImg = new Image("bronze.png")
+
+  private val fillWidth = 33
+  private var lastRankNum = 0 //清屏用
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
+
+    val leftBegin = 20
+    val rightBegin = 20
+//    val maxArea = if(0.4 - currentRank.length * 0.5 > 0.15) 0.4 - currentRank.length * 0.5 else 0.15
+    val maxArea = 0.10
+    val areaUnit = 250 / maxArea
+
+    drawClearRank()//绘制前清除canvas
+
+    lastRankNum = currentRank.length
+
+    rankCtx.setGlobalAlpha(1.0)
+    rankCtx.setTextBaseline(VPos.TOP)
+
+
+    val currentRankBaseLine = 2
+    var index = 0
+    rankCtx.setFont(Font.font(14))
+
+    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+    if (currentRank.lengthCompare(3) >= 0) {
+      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+      rankCtx.drawImage(bronzeImg, rightBegin - 5 - textLineHeight, textLineHeight * 4, textLineHeight, textLineHeight)
+    }
+    else if (currentRank.lengthCompare(2) == 0) {
+      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+    }
+    else {
+      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+    }
+    currentRank.foreach { score =>
+      val color = snakes.find(_.id == score.id).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      rankCtx.setGlobalAlpha(0.6)
+      rankCtx.setFill(color)
+      rankCtx.save()
+      rankCtx.fillRect(rightBegin.toInt + 100, (index + currentRankBaseLine) * textLineHeight,
+        5 + areaUnit * (score.area.toDouble / canvasSize), textLineHeight)
+      rankCtx.restore()
+
+      rankCtx.setGlobalAlpha(1)
+      rankCtx.setFill(Color.rgb(0,0,0))
+      index += 1
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
+      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 60, index, currentRankBaseLine)
+//      drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
+    }
+  }
+
+  def drawClearRank(): Unit = {
+    val width = rankCanvas.getWidth
+    val height = rankCanvas.getHeight
+    rankCtx.clearRect(0, 0, width, height)
+  }
+
+  def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
+    rankCtx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
   }
 
   def setScale(scale: Double, x: Double, y: Double): Unit = {
