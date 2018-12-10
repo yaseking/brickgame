@@ -3,6 +3,8 @@ package com.neo.sk.carnie.scene
 //import java.awt.Graphics
 //import java.io.File
 
+import java.awt.image.BufferedImage
+
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
 import javafx.scene.canvas.Canvas
@@ -11,8 +13,9 @@ import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.common.Constant.ColorsSetting
+import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.VPos
-//import javafx.scene.SnapshotParameters
+import javafx.scene.SnapshotParameters
 //import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
 import org.slf4j.LoggerFactory
 
@@ -59,6 +62,37 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   def debug(str: String):Unit = log.debug(s"$str")
 
   var a=0
+  def getAllImageData:List[Array[Int]] ={
+    val canvasList = List(positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,rankCanvas,viewCanvas)
+    canvasList.map(c => getImageData(c))
+  }
+  def getImageData(canvas: Canvas):Array[Int] = {
+//    a += 1
+    val h = canvas.getHeight.toInt
+    val w = canvas.getWidth.toInt
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+
+    val writableImage = canvas.snapshot(params,null)
+    val bufferedImage = new BufferedImage(w,h,2)
+//    val reader = writableImage.getPixelReader
+    SwingFXUtils.fromFXImage(writableImage,bufferedImage)
+//    val y = bufferedImage.getHeight
+//    val x = bufferedImage.getWidth
+//    println("height" + y + "width" + x)
+    val rgb = bufferedImage.getRGB(0,0,w,h,null,0,w)
+//    println("rgb" + rgb.toList.filter(_ != 2146825717 ))
+//    val byte = rgb.map(_.toByte)
+    println("rgb" + rgb.toList.length)
+    rgb
+//    println("byte" + byte.toList.length)
+//    for(x <- 0 until w){
+//      for(y <- 0 until h){
+//        val rgb1 = reader.getColor(x,y).toString
+//        if(rgb1 != "0xf5f5f57f")println(rgb1)
+//      }
+//    }
+  }
 
   def drawPosition(myHeader: Point,championHeader: Option[Point],isMe: Boolean):Unit = {
 //    val offx = myHeader.x.toDouble / border.x * window.x
@@ -69,7 +103,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val w = positionWindowBoundary.x //400
     val h = positionWindowBoundary.y //300
     positionCtx.clearRect(0,0,w,h)
-//    a += 1
+    a += 1
 //    if(a % 200 ==0) println(w,h,positionCanvasUnit)
     positionCtx.save()
     positionCtx.setGlobalAlpha(0.5)
@@ -94,26 +128,45 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
         positionCtx.drawImage(championHeaderImg, championHeader.get.x*positionCanvasUnit - 5, championHeader.get.y*positionCanvasUnit - 5, 10, 10)
       }
     }
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+//    viewCtx.drawImage(positionCanvas.snapshot(params,null), 10, 10)
+    if(a % 10000 ==0)getImageData(positionCanvas)
+
   }
 
-  def drawBorder(): Unit = {
+  def drawBorder(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, frameRate: Int): Unit = {
+    val snakes = data.snakes
+
+    val lastHeader = snakes.find(_.id == uid) match {
+      case Some(s) =>
+        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+        s.header + direction * offsetTime.toFloat / frameRate
+
+      case None =>
+        Point(border.x / 2, border.y / 2)
+    }
+
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+
+    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
+    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
+
+    BorderCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
     BorderCtx.setFill(ColorsSetting.backgroundColor)
-    val w = positionWindowBoundary.x //400
-    val h = positionWindowBoundary.y //300
-    BorderCtx.clearRect(0,0,w,h)
+    BorderCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
+
+    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     BorderCtx.save()
-    BorderCtx.setGlobalAlpha(0.5)
-    BorderCtx.fillRect(0, 0, w , h )
-    BorderCtx.restore()
 
     BorderCtx.setFill(Color.rgb(105,105,105))
-
-    BorderCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.x, positionCanvasUnit)
-    BorderCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.y)
-    BorderCtx.fillRect(positionCanvasUnit, border.y * positionCanvasUnit, positionCanvasUnit * (border.x + 1), positionCanvasUnit)
-    BorderCtx.fillRect(border.x  * positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * (border.y + 1))
-
-    BorderCtx.restore()
+    //  //画边界
+    BorderCtx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit * BorderSize.w, canvasUnit)
+    BorderCtx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit, canvasUnit * BorderSize.h)
+    BorderCtx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    BorderCtx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
 
@@ -339,11 +392,11 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       val off = direction * offsetTime.toFloat / frameRate
       selfViewCtx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      if (s.id == championId)
-        selfViewCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      selfViewCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+//      if (s.id == championId)
+//        selfViewCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
+//      val otherHeaderImg = imgMap(s.img)
+//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+//      selfViewCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       selfViewCtx.setFont(Font.font(16))
       selfViewCtx.setFill(Color.rgb(0, 0, 0))
@@ -352,9 +405,6 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     }
 
     selfViewCtx.restore()
-
-//    rankCtx.clearRect(20, textLineHeight * 5, 650, textLineHeight * 2)//* 5, * 2
-//    PerformanceTool.renderFps(rankCtx, 20, 5 * textLineHeight)
 
   }
 
@@ -448,11 +498,11 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       val off = direction * offsetTime.toFloat / frameRate
       selfCtx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      if (s.id == championId)
-        selfCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      selfCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+//      if (s.id == championId)
+//        selfCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
+//      val otherHeaderImg = imgMap(s.img)
+//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+//      selfCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       selfCtx.setFont(Font.font(16))
       selfCtx.setFill(Color.rgb(0, 0, 0))
@@ -465,6 +515,82 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
 
+  def drawBody(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, frameRate: Int):Unit ={
+    val snakes = data.snakes
+
+    val lastHeader = snakes.find(_.id == uid) match {
+      case Some(s) =>
+        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+        s.header + direction * offsetTime.toFloat / frameRate
+
+      case None =>
+        Point(border.x / 2, border.y / 2)
+    }
+
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+
+    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
+    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
+
+    viewCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+    viewCtx.setFill(ColorsSetting.backgroundColor)
+    viewCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
+    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
+    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+
+    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    viewCtx.save()
+
+    //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
+    drawCache(offx , offy)
+    viewCtx.setGlobalAlpha(0.6)
+    data.bodyDetails.foreach { bds =>
+      val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      viewCtx.setFill(color)
+      val turnPoints = bds.turn.turnPoint
+      (0 until turnPoints.length - 1).foreach { i => //拐点渲染
+        val start = turnPoints(i)
+        val end = turnPoints(i + 1)
+        if (start.x == end.x) { //同x
+          if (start.y > end.y) {
+            viewCtx.fillRect((start.x + offx) * canvasUnit, (end.y + 1 + offy) * canvasUnit, canvasUnit, (start.y - end.y) * canvasUnit)
+          } else {
+            viewCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, canvasUnit, (end.y - start.y) * canvasUnit)
+          }
+        } else { // 同y
+
+          if (start.x > end.x) {
+            viewCtx.fillRect((end.x + 1 + offx) * canvasUnit, (end.y + offy) * canvasUnit, (start.x - end.x) * canvasUnit, canvasUnit)
+          } else {
+            viewCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, (end.x - start.x) * canvasUnit, canvasUnit)
+          }
+        }
+      }
+      if (turnPoints.nonEmpty) {
+        viewCtx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+      }
+    }
+
+    viewCtx.setGlobalAlpha(1)
+    snakeWithOff.foreach { s =>
+      viewCtx.setFill(Constant.hex2Rgb(s.color))
+
+      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+      val off = direction * offsetTime.toFloat / frameRate
+      viewCtx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+
+      viewCtx.setFont(Font.font(16))
+      viewCtx.setFill(Color.rgb(0, 0, 0))
+      val t = new Text(s"${s.name}")
+      viewCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
+    }
+
+    viewCtx.restore()
+
+  }
   private val realWindowWidth = rankCanvas.getWidth
   private val realWindowHeight = rankCanvas.getHeight
   private val rankWindowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
@@ -480,7 +606,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val rightBegin = 20
 //    val maxArea = if(0.4 - currentRank.length * 0.5 > 0.15) 0.4 - currentRank.length * 0.5 else 0.15
     val maxArea = 0.10
-    val areaUnit = 250 / maxArea
+    val areaUnit = 350 / maxArea
 
     drawClearRank()//绘制前清除canvas
 
@@ -494,33 +620,33 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     var index = 0
     rankCtx.setFont(Font.font(14))
 
-    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
-    if (currentRank.lengthCompare(3) >= 0) {
-      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
-      rankCtx.drawImage(bronzeImg, rightBegin - 5 - textLineHeight, textLineHeight * 4, textLineHeight, textLineHeight)
-    }
-    else if (currentRank.lengthCompare(2) == 0) {
-      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
-    }
-    else {
-      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-    }
+//    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+//    if (currentRank.lengthCompare(3) >= 0) {
+//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+//      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+//      rankCtx.drawImage(bronzeImg, rightBegin - 5 - textLineHeight, textLineHeight * 4, textLineHeight, textLineHeight)
+//    }
+//    else if (currentRank.lengthCompare(2) == 0) {
+//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+//      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
+//    }
+//    else {
+//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
+//    }
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       rankCtx.setGlobalAlpha(0.6)
       rankCtx.setFill(color)
       rankCtx.save()
-      rankCtx.fillRect(rightBegin.toInt + 100, (index + currentRankBaseLine) * textLineHeight,
-        5 + areaUnit * (score.area.toDouble / canvasSize), textLineHeight)
+      rankCtx.fillRect(rightBegin.toInt, (index + currentRankBaseLine) * textLineHeight,
+        0 + areaUnit * (score.area.toDouble / canvasSize), textLineHeight)
       rankCtx.restore()
 
-      rankCtx.setGlobalAlpha(1)
-      rankCtx.setFill(Color.rgb(0,0,0))
+//      rankCtx.setGlobalAlpha(1)
+//      rankCtx.setFill(Color.rgb(0,0,0))
       index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 60, index, currentRankBaseLine)
+//      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
+//      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 60, index, currentRankBaseLine)
 //      drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
   }

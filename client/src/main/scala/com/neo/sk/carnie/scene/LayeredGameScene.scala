@@ -44,7 +44,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   viewCanvas.setHeight(viewHeight)
   viewCanvas.setWidth(viewWidth)
   viewCanvas.setLayoutY(400)
-  viewCanvas.setLayoutX(600)
+  viewCanvas.setLayoutX(1200)
 
 
   rankCanvas.setHeight(viewHeight)
@@ -89,9 +89,10 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 //    view.drawGrid(uid, data, offsetTime, grid, championId, frameRate)
 //    view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     layered.drawPosition(data.snakes.filter(_.id == uid).map(_.header).head,data.snakes.find(_.id == championId).map(_.header),uid == championId)
-    layered.drawBorder()
+    layered.drawBorder(uid, data, offsetTime, grid, championId, frameRate)
     layered.drawSelfView(uid, data, offsetTime, grid, championId, frameRate)
     layered.drawSelf(uid, data, offsetTime, grid, championId, frameRate)
+    layered.drawBody(uid, data, offsetTime, grid, championId, frameRate)
   }
 
   def drawGameWait(): Unit = {

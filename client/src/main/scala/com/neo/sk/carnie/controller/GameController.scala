@@ -79,7 +79,7 @@ class GameController(player: PlayerInfoInClient,
     layeredGameScene.drawGameOff(firstCome)
   }
 
-  def getRandom(s: Int) ={
+  def getRandom(s: Int):Int ={
     val rnd = new scala.util.Random
     rnd.nextInt(s)
   }
@@ -176,7 +176,11 @@ class GameController(player: PlayerInfoInClient,
 //          BGM = bgmList(getRandom(bgmAmount))
 //          BGM.play(30)
 //        }
+        val offsetTime = System.currentTimeMillis() - logicFrameTime
+        layeredGameScene.draw(player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
+
+
 
       case None if isWin =>
 
@@ -216,7 +220,7 @@ class GameController(player: PlayerInfoInClient,
 
       case FrontProtocol.DrawBaseGame(data) =>
         gameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-        layeredGameScene.draw(player.id, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+
         if (grid.killInfo.nonEmpty) {
           val killBaseInfo = grid.killInfo.get
           gameScene.drawBarrage(killBaseInfo._2, killBaseInfo._3)
