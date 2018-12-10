@@ -318,7 +318,6 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
-        println("!!!got Data4TotalSync")
         Boot.addToPlatform{
           syncGridData = Some(data)
           newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
@@ -337,7 +336,6 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.NewFieldInfo =>
-        println("!!!!got new FieldInfo.")
         Boot.addToPlatform{
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
@@ -444,7 +442,6 @@ class GameController(player: PlayerInfoInClient,
               case _ => KeyCode.SPACE
             }
           else key
-        println(s"keyCode: $newKeyCode")
         playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
       }
     }

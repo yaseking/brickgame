@@ -99,6 +99,10 @@ object RoomApiProtocol {
   case class RoomIdReq(
                         roomId: Int
                       )
+  case class PwdReq(
+                        roomId: Int,
+                        pwd: String
+                      )
   case class AllRoomReq(
                         data: String
   )

@@ -52,6 +52,8 @@ object RoomManager {
 
   case class FindPlayerList(roomId: Int, reply: ActorRef[List[PlayerIdName]]) extends Command
 
+  case class VerifyPwd(roomId: Int, pwd: String, reply: ActorRef[Boolean]) extends Command
+
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
   case class FindAllRoom4Client(reply: ActorRef[List[String]]) extends Command
@@ -92,7 +94,7 @@ object RoomManager {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case m@CreateRoom(id, name, mode, img, pwd, subscriber) =>
-          log.info(s"got $m")
+          log.info(s"got $m")//todo 可以在游戏页面显示房间号
           val roomId = roomIdGenerator.getAndIncrement()
           roomMap += roomId -> (mode , pwd, mutable.HashSet((id, name)))
           println(roomMap)
@@ -117,7 +119,7 @@ object RoomManager {
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           } else { //创建新房间不带密码
             val roomId = roomIdGenerator.getAndIncrement()
-            roomMap.put(roomId, (mode, None, mutable.HashSet((id, name))))
+            roomMap.put(roomId, (mode, Some("test"), mutable.HashSet((id, name))))//默认无密码
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           }
           Behaviors.same
@@ -260,6 +262,13 @@ object RoomManager {
         case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
           reply ! roomMap.find(r => r._2._3.exists(i => i._1 == pid)).map(_._1)
+          Behaviors.same
+
+        case m@VerifyPwd(roomId, pwd, reply) =>
+          log.debug(s"got $m")
+          val temp = roomMap.find(_._1 == roomId)
+          val rst = if(temp.nonEmpty && temp.get._2._2.get == pwd) true else false
+          reply ! rst
           Behaviors.same
 
         case FindPlayerList(roomId, reply) =>
