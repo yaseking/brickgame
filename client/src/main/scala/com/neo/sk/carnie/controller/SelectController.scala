@@ -37,10 +37,11 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
       Boot.addToPlatform {
         val frameRate = if(mode==2) frameRate2 else frameRate1
         println(s"pwd: $pwd")
-        val playGameScreen = new GameScene(img, frameRate)
-        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-        context.switchScene(playGameScreen.getScene, fullScreen = true)
-        new GameController(playerInfoInClient, context, playGameScreen, LayeredGameScreen, mode, frameRate).createRoom(domain, mode, img, pwd)
+//        val playGameScreen = new GameScene(img, frameRate)
+//        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+//        context.switchScene(playGameScreen.getScene, fullScreen = true)
+//        new GameController(playerInfoInClient, context, playGameScreen, LayeredGameScreen, mode, frameRate).createRoom(domain, mode, img, pwd)
+        initDialog
 //        val window = new Window()
 //        val window2 = new Dialog()
 //        window2.show()
@@ -60,16 +61,24 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
     val dialog = new Dialog[(String,String,String)]()
     dialog.setTitle("test")
     val a = new ChoiceBox[String](FXCollections.observableArrayList("正常","反转","加速"))
-    val b = a.getValue
+    a.setValue("反转")
     val tF = new TextField()
+    val loginButton = new ButtonType("确认", ButtonData.OK_DONE)
     val grid = new GridPane
-    grid.add(tF, 0 ,0)
+    grid.add(a, 0 ,0)
+    grid.add(tF, 0 ,1)
+    dialog.getDialogPane.getButtonTypes.addAll(loginButton, ButtonType.CANCEL)
     dialog.getDialogPane.setContent(grid)
-    val loginButton = new ButtonType("Login", ButtonData.OK_DONE)
     dialog.setResultConverter(dialogButton =>
-      ("a", "b", "c")
+      if(dialogButton == loginButton)
+        (a.getValue, "a", tF.getText)
+      else
+        null
     )
     val rst = dialog.showAndWait()
+    rst.ifPresent(a =>
+      println(s"${a._1}-${a._3}")
+    )
   }
 
   def showScene: Unit = {

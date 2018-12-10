@@ -62,10 +62,10 @@ class Boot extends javafx.application.Application {
 
     val context = new Context(mainStage)
 
-    val loginScene = new LoginScene()
-    val loginController = new LoginController(loginScene, context)
-    loginController.showScene()
-    loginController.init()
+//    val loginScene = new LoginScene()
+//    val loginController = new LoginController(loginScene, context)
+//    loginController.showScene()
+//    loginController.init()
 
 
 
@@ -74,8 +74,8 @@ class Boot extends javafx.application.Application {
     import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 //    new GameController(PlayerInfoInClient("test", "test", "test"), context, playGameScreen, mode = 1).start("")
 
-//    val selectScreen = new SelectScene()
-//    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
+    val selectScreen = new SelectScene()
+    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
 
 //    val roomListScene = new RoomListScene
 //    context.switchScene(roomListScene.getScene,fullScreen = false)
