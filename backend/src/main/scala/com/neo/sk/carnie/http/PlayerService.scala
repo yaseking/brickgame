@@ -190,7 +190,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                   case Right(_) =>
                     handleWebSocketMessages(webSocketChatFlow4CreateRoom(id, playerName, mode, img, newPwd))
                   case Left(e) =>
-                    log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
+                    log.error(s"playGame error. fail to verifyAccessCode4ClientCreateRoom: $e")
                     //                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
                     handleWebSocketMessages(webSocketChatFlow4CreateRoom(id, playerName, mode, img, newPwd))
                 }
