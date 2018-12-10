@@ -3,7 +3,7 @@ package com.neo.sk.carnie.controller
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-import com.neo.sk.carnie.scene.{RoomListScene, RoomListSceneListener}
+import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene, RoomListScene, RoomListSceneListener}
 import com.neo.sk.carnie.utils.HttpUtil
 import org.slf4j.LoggerFactory
 import io.circe.generic.auto._
@@ -61,6 +61,10 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   roomListScene.listener = new RoomListSceneListener {
     override def confirm(roomId: String): Unit = {
       println(s"roomId: $roomId")
+//      val playGameScreen = new GameScene(img, frameRate)
+//      val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+//      context.switchScene(playGameScreen.getScene, fullScreen = true)
+//      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
     }
   }
 
