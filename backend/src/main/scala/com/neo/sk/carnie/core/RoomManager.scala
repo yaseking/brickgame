@@ -103,6 +103,7 @@ object RoomManager {
           log.info(s"got: $m")
           if(roomMap.exists(_._1==roomId)){
             val mode = roomMap(roomId)._1
+            roomMap += roomId -> (mode, roomMap(roomId)._2, roomMap(roomId)._3 + ((id, name)))
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           } else
             log.info(s"房间不存在：$roomId")

@@ -68,15 +68,16 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   }
 
   roomListScene.listener = new RoomListSceneListener {
-    override def confirm(roomId: String): Unit = {
-      println(s"roomId: $roomId")
+    override def confirm(roomMsg: String): Unit = {
+      println(s"roomId: $roomMsg")
+      val roomId = roomMsg.split("-")(0).toInt
       val mode = 0
       val img = 0
       val frameRate = 150
       val playGameScreen = new GameScene(img, frameRate)
       val LayeredGameScreen = new LayeredGameScene(img, frameRate)
       context.switchScene(playGameScreen.getScene, fullScreen = true)
-      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).joinByRoomId(domain, roomId.toInt, img)
+      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
     }
   }
 

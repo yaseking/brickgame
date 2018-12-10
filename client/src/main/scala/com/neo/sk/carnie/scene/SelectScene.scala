@@ -150,6 +150,7 @@ class SelectScene {
 
   button1.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
   button2.setOnAction(_ => listener.createRoom(selectedMode, selectedImg, pwdField.getText))
+  button3.setOnAction(_ => listener.gotoRoomList())
 
   toggleGroup.selectedToggleProperty().addListener(_ => selectMode())
   toggleGroup2.selectedToggleProperty().addListener(_ => selectImg())

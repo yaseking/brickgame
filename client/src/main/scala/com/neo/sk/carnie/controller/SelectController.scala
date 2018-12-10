@@ -20,7 +20,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
         val frameRate = if(mode==2) frameRate2 else frameRate1
         val playGameScreen = new GameScene(img, frameRate)
         val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-        val x = true
+        val x = false
         if(!x) {
           context.switchScene(playGameScreen.getScene, fullScreen = true)
           new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
