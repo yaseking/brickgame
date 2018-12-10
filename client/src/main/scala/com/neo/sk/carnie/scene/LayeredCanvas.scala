@@ -58,19 +58,6 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   def debug(str: String):Unit = log.debug(s"$str")
 
-  def resetScreen(viewWidth:Int, viewHeight:Int, rankWidth:Int, rankHeight:Int):Unit = {
-    viewCanvas.setWidth(viewWidth)
-    viewCanvas.setHeight(viewHeight)
-    rankCanvas.setWidth(rankWidth)
-    rankCanvas.setHeight(rankHeight)
-    windowBoundary = Point(viewCanvas.getWidth.toFloat, viewCanvas.getHeight.toFloat)
-//    positionWindowBoundary = Point(positionCanvas.getWidth.toFloat, positionCanvas.getHeight.toFloat)
-    canvasUnit = (windowBoundary.x / window.x).toInt
-    canvasUnitY = (windowBoundary.y / window.y).toInt
-//    positionCanvasUnit = (positionWindowBoundary.x / border.x).toInt
-//    positionCanvasUnitY = (positionWindowBoundary.y / border.y).toInt
-  }
-
   var a=0
 
   def drawPosition(myHeader: Point,championHeader: Option[Point],isMe: Boolean):Unit = {
