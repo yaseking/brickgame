@@ -78,7 +78,7 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
       val mode = roomList(1).toInt
       val img = 0 //头部图像
       val frameRate = if(mode==2) frameRate2 else frameRate1
-      val hasPwd = if(roomList(2)=="false") true else false
+      val hasPwd = if(roomList(2)=="true") true else false
       val pwd = if(hasPwd) inputPwd else None
       println(s"pwd: $pwd")
       if(hasPwd){
@@ -117,6 +117,9 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
             log.debug(s"some errors verifyPwd2: $e")
             false
         }
+      case Left(e) =>
+        log.debug(s"some errors verifyPwd3: $e")
+        false
     }
   }
 
