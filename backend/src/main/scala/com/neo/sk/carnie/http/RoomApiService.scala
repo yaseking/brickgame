@@ -78,8 +78,10 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
       val msg: Future[List[Int]] = roomManager ? RoomManager.FindAllRoom
       msg.map {
         allRoom =>
-          if (allRoom.nonEmpty)
+          if (allRoom.nonEmpty){
+            log.info("prepare to return roomList.")
             complete(RoomListRsp(RoomListInfo(allRoom)))
+          }
           else {
             log.info("get all room error,there are no rooms")
             complete(ErrorRsp(100000, "get all room error,there are no rooms"))

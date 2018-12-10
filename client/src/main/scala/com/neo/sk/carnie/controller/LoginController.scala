@@ -6,7 +6,7 @@ import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.actor.LoginSocketClient
 import com.neo.sk.carnie.actor.LoginSocketClient.EstablishConnection2Es
-import com.neo.sk.carnie.scene.{GameScene, LoginScene, SelectScene}
+import com.neo.sk.carnie.scene.{GameScene, LoginScene, RoomListScene, SelectScene}
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
@@ -83,6 +83,13 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     Boot.addToPlatform {
       val selectScene = new SelectScene()
       new SelectController(playerInfoInClient, selectScene, context, domain).showScene
+    }
+  }
+
+  def switchToRoomList(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
+    Boot.addToPlatform {
+      val roomListScene = new RoomListScene()
+      new RoomListController(playerInfoInClient, roomListScene, context, domain).showScene
     }
   }
 }
