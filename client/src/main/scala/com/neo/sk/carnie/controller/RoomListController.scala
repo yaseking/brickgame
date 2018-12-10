@@ -75,7 +75,7 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
       val playGameScreen = new GameScene(img, frameRate)
       val LayeredGameScreen = new LayeredGameScene(img, frameRate)
       context.switchScene(playGameScreen.getScene, fullScreen = true)
-      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
+      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).joinByRoomId(domain, roomId.toInt, img)
     }
   }
 
