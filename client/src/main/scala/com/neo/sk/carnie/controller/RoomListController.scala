@@ -36,12 +36,12 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
     postJsonRequestSend("post",url,List(),params,needLogRsp = false).map{
       case Right(value) =>
         decode[RoomListRsp4Client](value) match {
-          case Right(data) =>
-            if(data.errCode == 0){
-              println(s"roomData: $data")
-              Right(data)
+          case Right(r) =>
+            if(r.errCode == 0){
+              println(s"roomData: $r")
+              Right(r)
             }else{
-              log.debug(s"获取列表失败，errCode:${data.errCode},msg:${data.msg}")
+              log.debug(s"获取列表失败，errCode:${r.errCode},msg:${r.msg}")
               Left("Error")
             }
           case Left(error) =>
@@ -70,29 +70,31 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   }
 
   roomListScene.listener = new RoomListSceneListener {
-    override def confirm(roomMsg: String): Unit = {//fixme 未选择房间情况待处理
-      println(s"roomId: $roomMsg")
-      val roomList = roomMsg.split("-")
-      val roomId = roomList(0).toInt
-      val mode = roomList(1).toInt
-      val img = 0 //头部图像
-      val frameRate = if(mode==2) frameRate2 else frameRate1
-      val hasPwd = if(roomList(2)=="true") true else false
-      val pwd = if(hasPwd) inputPwd else None
-      println(s"pwd: $pwd")
-      if(hasPwd){
-        if(pwd.nonEmpty) {
-          verifyPwd(roomId, pwd.get).map{
-            case true =>
-              Boot.addToPlatform(
-                playGame(mode, img, frameRate, roomId)
-              )
-            case false =>
-//              密码错误不做任何处理
+    override def confirm(roomMsg: String): Unit = {
+      if(roomMsg != null) {
+        println(s"roomId: $roomMsg")
+        val roomList = roomMsg.split("-")
+        val roomId = roomList(0).toInt
+        val mode = roomList(1).toInt
+        val img = 0 //头部图像
+        val frameRate = if(mode==2) frameRate2 else frameRate1
+        val hasPwd = if(roomList(2)=="true") true else false
+        val pwd = if(hasPwd) inputPwd else None
+        println(s"pwd: $pwd")
+        if(hasPwd){
+          if(pwd.nonEmpty) {
+            verifyPwd(roomId, pwd.get).map{
+              case true =>
+                Boot.addToPlatform(
+                  playGame(mode, img, frameRate, roomId)
+                )
+              case false =>
+              //              密码错误不做任何处理
+            }
           }
+        } else {
+          playGame(mode, img, frameRate, roomId)
         }
-      } else {
-        playGame(mode, img, frameRate, roomId)
       }
     }
   }
