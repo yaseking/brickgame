@@ -171,6 +171,9 @@ object PlayGameWebSocket {
 
   def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String, mode: Int, img: Int): String = {
     val wsProtocol = "ws"
+    val domain = "10.1.29.250:30368"
+    println(s"domain: $domain")
+    //    val domain = "localhost:30368"
     val name = URLEncoder.encode(playerName, "UTF-8")
     s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode&mode=$mode&img=$img"
   }
