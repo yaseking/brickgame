@@ -75,12 +75,18 @@ object GameReplay {
 //              println(s"test2:${metaDataDecode(info.simulatorMetadata).right.get}")
 //              println(s"test3:${replay.getMutableInfo(AppSettings.essfMapKeyName)}")
               log.debug(s"userInfo:${userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m}")
+              val metaData = metaDataDecode(info.simulatorMetadata).right.get
+              val frameRate = metaData.mode match {
+                case 2 => frameRate2
+                case _ => frameRate1
+              }
               ctx.self ! SwitchBehavior("work",
                 work(
                   replay,
-                  metaDataDecode(info.simulatorMetadata).right.get,
+                  metaData,
                   info.frameCount,
-                  userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+                  userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m,
+                  frameRate = frameRate
                 ))
             }catch {
               case e:Throwable=>
@@ -101,7 +107,8 @@ object GameReplay {
            frameCount: Int,
            userMap:List[((Protocol.UserBaseInfo, List[Protocol.UserJoinLeft]))],
            userOpt:Option[ActorRef[WsSourceProtocol.WsMsgSource]]=None,
-           playedId: String = ""
+           playedId: String = "",
+           frameRate: Int
           )(
             implicit stashBuffer:StashBuffer[Command],
             timer:TimerScheduler[Command],
@@ -119,6 +126,7 @@ object GameReplay {
               //todo dispatch gameInformation
               dispatchTo(msg.subscriber, Protocol.Id(msg.userId))
               dispatchTo(msg.subscriber, Protocol.Mode(metaData.mode))
+
               log.info(s" set replay from frame=${msg.f}")
               log.debug(s"get snapshot index::${fileReader.getSnapshotIndexes}")
               val nearSnapshotIndex = fileReader.gotoSnapshot(msg.f)
@@ -149,8 +157,8 @@ object GameReplay {
               dispatchTo(msg.subscriber, Protocol.StartReplay(nearSnapshotIndex, fileReader.getFramePosition))
 
               if(fileReader.hasMoreFrame){
-                timer.startPeriodicTimer(GameLoopKey, GameLoop, Protocol.frameRate.millis)
-                work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber), msg.userId)
+                timer.startPeriodicTimer(GameLoopKey, GameLoop, frameRate.millis)
+                work(fileReader,metaData,frameCount,userMap,Some(msg.subscriber), msg.userId, frameRate)
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
                 Behaviors.same
@@ -187,7 +195,7 @@ object GameReplay {
 
         case GetRecordFrame(playerId, replyTo) =>
 //          log.info(s"game replay got $msg")
-          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount))
+          replyTo ! RoomApiProtocol.RecordFrameRsp(RoomApiProtocol.RecordFrameInfo(fileReader.getFramePosition, frameCount, frameRate))
           Behaviors.same
 
         case StopReplay() =>

@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn}
+import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Canvas, Image}
@@ -133,6 +133,20 @@ class DrawGame(
     }
   }
 
+  def drawGameDie4Replay(): Unit = {
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    canvas.width = 800
+    canvas.height = 400
+    ctx.fillRect(0, 0, 800.0, 400.0)
+    ctx.fillStyle = ColorsSetting.fontColor
+    //      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+    ctx.font = "36px Helvetica"
+    ctx.fillText("您观看的玩家已死亡...", 150, 180)
+  }
+
   def drawGameWait(): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -211,7 +225,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync) = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData):Unit = {
     ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
@@ -245,9 +259,19 @@ class DrawGame(
     ctx.fillStyle = "#000000"
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
+
 //    println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
+    ctx.font = "bold 24px Helvetica"
+    ctx.fillStyle = "#000000"
+    val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
+    val length1 = ctx.measureText(txt4).width
+    if(winningData.yourScore.isDefined){
+      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+      ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2)
+    }
+    ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2 + 40)
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
     ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2, 75, 50, 50)

@@ -47,6 +47,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
+  private var winningData = WinData(0,Some(0))
 
 
   //  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -70,7 +71,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
 
   def startGame(frameRate: Int): Unit = {
-    println(s"start game======")
+    println(s"start game======frameRate:$frameRate")
     drawGame.drawGameOn()
 //    val frameRate = webSocketPara match {
 //      case WebSocketProtocol.PlayGamePara(_, _, mode) =>
@@ -82,20 +83,20 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
     //    pingInterval = dom.window.setInterval(() => {
     //      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
     //    }, 100)
-    requestAnimationInterval = dom.window.requestAnimationFrame(gameRender())
+    requestAnimationInterval = dom.window.requestAnimationFrame(gameRender(frameRate))
   }
 
   private var tempRender = System.currentTimeMillis()
 
-  def gameRender(): Double => Unit = { _ =>
+  def gameRender(frameRate: Int): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
     //    println(s"drawRender time:${curTime - tempRender}")
     tempRender = curTime
-    draw(offsetTime)
+    draw(offsetTime, frameRate)
 
     if (isContinue)
-      nextFrame = dom.window.requestAnimationFrame(gameRender())
+      nextFrame = dom.window.requestAnimationFrame(gameRender(frameRate))
   }
 
 
@@ -149,7 +150,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   }
 
 
-  def draw(offsetTime: Long): Unit = {
+  def draw(offsetTime: Long, frameRate: Int): Unit = {
     if (webSocketClient.getWsState) {
       if (replayFinish) {
         drawGame.drawGameOff(firstCome, Some(true), false, false)
@@ -159,7 +160,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         val data = grid.getGridData
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-          drawGame.drawGameWin(myId, winnerName, winData)
+          drawGame.drawGameWin(myId, winnerName, winData,winningData)
           audio1.play()
           dom.window.cancelAnimationFrame(nextFrame)
           isContinue = false
@@ -187,7 +188,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
                 audioFinish.play()
               }
               fieldNum = num
-              drawGameImage(myId, data, offsetTime)
+              drawGameImage(myId, data, offsetTime, frameRate)
               if (killInfo._2 != "" && killInfo._3 != "" && snake.id != killInfo._1) {
                 drawGame.drawBarrage(killInfo._2, killInfo._3)
                 lastTime -= 1
@@ -203,7 +204,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
                 currentRank.filter(_.id == myId).foreach { score =>
                   myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
                 }
-                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+//                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
+                drawGame.drawGameDie4Replay()
                 killInfo = ("", "", "")
                 dom.window.cancelAnimationFrame(nextFrame)
                 isContinue = false
@@ -216,8 +218,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
     }
   }
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true)
+  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, frameRate: Int): Unit = {
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
@@ -303,17 +305,14 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         startGame(frameRate)
       //        grid.frameCount = firstReplayframe.toLong
 
-      case Protocol.InitReplayError(info) =>
-        drawGame.drawGameOff(firstCome, Some(false), loading, true)
-
       case x@Protocol.ReplayFinish(_) =>
         println("get message replay finish")
         replayFinish = true
 
       case Protocol.ReplayFrameData(frameIndex, eventsData, stateData) =>
         //        println(s"replayFrameData,grid.frameCount:${grid.frameCount},frameIndex:$frameIndex")
-        println(s"grid.frameCount:${grid.frameCount}")
-        println(s"frameIndex     :$frameIndex")
+//        println(s"grid.frameCount:${grid.frameCount}")
+//        println(s"frameIndex     :$frameIndex")
         if (frameIndex == 0) grid.frameCount = 0
         if (stateData.nonEmpty) {
           stateData.get match {
@@ -408,10 +407,18 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
               winnerName = "unknown"
             }
             isContinue = true
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
+            val frameRate = myMode match {
+              case 2 => frameRate2
+              case _ => frameRate1
+            }
+            nextFrame = dom.window.requestAnimationFrame(gameRender(frameRate))
 
           }
         }
+
+      case x@Protocol.WinData(winnerScore,yourScore) =>
+        println(s"receive winningData msg:$x")
+        winningData = x
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         killInfo = (killedId, killedName, killerName)

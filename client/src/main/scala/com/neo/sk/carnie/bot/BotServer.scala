@@ -1,9 +1,11 @@
 package com.neo.sk.carnie.bot
 
+import akka.actor.typed.ActorRef
 import io.grpc.{Server, ServerBuilder}
 import org.seekloud.esheepapi.pb.api._
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgent
+import com.neo.sk.carnie.actor.BotActor
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -13,41 +15,22 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object BotServer {
 
-  def build(port: Int, executionContext: ExecutionContext): Server = {
+  def build(port: Int, executionContext: ExecutionContext, botActor:  ActorRef[BotActor.Command]): Server = {
 
-    val service = new BotServer()
+    val service = new BotServer(botActor:  ActorRef[BotActor.Command])
 
     ServerBuilder.forPort(port).addService(
       EsheepAgentGrpc.bindService(service, executionContext)
     ).build
 
   }
-
-  def main(args: Array[String]): Unit = {
-
-    val executor = concurrent.ExecutionContext.Implicits.global
-    val port = 5321
-
-    val server = BotServer.build(port, executor)
-    server.start()
-    println(s"Server started at $port")
-
-    sys.addShutdownHook {
-      println("JVM SHUT DOWN.")
-      server.shutdown()
-      println("SHUT DOWN.")
-    }
-
-    server.awaitTermination()
-    println("DONE.")
-
-  }
 }
 
-class BotServer extends EsheepAgent {
+class BotServer(botActor:  ActorRef[BotActor.Command]) extends EsheepAgent {
 
   override def createRoom(request: Credit): Future[CreateRoomRsp] = {
     println(s"createRoom Called by [$request")
+    botActor ! BotActor.CreateRoom(request.playerId, request.apiToken)
     val state = State.init_game
     Future.successful(CreateRoomRsp(errCode = 101, state = state, msg = "ok"))
   }

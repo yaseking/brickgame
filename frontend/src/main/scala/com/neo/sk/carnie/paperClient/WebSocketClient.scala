@@ -32,6 +32,7 @@ class WebSocketClient (
         case p: PlayGamePara => getWebSocketUri(p.playerId, p.playerName, p.mode, p.img)
         case p: WatchGamePara => getWebSocketUri4WatchGame(p.roomId, p.playerId, p.accessCode)
         case p: WatchRecordPara => getWebSocketUri4WatchRecord(p.recordId, p.playerId, p.frame, p.accessCode)
+        case p: CreateRoomPara => getWebSocketUri4CreateRoom(p.playerId, p.playerName, p.pwd, p.mode, p.img)
       }
 //      val url = order match {
 //        case "playGame" =>
@@ -104,6 +105,11 @@ class WebSocketClient (
   def getWebSocketUri(id: String, name: String, mode: Int, img: Int): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     s"$wsProtocol://${dom.document.location.host}/carnie/join?id=$id&name=$name&mode=$mode&img=$img"
+  }
+
+  def getWebSocketUri4CreateRoom(id: String, name: String, pwd: String, mode: Int, img: Int): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    s"$wsProtocol://${dom.document.location.host}/carnie/createRoom?id=$id&name=$name&mode=$mode&img=$img&pwd=$pwd"
   }
 
   def getWebSocketUri4WatchGame(roomId: String, playerId: String, accessCode: String): String = {

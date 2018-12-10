@@ -70,6 +70,8 @@ object Protocol {
 
   case class Id(id: String) extends GameMessage
 
+  case class Id4Watcher(id: String, watcher: String) extends GameMessage
+
   case class StartWatching(mode: Int, img: Int) extends GameMessage
 
   case class Mode(mode: Int) extends GameMessage
@@ -98,6 +100,8 @@ object Protocol {
   case object ReStartGame extends GameMessage
 
   case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage with GameEvent
+
+  case class WinData(winnerScore: Int,yourScore: Option[Int]) extends GameMessage with GameEvent
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 

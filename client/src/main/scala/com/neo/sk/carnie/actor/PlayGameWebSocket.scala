@@ -33,6 +33,10 @@ object PlayGameWebSocket {
 
   case class ConnectGame(playerInfo: PlayerInfoInClient, domain: String, mode: Int, img: Int) extends WsCommand//mode: Int, img: Int
 
+  case class CreateRoom(playerInfo: PlayerInfoInClient, domain: String, mode: Int, img: Int, pwd: String) extends WsCommand//mode: Int, img: Int
+
+  case class JoinByRoomId(playerInfo: PlayerInfoInClient, domain: String, roomId: Int, img: Int) extends WsCommand//roomId: Int, img: Int
+
   case class MsgToService(sendMsg: WsSendMsg) extends WsCommand
 
   def create(gameController: GameController): Behavior[WsCommand] = {
@@ -49,6 +53,56 @@ object PlayGameWebSocket {
       msg match {
         case ConnectGame(playerInfo, domain, mode, img) =>
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, mode, img)))
+          val source = getSource
+          val sink = getSink(gameController)
+          val ((stream, response), closed) =
+            source
+              .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
+              .toMat(sink)(Keep.both) // also keep the Future[Done]
+              .run()
+
+          val connected = response.flatMap { upgrade =>
+            if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
+              Future.successful("connect success")
+            } else {
+              throw new RuntimeException(s"Connection failed: ${upgrade.response.status}")
+            }
+          } //ws建立
+
+          closed.onComplete { _ =>
+            log.info("connect to service closed!")
+            gameController.loseConnect()
+          } //ws断开
+          connected.onComplete(i => log.info(i.toString))
+          connecting(stream)
+
+        case CreateRoom(playerInfo, domain, mode, img, pwd) =>
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4CreateRoom(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, mode, img, pwd)))
+          val source = getSource
+          val sink = getSink(gameController)
+          val ((stream, response), closed) =
+            source
+              .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
+              .toMat(sink)(Keep.both) // also keep the Future[Done]
+              .run()
+
+          val connected = response.flatMap { upgrade =>
+            if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
+              Future.successful("connect success")
+            } else {
+              throw new RuntimeException(s"Connection failed: ${upgrade.response.status}")
+            }
+          } //ws建立
+
+          closed.onComplete { _ =>
+            log.info("connect to service closed!")
+            gameController.loseConnect()
+          } //ws断开
+          connected.onComplete(i => log.info(i.toString))
+          connecting(stream)
+
+        case JoinByRoomId(playerInfo, domain, roomId, img) =>
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4JoinByRoomId(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, roomId, img)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
@@ -142,14 +196,25 @@ object PlayGameWebSocket {
 
   }
 
-  def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String, mode: Int, img: Int): String = {//mode: Int, img: Int
+  def getWebSocketUri(playerId: String, playerName: String, accessCode: String, domain: String, mode: Int, img: Int): String = {
     val wsProtocol = "ws"
 //    val domain = "10.1.29.250:30368"
-    println(s"domain: $domain")
+//    println(s"domain: $domain")
     //    val domain = "localhost:30368"
     val name = URLEncoder.encode(playerName, "UTF-8")
-    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode&mode=$mode&img=$img"//todo domain
-//    s"$wsProtocol://$domain/carnie/join?id=$playerId&name=$playerName"
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode&mode=$mode&img=$img"
+  }
+
+  def getWebSocketUri4CreateRoom(playerId: String, playerName: String, accessCode: String, domain: String, mode: Int, img: Int, pwd: String): String = {
+    val wsProtocol = "ws"
+    val name = URLEncoder.encode(playerName, "UTF-8")
+    s"$wsProtocol://$domain/carnie/joinGame4ClientCreateRoom?id=$playerId&name=$name&accessCode=$accessCode&mode=$mode&img=$img&pwd=$pwd"
+  }
+
+  def getWebSocketUri4JoinByRoomId(playerId: String, playerName: String, accessCode: String, domain: String, roomId: Int, img: Int): String = {
+    val wsProtocol = "ws"
+    val name = URLEncoder.encode(playerName, "UTF-8")
+    s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name=$name&accessCode=$accessCode&img=$img&roomId=$roomId"
   }
 
 }

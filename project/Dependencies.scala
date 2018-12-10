@@ -88,7 +88,7 @@ object Dependencies {
         Dependencies.essf,
         Dependencies.byteObject
         // "com.lihaoyi" %% "upickle" % "0.6.6"
-      )
+      ) ++ Dependencies.grpcSeq
 
 
 }

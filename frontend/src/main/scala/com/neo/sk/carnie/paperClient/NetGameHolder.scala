@@ -20,7 +20,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, frameRate: Int = 150) extends Component {
+class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img: Int = 0, frameRate: Int = 150) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
@@ -43,10 +43,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
+  val delay:Int = if(mode == 2) 4 else 2
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
+  private var winningData = WinData(0,Some(0))
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -61,10 +62,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   private[this] val bgm3 = dom.document.getElementById("bgm3").asInstanceOf[HTMLAudioElement]
   private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
   private[this] val bgm5 = dom.document.getElementById("bgm5").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm6 = dom.document.getElementById("bgm6").asInstanceOf[HTMLAudioElement]
   private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
   private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
-  private[this] val bgmList = List(bgm1, bgm2, bgm3, bgm4, bgm5, bgm6, bgm7, bgm8)
+  private[this] val bgmList = List(bgm1, bgm2, bgm3, bgm4, bgm5,  bgm7, bgm8)
+  private val bgmAmount = bgmList.length
   private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
 
@@ -88,14 +89,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
     webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
   }
 
-  def getRandom(s: Int) = {
+  def getRandom(s: Int):Int = {
     val rnd = new scala.util.Random
     rnd.nextInt(s)
   }
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
-    BGM = bgmList(getRandom(8))
+    BGM = bgmList(getRandom(bgmAmount))
     BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
@@ -123,7 +124,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       if (!isContinue) {
         if (isWin) {
           val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
-          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData)
+          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData,winningData)
         } else {
           drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
         }
@@ -163,7 +164,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
           case Some(_) =>
             if (firstCome) firstCome = false
             if (BGM.paused) {
-              BGM = bgmList(getRandom(8))
+              BGM = bgmList(getRandom(bgmAmount))
               BGM.play()
             }
             FrontProtocol.DrawBaseGame(gridData)
@@ -183,22 +184,21 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   def draw(offsetTime: Long): Unit = {
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-        if(!BGM.paused){
-          BGM.pause()
-        }
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
-        drawGame.drawGameWin(myId, winner, winData)
+        drawGame.drawGameWin(myId, winner, winData,winningData)
         audio1.play()
         isContinue = false
 
@@ -216,6 +216,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       case FrontProtocol.DrawGameDie(killerName) =>
         if(!BGM.paused){
           BGM.pause()
+          BGM.currentTime = 0
         }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
@@ -241,7 +242,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
             //            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
             val newKeyCode =
-              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
+              if (mode == 1)
                 e.keyCode match {
                   case KeyCode.Left => KeyCode.Right
                   case KeyCode.Right => KeyCode.Left
@@ -257,6 +258,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
+                  grid.cleanData()
                   drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
                   audio1.currentTime = 0
@@ -269,7 +271,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
                   dom.window.requestAnimationFrame(gameRender())
               }
             }
-
             Key(myId, newKeyCode, frame, actionId)
           }
           webSocketClient.sendMessage(msg)
@@ -288,7 +289,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
 
   private def messageHandler(data: GameMessage): Unit = {
     data match {
-      case Protocol.Id(id) => myId = id
+      case Protocol.Id(id) =>
+        myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         //        println(s"i got ${grid.frameCount}, frame : $frame")
@@ -395,6 +397,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
+      case x@Protocol.WinData(winnerScore,yourScore) =>
+        println(s"receive winningData msg:$x")
+        winningData = x
 
       case x@_ =>
         println(s"receive unknown msg:$x")

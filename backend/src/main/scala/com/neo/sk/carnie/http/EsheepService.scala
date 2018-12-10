@@ -60,7 +60,7 @@ trait EsheepService extends ServiceUtils with CirceSupport {
 //      'playerName.as[String]
 //    ) {
 //      case (playerId, playerName) =>
-//        getFromResource("html/netSnake.html")
+//        getFromResource("html/index.html")
 //    }
 //  }
 

@@ -7,7 +7,7 @@ import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.controller.{GameController, LoginController, SelectController}
-import com.neo.sk.carnie.scene.{GameScene, LoginScene, SelectScene}
+import com.neo.sk.carnie.scene.{GameScene, LoginScene, RoomListScene, SelectScene}
 import javafx.application.Platform
 import javafx.stage.Stage
 
@@ -33,11 +33,16 @@ class Boot extends javafx.application.Application {
   import Boot._
 
   override def start(mainStage: Stage): Unit = {
+    val para = getParameters.getRaw
+
+    println("!!!!" + para)
+
     val context = new Context(mainStage)
 
     val loginScene = new LoginScene()
     val loginController = new LoginController(loginScene, context)
     loginController.showScene()
+    loginController.init()
 
 
 //    val playGameScreen = new GameScene()
@@ -47,5 +52,8 @@ class Boot extends javafx.application.Application {
 
 //    val selectScreen = new SelectScene()
 //    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
+
+//    val roomListScene = new RoomListScene
+//    context.switchScene(roomListScene.getScene,fullScreen = false)
   }
 }
