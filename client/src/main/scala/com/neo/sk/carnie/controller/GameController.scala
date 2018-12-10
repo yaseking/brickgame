@@ -90,6 +90,12 @@ class GameController(player: PlayerInfoInClient,
     startGameLoop()
   }
 
+  def joinByRoomId(domain: String, roomId: Int, img: Int): Unit = {
+    playActor ! PlayGameWebSocket.ConnectGame(player, domain, mode, img)
+    addUserActionListen()
+    startGameLoop()
+  }
+
   def createRoom(domain: String, mode: Int, img: Int, pwd: String): Unit = {
     playActor ! PlayGameWebSocket.CreateRoom(player, domain, mode, img, pwd)
     addUserActionListen()

@@ -11,7 +11,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.ptcl.RoomApiProtocol.RoomListRsp
-
+import com.neo.sk.carnie.utils.SecureUtil._
 import scala.util.{Failure, Success}
 
 
@@ -21,8 +21,16 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   updateRoomList()
 
   private def getRoomListInit() = {
+    //fixme appId和gsKey放在application中，不要暴露
     val url = s"http://$domain/carnie/getRoomList"
-    postJsonRequestSend("post",url,List(),"",needLogRsp = false).map{
+//    val url = s"http://10.1.29.250:30368/carnie/getRoomList"
+    val appId = 1000000003.toString
+    val sn = appId + System.currentTimeMillis().toString
+    val data = {}.asJson.noSpaces
+    val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), "rt7gJt5hkrdYk31W2lF4I0TlAgaBQpsb")
+    val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
+//    val jsonData = genPostEnvelope("esheep",System.nanoTime().toString,{}.asJson.noSpaces,"").asJson.noSpaces
+    postJsonRequestSend("post",url,List(),params,needLogRsp = false).map{
       case Right(value) =>
         decode[RoomListRsp](value) match {
           case Right(data) =>
@@ -34,12 +42,12 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
               Left("Error")
             }
           case Left(error) =>
-            log.debug(s"获取房间列表失败，${error}")
+            log.debug(s"获取房间列表失败1，${error}")
             Left("Error")
 
         }
       case Left(error) =>
-        log.debug(s"获取房间列表失败，${error}")
+        log.debug(s"获取房间列表失败2，${error}")
         Left("Error")
     }
   }
@@ -61,10 +69,13 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   roomListScene.listener = new RoomListSceneListener {
     override def confirm(roomId: String): Unit = {
       println(s"roomId: $roomId")
-//      val playGameScreen = new GameScene(img, frameRate)
-//      val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-//      context.switchScene(playGameScreen.getScene, fullScreen = true)
-//      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
+      val mode = 0
+      val img = 0
+      val frameRate = 150
+      val playGameScreen = new GameScene(img, frameRate)
+      val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+      context.switchScene(playGameScreen.getScene, fullScreen = true)
+      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
     }
   }
 
