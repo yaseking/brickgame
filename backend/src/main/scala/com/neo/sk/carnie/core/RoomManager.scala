@@ -54,6 +54,8 @@ object RoomManager {
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
+  case class FindAllRoom4Client(reply: ActorRef[List[String]]) extends Command
+
   case class JudgePlaying(userId: String, reply: ActorRef[Boolean]) extends Command
 
   case class JudgePlaying4Watch(roomId: Int, userId: String, reply: ActorRef[Boolean]) extends Command
@@ -271,6 +273,11 @@ object RoomManager {
         case FindAllRoom(reply) => //或许可以用个计时器，定时请求房间列表，清除无人的房间
           log.debug(s"got all room")
           reply ! roomMap.keySet.toList
+          Behaviors.same
+
+        case FindAllRoom4Client(reply) => //或许可以用个计时器，定时请求房间列表，清除无人的房间
+          log.debug(s"got all room")
+          reply ! roomMap.map{i => s"${i._1}-${i._2._1}-${i._2._2.nonEmpty}"}.toList //roomId-mode-pwd(t/f)
           Behaviors.same
 
         case unknown =>

@@ -10,8 +10,9 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.ptcl.RoomApiProtocol.RoomListRsp
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.{RoomListRsp, RoomListRsp4Client}
 import com.neo.sk.carnie.utils.SecureUtil._
+
 import scala.util.{Failure, Success}
 
 
@@ -22,7 +23,7 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
 
   private def getRoomListInit() = {
     //fixme appId和gsKey放在application中，不要暴露
-    val url = s"http://$domain/carnie/getRoomList"
+    val url = s"http://$domain/carnie/getRoomList4Client"
 //    val url = s"http://10.1.29.250:30368/carnie/getRoomList"
     val appId = 1000000003.toString
     val sn = appId + System.currentTimeMillis().toString
@@ -32,7 +33,7 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
 //    val jsonData = genPostEnvelope("esheep",System.nanoTime().toString,{}.asJson.noSpaces,"").asJson.noSpaces
     postJsonRequestSend("post",url,List(),params,needLogRsp = false).map{
       case Right(value) =>
-        decode[RoomListRsp](value) match {
+        decode[RoomListRsp4Client](value) match {
           case Right(data) =>
             if(data.errCode == 0){
               println(s"roomData: $data")

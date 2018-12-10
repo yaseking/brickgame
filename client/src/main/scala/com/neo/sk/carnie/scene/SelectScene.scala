@@ -10,6 +10,7 @@ import javafx.scene.text.Font
 abstract class SelectSceneListener {
   def joinGame(mode: Int, img: Int)
   def createRoom(mode: Int, img: Int, pwd: String)
+  def gotoRoomList()
 }
 
 class SelectScene {
@@ -115,16 +116,21 @@ class SelectScene {
   canvasCtx.drawImage(headerImg4, 300, 250, 40, 40)
   canvasCtx.drawImage(headerImg5, 350, 250, 40, 40)
 
-//  val pwdField = new PasswordField()
-  val pwdField = new TextField()
-  pwdField.setLayoutX(360)
+  val pwdField = new PasswordField()
+  pwdField.setPromptText("房间密码")
+//  pwdField.setMaxWidth(60)
+  pwdField.setPrefWidth(80)
+  pwdField.setLayoutX(180)
   pwdField.setLayoutY(400)
-//  pwdField.setSize(30,10)
 //  pwdField.setName("test")
 
   val button2 = new  Button("创建房间")
-  button2.setLayoutX(450)
-  button2.setLayoutY(450)
+  button2.setLayoutX(280)
+  button2.setLayoutY(400)
+
+  val button3 = new Button("房间列表")
+  button3.setLayoutX(420)
+  button3.setLayoutY(450)
 
   group.getChildren.add(canvas)
   group.getChildren.add(mode0)
@@ -139,6 +145,7 @@ class SelectScene {
   group.getChildren.add(pwdField)
   group.getChildren.add(button1)
   group.getChildren.add(button2)
+  group.getChildren.add(button3)
   val scene = new Scene(group)
 
   button1.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
