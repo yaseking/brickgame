@@ -285,7 +285,7 @@ object RoomManager {
           log.info(s"reply in FindAllRoom: $reply")
           log.info(s"ctx.self ${ctx.self}")
           reply ! roomMap.keySet.toList
-          log.info(s"ctx.self2 ${ctx.self}")
+          log.info(s"reply2 in FindAllRoom: $reply")
           Behaviors.same
 
         case FindAllRoom4Client(reply) => //或许可以用个计时器，定时请求房间列表，清除无人的房间
