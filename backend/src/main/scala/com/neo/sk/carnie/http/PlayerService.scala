@@ -144,9 +144,10 @@ trait PlayerService extends ServiceUtils with CirceSupport {
           'id.as[String],
           'name.as[String],
           'accessCode.as[String],
-          'mode.as[Int],
-          'img.as[Int]
-        ) { (id, name, accessCode, mode, img) =>
+          'mode.as[Int].?,
+          'img.as[Int],
+          'roomId.as[Int].?
+        ) { (id, name, accessCode, mode, img, roomId) =>
           val gameId = AppSettings.esheepGameId
           dealFutureResult{
             val msg: Future[String] = tokenActor ? AskForToken
@@ -155,11 +156,14 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 val playerName = URLDecoder.decode(name, "UTF-8")
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
-                    handleWebSocketMessages(webSocketChatFlow(id, playerName, mode, img))
+                    if(roomId.nonEmpty)
+                      handleWebSocketMessages(webSocketChatFlow2(id, playerName, img, roomId.get))
+                    else
+                      handleWebSocketMessages(webSocketChatFlow(id, playerName, mode.get, img))
                   case Left(e) =>
                     log.error(s"playGame error. fail to verifyAccessCode4Client: $e")
-//                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
-                    handleWebSocketMessages(webSocketChatFlow(id, playerName, mode, img))
+                    complete(ErrorRsp(120010, "Some errors happened in parse verifyAccessCode."))
+//                    handleWebSocketMessages(webSocketChatFlow(id, playerName, mode, img))
                 }
               }
             }
@@ -271,6 +275,50 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
       .via(RoomManager.joinGame(roomManager, playedId, sender, mode, img))
+      .map {
+        case msg:Protocol.GameMessage =>
+          val sendBuffer = new MiddleBufferInJvm(409600)
+          BinaryMessage.Strict(ByteString(
+            //encoded process
+            msg.fillMiddleBuffer(sendBuffer).result()
+
+          ))
+
+        case x =>
+          TextMessage.apply("")
+
+      }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
+  }
+
+  def webSocketChatFlow2(playedId: String, sender: String, img: Int, roomId: Int): Flow[Message, Message, Any] = {
+    import scala.language.implicitConversions
+    import org.seekloud.byteobject.ByteObject._
+    import org.seekloud.byteobject.MiddleBufferInJvm
+    import io.circe.generic.auto._
+    import io.circe.parser._
+    Flow[Message]
+      .collect {
+        case TextMessage.Strict(msg) =>
+          log.debug(s"msg from webSocket: $msg")
+          TextInfo(msg)
+
+        case BinaryMessage.Strict(bMsg) =>
+          //decode process.
+          val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
+          val msg =
+            bytesDecode[UserAction](buffer) match {
+              case Right(v) => v
+              case Left(e) =>
+                println(s"decode error: ${e.message}")
+                TextInfo("decode error")
+            }
+          msg
+        // unpack incoming WS text messages...
+        // This will lose (ignore) messages not received in one chunk (which is
+        // unlikely because chat messages are small) but absolutely possible
+        // FIXME: We need to handle TextMessage.Streamed as well.
+      }
+      .via(RoomManager.joinGame2(roomManager, playedId, sender, img, roomId))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)

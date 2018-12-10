@@ -38,6 +38,8 @@ object RoomManager {
 
   case class Join(id: String, name: String, mode: Int, img: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
+  case class JoinByRoomId(id: String, roomId: Int, name: String, img: Int, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
+
   case class Left(id: String, name: String) extends Command
 
   case class WatcherLeft(roomId: Int, playerId: String) extends Command
@@ -93,6 +95,15 @@ object RoomManager {
           roomMap += roomId -> (mode , pwd, mutable.HashSet((id, name)))
           println(roomMap)
           getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
+          Behaviors.same
+
+        case m@JoinByRoomId(id, roomId, name, img, subscriber) =>
+          log.info(s"got: $m")
+          if(roomMap.exists(_._1==roomId)){
+            val mode = roomMap(roomId)._1
+            getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
+          } else
+            log.info(s"房间不存在：$roomId")
           Behaviors.same
 
         case msg@Join(id, name, mode, img, subscriber) =>
@@ -308,6 +319,31 @@ object RoomManager {
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
       ).mapMaterializedValue(outActor => actor ! Join(userId, name, mode, img, outActor))
+
+    Flow.fromSinkAndSource(in, out)
+  }
+
+  def joinGame2(actor: ActorRef[RoomManager.Command], userId: String, name: String, img: Int, roomId: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+    val in = Flow[Protocol.UserAction]
+      .map {
+        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
+        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case _ => UnKnowAction
+      }
+      .to(sink(actor, userId, name))
+
+    val out =
+      ActorSource.actorRef[WsSourceProtocol.WsMsgSource](
+        completionMatcher = {
+          case WsSourceProtocol.CompleteMsgServer ⇒
+        },
+        failureMatcher = {
+          case WsSourceProtocol.FailMsgServer(e) ⇒ e
+        },
+        bufferSize = 64,
+        overflowStrategy = OverflowStrategy.dropHead
+      ).mapMaterializedValue(outActor => actor ! JoinByRoomId(userId, roomId, name, img, outActor))
 
     Flow.fromSinkAndSource(in, out)
   }
