@@ -1,13 +1,17 @@
 package com.neo.sk.carnie
 
+import java.io.File
+
 import akka.actor.{ActorSystem, Scheduler}
 import akka.stream.ActorMaterializer
 
 import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.common.Context
-import com.neo.sk.carnie.controller.{GameController, LoginController, SelectController}
+import com.neo.sk.carnie.controller.{BotController, GameController, LoginController, SelectController}
+import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{GameScene, LoginScene, RoomListScene, SelectScene}
+import com.typesafe.config.ConfigFactory
 import javafx.application.Platform
 import javafx.stage.Stage
 
@@ -37,12 +41,32 @@ class Boot extends javafx.application.Application {
 
     println("!!!!" + para)
 
+    //是否需要图像渲染
+    //    val file = new File(para.get(0))
+    //    if (file.isFile && file.exists) {
+    //      val botConfig = ConfigFactory.parseResources(para(0)).withFallback(ConfigFactory.load())
+    //
+    //      val appConfig = botConfig.getConfig("app")
+    //      val render = appConfig.getBoolean("render")
+    //      if(render) {
+    //        val context = new Context(mainStage)
+    //
+    //        val loginScene = new LoginScene()
+    //        val loginController = new LoginController(loginScene, context)
+    //        loginController.showScene()
+    //        loginController.init()
+    //      } else {
+    //        new BotController(PlayerInfoInClient("test", "test", "test"))
+    //      }
+    //    }
+
     val context = new Context(mainStage)
 
     val loginScene = new LoginScene()
     val loginController = new LoginController(loginScene, context)
     loginController.showScene()
     loginController.init()
+
 
 
 //    val playGameScreen = new GameScene()

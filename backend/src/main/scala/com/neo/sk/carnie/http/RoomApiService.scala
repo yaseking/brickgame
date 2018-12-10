@@ -77,32 +77,32 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   }
 
   private val verifyPwd = (path("verifyPwd") & post & pathEndOrSingleSlash) {//todo 鉴权
-    entity(as[Either[Error, PwdReq]]) {
-      case Right(req) =>
-        val msg: Future[Boolean] = roomManager ? (RoomManager.VerifyPwd(req.roomId, req.pwd, _))
-        dealFutureResult(
-          msg.map {
-            case true =>
-              complete(SuccessRsp())
-            case _ =>
-              complete(ErrorRsp(100031, "pwd is wrong"))
-          }
-        )
-      case Left(e) =>
-        log.debug("Some errs happened in verifyPwd.")
-        complete(ErrorRsp(100032, s"Some errs in verifyPwd: $e"))
-    }
-//    dealPostReq[PwdReq] { req =>
-//      val msg: Future[Boolean] = roomManager ? (RoomManager.VerifyPwd(req.roomId, req.pwd, _))
-//      msg.map {
-//        case true =>
-//          log.info("pwd is right.")
-//          complete(SuccessRsp())
-//        case _ =>
-//          log.info("pwd is wrong.")
-//          complete(ErrorRsp(100031, "pwd is wrong"))
-//      }
+//    entity(as[Either[Error, PwdReq]]) {
+//      case Right(req) =>
+//        val msg: Future[Boolean] = roomManager ? (RoomManager.VerifyPwd(req.roomId, req.pwd, _))
+//        dealFutureResult(
+//          msg.map {
+//            case true =>
+//              complete(SuccessRsp())
+//            case _ =>
+//              complete(ErrorRsp(100031, "pwd is wrong"))
+//          }
+//        )
+//      case Left(e) =>
+//        log.debug("Some errs happened in verifyPwd.")
+//        complete(ErrorRsp(100032, s"Some errs in verifyPwd: $e"))
 //    }
+    dealPostReq[PwdReq] { req =>
+      val msg: Future[Boolean] = roomManager ? (RoomManager.VerifyPwd(req.roomId, req.pwd, _))
+      msg.map {
+        case true =>
+          log.info("pwd is right.")
+          complete(SuccessRsp())
+        case _ =>
+          log.info("pwd is wrong.")
+          complete(ErrorRsp(100031, "pwd is wrong"))
+      }
+    }
   }
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {

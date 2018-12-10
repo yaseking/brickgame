@@ -25,7 +25,6 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   updateRoomList()
 
   private def getRoomListInit() = {
-    //fixme appId和gsKey放在application中，不要暴露
     val url = s"http://$domain/carnie/getRoomList4Client"
 //    val appId = 1000000003.toString
     val appId = AppSetting.esheepGameId.toString
@@ -101,7 +100,12 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   def verifyPwd(roomId:Int, pwd:String) = {
     val url = s"http://$domain/carnie/verifyPwd"
     val data = PwdReq(roomId,pwd).asJson.noSpaces
-    postJsonRequestSend("post",url,List(),data,needLogRsp = false).map {
+    val appId = AppSetting.esheepGameId.toString
+    val sn = appId + System.currentTimeMillis().toString
+    val gsKey = AppSetting.esheepGsKey
+    val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
+    val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
+    postJsonRequestSend("post",url,List(),params,needLogRsp = false).map { //data
       case Right(value) =>
         decode[SuccessRsp](value) match {
           case Right(r) =>
