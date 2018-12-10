@@ -83,10 +83,8 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
         dealFutureResult(
           msg.map {
             case true =>
-              log.info("pwd is right.")
               complete(SuccessRsp())
             case _ =>
-              log.info("pwd is wrong.")
               complete(ErrorRsp(100031, "pwd is wrong"))
           }
         )

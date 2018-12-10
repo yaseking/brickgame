@@ -119,7 +119,7 @@ object RoomManager {
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           } else { //创建新房间不带密码
             val roomId = roomIdGenerator.getAndIncrement()
-            roomMap.put(roomId, (mode, Some("test"), mutable.HashSet((id, name))))//默认无密码
+            roomMap.put(roomId, (mode, None, mutable.HashSet((id, name))))//默认无密码
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           }
           Behaviors.same
