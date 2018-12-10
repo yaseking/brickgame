@@ -78,6 +78,11 @@ object RoomApiProtocol {
                            playerId: String
                          )
 
+  case class CreateRoomInfo(
+                           mode: Int,
+                           pwd: Option[String]
+                         )
+
   case class PlayerInfo(
                          playerList: List[PlayerIdName]
                        )
@@ -93,6 +98,10 @@ object RoomApiProtocol {
 
   case class RoomIdReq(
                         roomId: Int
+                      )
+  case class PwdReq(
+                        roomId: Int,
+                        pwd: String
                       )
   case class AllRoomReq(
                         data: String
@@ -118,6 +127,16 @@ object RoomApiProtocol {
 
   case class RoomListInfo(
                            roomList: List[Int]
+                         )
+
+  case class RoomListRsp4Client(
+                          data: RoomListInfo4Client,
+                          errCode: Int = 0,
+                          msg: String = "ok"
+                        )
+
+  case class RoomListInfo4Client(
+                           roomList: List[String]
                          )
 
   case class RecordFrameRsp(

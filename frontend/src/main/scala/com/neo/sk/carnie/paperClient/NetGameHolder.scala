@@ -20,7 +20,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, frameRate: Int = 150) extends Component {
+class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img: Int = 0, frameRate: Int = 150) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
@@ -43,7 +43,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  val delay = if(webSocketPara.asInstanceOf[PlayGamePara].mode == 2) 4 else 2
+  val delay:Int = if(mode == 2) 4 else 2
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
@@ -242,7 +242,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, img: Int = 0, f
             //            println(s"frame : $frame")
             val actionId = idGenerator.getAndIncrement()
             val newKeyCode =
-              if (webSocketPara.asInstanceOf[PlayGamePara].mode == 1)
+              if (mode == 1)
                 e.keyCode match {
                   case KeyCode.Left => KeyCode.Right
                   case KeyCode.Right => KeyCode.Left

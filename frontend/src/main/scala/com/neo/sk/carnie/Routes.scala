@@ -1,9 +1,13 @@
 package com.neo.sk.carnie
 
 object Routes {
-  val baseUrl = "/carnie/esheep"
+  val baseUrl = "/carnie"
 
   object Esheep {
-    val playGame = baseUrl + "/playGame"
+    val playGame = baseUrl + "/esheep/playGame"
+  }
+
+  object Carnie {
+    val getRoomList = baseUrl + "/getRoomList"
   }
 }

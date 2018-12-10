@@ -3,13 +3,12 @@ package com.neo.sk.carnie.paperClient
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.util.JsFunc
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
+import com.neo.sk.carnie.paperClient.WebSocketProtocol.{CreateRoomPara, PlayGamePara, WebSocketPara}
 import com.neo.sk.carnie.util.Component
 import org.scalajs.dom
+import org.scalajs.dom.html.Input
 
 import scala.util.Random
-//import org.scalajs.dom.ext.KeyCode
-//import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw.{Event, HTMLAudioElement, VisibilityState}
 import com.neo.sk.carnie.Main
 import mhtml.{Rx, Var}
@@ -20,10 +19,7 @@ import io.circe.syntax._
 
 import scala.xml.Elem
 
-/**
-  * Created by dry on 2018/11/28.
-  **/
-class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component {
+class CreateRoomPage(order: String, webSocketPara: PlayGamePara) extends Component {
 
   sealed case class Model(id: Int, img: String, name: String)
 
@@ -132,14 +128,16 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   def resetScreen(): Unit = {
     if(dom.window.innerWidth.toFloat > windowBoundary.x)
-    windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+      windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   }
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
+      val pwd = dom.document.getElementById("pwdInput").asInstanceOf[Input].value
+      println(s"pwd: $pwd")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
-      new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
+      new NetGameHolder("playGame", CreateRoomPara(playerId, playerName, pwd, modelId, headId), modelId, headId, frameRate).init()
     }
   }
   override def render: Elem = {
@@ -152,25 +150,28 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           </div>
           <div style="overflow: hidden;" >
             <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;margin-left:20%;margin-right:20%;text-align:center" >
-                {modelDiv}
+              {modelDiv}
             </div>
           </div>
 
           <div style="text-align: center;">
             <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
-            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
+            {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>创建房间</button>
           </div>
 
+          <dvi style="text-align: center;margin-left:46%;">
+            <input id="pwdInput" style="width:100px;" type="password">password: </input>
+          </dvi>
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 10px;">
               <p style="text-align: center; margin-top: 0px;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
-                {headDiv}
+              {headDiv}
             </div>
           </div>
-          </div>
+        </div>
       </div>
     </div>
   }

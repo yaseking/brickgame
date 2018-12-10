@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.http
 
 import java.io.File
+
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.{Directive1, Route}
@@ -10,14 +11,17 @@ import akka.http.scaladsl.model.HttpEntity
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
-import com.neo.sk.carnie.Boot.{scheduler, executor}
+import com.neo.sk.carnie.Boot.{executor, scheduler}
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.core.TokenActor.AskForToken
+import com.neo.sk.carnie.ptcl.RoomApiProtocol
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
+
 import scala.concurrent.Future
 import io.circe.Error
+
 import scala.collection.mutable
 import com.neo.sk.utils.essf.RecallGame._
 
@@ -30,6 +34,17 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   private val log = LoggerFactory.getLogger("com.neo.sk.carnie.http.RoomApiService")
 
   val roomManager: akka.actor.typed.ActorRef[RoomManager.Command]
+
+//  private val createRoom = (path("createRoom") & post & pathEndOrSingleSlash) {
+//    entity(as[Either[Error, CreateRoomInfo]]) {
+//      case Right(r) =>
+//        roomManager ! RoomManager.CreateRoom(r.mode, r.pwd)
+//        complete(SuccessRsp())
+//      case Left(e) =>
+//        log.debug(s"got errMsg: $e")
+//        complete(ErrorRsp(100020, s"createRoom error: $e"))
+//    }
+//  }
 
   private val getRoomId = (path("getRoomId") & post & pathEndOrSingleSlash) {
     dealPostReq[PlayerIdInfo] { req =>
@@ -61,14 +76,63 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
+  private val verifyPwd = (path("verifyPwd") & post & pathEndOrSingleSlash) {//todo 鉴权
+    entity(as[Either[Error, PwdReq]]) {
+      case Right(req) =>
+        val msg: Future[Boolean] = roomManager ? (RoomManager.VerifyPwd(req.roomId, req.pwd, _))
+        dealFutureResult(
+          msg.map {
+            case true =>
+              log.info("pwd is right.")
+              complete(SuccessRsp())
+            case _ =>
+              log.info("pwd is wrong.")
+              complete(ErrorRsp(100031, "pwd is wrong"))
+          }
+        )
+      case Left(e) =>
+        log.debug("Some errs happened in verifyPwd.")
+        complete(ErrorRsp(100032, s"Some errs in verifyPwd: $e"))
+    }
+//    dealPostReq[PwdReq] { req =>
+//      val msg: Future[Boolean] = roomManager ? (RoomManager.VerifyPwd(req.roomId, req.pwd, _))
+//      msg.map {
+//        case true =>
+//          log.info("pwd is right.")
+//          complete(SuccessRsp())
+//        case _ =>
+//          log.info("pwd is wrong.")
+//          complete(ErrorRsp(100031, "pwd is wrong"))
+//      }
+//    }
+  }
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
     dealPostReqWithoutData {
       val msg: Future[List[Int]] = roomManager ? RoomManager.FindAllRoom
       msg.map {
         allRoom =>
-          if (allRoom.nonEmpty)
+          if (allRoom.nonEmpty){
+            log.info("prepare to return roomList.")
             complete(RoomListRsp(RoomListInfo(allRoom)))
+          }
+          else {
+            log.info("get all room error,there are no rooms")
+            complete(ErrorRsp(100000, "get all room error,there are no rooms"))
+          }
+      }
+    }
+  }
+
+  private val getRoomList4Client = (path("getRoomList4Client") & post & pathEndOrSingleSlash) {
+    dealPostReqWithoutData {
+      val msg: Future[List[String]] = roomManager ? RoomManager.FindAllRoom4Client
+      msg.map {
+        allRoom =>
+          if (allRoom.nonEmpty){
+            log.info("prepare to return roomList.")
+            complete(RoomApiProtocol.RoomListRsp4Client(RoomListInfo4Client(allRoom)))
+          }
           else {
             log.info("get all room error,there are no rooms")
             complete(ErrorRsp(100000, "get all room error,there are no rooms"))
@@ -229,7 +293,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
 
   val roomApiRoutes: Route = {
-    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
+    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ getRoomList4Client ~ verifyPwd ~
       getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList
   }
 
