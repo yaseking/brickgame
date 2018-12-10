@@ -62,10 +62,12 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   def debug(str: String):Unit = log.debug(s"$str")
 
   var a=0
+
   def getAllImageData:List[Array[Int]] ={
     val canvasList = List(positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,rankCanvas,viewCanvas)
     canvasList.map(c => getImageData(c))
   }
+
   def getImageData(canvas: Canvas):Array[Int] = {
 //    a += 1
     val h = canvas.getHeight.toInt
