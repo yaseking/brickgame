@@ -20,7 +20,7 @@ class RoomListScene {
 
   val hBox = new HBox(20)
 
-  var roomList:List[Int] = List.empty[Int]
+  var roomList:List[String] = List.empty[String]
   private val observableList:ObservableList[String] = FXCollections.observableArrayList()
   private val listView = new ListView[String](observableList)
   private val confirmBtn = new Button("进入房间")
@@ -36,7 +36,7 @@ class RoomListScene {
   borderPane.setCenter(hBox)
   group.getChildren.add(borderPane)
 
-  def updateRoomList(roomList:List[Int]):Unit = {
+  def updateRoomList(roomList:List[String]):Unit = {
     this.roomList = roomList
     observableList.clear()
     roomList.sortBy(t => t).map(_.toString) foreach observableList.add

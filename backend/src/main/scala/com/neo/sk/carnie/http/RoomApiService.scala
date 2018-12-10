@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.http
 
 import java.io.File
+
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.{Directive1, Route}
@@ -10,14 +11,17 @@ import akka.http.scaladsl.model.HttpEntity
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
-import com.neo.sk.carnie.Boot.{scheduler, executor}
+import com.neo.sk.carnie.Boot.{executor, scheduler}
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.core.TokenActor.AskForToken
+import com.neo.sk.carnie.ptcl.RoomApiProtocol
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
+
 import scala.concurrent.Future
 import io.circe.Error
+
 import scala.collection.mutable
 import com.neo.sk.utils.essf.RecallGame._
 
@@ -81,6 +85,23 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
           if (allRoom.nonEmpty){
             log.info("prepare to return roomList.")
             complete(RoomListRsp(RoomListInfo(allRoom)))
+          }
+          else {
+            log.info("get all room error,there are no rooms")
+            complete(ErrorRsp(100000, "get all room error,there are no rooms"))
+          }
+      }
+    }
+  }
+
+  private val getRoomList4Client = (path("getRoomList4Client") & post & pathEndOrSingleSlash) {
+    dealPostReqWithoutData {
+      val msg: Future[List[String]] = roomManager ? RoomManager.FindAllRoom4Client
+      msg.map {
+        allRoom =>
+          if (allRoom.nonEmpty){
+            log.info("prepare to return roomList.")
+            complete(RoomApiProtocol.RoomListRsp4Client(RoomListInfo4Client(allRoom)))
           }
           else {
             log.info("get all room error,there are no rooms")
@@ -242,7 +263,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
 
   val roomApiRoutes: Route = {
-    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~
+    getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ getRoomList4Client ~
       getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList
   }
 

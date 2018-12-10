@@ -336,6 +336,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.NewFieldInfo =>
+        println("!!!!got new FieldInfo.")
         Boot.addToPlatform{
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()

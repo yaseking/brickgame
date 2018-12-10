@@ -125,6 +125,16 @@ object RoomApiProtocol {
                            roomList: List[Int]
                          )
 
+  case class RoomListRsp4Client(
+                          data: RoomListInfo4Client,
+                          errCode: Int = 0,
+                          msg: String = "ok"
+                        )
+
+  case class RoomListInfo4Client(
+                           roomList: List[String]
+                         )
+
   case class RecordFrameRsp(
                         data: RecordFrameInfo,
                         errCode: Int = 0,
