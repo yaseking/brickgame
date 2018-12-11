@@ -9,7 +9,7 @@ import javafx.collections.FXCollections
 import javafx.scene.control.ButtonBar.ButtonData
 import javafx.scene.control._
 import javafx.scene.layout.GridPane
-import javafx.stage.Window
+//import javafx.stage.Window
 
 
 class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, context: Context, domain: String) {
@@ -27,7 +27,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
         }
         else {
           context.switchScene(LayeredGameScreen.getScene,fullScreen = true)
-          new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
+          new BotController(playerInfoInClient, context,LayeredGameScreen, mode).startGameLoop()
         }
 
       }

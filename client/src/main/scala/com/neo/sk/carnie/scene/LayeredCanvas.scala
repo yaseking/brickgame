@@ -137,7 +137,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
 
-  def drawBorder(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, frameRate: Int): Unit = {
+  def drawBorder(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -316,7 +316,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     selfViewCtx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
-  def drawSelfView(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawSelfView(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -410,7 +410,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
 
-  def drawSelf(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawSelf(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -517,7 +517,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
 
-  def drawBody(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, frameRate: Int):Unit ={
+  def drawBody(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int):Unit ={
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {

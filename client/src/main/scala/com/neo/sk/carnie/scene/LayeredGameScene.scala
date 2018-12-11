@@ -86,13 +86,11 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 
 
   def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
-//    view.drawGrid(uid, data, offsetTime, grid, championId, frameRate)
-//    view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     layered.drawPosition(data.snakes.filter(_.id == uid).map(_.header).head,data.snakes.find(_.id == championId).map(_.header),uid == championId)
-    layered.drawBorder(uid, data, offsetTime, grid, championId, frameRate)
-    layered.drawSelfView(uid, data, offsetTime, grid, championId, frameRate)
-    layered.drawSelf(uid, data, offsetTime, grid, championId, frameRate)
-    layered.drawBody(uid, data, offsetTime, grid, championId, frameRate)
+    layered.drawBorder(uid, data, offsetTime, grid, frameRate)
+    layered.drawSelfView(uid, data, offsetTime, grid,  frameRate)
+    layered.drawSelf(uid, data, offsetTime, grid, frameRate)
+    layered.drawBody(uid, data, offsetTime, grid, frameRate)
   }
 
   def drawGameWait(): Unit = {

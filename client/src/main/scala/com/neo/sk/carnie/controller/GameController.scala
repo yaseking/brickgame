@@ -185,7 +185,6 @@ class GameController(player: PlayerInfoInClient,
       case None if isWin =>
 
       case None if !firstCome =>
-//        println(s"killer: ${grid.getKiller(player.id).map(_._2)}")
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
 
