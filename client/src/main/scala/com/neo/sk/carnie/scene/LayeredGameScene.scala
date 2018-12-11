@@ -93,6 +93,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     layered.drawBody(uid, data, offsetTime, grid, frameRate)
   }
 
+
   def drawGameWait(): Unit = {
     selfViewCtx.save()
     selfViewCtx.setFill(ColorsSetting.dieInfoBackgroundColor)

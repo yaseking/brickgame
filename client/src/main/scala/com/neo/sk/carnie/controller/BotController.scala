@@ -27,6 +27,7 @@ class BotController(player: PlayerInfoInClient,
 
   private var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
+//  var allImageData:List[Array[Int]] = List.empty
   var currentRank = List.empty[Score]
   private val frameRate = 150
   var grid = new GridOnClient(Point(Boundary.w, Boundary.h))
@@ -47,6 +48,7 @@ class BotController(player: PlayerInfoInClient,
   }
 
   private def logicLoop(): Unit = { //逻辑帧
+//    allImageData = getAllImage
     logicFrameTime = System.currentTimeMillis()
     if (newSnakeInfo.nonEmpty) {
       grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
@@ -189,5 +191,8 @@ class BotController(player: PlayerInfoInClient,
     }
   }
 
+  def getAllImage:List[Array[Int]] = {
+    layeredGameScene.layered.getAllImageData
+  }
 
 }
