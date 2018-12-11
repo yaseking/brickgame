@@ -93,7 +93,9 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
             }
           }
         } else {
-          playGame(mode, img, frameRate, roomId)
+          Boot.addToPlatform(
+            playGame(mode, img, frameRate, roomId)
+          )
         }
       }
     }

@@ -115,19 +115,19 @@ class GameController(player: PlayerInfoInClient,
   }
 
   private def logicLoop(): Unit = { //逻辑帧
-//    if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
-//      gameScene.resetScreen(Constant.CanvasWidth,Constant.CanvasHeight,Constant.CanvasWidth,Constant.CanvasHeight)
-//      stageCtx.getStage.setWidth(Constant.CanvasWidth)
-//      stageCtx.getStage.setHeight(Constant.CanvasHeight)
-//      exitFullScreen = true
-//    }
-//    if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
-//      stageWidth = stageCtx.getStage.getWidth.toInt
-//      stageHeight = stageCtx.getStage.getHeight.toInt
-//      gameScene.resetScreen(stageWidth,stageHeight,stageWidth,stageHeight)
-//      stageCtx.getStage.setWidth(stageWidth)
-//      stageCtx.getStage.setHeight(stageHeight)
-//    }
+    if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
+      gameScene.resetScreen(Constant.CanvasWidth,Constant.CanvasHeight,Constant.CanvasWidth,Constant.CanvasHeight)
+      stageCtx.getStage.setWidth(Constant.CanvasWidth)
+      stageCtx.getStage.setHeight(Constant.CanvasHeight)
+      exitFullScreen = true
+    }
+    if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
+      stageWidth = stageCtx.getStage.getWidth.toInt
+      stageHeight = stageCtx.getStage.getHeight.toInt
+      gameScene.resetScreen(stageWidth,stageHeight,stageWidth,stageHeight)
+      stageCtx.getStage.setWidth(stageWidth)
+      stageCtx.getStage.setHeight(stageHeight)
+    }
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
 
@@ -185,7 +185,6 @@ class GameController(player: PlayerInfoInClient,
       case None if isWin =>
 
       case None if !firstCome =>
-//        println(s"killer: ${grid.getKiller(player.id).map(_._2)}")
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
 
