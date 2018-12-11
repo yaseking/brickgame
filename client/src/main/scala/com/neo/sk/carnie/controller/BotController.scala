@@ -77,7 +77,9 @@ class BotController(player: PlayerInfoInClient,
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        layeredGameScene.draw(player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        if (grid.getGridData.snakes.exists(_.id == player.id))
+          layeredGameScene.drawRank(player.id, grid.getGridData.snakes, currentRank)
+//        layeredGameScene.draw(player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None =>
@@ -153,8 +155,7 @@ class BotController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           currentRank = current
-          if (grid.getGridData.snakes.exists(_.id == player.id))
-          layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
+
         }
 
       case data: Protocol.Data4TotalSync =>
