@@ -45,7 +45,7 @@ object Constant {
     }
   }
 
-  def hex2Rgb(hex: String) = {
+  def hex2Rgb(hex: String):Color = {
     val red = hexToDec(hex.slice(1, 3))
     val green = hexToDec(hex.slice(3, 5))
     val blue = hexToDec(hex.takeRight(2))
@@ -74,9 +74,9 @@ object Constant {
   }
 
   val CanvasWidth = 800
-  val CanvasHeight = 600
+  val CanvasHeight = 400
 
   val layeredCanvasWidth = 400
-  val layeredCanvasHeight = 300
+  val layeredCanvasHeight = 200
 
 }

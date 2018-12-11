@@ -6,15 +6,20 @@ import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction, UserLeft}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.util.Duration
-
 import org.slf4j.LoggerFactory
 import akka.actor.typed.scaladsl.adapter._
+import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene}
 
 /**
   * Created by dry on 2018/12/4.
   **/
-class BotController(player: PlayerInfoInClient) {
+class BotController(player: PlayerInfoInClient,
+                    stageCtx: Context,
+                    layeredGameScene: LayeredGameScene,
+                    mode: Int =0,
+                    ) {
 
   private val botActor = Boot.system.spawn(BotActor.create(this), "botActor")
 
@@ -22,6 +27,8 @@ class BotController(player: PlayerInfoInClient) {
 
   private var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
+//  var allImageData:List[Array[Int]] = List.empty
+  var currentRank = List.empty[Score]
   private val frameRate = 150
   var grid = new GridOnClient(Point(Boundary.w, Boundary.h))
   private val timeline = new Timeline()
@@ -29,8 +36,10 @@ class BotController(player: PlayerInfoInClient) {
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var myCurrentRank = Score(player.id, player.name, 0)
+  private var logicFrameTime = System.currentTimeMillis()
 
   def startGameLoop(): Unit = { //渲染帧
+    logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
     val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>
       logicLoop()
@@ -40,6 +49,8 @@ class BotController(player: PlayerInfoInClient) {
   }
 
   private def logicLoop(): Unit = { //逻辑帧
+//    allImageData = getAllImage
+    logicFrameTime = System.currentTimeMillis()
     if (newSnakeInfo.nonEmpty) {
       grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
@@ -66,6 +77,8 @@ class BotController(player: PlayerInfoInClient) {
     val gridData = grid.getGridData
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
+        val offsetTime = System.currentTimeMillis() - logicFrameTime
+        layeredGameScene.draw(player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None =>
@@ -140,6 +153,9 @@ class BotController(player: PlayerInfoInClient) {
 
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
+          currentRank = current
+          if (grid.getGridData.snakes.exists(_.id == player.id))
+          layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
           val myCurrent = current.find(_.id == player.id)
           myCurrentRank = if (myCurrent.nonEmpty) {
             myCurrent.get
@@ -180,5 +196,8 @@ class BotController(player: PlayerInfoInClient) {
     }
   }
 
+  def getAllImage:List[Array[Int]] = {
+    layeredGameScene.layered.getAllImageData
+  }
 
 }

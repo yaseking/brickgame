@@ -9,7 +9,7 @@ import javafx.collections.FXCollections
 import javafx.scene.control.ButtonBar.ButtonData
 import javafx.scene.control._
 import javafx.scene.layout.GridPane
-import javafx.stage.Window
+//import javafx.stage.Window
 
 
 class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, context: Context, domain: String) {
@@ -21,13 +21,13 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
         val playGameScreen = new GameScene(img, frameRate)
         val LayeredGameScreen = new LayeredGameScene(img, frameRate)
         val x = false
-        if(!x) {
+        if(x) {
           context.switchScene(playGameScreen.getScene, fullScreen = true)
           new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
         }
         else {
-          context.switchScene(LayeredGameScreen.getScene,fullScreen = false)
-          new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
+          context.switchScene(LayeredGameScreen.getScene,fullScreen = true)
+          new BotController(playerInfoInClient, context,LayeredGameScreen, mode).startGameLoop()
         }
 
       }
