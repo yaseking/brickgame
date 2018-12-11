@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.actor
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.scaladsl.{Keep, Sink}
 import com.neo.sk.carnie.bot.BotServer
@@ -14,11 +16,13 @@ import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
+
 import scala.concurrent.Future
 import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.controller.BotController
-import com.neo.sk.carnie.paperClient.Protocol
+import com.neo.sk.carnie.paperClient.{Protocol, Score}
+import com.neo.sk.carnie.paperClient.WebSocketProtocol.PlayGamePara
 import org.seekloud.esheepapi.pb.actions.Move
 
 /**
@@ -31,6 +35,10 @@ object BotActor {
 
   sealed trait Command
 
+  val idGenerator = new AtomicInteger(1)
+
+  val delay = 2
+
   case object Work extends Command
 
   case class CreateRoom(playerId: String, apiToken: String) extends Command
@@ -39,9 +47,11 @@ object BotActor {
 
   case class LeaveRoom(playerId: String) extends Command
 
-  case class Action(move: Move) extends Command
+  case class Action(move: Move, replyTo: ActorRef[Int]) extends Command
 
   case class ReturnObservation(playerId: String) extends Command
+
+  case class ReturnInform(replyTo: ActorRef[(Score, Int)]) extends Command
 
   case class MsgToService(sendMsg: WsSendMsg) extends Command
 
@@ -108,7 +118,7 @@ object BotActor {
             log.info("connect to service closed!")
           } //ws断开
           connected.onComplete(i => log.info(i.toString))
-          gaming(stream)
+          gaming(stream, botController, playerId)
 
         case JoinRoom(roomId, playerId, apiToken) =>
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getJoinRoomWebSocketUri(roomId, playerId, apiToken)))
@@ -132,7 +142,7 @@ object BotActor {
             log.info("connect to service closed!")
           } //ws断开
           connected.onComplete(i => log.info(i.toString))
-          gaming(stream)
+          gaming(stream, botController, playerId)
 
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown")
@@ -141,20 +151,32 @@ object BotActor {
     }
   }
 
-  def gaming(actor: ActorRef[Protocol.WsSendMsg])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+  def gaming(actor: ActorRef[Protocol.WsSendMsg],
+             botController: BotController,
+             playerId: String)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case Action(move) =>
+        case Action(move, replyTo) =>
           val actionNum = Constant.moveToKeyCode(move)
-//          if(actionNum != -1)
-//            actor ! Key
+          if(actionNum != -1) {
+            val actionId = idGenerator.getAndIncrement()
+            val frame = botController.grid.frameCount
+            actor ! Key(playerId, actionNum, frame, actionId)
+            botController.grid.addActionWithFrame(playerId, actionNum, frame)
+            replyTo ! frame.toInt
+          } else replyTo ! -1
           Behaviors.same
 
         case ReturnObservation(playerId) =>
           Behaviors.same
 
-        case LeaveRoom(playerId) =>
+        case ReturnInform(replyTo) =>
+          replyTo ! (botController.myCurrentRank, botController.grid.frameCount.toInt)
           Behaviors.same
+
+        case LeaveRoom(playerId) =>
+          log.info(s"player:$playerId leave room, botActor stop.")
+          Behaviors.stopped
 
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown")
