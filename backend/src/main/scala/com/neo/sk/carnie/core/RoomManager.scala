@@ -117,9 +117,9 @@ object RoomManager {
             val roomId = roomMap.filter(r => r._2._1 == mode && r._2._2.size < limitNum).head._1
             roomMap.put(roomId, (mode, roomMap(roomId)._2, roomMap(roomId)._3 + ((id, name))))
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
-          } else { //创建新房间不带密码
+          } else {
             val roomId = roomIdGenerator.getAndIncrement()
-            roomMap.put(roomId, (mode, Some("test"), mutable.HashSet((id, name))))//默认无密码
+            roomMap.put(roomId, (mode, None, mutable.HashSet((id, name))))//默认无密码
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           }
           Behaviors.same
@@ -161,7 +161,7 @@ object RoomManager {
 
         case JudgePlaying4Watch(roomId, userId, reply) =>
           if(roomMap.contains(roomId)) {
-            val msg = roomMap.filter(_._1==roomId).head._2._3.exists(_._1==userId)//userId是否在游戏中
+            val msg = roomMap.filter(_._1==roomId).head._2._3.exists(_._1==userId)
             reply ! msg
             Behaviors.same
           } else {
@@ -280,8 +280,8 @@ object RoomManager {
           reply ! replyMsg
           Behaviors.same
 
-        case FindAllRoom(reply) => //或许可以用个计时器，定时请求房间列表，清除无人的房间
-          log.debug(s"got all room")
+        case FindAllRoom(reply) =>
+          log.info(s"got all room")
           reply ! roomMap.keySet.toList
           Behaviors.same
 

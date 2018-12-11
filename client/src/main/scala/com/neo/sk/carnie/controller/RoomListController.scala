@@ -15,7 +15,7 @@ import com.neo.sk.carnie.ptcl.RoomApiProtocol.{PwdReq, RoomListRsp, RoomListRsp4
 import com.neo.sk.carnie.utils.SecureUtil._
 import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
-
+import com.neo.sk.carnie.common.AppSetting
 import scala.util.{Failure, Success}
 
 
@@ -25,24 +25,23 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   updateRoomList()
 
   private def getRoomListInit() = {
-    //fixme appId和gsKey放在application中，不要暴露
     val url = s"http://$domain/carnie/getRoomList4Client"
-//    val url = s"http://10.1.29.250:30368/carnie/getRoomList"
-    val appId = 1000000003.toString
+//    val appId = 1000000003.toString
+    val appId = AppSetting.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
     val data = {}.asJson.noSpaces
-    val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), "rt7gJt5hkrdYk31W2lF4I0TlAgaBQpsb")
+    val gsKey = AppSetting.esheepGsKey
+    val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
-//    val jsonData = genPostEnvelope("esheep",System.nanoTime().toString,{}.asJson.noSpaces,"").asJson.noSpaces
     postJsonRequestSend("post",url,List(),params,needLogRsp = false).map{
       case Right(value) =>
         decode[RoomListRsp4Client](value) match {
-          case Right(data) =>
-            if(data.errCode == 0){
-              println(s"roomData: $data")
-              Right(data)
+          case Right(r) =>
+            if(r.errCode == 0){
+              println(s"roomData: $r")
+              Right(r)
             }else{
-              log.debug(s"获取列表失败，errCode:${data.errCode},msg:${data.msg}")
+              log.debug(s"获取列表失败，errCode:${r.errCode},msg:${r.msg}")
               Left("Error")
             }
           case Left(error) =>
@@ -71,39 +70,46 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   }
 
   roomListScene.listener = new RoomListSceneListener {
-    override def confirm(roomMsg: String): Unit = {//fixme 未选择房间情况待处理
-      println(s"roomId: $roomMsg")
-      val roomList = roomMsg.split("-")
-      val roomId = roomList(0).toInt
-      val mode = roomList(1).toInt
-      val img = 0 //头部图像
-      val frameRate = if(mode==2) frameRate2 else frameRate1
-      val hasPwd = if(roomList(2)=="true") true else false
-      val pwd = if(hasPwd) inputPwd else None
-      println(s"pwd: $pwd")
-      if(hasPwd){
-        if(pwd.nonEmpty) {
-          verifyPwd(roomId, pwd.get).map{
-            case true =>
-              playGame(mode, img, frameRate, roomId)
-            case false =>
-              //密码错误不做任何处理
+    override def confirm(roomMsg: String): Unit = {
+      if(roomMsg != null) {
+        println(s"roomId: $roomMsg")
+        val roomList = roomMsg.split("-")
+        val roomId = roomList(0).toInt
+        val mode = roomList(1).toInt
+        val img = 0 //头部图像
+        val frameRate = if(mode==2) frameRate2 else frameRate1
+        val hasPwd = if(roomList(2)=="true") true else false
+        val pwd = if(hasPwd) inputPwd else None
+        println(s"pwd: $pwd")
+        if(hasPwd){
+          if(pwd.nonEmpty) {
+            verifyPwd(roomId, pwd.get).map{
+              case true =>
+                Boot.addToPlatform(
+                  playGame(mode, img, frameRate, roomId)
+                )
+              case false =>
+              //              密码错误不做任何处理
+            }
           }
+        } else {
+          Boot.addToPlatform(
+            playGame(mode, img, frameRate, roomId)
+          )
         }
-      } else {
-        playGame(mode, img, frameRate, roomId)
       }
-//      val playGameScreen = new GameScene(img, frameRate)
-//      val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-//      context.switchScene(playGameScreen.getScene, fullScreen = true)
-//      new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
     }
   }
 
   def verifyPwd(roomId:Int, pwd:String) = {
-    val url = s"http://$domain/carnie/getRoomList4Client"
+    val url = s"http://$domain/carnie/verifyPwd"
     val data = PwdReq(roomId,pwd).asJson.noSpaces
-    postJsonRequestSend("post",url,List(),data,needLogRsp = false).map {
+    val appId = AppSetting.esheepGameId.toString
+    val sn = appId + System.currentTimeMillis().toString
+    val gsKey = AppSetting.esheepGsKey
+    val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
+    val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
+    postJsonRequestSend("post",url,List(),params,needLogRsp = false).map { //data
       case Right(value) =>
         decode[SuccessRsp](value) match {
           case Right(r) =>

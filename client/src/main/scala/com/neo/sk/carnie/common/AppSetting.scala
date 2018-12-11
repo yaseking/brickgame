@@ -14,6 +14,7 @@ object AppSetting {
   val esheepProtocol = esheepConfig.getString("protocol")
   val esheepDomain = esheepConfig.getString("domain")
   val esheepGameId = esheepConfig.getLong("gameId")
+  val esheepGsKey = esheepConfig.getString("gsKey")
 
   val file = new File("bot.conf")
   if (file.isFile && file.exists) {

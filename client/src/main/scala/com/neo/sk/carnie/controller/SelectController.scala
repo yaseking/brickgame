@@ -37,12 +37,13 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
       Boot.addToPlatform {
         val frameRate = if(mode==2) frameRate2 else frameRate1
         println(s"pwd: $pwd")
-//        val playGameScreen = new GameScene(img, frameRate)
-//        context.switchScene(playGameScreen.getScene, fullScreen = true)
-//        new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).createRoom(domain, mode, img, pwd)
+        val playGameScreen = new GameScene(img, frameRate)
+        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+        context.switchScene(playGameScreen.getScene, fullScreen = true)
+        new GameController(playerInfoInClient, context, playGameScreen, LayeredGameScreen, mode, frameRate).createRoom(domain, mode, img, pwd)
 //        val window = new Window()
-        val window2 = new Dialog()
-        window2.show()
+//        val window2 = new Dialog()
+//        window2.show()
       }
     }
 
