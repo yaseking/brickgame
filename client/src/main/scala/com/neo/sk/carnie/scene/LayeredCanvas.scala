@@ -4,6 +4,7 @@ package com.neo.sk.carnie.scene
 //import java.io.File
 
 import java.awt.image.BufferedImage
+import java.nio.ByteBuffer
 
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
@@ -62,18 +63,19 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
+  private val textLineHeightH = 10
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
   def debug(str: String):Unit = log.debug(s"$str")
 
   var a=0
 
-  def getAllImageData:List[Array[Int]] ={
-    val canvasList = List(humanViewCanvas,positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,rankCanvas,viewCanvas)
+  def getAllImageData:List[Array[Byte]] ={
+    val canvasList = List(positionCanvas,BorderCanvas,viewCanvas,selfViewCanvas,selfCanvas,rankCanvas,humanViewCanvas)
     canvasList.map(c => getImageData(c))
   }
 
-  def getImageData(canvas: Canvas):Array[Int] = {
+  def getImageData(canvas: Canvas):Array[Byte] = {
 //    a += 1
     val h = canvas.getHeight.toInt
     val w = canvas.getWidth.toInt
@@ -87,11 +89,15 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    val y = bufferedImage.getHeight
 //    val x = bufferedImage.getWidth
 //    println("height" + y + "width" + x)
-    val rgb = bufferedImage.getRGB(0,0,w,h,null,0,w)
+    val argb = bufferedImage.getRGB(0,0,w,h,null,0,w)
 //    println("rgb" + rgb.toList.filter(_ != 2146825717 ))
 //    val byte = rgb.map(_.toByte)
 //    println("rgb" + rgb.toList)
-    rgb
+    val byteBuffer = ByteBuffer.allocate(4*400*200)
+    argb.foreach{i =>
+      byteBuffer.putInt(i)
+    }
+    byteBuffer.flip().array()
 //    println("byte" + byte.toList.length)
 //    for(x <- 0 until w){
 //      for(y <- 0 until h){
@@ -168,14 +174,14 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val h = positionWindowBoundary.y //300
 //    BorderCtx.setGlobalAlpha(0.5)
     BorderCtx.fillRect(0, 0, w , h )
-//    BorderCtx.save()
+    BorderCtx.save()
 //    BorderCtx.restore()
 
-    BorderCtx.setFill(ColorsSetting.backgroundColor)
-    BorderCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
+//    BorderCtx.setFill(ColorsSetting.backgroundColor)
+//    BorderCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
 
-    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
-    BorderCtx.save()
+//    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+//    BorderCtx.save()
 
     BorderCtx.setFill(Color.rgb(105,105,105))
     //  //画边界
@@ -183,6 +189,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     BorderCtx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit, canvasUnit * BorderSize.h)
     BorderCtx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
     BorderCtx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+//    BorderCtx.save()
   }
 
   def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
@@ -541,8 +548,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     selfViewCtx.save()
     selfViewCtx.fillRect(0, 0, w , h )
     selfViewCtx.restore()
-    selfViewCtx.setFill(ColorsSetting.backgroundColor)
-    selfViewCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
+//    selfViewCtx.setFill(ColorsSetting.backgroundColor)
+//    selfViewCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
@@ -607,8 +614,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       selfViewCtx.setFont(Font.font(16))
       selfViewCtx.setFill(Color.rgb(0, 0, 0))
-      val t = new Text(s"${s.name}")
-      selfViewCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
+//      val t = new Text(s"${s.name}")
+//      selfViewCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
     }
 
     selfViewCtx.restore()
@@ -642,8 +649,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     selfCtx.save()
     selfCtx.fillRect(0, 0, w , h )
     selfCtx.restore()
-    selfCtx.setFill(ColorsSetting.backgroundColor)
-    selfCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
+//    selfCtx.setFill(ColorsSetting.backgroundColor)
+//    selfCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
     val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
@@ -720,8 +727,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       selfCtx.setFont(Font.font(16))
       selfCtx.setFill(Color.rgb(0, 0, 0))
-      val t = new Text(s"${s.name}")
-      selfCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
+//      val t = new Text(s"${s.name}")
+//      selfCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
     }
 
     selfCtx.restore()
@@ -756,10 +763,10 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     viewCtx.save()
     viewCtx.fillRect(0, 0, w , h )
     viewCtx.restore()
-    viewCtx.setFill(ColorsSetting.backgroundColor)
-    viewCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
+//    viewCtx.setFill(ColorsSetting.backgroundColor)
+//    viewCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     viewCtx.save()
@@ -805,8 +812,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       viewCtx.setFont(Font.font(16))
       viewCtx.setFill(Color.rgb(0, 0, 0))
-      val t = new Text(s"${s.name}")
-      viewCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
+//      val t = new Text(s"${s.name}")
+//      viewCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
     }
 
     viewCtx.restore()
@@ -829,31 +836,25 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     rankCtx.setGlobalAlpha(1.0)
     rankCtx.setTextBaseline(VPos.TOP)
 
+    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+    rankCtx.setFill(Color.BLACK)
+    val w = positionWindowBoundary.x //400
+    val h = positionWindowBoundary.y //300
+    //    rankCtx.clearRect(0,0,w,h)
+
+    rankCtx.fillRect(0, 0, w , h )
+    rankCtx.save()
+//    rankCtx.restore()
 
     val currentRankBaseLine = 2
     var index = 0
-    rankCtx.setFont(Font.font(14))
-
-//    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
-//    if (currentRank.lengthCompare(3) >= 0) {
-//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-//      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
-//      rankCtx.drawImage(bronzeImg, rightBegin - 5 - textLineHeight, textLineHeight * 4, textLineHeight, textLineHeight)
-//    }
-//    else if (currentRank.lengthCompare(2) == 0) {
-//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-//      rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
-//    }
-//    else {
-//      rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
-//    }
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       rankCtx.setGlobalAlpha(0.6)
       rankCtx.setFill(color)
       rankCtx.save()
-      rankCtx.fillRect(rightBegin.toInt, (index + currentRankBaseLine) * textLineHeight,
-        0 + areaUnit * (score.area.toDouble / canvasSize), textLineHeight)
+      rankCtx.fillRect(rightBegin.toInt, (index + currentRankBaseLine) * textLineHeightH,
+        0 + areaUnit * (score.area.toDouble / canvasSize), textLineHeightH)
       rankCtx.restore()
 
 //      rankCtx.setGlobalAlpha(1)

@@ -190,7 +190,7 @@ class BotController(player: PlayerInfoInClient,
     }
   }
 
-  def getAllImage : List[Array[Int]] = {
+  def getAllImage : List[Array[Byte]] = {
     layeredGameScene.layered.getAllImageData
   }
 
