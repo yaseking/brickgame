@@ -206,7 +206,7 @@ class BotController(player: PlayerInfoInClient,
         imageList.find(_._1 == "4").map(_._2),
         imageList.find(_._1 == "5").map(_._2)
     )
-    (humanObservation,layeredObservation)
+    (humanObservation,layeredObservation, grid.frameCount.toInt)
   }
 
 }

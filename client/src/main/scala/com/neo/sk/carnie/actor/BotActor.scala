@@ -24,6 +24,7 @@ import com.neo.sk.carnie.controller.BotController
 import com.neo.sk.carnie.paperClient.{Protocol, Score}
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.PlayGamePara
 import org.seekloud.esheepapi.pb.actions.Move
+import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 
 /**
   * Created by dry on 2018/12/3.
@@ -49,7 +50,7 @@ object BotActor {
 
   case class Action(move: Move, replyTo: ActorRef[Int]) extends Command
 
-  case class ReturnObservation(playerId: String, replyTo: ActorRef[List[Array[Int]]]) extends Command
+  case class ReturnObservation(playerId: String, replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)]) extends Command
 
   case class ReturnInform(replyTo: ActorRef[(Score, Int)]) extends Command
 

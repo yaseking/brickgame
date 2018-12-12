@@ -10,6 +10,8 @@ import org.seekloud.esheepapi.pb.actions.Move
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.paperClient.Score
 import com.neo.sk.carnie.common.BotAppSetting
+import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -89,11 +91,15 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
 
   override def observation(request: Credit): Future[ObservationRsp] = {
     println(s"observation Called by [$request")
-    val rstF: Future[List[Array[Int]]]  = botActor ? (BotActor.ReturnObservation(request.playerId, _))
-//    rstF.map {
-//    }
-    val rsp = ObservationRsp()
-    Future.successful(rsp)
+    if (request.apiToken == BotAppSetting.apiToken) {
+      val rstF: Future[(Option[ImgData], LayeredObservation, Int)]  = botActor ? (BotActor.ReturnObservation(request.playerId, _))
+      rstF.map {rst =>
+        ObservationRsp(Some(rst._2), rst._1, rst._3, state = state, msg = "ok")
+      }.recover {
+        case e: Exception =>
+          ObservationRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+      }
+    } else Future.successful(ObservationRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
   override def inform(request: Credit): Future[InformRsp] = {
