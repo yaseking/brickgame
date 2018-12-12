@@ -68,10 +68,10 @@ class Boot extends javafx.application.Application {
 
     val context = new Context(mainStage)
 
-//    val loginScene = new LoginScene()
-//    val loginController = new LoginController(loginScene, context)
-//    loginController.showScene()
-//    loginController.init()
+    val loginScene = new LoginScene()
+    val loginController = new LoginController(loginScene, context)
+    loginController.showScene()
+    loginController.init()
 
 
 
@@ -86,7 +86,7 @@ class Boot extends javafx.application.Application {
 //    val roomListScene = new RoomListScene()
 //    new RoomListController(PlayerInfoInClient("test", "test", "test"), roomListScene, context, "test").showScene
 
-    val botListScene = new BotListScene()
-    new BotListController(PlayerInfoInClient("test", "test", "test"), botListScene, context, "test").showScene
+//    val botListScene = new BotListScene()
+//    new BotListController(PlayerInfoInClient("test", "test", "test"), botListScene, context, "test").showScene
   }
 }
