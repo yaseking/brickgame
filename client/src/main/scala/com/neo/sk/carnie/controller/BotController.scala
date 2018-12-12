@@ -192,10 +192,17 @@ class BotController(player: PlayerInfoInClient,
   }
 
   def getAllImage  = {
-//    val imageList = layeredGameScene.layered.getAllImageData
-//    val humanObservation : _root_.scala.Option[ImgData] = imageList.headOption
-//    val layeredObservation : LayeredObservation = LayeredObservation()
-
+    val imageList = layeredGameScene.layered.getAllImageData
+    val humanObservation : _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
+    val layeredObservation : LayeredObservation = LayeredObservation(
+        imageList.find(_._1 == "0").map(_._2),
+        imageList.find(_._1 == "1").map(_._2),
+        imageList.find(_._1 == "2").map(_._2),
+        imageList.find(_._1 == "3").map(_._2),
+        imageList.find(_._1 == "4").map(_._2),
+        imageList.find(_._1 == "5").map(_._2)
+    )
+    (humanObservation,layeredObservation)
   }
 
 }
