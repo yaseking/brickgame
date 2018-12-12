@@ -11,6 +11,7 @@ import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene}
+import org.seekloud.esheepapi.pb.observations.{ImgData,LayeredObservation}
 
 /**
   * Created by dry on 2018/12/4.
@@ -78,7 +79,7 @@ class BotController(player: PlayerInfoInClient,
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        layeredGameScene.draw(player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None =>
@@ -154,8 +155,6 @@ class BotController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           currentRank = current
-          if (grid.getGridData.snakes.exists(_.id == player.id))
-          layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
           val myCurrent = current.find(_.id == player.id)
           myCurrentRank = if (myCurrent.nonEmpty) {
             myCurrent.get
@@ -196,8 +195,18 @@ class BotController(player: PlayerInfoInClient,
     }
   }
 
-  def getAllImage:List[Array[Int]] = {
-    layeredGameScene.layered.getAllImageData
+  def getAllImage  = {
+    val imageList = layeredGameScene.layered.getAllImageData
+    val humanObservation : _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
+    val layeredObservation : LayeredObservation = LayeredObservation(
+        imageList.find(_._1 == "0").map(_._2),
+        imageList.find(_._1 == "1").map(_._2),
+        imageList.find(_._1 == "2").map(_._2),
+        imageList.find(_._1 == "3").map(_._2),
+        imageList.find(_._1 == "4").map(_._2),
+        imageList.find(_._1 == "5").map(_._2)
+    )
+    (humanObservation,layeredObservation)
   }
 
 }

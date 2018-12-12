@@ -25,8 +25,8 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   println(s"----height--${screen.getMaxY.toInt}")
   protected val viewWidth = layeredCanvasWidth
   protected val viewHeight = layeredCanvasHeight
-  private val rankWidth = viewWidth
-  private val rankHeight = viewHeight/2
+  private val humanViewWidth = CanvasWidth
+  private val humanViewHeight = CanvasHeight
   val group = new Group()
 
   val positionCanvas = new Canvas()
@@ -35,22 +35,26 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   val BorderCanvas = new Canvas()
   val selfViewCanvas = new Canvas()
   val selfCanvas = new Canvas()
+  val humanViewCanvas = new Canvas()
 
   positionCanvas.setHeight(viewHeight)
   positionCanvas.setWidth(viewWidth)
   positionCanvas.setLayoutY(50)
   positionCanvas.setLayoutX(50)
+  positionCanvas.setId("0")
 
   viewCanvas.setHeight(viewHeight)
   viewCanvas.setWidth(viewWidth)
-  viewCanvas.setLayoutY(400)
+  viewCanvas.setLayoutY(50)
   viewCanvas.setLayoutX(1200)
+  viewCanvas.setId("2")
 
 
   rankCanvas.setHeight(viewHeight)
   rankCanvas.setWidth(viewWidth)
   rankCanvas.setLayoutY(400)
-  rankCanvas.setLayoutX(600)
+  rankCanvas.setLayoutX(1200)
+  rankCanvas.setId("5")
 
 
 
@@ -58,16 +62,25 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   BorderCanvas.setWidth(viewWidth)
   BorderCanvas.setLayoutY(50)
   BorderCanvas.setLayoutX(600)
+  BorderCanvas.setId("1")
 
   selfViewCanvas.setHeight(viewHeight)
   selfViewCanvas.setWidth(viewWidth)
-  selfViewCanvas.setLayoutY(50)
-  selfViewCanvas.setLayoutX(1200)
+  selfViewCanvas.setLayoutY(400)
+  selfViewCanvas.setLayoutX(50)
+  selfViewCanvas.setId("3")
 
   selfCanvas.setHeight(viewHeight)
   selfCanvas.setWidth(viewWidth)
   selfCanvas.setLayoutY(400)
-  selfCanvas.setLayoutX(50)
+  selfCanvas.setLayoutX(600)
+  selfCanvas.setId("4")
+
+  humanViewCanvas.setHeight(humanViewHeight)
+  humanViewCanvas.setWidth(humanViewWidth)
+  humanViewCanvas.setLayoutY(800)
+  humanViewCanvas.setLayoutX(50)
+  humanViewCanvas.setId("6")
 
   group.getChildren.add(viewCanvas)
   group.getChildren.add(rankCanvas)
@@ -75,9 +88,10 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   group.getChildren.add(BorderCanvas)
   group.getChildren.add(selfViewCanvas)
   group.getChildren.add(selfCanvas)
+  group.getChildren.add(humanViewCanvas)
 
   val rank = new RankCanvas(rankCanvas)
-  val layered = new LayeredCanvas(viewCanvas,rankCanvas,positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,img)
+  val layered = new LayeredCanvas(viewCanvas,rankCanvas,positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,humanViewCanvas,img)
 
 
   private val selfViewCtx = selfViewCanvas.getGraphicsContext2D
@@ -85,12 +99,14 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   val getScene: Scene = new Scene(group)
 
 
-  def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
+  def draw(currentRank:List[Score],uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
     layered.drawPosition(data.snakes.filter(_.id == uid).map(_.header).head,data.snakes.find(_.id == championId).map(_.header),uid == championId)
     layered.drawBorder(uid, data, offsetTime, grid, frameRate)
     layered.drawSelfView(uid, data, offsetTime, grid,  frameRate)
     layered.drawSelf(uid, data, offsetTime, grid, frameRate)
     layered.drawBody(uid, data, offsetTime, grid, frameRate)
+    layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate)
+    layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
 
@@ -134,6 +150,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   def drawRank(myId: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
     layered.drawRank(myId, snakes, currentRank)
   }
+
 
   def drawBarrage(killedName: String, killerName: String): Unit = {
     layered.drawUserDieInfo(killedName,killerName)

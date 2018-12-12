@@ -26,7 +26,6 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
 
   private def getRoomListInit() = {
     val url = s"http://$domain/carnie/getRoomList4Client"
-//    val appId = 1000000003.toString
     val appId = AppSetting.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
     val data = {}.asJson.noSpaces
@@ -55,12 +54,21 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
     }
   }
 
+  //fixme test
+//  private def updateRoomList() = {
+//    Boot.addToPlatform(
+//      roomListScene.updateRoomList(List("1000-0-false","1001-1-true"))
+//    )
+//  }
+
   private def updateRoomList() = {
     getRoomListInit().onComplete{
       case Success(res) =>
         res match {
           case Right(roomListRsp) =>
-            roomListScene.updateRoomList(roomListRsp.data.roomList)
+            Boot.addToPlatform(
+              roomListScene.updateRoomList(roomListRsp.data.roomList)
+            )
           case Left(e) =>
             log.error(s"获取房间列表失败，error：${e}")
         }
@@ -70,17 +78,13 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
   }
 
   roomListScene.listener = new RoomListSceneListener {
-    override def confirm(roomMsg: String): Unit = {
-      if(roomMsg != null) {
-        println(s"roomId: $roomMsg")
-        val roomList = roomMsg.split("-")
-        val roomId = roomList(0).toInt
-        val mode = roomList(1).toInt
+    override def confirm(roomId: Int, mode: Int, hasPwd: Boolean): Unit = {
+      if(roomId.toString != null) {
+//        println(s"roomMsg: $roomId-$mode-$hasPwd")
         val img = 0 //头部图像
         val frameRate = if(mode==2) frameRate2 else frameRate1
-        val hasPwd = if(roomList(2)=="true") true else false
         val pwd = if(hasPwd) inputPwd else None
-        println(s"pwd: $pwd")
+//        println(s"pwd: $pwd")
         if(hasPwd){
           if(pwd.nonEmpty) {
             verifyPwd(roomId, pwd.get).map{
