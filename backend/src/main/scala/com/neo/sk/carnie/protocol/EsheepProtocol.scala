@@ -59,4 +59,24 @@ object EsheepProtocol {
                         playerRecord: PlayerRecord
                         )
 
+  case class GetBotListReq(
+                            gameId: Long,
+                            userId: Long,
+                            lastId: Long,
+                            count: Int
+                          )
+
+  case class BotInfo(
+                      id: Long,
+                      userId: String,
+                      botName: String,
+                      botDesc: String,
+                      botKey: String,
+                    )
+
+  case class GetBotListRsp(
+                            data: List[BotInfo],
+                            errCode: Int = 0,
+                            msg: String = "ok"
+                          )
 }

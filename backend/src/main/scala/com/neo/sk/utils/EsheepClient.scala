@@ -109,6 +109,36 @@ object EsheepClient extends HttpUtil with CirceSupport {
     }
   }
 
+  def getBotList(userId: Long,
+                 lastId: Long,
+                 count: Int,
+                 token:String) = {
+    val esheepUrl = baseUrl + s"/api/gameServer/getBotList?token=$token"
+    val gameId = AppSettings.esheepGameId
+    val sendData = GetBotListReq(gameId, userId, lastId, count).asJson.noSpaces
+
+    postJsonRequestSend(s"postUrl: $esheepUrl", esheepUrl, Nil, sendData).map {
+      case Right(str) =>
+        decode[GetBotListRsp](str) match {
+          case Right(rsp) =>
+            if(rsp.errCode==0) {
+              println(s"getBotList in EsheepClient: $rsp")
+              Right(rsp.data)
+            } else {
+              log.error(s"getBotList error $esheepUrl rsp.error: ${rsp.msg}")
+              Left("error")
+            }
+          case Left(err) =>
+            log.error(s"getBotList error $esheepUrl parse.error $err")
+            Left("error")
+        }
+      case Left(e) =>
+        log.error(s"getBotList error $esheepUrl failed: $e")
+        Left("error")
+    }
+
+  }
+
   def main(args: Array[String]): Unit = {
     import com.neo.sk.utils.SecureUtil._
     val appId = AppSettings.esheepGameId.toString
