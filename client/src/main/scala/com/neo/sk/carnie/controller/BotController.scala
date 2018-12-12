@@ -11,6 +11,7 @@ import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene}
+import org.seekloud.esheepapi.pb.observations.{ImgData,LayeredObservation}
 
 /**
   * Created by dry on 2018/12/4.
@@ -77,7 +78,7 @@ class BotController(player: PlayerInfoInClient,
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        layeredGameScene.draw(player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None =>
@@ -153,8 +154,7 @@ class BotController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           currentRank = current
-          if (grid.getGridData.snakes.exists(_.id == player.id))
-          layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
+
         }
 
       case data: Protocol.Data4TotalSync =>
@@ -191,8 +191,11 @@ class BotController(player: PlayerInfoInClient,
     }
   }
 
-  def getAllImage:List[Array[Int]] = {
-    layeredGameScene.layered.getAllImageData
+  def getAllImage  = {
+//    val imageList = layeredGameScene.layered.getAllImageData
+//    val humanObservation : _root_.scala.Option[ImgData] = imageList.headOption
+//    val layeredObservation : LayeredObservation = LayeredObservation()
+
   }
 
 }

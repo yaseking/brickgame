@@ -164,6 +164,7 @@ class GameController(player: PlayerInfoInClient,
     }
 
     val gridData = grid.getGridData
+
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         if(firstCome)
@@ -177,7 +178,7 @@ class GameController(player: PlayerInfoInClient,
 //          BGM.play(30)
 //        }
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        layeredGameScene.draw(player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
 
@@ -315,9 +316,11 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           currentRank = current
           maxArea = Math.max(maxArea,currentRank.find(_.id == player.id).map(_.area).getOrElse(0))
-          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin)
+          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin){
             gameScene.drawRank(player.id, grid.getGridData.snakes, current)
             layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
+//            layeredGameScene.drawHumanRank(player.id, grid.getGridData.snakes, currentRank)
+          }
         }
 
       case data: Protocol.Data4TotalSync =>
@@ -359,7 +362,7 @@ class GameController(player: PlayerInfoInClient,
     }
   }
 
-  def addUserActionListen() = {
+  def addUserActionListen():Unit = {
     layeredGameScene.positionCanvas.requestFocus()
 
     layeredGameScene.positionCanvas.setOnKeyPressed{ event =>

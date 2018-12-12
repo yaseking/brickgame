@@ -40,7 +40,7 @@ class Boot extends javafx.application.Application {
     val para = getParameters.getRaw
 //    val para = getParameters.getRaw.get(0)
 
-    println("!!!!" + para)
+//    println("!!!!" + para)
 
     //是否需要图像渲染 tested
 //    val fileUrl = getClass.getResource(s"/$para").toString.drop(5)

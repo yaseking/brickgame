@@ -27,7 +27,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
         }
         else {
           context.switchScene(LayeredGameScreen.getScene,fullScreen = true)
-          new BotController(playerInfoInClient, context,LayeredGameScreen, mode).startGameLoop()
+          new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
         }
 
       }
