@@ -38,7 +38,6 @@ object Api4GameAgent extends HttpUtil {
 
     postJsonRequestSend("post", url, Nil, data).map {
       case Right(jsonStr) =>
-        println(s"linkGameAgent: $jsonStr")
         decode[LinkGameAgentRsp](jsonStr) match {
           case Right(res) =>
             Right(LinkGameAgentData(res.data.accessCode, res.data.gsPrimaryInfo))
@@ -51,8 +50,30 @@ object Api4GameAgent extends HttpUtil {
 
   }
 
+  def loginByMail(email:String, pwd:String) = {
+    val data = LoginByMailReq(email, pwd).asJson.noSpaces
+    val url = "http://" + AppSetting.esheepDomain + "/esheep/rambler/login"
+
+    postJsonRequestSend(s"post:$url", url, Nil, data).map {
+      case Right(jsonStr) =>
+        decode[ESheepUserInfoRsp](jsonStr) match {
+          case Right(res) =>
+            if(res.errCode==0)
+              Right(res)
+            else {
+              log.debug(s"loginByMail error: ${res.errCode} msg: ${res.msg}")
+            }
+          case Left(le) =>
+            Left("decode error: " + le)
+        }
+      case Left(erStr) =>
+        Left("get return error:" + erStr)
+    }
+  }
+
   def main(args: Array[String]): Unit = {
-    getLoginRspFromEs()
+//    getLoginRspFromEs()
+    loginByMail("test@neotel.com.cn","test123")
   }
 
 }
