@@ -49,7 +49,7 @@ object BotActor {
 
   case class Action(move: Move, replyTo: ActorRef[Int]) extends Command
 
-  case class ReturnObservation(playerId: String) extends Command
+  case class ReturnObservation(playerId: String, replyTo: ActorRef[List[Array[Int]]]) extends Command
 
   case class ReturnInform(replyTo: ActorRef[(Score, Int)]) extends Command
 
@@ -71,7 +71,7 @@ object BotActor {
       msg match {
         case Work =>
           val executor = concurrent.ExecutionContext.Implicits.global
-          val port = 5321
+          val port = 5321//todo config
 
           val server = BotServer.build(port, executor, ctx.self)
           server.start()
@@ -167,7 +167,8 @@ object BotActor {
           } else replyTo ! -1
           Behaviors.same
 
-        case ReturnObservation(playerId) =>
+        case ReturnObservation(playerId, replyTo) =>
+          replyTo ! botController.getAllImage
           Behaviors.same
 
         case ReturnInform(replyTo) =>
