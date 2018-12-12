@@ -15,7 +15,7 @@ import javafx.scene.text.Font
   **/
 object LoginScene {
   trait LoginSceneListener {
-    def onButtonConnect()
+    def loginByMail()
   }
 }
 
@@ -25,13 +25,13 @@ class LoginScene {
   val width = 500
   val height = 500
   val group = new Group
-//  val button = new Button("连接")
+  val button = new Button("邮箱登录")
   val canvas = new Canvas(width, height)
   val canvasCtx = canvas.getGraphicsContext2D
   var loginSceneListener: LoginSceneListener = _
 
-//  button.setLayoutX(230)
-//  button.setLayoutY(240)
+  button.setLayoutX(380)
+  button.setLayoutY(400)
 
   canvasCtx.setFill(Color.rgb(255, 255, 255))
   canvasCtx.fillRect(0, 0, width, height)
@@ -39,10 +39,10 @@ class LoginScene {
   canvasCtx.setFill(Color.BLACK)
   canvasCtx.fillText("扫码登录", 220, 380)
   group.getChildren.add(canvas)
-//  group.getChildren.add(button)
+  group.getChildren.add(button)
   val scene = new Scene(group)
 
-//  button.setOnAction(_ => loginSceneListener.onButtonConnect())
+  button.setOnAction(_ => loginSceneListener.loginByMail())
 
   def drawScanUrl(imageStream: ByteArrayInputStream) = {
     Boot.addToPlatform {

@@ -87,7 +87,7 @@ object LoginSocketClient {
                   val playerName = data.nickname
                   linkGameAgent(gameId, playerId, data.token).map {
                     case Right(r) =>
-                      println(s"gsPrimaryInfo: ${r.gsPrimaryInfo}")
+//                      println(s"gsPrimaryInfo: ${r.gsPrimaryInfo}")
                       loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
 //                      loginController.switchToRoomList(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
 //                      loginController.switchToGaming(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
