@@ -82,6 +82,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val h = canvas.getHeight.toInt
     val w = canvas.getWidth.toInt
     val params = new SnapshotParameters
+    val id = canvas.getId
     params.setFill(Color.TRANSPARENT)
 
     val writableImage = canvas.snapshot(params,null)
@@ -95,13 +96,14 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    println("rgb" + rgb.toList.filter(_ != 2146825717 ))
 //    val byte = rgb.map(_.toByte)
 //    println("rgb" + rgb.toList)
-    val byteBuffer = ByteBuffer.allocate(4*400*200)
+    val byteBuffer = ByteBuffer.allocate(4*w*h)
     argb.foreach{i =>
       byteBuffer.putInt(i)
     }
-    argb
-//    println(ByteString.copyFrom(byteBuffer.flip().array()))
-//    (canvas.getId,ImgData(w,h,w*h,ByteString.copyFrom(byteBuffer.flip().array())))
+    byteBuffer.flip()
+    val byteArray = byteBuffer.array().take(byteBuffer.limit())
+//    println(ByteString.copyFrom(byteArray),byteArray.length,byteBuffer.limit())
+    (id,ImgData(w,h,w*h,ByteString.copyFrom(byteArray)))
 //    println("byte" + byte.toList.length)
 //    for(x <- 0 until w){
 //      for(y <- 0 until h){
@@ -148,7 +150,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val params = new SnapshotParameters
     params.setFill(Color.TRANSPARENT)
 //    viewCtx.drawImage(positionCanvas.snapshot(params,null), 10, 10)
-    if(a % 20 ==0)getImageData(positionCanvas)
+//    if(a % 20 ==0)getImageData(humanViewCanvas)
 
   }
 

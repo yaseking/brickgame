@@ -41,17 +41,20 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   positionCanvas.setWidth(viewWidth)
   positionCanvas.setLayoutY(50)
   positionCanvas.setLayoutX(50)
+  positionCanvas.setId("0")
 
   viewCanvas.setHeight(viewHeight)
   viewCanvas.setWidth(viewWidth)
   viewCanvas.setLayoutY(50)
   viewCanvas.setLayoutX(1200)
+  viewCanvas.setId("2")
 
 
   rankCanvas.setHeight(viewHeight)
   rankCanvas.setWidth(viewWidth)
   rankCanvas.setLayoutY(400)
   rankCanvas.setLayoutX(1200)
+  rankCanvas.setId("5")
 
 
 
@@ -59,21 +62,25 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   BorderCanvas.setWidth(viewWidth)
   BorderCanvas.setLayoutY(50)
   BorderCanvas.setLayoutX(600)
+  BorderCanvas.setId("1")
 
   selfViewCanvas.setHeight(viewHeight)
   selfViewCanvas.setWidth(viewWidth)
   selfViewCanvas.setLayoutY(400)
   selfViewCanvas.setLayoutX(50)
+  selfViewCanvas.setId("3")
 
   selfCanvas.setHeight(viewHeight)
   selfCanvas.setWidth(viewWidth)
   selfCanvas.setLayoutY(400)
   selfCanvas.setLayoutX(600)
+  selfCanvas.setId("4")
 
   humanViewCanvas.setHeight(humanViewHeight)
   humanViewCanvas.setWidth(humanViewWidth)
   humanViewCanvas.setLayoutY(800)
   humanViewCanvas.setLayoutX(50)
+  humanViewCanvas.setId("6")
 
   group.getChildren.add(viewCanvas)
   group.getChildren.add(rankCanvas)
