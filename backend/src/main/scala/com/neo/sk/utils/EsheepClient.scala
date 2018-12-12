@@ -6,9 +6,10 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.Boot.{tokenActor, scheduler, timeout}
+import com.neo.sk.carnie.Boot.{scheduler, timeout, tokenActor}
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.carnie.ptcl.EsheepPtcl.GetBotListRsp
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.ptcl._
 

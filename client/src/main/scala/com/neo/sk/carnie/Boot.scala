@@ -10,7 +10,7 @@ import akka.dispatch.MessageDispatcher
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.controller._
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-import com.neo.sk.carnie.scene.{GameScene, LoginScene, RoomListScene, SelectScene}
+import com.neo.sk.carnie.scene._
 import com.typesafe.config.ConfigFactory
 import javafx.application.Platform
 import javafx.stage.Stage
@@ -68,10 +68,10 @@ class Boot extends javafx.application.Application {
 
     val context = new Context(mainStage)
 
-    val loginScene = new LoginScene()
-    val loginController = new LoginController(loginScene, context)
-    loginController.showScene()
-    loginController.init()
+//    val loginScene = new LoginScene()
+//    val loginController = new LoginController(loginScene, context)
+//    loginController.showScene()
+//    loginController.init()
 
 
 
@@ -85,5 +85,8 @@ class Boot extends javafx.application.Application {
 
 //    val roomListScene = new RoomListScene()
 //    new RoomListController(PlayerInfoInClient("test", "test", "test"), roomListScene, context, "test").showScene
+
+    val botListScene = new BotListScene()
+    new BotListController(PlayerInfoInClient("test", "test", "test"), botListScene, context, "test").showScene
   }
 }

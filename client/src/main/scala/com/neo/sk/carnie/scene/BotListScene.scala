@@ -1,16 +1,12 @@
 package com.neo.sk.carnie.scene
 
+import com.neo.sk.carnie.ptcl.EsheepPtcl.BotInfo
 import javafx.collections.{FXCollections, ObservableList}
 import javafx.geometry.Pos
-import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
 import javafx.scene.control._
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.layout.{BorderPane, HBox}
-import javafx.scene.paint.Color
-import javafx.scene.text.Font
-
-import scala.collection.mutable
 
 abstract class BotListSceneListener {
   def joinGame(mode: Int, img: Int)
@@ -26,8 +22,7 @@ class BotListScene {
 
   val hBox = new HBox(20)
 
-  val roomLockMap:mutable.HashMap[Int, (Int, Boolean)] = mutable.HashMap.empty[Int, (Int, Boolean)]//(roomId -> (mode, hasPwd))
-  var roomList:List[String] = List.empty[String]
+//  var botList:List[String] = List.empty[String]
   private val observableList:ObservableList[String] = FXCollections.observableArrayList()
   private val listView = new ListView[String](observableList)
   private val confirmBtn = new Button("加入游戏")
@@ -43,55 +38,48 @@ class BotListScene {
   borderPane.setCenter(hBox)
   group.getChildren.add(borderPane)
 
-  def updateRoomList(roomList:List[String]):Unit = {
-    println(s"updateRoomList: $roomList")
-    this.roomList = roomList
-    this.roomLockMap.clear()
+  def updateBotList(botList:List[BotInfo]):Unit = {
+//    this.botList = botList
     observableList.clear()
-    roomList.sortBy(t => t).map { s =>
-      val roomInfos = s.split("-")
-      val roomId = roomInfos(0).toInt
-      val modeName = if(roomInfos(1)=="0") "正常" else if(roomInfos(2)=="1") "反转" else "加速"
-      val hasPwd = if(roomInfos(2)=="true") true else false
-      roomLockMap += roomId -> (roomInfos(1).toInt, hasPwd)
-      roomId.toString + "-" + modeName
+    botList.map { s => //todo
+      s.botKey
     } foreach observableList.add
     //    println(observableList)
   }
 
-  listView.setCellFactory(_ => new ListCell[String](){//todo 找锁的图片和无锁的图片，登录图片
-  val img = new ImageView("img/Bob.png")
-    val img1 = new ImageView("img/luffy.png")
-    img.setFitWidth(15)
-    img.setFitHeight(15)
-    img1.setFitWidth(15)
-    img1.setFitHeight(15)
-
-    override def updateItem(item: String, empty: Boolean): Unit = {
-      super.updateItem(item, empty)
-      if(empty) {
-        setText(null)
-        setGraphic(null)
-      } else {
-        //        println(s"item: $item")
-        val roomId = item.split("-")(0).toInt
-        if(roomLockMap.contains(roomId) && roomLockMap(roomId)._2){
-          setGraphic(img)
-        }
-        else{
-          setGraphic(img1)
-        }
-        setText(item)
-      }
-    }
-  })
+//  listView.setCellFactory(_ => new ListCell[String](){
+//  val img = new ImageView("img/Bob.png")
+//    val img1 = new ImageView("img/luffy.png")
+//    img.setFitWidth(15)
+//    img.setFitHeight(15)
+//    img1.setFitWidth(15)
+//    img1.setFitHeight(15)
+//
+//    override def updateItem(item: String, empty: Boolean): Unit = {
+//      super.updateItem(item, empty)
+//      if(empty) {
+//        setText(null)
+//        setGraphic(null)
+//      } else {
+//        //        println(s"item: $item")
+//        val roomId = item.split("-")(0).toInt
+//        if(roomLockMap.contains(roomId) && roomLockMap(roomId)._2){
+//          setGraphic(img)
+//        }
+//        else{
+//          setGraphic(img1)
+//        }
+//        setText(item)
+//      }
+//    }
+//  })
 
   def getScene = this.scene
 
-  confirmBtn.setOnAction{_ =>
-    val selectedInfo = listView.getSelectionModel.selectedItemProperty().get()
-    val roomId = selectedInfo.split("-").head.toInt
-    listener.confirm(roomId, roomLockMap(roomId)._1, roomLockMap(roomId)._2)
-  }
-  //  confirmBtn.setOnAction(_ => println(listView.getSelectionModel.selectedItemProperty().get()))(Int, Int, Boolean)
+//  confirmBtn.setOnAction{_ =>
+//    val selectedInfo = listView.getSelectionModel.selectedItemProperty().get()
+//    val roomId = selectedInfo.split("-").head.toInt
+//    listener.confirm(roomId, roomLockMap(roomId)._1, roomLockMap(roomId)._2)
+//  }
+    confirmBtn.setOnAction(_ => println(listView.getSelectionModel.selectedItemProperty().get()))
 }
