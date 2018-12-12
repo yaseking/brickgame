@@ -35,6 +35,22 @@ object Protocol4Agent {
                                playerId: String
                              )
 
+  case class BotKey2TokenReq(
+                         botId: String,
+                         botKey: String
+                         )
+
+  case class BotTokenData(
+                         token: String,
+                         expireTime: Long
+                         )
+
+  case class BotKey2TokenRsp(
+                            data: BotTokenData,
+                            errCode: Int,
+                            msg: String
+                            )
+
   sealed trait WsData
 
   case class Ws4AgentRsp(

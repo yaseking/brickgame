@@ -51,6 +51,23 @@ object Api4GameAgent extends HttpUtil {
 
   }
 
+  def botKey2Token(botId: String, botKey: String) = {
+    val data = BotKey2TokenReq(botId, botKey).asJson.noSpaces
+    val url = "http://" + AppSetting.esheepDomain + "/esheep/api/sdk/botKey2Token"
+
+    postJsonRequestSend("post", url, Nil, data).map {
+      case Right(jsonStr) =>
+        decode[BotKey2TokenRsp](jsonStr) match {
+          case Right(res) =>
+            Right(res.data)
+          case Left(le) =>
+            Left("decode error: " + le)
+        }
+      case Left(erStr) =>
+        Left("get return error:" + erStr)
+    }
+  }
+
   def main(args: Array[String]): Unit = {
     getLoginRspFromEs()
   }
