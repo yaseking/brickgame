@@ -178,8 +178,6 @@ class GameController(player: PlayerInfoInClient,
 //          BGM.play(30)
 //        }
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        if (grid.getGridData.snakes.exists(_.id == player.id))
-          layeredGameScene.drawHumanRank(player.id, grid.getGridData.snakes, currentRank)
         layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
@@ -364,7 +362,7 @@ class GameController(player: PlayerInfoInClient,
     }
   }
 
-  def addUserActionListen() = {
+  def addUserActionListen():Unit = {
     layeredGameScene.positionCanvas.requestFocus()
 
     layeredGameScene.positionCanvas.setOnKeyPressed{ event =>

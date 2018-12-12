@@ -37,9 +37,9 @@ class Boot extends javafx.application.Application {
   import Boot._
 
   override def start(mainStage: Stage): Unit = {
-    val para = getParameters.getRaw.get(0)
+//    val para = getParameters.getRaw.get(0)
 
-    println("!!!!" + para)
+//    println("!!!!" + para)
 
     //是否需要图像渲染 tested
 //    val fileUrl = getClass.getResource(s"/$para").toString.drop(5)
