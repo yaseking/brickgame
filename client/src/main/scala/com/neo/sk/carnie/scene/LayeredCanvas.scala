@@ -19,6 +19,8 @@ import javafx.geometry.VPos
 import javafx.scene.SnapshotParameters
 //import javafx.scene.media.{AudioClip, AudioEqualizer, Media, MediaPlayer}
 import org.slf4j.LoggerFactory
+import com.google.protobuf.ByteString
+import org.seekloud.esheepapi.pb.observations.ImgData
 
 /**
   * Created by dry on 2018/10/29.
@@ -70,12 +72,12 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   var a=0
 
-  def getAllImageData:List[Array[Byte]] ={
-    val canvasList = List(positionCanvas,BorderCanvas,viewCanvas,selfViewCanvas,selfCanvas,rankCanvas,humanViewCanvas)
+  def getAllImageData ={
+    val canvasList = List(humanViewCanvas,positionCanvas,BorderCanvas,viewCanvas,selfViewCanvas,selfCanvas,rankCanvas)
     canvasList.map(c => getImageData(c))
   }
 
-  def getImageData(canvas: Canvas):Array[Byte] = {
+  def getImageData(canvas: Canvas) = {
 //    a += 1
     val h = canvas.getHeight.toInt
     val w = canvas.getWidth.toInt
@@ -97,7 +99,9 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     argb.foreach{i =>
       byteBuffer.putInt(i)
     }
-    byteBuffer.flip().array()
+    argb
+//    println(ByteString.copyFrom(byteBuffer.flip().array()))
+//    (canvas.getId,ImgData(w,h,w*h,ByteString.copyFrom(byteBuffer.flip().array())))
 //    println("byte" + byte.toList.length)
 //    for(x <- 0 until w){
 //      for(y <- 0 until h){
@@ -116,7 +120,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val w = positionWindowBoundary.x //400
     val h = positionWindowBoundary.y //300
     positionCtx.clearRect(0,0,w,h)
-//    a += 1
+    a += 1
 //    if(a % 200 ==0) println(w,h,positionCanvasUnit)
     positionCtx.save()
 //    positionCtx.setGlobalAlpha(0.5)
@@ -144,7 +148,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val params = new SnapshotParameters
     params.setFill(Color.TRANSPARENT)
 //    viewCtx.drawImage(positionCanvas.snapshot(params,null), 10, 10)
-//    if(a % 1000 ==0)getImageData(positionCanvas)
+    if(a % 20 ==0)getImageData(positionCanvas)
 
   }
 

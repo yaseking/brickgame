@@ -11,6 +11,7 @@ import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene}
+import org.seekloud.esheepapi.pb.observations.{ImgData,LayeredObservation}
 
 /**
   * Created by dry on 2018/12/4.
@@ -190,8 +191,11 @@ class BotController(player: PlayerInfoInClient,
     }
   }
 
-  def getAllImage : List[Array[Byte]] = {
-    layeredGameScene.layered.getAllImageData
+  def getAllImage  = {
+//    val imageList = layeredGameScene.layered.getAllImageData
+//    val humanObservation : _root_.scala.Option[ImgData] = imageList.headOption
+//    val layeredObservation : LayeredObservation = LayeredObservation()
+
   }
 
 }
