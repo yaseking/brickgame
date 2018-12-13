@@ -8,6 +8,9 @@ import com.neo.sk.carnie.ptcl.RoomApiProtocol.RoomListRsp4Client
 import com.neo.sk.carnie.util.{Http, JsFunc}
 import mhtml.{Rx, Var}
 
+import io.circe.generic.auto._
+import io.circe.syntax._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable
 import scala.util.Random
 import scala.xml.Elem
@@ -15,19 +18,15 @@ import scala.xml.Elem
 class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 
   case class Room(id:Int,model:String,isLocked:Boolean)
-//  var modelLists = List(Room(0,"/carnie/static/img/coffee2.png","正常模式"),
-//    Room(1,"/carnie/static/img/game.png","反转模式"),Room(2,"/carnie/static/img/rocket1.png","加速模式"))
   var roomSelectMap : Map[Int,Boolean] =Map()
   var roomSelected = Room(-1,"",false)
-  //模式选择框
-//  private val modelList: Var[List[Room]] = Var(modelLists)
   private val roomSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
   val roomList: Var[List[Room]] = Var(List.empty[Room])
   var roomLists: List[Room] = List.empty[Room]
 //  val roomLockMap:mutable.HashMap[Int, (Int, Boolean)] = mutable.HashMap.empty[Int, (Int, Boolean)]//(roomId -> (mode, hasPwd))
 
   def getRoomList() :Unit = {
-    val url = Routes.Carnie.updateRoomList
+    val url = Routes.Carnie.getRoomList4Front
     Http.getAndParse[RoomListRsp4Client](url).map {
       case Right(rsp) =>
         try {
@@ -97,7 +96,9 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 
   private val roomDiv = roomList.map{
     case Nil =>
-      <h style="font-size: 35px;">当前没有正在游戏的房间 </h>
+      <div style="text-align: center;">
+      <h style="font-size: 35px; color:white;text-align: center;">当前没有正在游戏的房间 </h>
+      </div>
 //      <table class="table">
 //        <thead class="thead-light">
 //          <tr>

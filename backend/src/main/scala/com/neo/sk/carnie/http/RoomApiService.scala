@@ -142,6 +142,22 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
       }
     }
   }
+  private val getRoomList4Front = (path("getRoomList4Front") & get & pathEndOrSingleSlash) {
+    dealFutureResult {
+      val msg: Future[List[String]] = roomManager ? RoomManager.FindAllRoom4Client
+      msg.map {
+        allRoom =>
+          if (allRoom.nonEmpty){
+            log.info("prepare to return roomList.")
+            complete(RoomApiProtocol.RoomListRsp4Client(RoomListInfo4Client(allRoom)))
+          }
+          else {
+            log.info("get all room error,there are no rooms")
+            complete(ErrorRsp(100000, "get all room error,there are no rooms"))
+          }
+      }
+    }
+  }
 
   private val getRecordList = (path("getRecordList") & post & pathEndOrSingleSlash) {
     dealPostReq[RecordListReq] { req =>
@@ -293,7 +309,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
-  private val updateRoomList = (path("updateRoomList") & post & pathEndOrSingleSlash) {
+  private val updateRoomList = (path("updateRoomList") & get & pathEndOrSingleSlash) {
     dealFutureResult{
       getRoomListInit().map{
         case Right(roomListRsp) =>
@@ -308,10 +324,14 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
 
   }
+  private val netSnake = (path("netSnake") & get & pathEndOrSingleSlash){
+   getFromResource("html/index.html")
+  }
+
   val roomApiRoutes: Route = {
     getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ getRoomList4Client ~ verifyPwd ~
     getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList ~
-    updateRoomList
+    updateRoomList ~ netSnake ~ getRoomList4Front
   }
 
 

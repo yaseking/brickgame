@@ -152,7 +152,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val gsKey = AppSettings.esheepGsKey
     val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
-    postJsonRequestSend("post",url,List(),params).map{
+    postJsonRequestSend("post",url,Nil,params).map{
       case Right(value) =>
         decode[RoomListRsp4Client](value) match {
           case Right(r) =>
