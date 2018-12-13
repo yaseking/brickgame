@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.paperClient.Protocol.{frameRate1, frameRate2}
-import com.neo.sk.carnie.paperClient.WebSocketProtocol.PlayGamePara
+import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.util.Component
 import com.neo.sk.carnie.{Main, Routes}
 import com.neo.sk.carnie.ptcl.RoomApiProtocol.RoomListRsp4Client
@@ -88,14 +88,13 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
     println(roomSelected.id,roomSelectFlag)
   }
 
-  def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
-    if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
+  def gotoGame(roomId: Int, playerId: String, playerName: String): Unit = {
+    if (roomId == -1) JsFunc.alert("请选择房间!")
     else {
       dom.document.getElementById("roomList").setAttribute("display","none")
       dom.document.getElementById("roomList").setAttribute("hidden","hidden")
       Main.refreshPage(new CanvasPage().render)
-      val frameRate = if(modelId==2) frameRate2 else frameRate1
-      new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
+      new NetGameHolder("playGame", joinRoomByIdPara(roomId,playerId, playerName),1).render
     }
   }
 
@@ -106,7 +105,7 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
        {roomDiv}
       <div style="text-align: center;">
         <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
-        {() => gotoGame(1,1,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
+        {() => gotoGame(roomSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
       </div>
       </div>
     case false =>

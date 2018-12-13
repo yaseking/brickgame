@@ -85,13 +85,17 @@ class Boot extends javafx.application.Application {
 //    } else {
 //      log.debug("未输入参数.")
 //    }
-
+    //test
     val context = new Context(mainStage)
+    val layeredGameScreen = new LayeredGameScene(0, 150)
+    new BotController(PlayerInfoInClient("123", "abc", "test"), context, layeredGameScreen)
 
-    val loginScene = new LoginScene()
-    val loginController = new LoginController(loginScene, context)
-    loginController.showScene()
-    loginController.init()
+//    val context = new Context(mainStage)
+//
+//    val loginScene = new LoginScene()
+//    val loginController = new LoginController(loginScene, context)
+//    loginController.showScene()
+//    loginController.init()
 
 
 

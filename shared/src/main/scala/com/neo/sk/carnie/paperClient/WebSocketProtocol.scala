@@ -14,4 +14,5 @@ object WebSocketProtocol {
 
   case class WatchRecordPara(recordId: String, playerId: String, frame: String, accessCode: String) extends WebSocketPara
 
+  case class joinRoomByIdPara(roomId: Int,playerId: String, playerName: String, pwd: String = "", mode: Int = 0, img: Int = 0) extends WebSocketPara
 }
