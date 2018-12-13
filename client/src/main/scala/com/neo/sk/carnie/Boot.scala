@@ -59,10 +59,9 @@ class Boot extends javafx.application.Application {
 //        val render = appConfig.getBoolean("render")
 //        val context = new Context(mainStage)
 //        if(render) {
-//          val loginScene = new LoginScene()
-//          val loginController = new LoginController(loginScene, context)
-//          loginController.showScene()
-//          loginController.init()
+//          val modeScene = new ModeScene()
+//          val modeController = new ModeController(modeScene,context)
+//          modeController.showScene()
 //        } else {
 //          val botInfo = appConfig.getConfig("botInfo")
 //          val botId = botInfo.getString("botId")
@@ -92,11 +91,6 @@ class Boot extends javafx.application.Application {
 //    new BotController(PlayerInfoInClient("123", "abc", "test"), context, layeredGameScreen)
 
 //    val context = new Context(mainStage)
-//
-//    val loginScene = new LoginScene()
-//    val loginController = new LoginController(loginScene, context)
-//    loginController.init()
-//    loginController.showScene()
 
     val modeScene = new ModeScene()
     val modeController = new ModeController(modeScene,context)
