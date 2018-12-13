@@ -7,19 +7,21 @@ import akka.stream.ActorMaterializer
 
 import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
-import com.neo.sk.carnie.common.Context
-import com.neo.sk.carnie.controller._
+import com.neo.sk.carnie.common.{AppSetting, Context}
+import com.neo.sk.carnie.controller.{BotController, GameController, LoginController, SelectController}
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene._
 import com.typesafe.config.ConfigFactory
 import javafx.application.Platform
 import javafx.stage.Stage
 
+import com.neo.sk.carnie.utils.Api4GameAgent._
+import org.slf4j.LoggerFactory
+
 /**
   * Created by dry on 2018/10/23.
   **/
 object Boot {
-
   import com.neo.sk.carnie.common.AppSetting._
 
   implicit val system: ActorSystem = ActorSystem("carnie", config)
@@ -35,43 +37,54 @@ object Boot {
 class Boot extends javafx.application.Application {
 
   import Boot._
+  import com.neo.sk.carnie.common.AppSetting._
+  private[this] val log = LoggerFactory.getLogger(this.getClass)
 
   override def start(mainStage: Stage): Unit = {
     val para = getParameters.getRaw
-//    val para = getParameters.getRaw.get(0)
 
-//    println("!!!!" + para)
+    println("!!!!" + para)
 
-    //是否需要图像渲染 tested
-//    val fileUrl = getClass.getResource(s"/$para").toString.drop(5)
-//    val file = new File(fileUrl)
-//    if (file.isFile && file.exists) {
-//      val botConfig = ConfigFactory.parseResources(para).withFallback(ConfigFactory.load())
+    //是否需要图像渲染
+    val file = new File(para.get(0))
+    if (file.isFile && file.exists) {
+      val botConfig = ConfigFactory.parseResources(para(0)).withFallback(ConfigFactory.load())
+
+      val appConfig = botConfig.getConfig("app")
+      val render = appConfig.getBoolean("render")
+      val context = new Context(mainStage)
+      if(render) {
+        val loginScene = new LoginScene()
+        val loginController = new LoginController(loginScene, context)
+        loginController.showScene()
+        loginController.init()
+      } else {
+        val botInfo = appConfig.getConfig("botInfo")
+        val botId = botInfo.getString("botId")
+        val botKey = botInfo.getString("botKey")
+        botKey2Token(botId, botKey).map {
+          case Right(data) =>
+            val gameId = AppSetting.esheepGameId
+            linkGameAgent(gameId, botId, data.token).map {
+              case Right(rst) =>
+                val layeredGameScreen = new LayeredGameScene(0, 150)
+                new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+              case Left(e) =>
+                log.error(s"bot link game agent error, $e")
+            }
+
+          case Left(e) =>
+            log.error(s"botKey2Token error, $e")
+        }
+      }
+    }
+
+//    val context = new Context(mainStage)
 //
-//      val appConfig = botConfig.getConfig("app")
-//      val render = appConfig.getBoolean("render")
-//      if(render) {
-//        val context = new Context(mainStage)
-//
-//        val loginScene = new LoginScene()
-//        val loginController = new LoginController(loginScene, context)
-//        loginController.showScene()
-//        loginController.init()
-//      } else {
-//        val userConfig = appConfig.getConfig("user")
-//        val email = userConfig.getString("email")
-//        val psw = userConfig.getString("psw")
-//        println(psw,email)
-//        new BotController(PlayerInfoInClient("test", "test", "test"))
-//      }
-//    }
-
-    val context = new Context(mainStage)
-
-    val loginScene = new LoginScene()
-    val loginController = new LoginController(loginScene, context)
-    loginController.showScene()
-    loginController.init()
+//    val loginScene = new LoginScene()
+//    val loginController = new LoginController(loginScene, context)
+//    loginController.showScene()
+//    loginController.init()
 
 
 

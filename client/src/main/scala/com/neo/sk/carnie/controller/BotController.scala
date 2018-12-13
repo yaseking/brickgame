@@ -36,6 +36,7 @@ class BotController(player: PlayerInfoInClient,
   var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
+  var myCurrentRank = Score(player.id, player.name, 0)
   private var logicFrameTime = System.currentTimeMillis()
 
   def startGameLoop(): Unit = { //渲染帧
@@ -154,7 +155,10 @@ class BotController(player: PlayerInfoInClient,
       case Protocol.Ranks(current) =>
         Boot.addToPlatform {
           currentRank = current
-
+          val myCurrent = current.find(_.id == player.id)
+          myCurrentRank = if (myCurrent.nonEmpty) {
+            myCurrent.get
+          } else myCurrentRank.copy(k = 0, area = 0)
         }
 
       case data: Protocol.Data4TotalSync =>
@@ -202,7 +206,7 @@ class BotController(player: PlayerInfoInClient,
         imageList.find(_._1 == "4").map(_._2),
         imageList.find(_._1 == "5").map(_._2)
     )
-    (humanObservation,layeredObservation)
+    (humanObservation,layeredObservation, grid.frameCount.toInt)
   }
 
 }

@@ -12,7 +12,7 @@ import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.ptcl.EsheepPtcl.{BotInfo, GetBotListRsp}
+import com.neo.sk.carnie.ptcl.EsheepPtcl.{BotInfo, BotListReq, GetBotListRsp}
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -24,11 +24,13 @@ class BotListController(playerInfoInClient: PlayerInfoInClient, botListScene: Bo
   //或许需要一个定时器,定时刷新请求
   updateBotList()
 
+  var lastId:Long = 0L
+
   private def getBotList() = {
     val url = s"http://$domain/carnie/getBotList"
     val appId = AppSetting.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
-    val data = {}.asJson.noSpaces //need data
+    val data = BotListReq(playerInfoInClient.id.drop(4).toLong, lastId).asJson.noSpaces //need data
     val gsKey = AppSetting.esheepGsKey
     val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces

@@ -12,6 +12,11 @@ object EsheepPtcl {
                                count: Int
                              )
 
+  case class BotListReq(
+                       userId:Long,
+                       lastId:Long
+                       )
+
   case class BotInfo(
                       id: Long,
                       userId: String,
