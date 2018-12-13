@@ -1,11 +1,11 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant
-import com.neo.sk.carnie.util.JsFunc
+import com.neo.sk.carnie.util.{Component, JsFunc, Modal}
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
-import com.neo.sk.carnie.util.Component
 import org.scalajs.dom
+import org.scalajs.dom.html.Input
 
 import scala.util.Random
 //import org.scalajs.dom.ext.KeyCode
@@ -145,6 +145,22 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   def switchToRoomListPage():Unit = {
     Main.refreshPage(new RoomListPage(webSocketPara).render)
+  }
+
+  def createRoomDialog():Unit = {
+    val title = <h4 class="modal-title" style="text-align: center;">创建房间</h4>
+    val child =
+      <div>
+        <label for="pwd">房间密码:</label>
+        <input type="password" id="pwd"></input>
+      </div>
+    new Modal(title,child,()=>createRoom(),"createRoom")
+  }
+
+  def createRoom():Unit = {
+    val frameRate = if(modelSelected.id==2) frameRate2 else frameRate1
+    val pwd = dom.document.getElementById("pwd").asInstanceOf[Input].value
+    println(s"pwd: $pwd")
   }
 
   override def render: Elem = {
