@@ -49,7 +49,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   private val modelDiv = modelList.map { games =>
     games.map(game =>
-      <div style="width:27%;margin:10px;">
+      <div style="width:27%;margin:0px;">
         <div style="overflow:hidden" id={game.id.toString}>
           <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:0px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
@@ -64,7 +64,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     games.map(game =>
       <div style="width:27%;margin:15px;">
         <div style="overflow:hidden" id={game.id.toString}>
-          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:10px;height:100px;width:100px;text-align: center">
+          <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:0px;height:100px;width:100px;text-align: center">
             <img class="home-img" src={game.img}></img>
           </div>
         </div>
@@ -196,7 +196,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           </div>
 
           <div style="overflow: hidden;" >
-            <div style="margin-top: 10px;">
+            <div style="margin-top: 5px;">
               <p style="text-align: center; margin-top: 0px;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
@@ -208,5 +208,5 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     </div>
   }
 
-
+//
 }
