@@ -47,8 +47,8 @@ object Main extends js.JSApp {
   }
 
   def selectPage():Unit = {
-    currentPage = new RoomListPage(PlayGamePara("test", "test")).render
-//    currentPage = new JoinGamePage("playGame", PlayGamePara("test", "test")).render
+//    currentPage = new RoomListPage(PlayGamePara("test", "test")).render
+    currentPage = new JoinGamePage("playGame", PlayGamePara("test", "test")).render
     show()
 //    val url = dom.window.location.href.split("carnie/")(1)
 //    val info = url.split("\\?")
@@ -76,7 +76,7 @@ object Main extends js.JSApp {
 
   def refreshPage(newPage: Elem): Cancelable = {
     println("refreshPage!!!")
-//    dom.document.body.removeChild(dom.document.body.firstChild)
+    dom.document.body.removeChild(dom.document.body.firstChild)
     currentPage = newPage
     show()
   }
