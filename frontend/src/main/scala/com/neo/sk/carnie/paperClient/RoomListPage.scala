@@ -7,6 +7,9 @@ import com.neo.sk.carnie.{Main, Routes}
 import com.neo.sk.carnie.ptcl.RoomApiProtocol.RoomListRsp4Client
 import com.neo.sk.carnie.util.{Http, JsFunc}
 import mhtml.{Rx, Var}
+import io.circe.generic.auto._
+import io.circe.syntax._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.collection.mutable
 import scala.util.Random
@@ -97,7 +100,9 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 
   private val roomDiv = roomList.map{
     case Nil =>
-      <h style="font-size: 35px;">当前没有正在游戏的房间 </h>
+      <div style="text-align: center;">
+      <h style="font-size: 35px;color:white;text-align: center;">当前没有正在游戏的房间 </h>
+      </div>
 //      <table class="table">
 //        <thead class="thead-light">
 //          <tr>
