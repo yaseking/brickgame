@@ -147,7 +147,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     Main.refreshPage(new RoomListPage(webSocketPara).render)
   }
 
-  def createRoomDialog():Unit = {
+  def createRoomDialog() = {
     val title = <h4 class="modal-title" style="text-align: center;">创建房间</h4>
     val child =
       <div>
