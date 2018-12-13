@@ -8,6 +8,7 @@ import akka.http.scaladsl.server.{Directive1, Route}
 import akka.stream.scaladsl.{FileIO, Sink, Source}
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.http.scaladsl.model.HttpEntity
+import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.core.RoomManager
 import com.neo.sk.utils.CirceSupport
@@ -16,6 +17,7 @@ import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.models.dao.RecordDAO
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import com.neo.sk.carnie.ptcl.RoomApiProtocol
+import com.neo.sk.utils.EsheepClient.{getRoomListInit, log}
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
 
@@ -24,6 +26,8 @@ import io.circe.Error
 
 import scala.collection.mutable
 import com.neo.sk.utils.essf.RecallGame._
+
+import scala.util.{Failure, Success}
 
 
 /**
@@ -289,10 +293,25 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
     }
   }
 
+  private val updateRoomList = (path("updateRoomList") & post & pathEndOrSingleSlash) {
+    dealFutureResult{
+      getRoomListInit().map{
+        case Right(roomListRsp) =>
+          complete(RoomListRsp4Client(RoomListInfo4Client(roomListRsp.data.roomList)))
+        case Left(e) =>
+          log.error(s"获取房间列表失败，error：${e}")
+          complete(ServiceUtils.CommonRsp(10000011, s"获取房间列表失败，error:$e"))
+      }.recover {
+        case e =>
+          complete(ServiceUtils.CommonRsp(10000011, s"Internal Error:$e"))
+      }
+    }
 
+  }
   val roomApiRoutes: Route = {
     getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ getRoomList4Client ~ verifyPwd ~
-      getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList
+    getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList ~
+    updateRoomList
   }
 
 

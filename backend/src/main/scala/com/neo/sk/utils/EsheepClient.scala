@@ -9,11 +9,15 @@ import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.Boot.{scheduler, timeout, tokenActor}
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.ptcl.EsheepPtcl.GetBotListRsp
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.RoomListRsp4Client
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.ptcl._
+import com.neo.sk.utils.SecureUtil._
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 object EsheepClient extends HttpUtil with CirceSupport {
 
@@ -140,8 +144,41 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
   }
 
+   def getRoomListInit() = {
+    val url = s"http://$domain/carnie/getRoomList4Client"
+    val appId = AppSettings.esheepGameId.toString
+    val sn = appId + System.currentTimeMillis().toString
+    val data = {}.asJson.noSpaces
+    val gsKey = AppSettings.esheepGsKey
+    val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
+    val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
+    postJsonRequestSend("post",url,List(),params).map{
+      case Right(value) =>
+        decode[RoomListRsp4Client](value) match {
+          case Right(r) =>
+            if(r.errCode == 0){
+              println(s"roomData: $r")
+              Right(r)
+            }else{
+              log.debug(s"获取列表失败，errCode:${r.errCode},msg:${r.msg}")
+              Left("Error")
+            }
+          case Left(error) =>
+            log.debug(s"获取房间列表失败1，${error}")
+            Left("Error")
+
+        }
+      case Left(error) =>
+        log.debug(s"获取房间列表失败2，${error}")
+        Left("Error")
+    }
+  }
+
+
+
+
   def main(args: Array[String]): Unit = {
-    import com.neo.sk.utils.SecureUtil._
+
     val appId = AppSettings.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
     val data = RoomApiProtocol.RecordByPlayerReq("test",0,5).asJson.noSpaces
