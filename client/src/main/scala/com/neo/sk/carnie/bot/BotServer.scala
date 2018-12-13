@@ -36,10 +36,10 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
 
   private var state: State = State.unknown
 
-  override def createRoom(request: Credit): Future[CreateRoomRsp] = {
+  override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
     println(s"createRoom Called by [$request")
-    if(request.apiToken == BotAppSetting.apiToken) {
-      botActor ! BotActor.CreateRoom(request.playerId, request.apiToken)
+    if (request.credit.nonEmpty && request.credit.get.apiToken == BotAppSetting.apiToken) {
+      botActor ! BotActor.CreateRoom(request.credit.get.playerId, request.credit.get.apiToken)
       state = State.init_game
       Future.successful(CreateRoomRsp(state = state, msg = "ok"))
     } else Future.successful(CreateRoomRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))

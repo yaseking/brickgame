@@ -16,6 +16,6 @@ object BotAppSetting {
 
   val render = appConfig.getBoolean("render")
 
-  val apiToken = botConfig.getString("apiToken")
+  val apiToken = appConfig.getString("apiToken")
 
 }
