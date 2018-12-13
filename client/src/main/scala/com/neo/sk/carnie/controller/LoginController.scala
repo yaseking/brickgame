@@ -37,6 +37,7 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
         if(rst.nonEmpty) {
           Api4GameAgent.loginByMail(rst.get._1, rst.get._2).map {
             case Right(r) =>
+              log.info(s"got loginInfo: $r")
               loginSocketClient ! Connection2EsByMail(r.userId, r.userName, r.token)
             case Left(_) =>
               log.debug("failed to getLoginRspFromEs.")
