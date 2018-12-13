@@ -147,14 +147,8 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
       val msg: Future[List[String]] = roomManager ? RoomManager.FindAllRoom4Client
       msg.map {
         allRoom =>
-          if (allRoom.nonEmpty){
             log.info("prepare to return roomList.")
             complete(RoomApiProtocol.RoomListRsp4Client(RoomListInfo4Client(allRoom)))
-          }
-          else {
-            log.info("get all room error,there are no rooms")
-            complete(ErrorRsp(100000, "get all room error,there are no rooms"))
-          }
       }
     }
   }
@@ -331,7 +325,7 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
   val roomApiRoutes: Route = {
     getRoomId ~ getRoomList ~ getRecordList ~ getRecordListByTime ~ getRoomList4Client ~ verifyPwd ~
     getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList ~ getRoomPlayerList ~
-    updateRoomList ~ netSnake ~ getRoomList4Front
+    updateRoomList ~ getRoomList4Front ~ netSnake
   }
 
 

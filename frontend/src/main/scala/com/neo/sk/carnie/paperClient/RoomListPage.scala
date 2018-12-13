@@ -18,16 +18,13 @@ import scala.xml.Elem
 class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 
   case class Room(id:Int,model:String,isLocked:Boolean)
-//  var modelLists = List(Room(0,"/carnie/static/img/coffee2.png","正常模式"),
-//    Room(1,"/carnie/static/img/game.png","反转模式"),Room(2,"/carnie/static/img/rocket1.png","加速模式"))
   var roomSelectMap : Map[Int,Boolean] =Map()
   var roomSelected = Room(-1,"",false)
-  //模式选择框
-//  private val modelList: Var[List[Room]] = Var(modelLists)
   private val roomSelectFlag: Var[Map[Int, Boolean]] = Var(Map())
   val roomList: Var[List[Room]] = Var(List.empty[Room])
   var roomLists: List[Room] = List.empty[Room]
 //  val roomLockMap:mutable.HashMap[Int, (Int, Boolean)] = mutable.HashMap.empty[Int, (Int, Boolean)]//(roomId -> (mode, hasPwd))
+  var isReady = Var(false)
 
   def getRoomList() :Unit = {
     val url = Routes.Carnie.getRoomList4Front
@@ -44,6 +41,7 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
               Room(roomId , modeName ,hasPwd)
             }
             roomList := roomLists
+            isReady := true
           }
           else {
             println("error======" + rsp.msg)
@@ -61,10 +59,10 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 
   def init() :Unit={
     roomLists.foreach(game=>
-        if(game.id == 0) roomSelectMap += (game.id -> true)
-        else roomSelectMap += (game.id -> false)
+         roomSelectMap += (game.id -> false)
       )
     roomSelectFlag := roomSelectMap
+    println(roomSelectFlag)
   }
 
   def selectClass(id: Int): Rx[String] = roomSelectFlag.map { flag =>
@@ -86,7 +84,7 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
     roomSelected = roomLists.find {
       _.id == id
     }.get
-    println(roomSelected.id)
+    println(roomSelected.id,roomSelectFlag)
   }
 
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
@@ -98,41 +96,40 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
     }
   }
 
+  private val renderRoomDiv = isReady.map{
+    case true =>
+      init()
+      <div>
+       {roomDiv}
+      <div style="text-align: center;">
+        <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
+        {() => gotoGame(1,1,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
+      </div>
+      </div>
+    case false =>
+      <div style="text-align: center;">
+        <h style="font-size: 35px;color:white;text-align: center;">获取房间出错！ </h>
+      </div>
+  }
   private val roomDiv = roomList.map{
     case Nil =>
       <div style="text-align: center;">
       <h style="font-size: 35px;color:white;text-align: center;">当前没有正在游戏的房间 </h>
       </div>
-//      <table class="table">
-//        <thead class="thead-light">
-//          <tr>
-//            <th scope="col">Locked Or Not</th>
-//            <th scope="col">Room ID</th>
-//            <th scope="col">Model</th>
-//          </tr>
-//        </thead>
-//        <tbody>
-//          <tr>
-//            <td></td>
-//            <td></td>
-//            <td></td>
-//          </tr>
-//        </tbody>
-//      </table>
     case list =>
-      <table class="table">
-        <thead class="thead-light">
+      <table style="width:1000 px;" align="center" >
+        <thead class="thead-light" style="font-size: 20px;color:white;width:1000 px;">
           <tr>
-            <th scope="col">Locked Or Not</th>
-            <th scope="col">Room ID</th>
-            <th scope="col">Model</th>
+            <th scope="col" style="width: 200px;">Locked Or Not</th>
+            <th scope="col" style="width: 400px;">Room ID</th>
+            <th scope="col" style="width: 400px;">Model</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody style="font-size: 20px;color:white;" >
           {list.map{l =>
-          <tr class={selectClass(l.id)}>
-            <td>{if(l.isLocked) <image id="luffyImg" src="/carnie/static/img/luffy.png" style="width: 10px;height: 10px;"></image>
-                else <image id="luffyImg" src="/carnie/static/img/fatTiger.png" style="width: 10px;height: 10px;"></image>}</td>
+          <tr class={selectClass(l.id)} onclick={()=>selectGame(l.id)} style="font-size: 20px;color:white;">
+            <td>{if(l.isLocked) <img src={"/carnie/static/img/luffy.png"} style="width: 20px;height: 20px"></img>
+                else <img  src={"/carnie/static/img/fatTiger.png"} style="width: 20px;height: 20px"></img>}</td>
             <td>{l.id}</td>
             <td>{l.model}</td>
           </tr>
@@ -144,13 +141,8 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 
   override def render: Elem = {
     getRoomList()
-    init()
-    <div style="background-color: #333333;height:100%" id="body" >
-      {roomDiv}
-      <div style="text-align: center;">
-        <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
-        {() => gotoGame(1,1,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
-      </div>
+    <div style="height:100%" id="body" >
+      {renderRoomDiv}
     </div>
   }
 }
