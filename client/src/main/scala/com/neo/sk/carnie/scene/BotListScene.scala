@@ -27,7 +27,7 @@ class BotListScene {
   private val listView = new ListView[String](observableList)
   private val confirmBtn = new Button("加入游戏")
 
-  var listener: RoomListSceneListener = _
+  var listener: BotListSceneListener = _
 
   //  confirmBtn.setPrefSize(100,20)
   hBox.getChildren.addAll(listView, confirmBtn)

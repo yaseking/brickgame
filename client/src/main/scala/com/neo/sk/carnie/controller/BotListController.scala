@@ -12,7 +12,7 @@ import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.ptcl.EsheepPtcl.{BotInfo, GetBotListRsp}
+import com.neo.sk.carnie.ptcl.EsheepPtcl.{BotInfo, BotListReq, GetBotListRsp}
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -24,11 +24,13 @@ class BotListController(playerInfoInClient: PlayerInfoInClient, botListScene: Bo
   //或许需要一个定时器,定时刷新请求
   updateBotList()
 
+  var lastId:Long = 0L
+
   private def getBotList() = {
     val url = s"http://$domain/carnie/getBotList"
     val appId = AppSetting.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
-    val data = {}.asJson.noSpaces //need data
+    val data = BotListReq(playerInfoInClient.id.drop(4).toLong, lastId).asJson.noSpaces //need data
     val gsKey = AppSetting.esheepGsKey
     val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
@@ -77,29 +79,29 @@ class BotListController(playerInfoInClient: PlayerInfoInClient, botListScene: Bo
 //    }
 //  }
 
-  botListScene.listener = new RoomListSceneListener {
-    override def confirm(roomId: Int, mode: Int, hasPwd: Boolean): Unit = {
-      if(roomId.toString != null) {
-        val img = 0 //头部图像
-        val frameRate = if(mode==2) frameRate2 else frameRate1
-        val pwd = if(hasPwd) inputPwd else None
-        if(hasPwd){
-          if(pwd.nonEmpty) {
-            verifyPwd(roomId, pwd.get).map{
-              case true =>
-                Boot.addToPlatform(
-                  playGame(mode, img, frameRate, roomId)
-                )
-              case false =>
-              //              密码错误不做任何处理
-            }
-          }
-        } else {
-          Boot.addToPlatform(
-            playGame(mode, img, frameRate, roomId)
-          )
-        }
-      }
+  botListScene.listener = new BotListSceneListener {
+    override def joinGame(mode: Int, img: Int): Unit = {
+//      if(roomId.toString != null) {
+//        val img = 0 //头部图像
+//        val frameRate = if(mode==2) frameRate2 else frameRate1
+//        val pwd = if(hasPwd) inputPwd else None
+//        if(hasPwd){
+//          if(pwd.nonEmpty) {
+//            verifyPwd(roomId, pwd.get).map{
+//              case true =>
+//                Boot.addToPlatform(
+//                  playGame(mode, img, frameRate, roomId)
+//                )
+//              case false =>
+//              //              密码错误不做任何处理
+//            }
+//          }
+//        } else {
+//          Boot.addToPlatform(
+//            playGame(mode, img, frameRate, roomId)
+//          )
+//        }
+//      }
     }
   }
 

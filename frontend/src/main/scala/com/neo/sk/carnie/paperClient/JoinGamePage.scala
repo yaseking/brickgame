@@ -1,11 +1,11 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant
-import com.neo.sk.carnie.util.JsFunc
+import com.neo.sk.carnie.util.{Component, JsFunc, Modal}
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
-import com.neo.sk.carnie.util.Component
 import org.scalajs.dom
+import org.scalajs.dom.html.Input
 
 import scala.util.Random
 //import org.scalajs.dom.ext.KeyCode
@@ -142,6 +142,28 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
     }
   }
+
+  def switchToRoomListPage():Unit = {
+    Main.refreshPage(new RoomListPage(webSocketPara).render)
+  }
+
+  def createRoomDialog() = {
+    val title = <h4 class="modal-title" style="text-align: center;">创建房间</h4>
+    val child =
+      <div>
+        <label for="pwd">房间密码:</label>
+        <input type="password" id="pwd"></input>
+      </div>
+    new Modal(title,child,()=>createRoom(),"createRoom").render
+  }
+
+  def createRoom():Unit = {
+    println("prepareto createRoom.")
+    val frameRate = if(modelSelected.id==2) frameRate2 else frameRate1
+    val pwd = dom.document.getElementById("pwd").asInstanceOf[Input].value
+    println(s"pwd: $pwd")
+  }
+
   override def render: Elem = {
     {init()}
     <div id ="resizeDiv">
@@ -161,6 +183,14 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
+          <br></br>
+
+          <div style="text-align: center;">
+            <button style="font-size: 30px ;" class="btn-primary" data-toggle="modal" data-target="#createRoom">创建房间</button>
+            {createRoomDialog()}
+            <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
+            {() => switchToRoomListPage()}>房间列表</button>
+          </div>
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 10px;">
