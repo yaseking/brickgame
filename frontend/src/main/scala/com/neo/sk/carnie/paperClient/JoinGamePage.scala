@@ -186,8 +186,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           <br></br>
 
           <div style="text-align: center;">
-            <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
-            {() => println("createRoomDialog.");createRoomDialog()}>创建房间</button>
+            <button style="font-size: 30px ;" class="btn-primary" data-toggle="modal" data-target="#createRoom">创建房间</button>
+            {createRoomDialog()}
             <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
             {() => switchToRoomListPage()}>房间列表</button>
           </div>
