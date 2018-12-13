@@ -164,14 +164,14 @@ class SelectScene {
 
   def selectMode(): Unit = {
     val rst = toggleGroup.getSelectedToggle.getUserData.toString.toInt
-    println(s"rst: $rst")
+//    println(s"rst: $rst")
     selectedMode = rst
 
   }
 
   def selectImg(): Unit ={
     val rst = toggleGroup2.getSelectedToggle.getUserData.toString.toInt
-    println(s"rst2 $rst")
+//    println(s"rst2 $rst")
     selectedImg = rst
   }
 

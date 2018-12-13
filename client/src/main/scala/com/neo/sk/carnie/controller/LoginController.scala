@@ -90,8 +90,8 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
           loginScene.drawScanUrl(imageFromBase64(scanUrl))
           loginSocketClient ! EstablishConnection2Es(wsUrl)
 
-        case Left(_) =>
-          log.debug("failed to getLoginRspFromEs.")
+        case Left(e) =>
+          log.debug(s"failed to getLoginRspFromEs: $e")
       }
     )
   }
