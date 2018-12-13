@@ -114,8 +114,8 @@ object RoomManager {
 
         case msg@Join(id, name, mode, img, subscriber) =>
           log.info(s"got $msg")
-          if (roomMap.nonEmpty && roomMap.exists(r => r._2._1 == mode && r._2._2.size < limitNum)) {
-            val roomId = roomMap.filter(r => r._2._1 == mode && r._2._2.size < limitNum).head._1
+          if (roomMap.nonEmpty && roomMap.exists(r => r._2._1 == mode && r._2._3.size < limitNum && r._2._2.isEmpty)) {
+            val roomId = roomMap.filter(r => r._2._1 == mode && r._2._3.size < limitNum && r._2._2.isEmpty).head._1
             roomMap.put(roomId, (mode, roomMap(roomId)._2, roomMap(roomId)._3 + ((id, name))))
             getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
           } else {
