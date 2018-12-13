@@ -30,7 +30,7 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 //  val roomLockMap:mutable.HashMap[Int, (Int, Boolean)] = mutable.HashMap.empty[Int, (Int, Boolean)]//(roomId -> (mode, hasPwd))
 
   def getRoomList() :Unit = {
-    val url = Routes.Carnie.updateRoomList
+    val url = Routes.Carnie.getRoomList4Front
     Http.getAndParse[RoomListRsp4Client](url).map {
       case Right(rsp) =>
         try {
