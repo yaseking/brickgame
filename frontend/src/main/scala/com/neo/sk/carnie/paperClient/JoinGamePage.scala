@@ -162,7 +162,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
 
   def createRoom():Unit = {
-    println("prepareto createRoom.")
+//    println("prepareto createRoom.")
     val frameRate = if(modelSelected.id==2) frameRate2 else frameRate1
     val pwd = dom.document.getElementById("pwd").asInstanceOf[Input].value
     Main.refreshPage(new CanvasPage().render)

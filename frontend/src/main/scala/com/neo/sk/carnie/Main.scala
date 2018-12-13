@@ -54,7 +54,7 @@ object Main extends js.JSApp {
         val b = a.split("=")
         (b(0), b(1))
     }.toMap
-    println(s"hello ${info(0)}....")
+//    println(s"hello ${info(0)}....")
     info(0) match {
       case "playGame" =>
         println("playGame ...")
