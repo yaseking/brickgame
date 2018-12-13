@@ -49,37 +49,41 @@ class Boot extends javafx.application.Application {
     println("!!!!" + para)
 
     //是否需要图像渲染
-//    val file = new File(para.get(0))
-//    if (file.isFile && file.exists) {
-//      val botConfig = ConfigFactory.parseResources(para(0)).withFallback(ConfigFactory.load())
+//    if(!para.isEmpty){
+//      val file = new File(para.get(0))
+//      if (file.isFile && file.exists) {
+//        val botConfig = ConfigFactory.parseResources(para(0)).withFallback(ConfigFactory.load())
 //
-//      val appConfig = botConfig.getConfig("app")
-//      val render = appConfig.getBoolean("render")
-//      val context = new Context(mainStage)
-//      if(render) {
-//        val loginScene = new LoginScene()
-//        val loginController = new LoginController(loginScene, context)
-//        loginController.showScene()
-//        loginController.init()
-//      } else {
-//        val botInfo = appConfig.getConfig("botInfo")
-//        val botId = botInfo.getString("botId")
-//        val botKey = botInfo.getString("botKey")
-//        botKey2Token(botId, botKey).map {
-//          case Right(data) =>
-//            val gameId = AppSetting.esheepGameId
-//            linkGameAgent(gameId, botId, data.token).map {
-//              case Right(rst) =>
-//                val layeredGameScreen = new LayeredGameScene(0, 150)
-//                new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
-//              case Left(e) =>
-//                log.error(s"bot link game agent error, $e")
-//            }
+//        val appConfig = botConfig.getConfig("app")
+//        val render = appConfig.getBoolean("render")
+//        val context = new Context(mainStage)
+//        if(render) {
+//          val loginScene = new LoginScene()
+//          val loginController = new LoginController(loginScene, context)
+//          loginController.showScene()
+//          loginController.init()
+//        } else {
+//          val botInfo = appConfig.getConfig("botInfo")
+//          val botId = botInfo.getString("botId")
+//          val botKey = botInfo.getString("botKey")
+//          botKey2Token(botId, botKey).map {
+//            case Right(data) =>
+//              val gameId = AppSetting.esheepGameId
+//              linkGameAgent(gameId, botId, data.token).map {
+//                case Right(rst) =>
+//                  val layeredGameScreen = new LayeredGameScene(0, 150)
+//                  new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+//                case Left(e) =>
+//                  log.error(s"bot link game agent error, $e")
+//              }
 //
-//          case Left(e) =>
-//            log.error(s"botKey2Token error, $e")
+//            case Left(e) =>
+//              log.error(s"botKey2Token error, $e")
+//          }
 //        }
 //      }
+//    } else {
+//      log.debug("未输入参数.")
 //    }
     //test
     val context = new Context(mainStage)

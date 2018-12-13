@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.bot
 
 import io.grpc.{ManagedChannel, ManagedChannelBuilder}
-import org.seekloud.esheepapi.pb.api.{CreateRoomRsp, Credit, ObservationRsp, SimpleRsp}
+import org.seekloud.esheepapi.pb.api.{CreateRoomReq, CreateRoomRsp, Credit, ObservationRsp, SimpleRsp}
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgentStub
 import scala.concurrent.Future
@@ -25,7 +25,7 @@ class BotClient (
   val credit = Credit(playerId = playerId, apiToken = apiToken)
 
 
-  def createRoom(): Future[CreateRoomRsp] = esheepStub.createRoom(credit)
+  def createRoom(): Future[CreateRoomRsp] = esheepStub.createRoom(CreateRoomReq(Some(credit), "password"))
 
   def observation(): Future[ObservationRsp] = esheepStub.observation(credit)
 }
