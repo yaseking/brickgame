@@ -39,18 +39,37 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
     println(s"createRoom Called by [$request")
     if (request.credit.nonEmpty && request.credit.get.apiToken == BotAppSetting.apiToken) {
-      botActor ! BotActor.CreateRoom(request.credit.get.playerId, request.credit.get.apiToken)
-      state = State.init_game
-      Future.successful(CreateRoomRsp(state = state, msg = "ok"))
+      val rstF: Future[String] = botActor ?
+        (BotActor.CreateRoom(request.credit.get.playerId, request.credit.get.apiToken, request.password, _))
+      rstF.map {
+        case "error" =>
+          CreateRoomRsp(errCode = 10005, state = State.unknown, msg = "create room error")
+        case roomId =>
+          state = State.init_game
+          CreateRoomRsp(roomId, state = state, msg = "ok")
+      }.recover {
+        case e: Exception =>
+          CreateRoomRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+      }
     } else Future.successful(CreateRoomRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
   override def joinRoom(request: JoinRoomReq): Future[SimpleRsp] = {
     println(s"joinRoom Called by [$request")
     if (request.credit.nonEmpty && request.credit.get.apiToken == BotAppSetting.apiToken) {
-      botActor ! BotActor.JoinRoom(request.roomId, request.credit.get.playerId, request.credit.get.apiToken)
-      state = State.in_game
-      Future.successful(SimpleRsp(state = state, msg = "ok"))
+      val rstF: Future[SimpleRsp] = botActor ?
+        (BotActor.JoinRoom(request.roomId, request.credit.get.playerId, request.credit.get.apiToken, _))
+      rstF.map {rsp =>
+        rsp.errCode match {
+          case 0 =>
+            state = State.in_game
+            rsp.copy(state = state)
+          case _ => rsp
+        }
+      }.recover {
+        case e: Exception =>
+          SimpleRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+      }
     } else Future.successful(SimpleRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 

@@ -99,6 +99,7 @@ object RoomManager {
           roomMap += roomId -> (mode , pwd, mutable.HashSet((id, name)))
           println(roomMap)
           getRoomActor(ctx, roomId, mode) ! RoomActor.JoinRoom(id, name, subscriber, img)
+          subscriber ! Protocol.RoomId(roomId.toString)
           Behaviors.same
 
         case m@JoinByRoomId(id, roomId, name, img, subscriber) =>

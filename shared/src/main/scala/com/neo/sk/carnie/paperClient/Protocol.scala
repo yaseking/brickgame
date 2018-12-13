@@ -70,6 +70,8 @@ object Protocol {
 
   case class Id(id: String) extends GameMessage
 
+  case class RoomId(roomId: String) extends GameMessage
+
   case class Id4Watcher(id: String, watcher: String) extends GameMessage
 
   case class StartWatching(mode: Int, img: Int) extends GameMessage
