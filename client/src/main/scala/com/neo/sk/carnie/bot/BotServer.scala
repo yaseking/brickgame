@@ -11,7 +11,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.paperClient.Score
 import com.neo.sk.carnie.common.BotAppSetting
 import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
-
+import com.neo.sk.carnie.Boot.{executor,scheduler,timeout}
 import scala.concurrent.{ExecutionContext, Future}
 
 /**

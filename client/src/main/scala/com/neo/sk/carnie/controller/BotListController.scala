@@ -79,29 +79,29 @@ class BotListController(playerInfoInClient: PlayerInfoInClient, botListScene: Bo
 //    }
 //  }
 
-  botListScene.listener = new RoomListSceneListener {
-    override def confirm(roomId: Int, mode: Int, hasPwd: Boolean): Unit = {
-      if(roomId.toString != null) {
-        val img = 0 //头部图像
-        val frameRate = if(mode==2) frameRate2 else frameRate1
-        val pwd = if(hasPwd) inputPwd else None
-        if(hasPwd){
-          if(pwd.nonEmpty) {
-            verifyPwd(roomId, pwd.get).map{
-              case true =>
-                Boot.addToPlatform(
-                  playGame(mode, img, frameRate, roomId)
-                )
-              case false =>
-              //              密码错误不做任何处理
-            }
-          }
-        } else {
-          Boot.addToPlatform(
-            playGame(mode, img, frameRate, roomId)
-          )
-        }
-      }
+  botListScene.listener = new BotListSceneListener {
+    override def joinGame(mode: Int, img: Int): Unit = {
+//      if(roomId.toString != null) {
+//        val img = 0 //头部图像
+//        val frameRate = if(mode==2) frameRate2 else frameRate1
+//        val pwd = if(hasPwd) inputPwd else None
+//        if(hasPwd){
+//          if(pwd.nonEmpty) {
+//            verifyPwd(roomId, pwd.get).map{
+//              case true =>
+//                Boot.addToPlatform(
+//                  playGame(mode, img, frameRate, roomId)
+//                )
+//              case false =>
+//              //              密码错误不做任何处理
+//            }
+//          }
+//        } else {
+//          Boot.addToPlatform(
+//            playGame(mode, img, frameRate, roomId)
+//          )
+//        }
+//      }
     }
   }
 
