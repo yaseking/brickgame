@@ -158,6 +158,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
   }
 
   def createRoom():Unit = {
+    println("prepareto createRoom.")
     val frameRate = if(modelSelected.id==2) frameRate2 else frameRate1
     val pwd = dom.document.getElementById("pwd").asInstanceOf[Input].value
     println(s"pwd: $pwd")
@@ -186,7 +187,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
           <div style="text-align: center;">
             <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
-            {() => createRoomDialog()}>创建房间</button>
+            {() => println("createRoomDialog.");createRoomDialog()}>创建房间</button>
             <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
             {() => switchToRoomListPage()}>房间列表</button>
           </div>
