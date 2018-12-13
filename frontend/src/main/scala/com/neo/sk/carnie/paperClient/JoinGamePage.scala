@@ -142,6 +142,11 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
     }
   }
+
+  def switchToRoomListPage():Unit = {
+    Main.refreshPage(new RoomListPage(webSocketPara).render)
+  }
+
   override def render: Elem = {
     {init()}
     <div id ="resizeDiv">
@@ -161,6 +166,14 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
+          <br></br>
+
+          <div style="text-align: center;">
+            <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
+            {}>创建房间</button>
+            <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
+            {() => switchToRoomListPage()}>房间列表</button>
+          </div>
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 10px;">

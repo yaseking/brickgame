@@ -59,4 +59,11 @@ object EsheepProtocol {
                         playerRecord: PlayerRecord
                         )
 
+  case class GetBotListReq(
+                            gameId: Long,
+                            userId: Long,
+                            lastId: Long,
+                            count: Int
+                          )
+
 }

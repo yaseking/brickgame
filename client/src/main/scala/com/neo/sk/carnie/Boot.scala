@@ -96,7 +96,10 @@ class Boot extends javafx.application.Application {
 //    val selectScreen = new SelectScene()
 //    new SelectController(PlayerInfoInClient("test", "test", "test"), selectScreen, context, "test").showScene
 
-//    val roomListScene = new RoomListScene
-//    context.switchScene(roomListScene.getScene,fullScreen = false)
+//    val roomListScene = new RoomListScene()
+//    new RoomListController(PlayerInfoInClient("test", "test", "test"), roomListScene, context, "test").showScene
+
+//    val botListScene = new BotListScene()
+//    new BotListController(PlayerInfoInClient("test", "test", "test"), botListScene, context, "test").showScene
   }
 }

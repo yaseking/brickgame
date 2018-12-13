@@ -14,10 +14,13 @@ import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.{bytesDecode, _}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
+
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.carnie.common.{AppSetting, Context}
 import com.neo.sk.carnie.controller.{GameController, LoginController}
 import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
+import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+import com.neo.sk.carnie.utils.Api4GameAgent.linkGameAgent
 
 /**
   * Created by dry on 2018/10/23.
@@ -29,6 +32,8 @@ object LoginSocketClient {
   sealed trait WsCommand
 
   case class EstablishConnection2Es(wsUrl: String) extends WsCommand
+
+  case class Connection2EsByMail(userId: Long, playerName:String, token: String) extends WsCommand
 
   def create(context: Context, loginController: LoginController): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
@@ -61,6 +66,20 @@ object LoginSocketClient {
           } //链接建立时
 //          connected.onComplete(i => log.info(i.toString))
           Behavior.same
+
+        case Connection2EsByMail(userId:Long, playerName:String, token:String) =>
+          val gameId = AppSetting.esheepGameId
+          val playerId = "user" + userId
+          linkGameAgent(gameId, playerId, token).map {
+            case Right(r) =>
+              loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
+
+            case Left(e) =>
+              log.debug(s"linkGameAgent..$e")
+//              loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, "test"), "test")//domain,ip,port
+
+          }
+          Behaviors.same
       }
     }
   }
@@ -87,7 +106,6 @@ object LoginSocketClient {
                   val playerName = data.nickname
                   linkGameAgent(gameId, playerId, data.token).map {
                     case Right(r) =>
-                      println(s"gsPrimaryInfo: ${r.gsPrimaryInfo}")
                       loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
 //                      loginController.switchToRoomList(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
 //                      loginController.switchToGaming(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port

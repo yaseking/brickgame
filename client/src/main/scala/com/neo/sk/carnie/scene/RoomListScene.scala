@@ -24,7 +24,7 @@ class RoomListScene {
   val hBox = new HBox(20)
 
   val roomLockMap:mutable.HashMap[Int, (Int, Boolean)] = mutable.HashMap.empty[Int, (Int, Boolean)]//(roomId -> (mode, hasPwd))
-  var roomList:List[String] = List.empty[String]
+  var botList:List[String] = List.empty[String]
   private val observableList:ObservableList[String] = FXCollections.observableArrayList()
   private val listView = new ListView[String](observableList)
   private val confirmBtn = new Button("进入房间")
@@ -42,7 +42,7 @@ class RoomListScene {
 
   def updateRoomList(roomList:List[String]):Unit = {
     println(s"updateRoomList: $roomList")
-    this.roomList = roomList
+    this.botList = roomList
     this.roomLockMap.clear()
     observableList.clear()
     roomList.sortBy(t => t).map { s =>
@@ -56,7 +56,7 @@ class RoomListScene {
 //    println(observableList)
   }
 
-  listView.setCellFactory(_ => new ListCell[String](){//todo 找锁的图片和无锁的图片
+  listView.setCellFactory(_ => new ListCell[String](){//todo 找锁的图片和无锁的图片，登录图片
     val img = new ImageView("img/Bob.png")
     val img1 = new ImageView("img/luffy.png")
     img.setFitWidth(15)

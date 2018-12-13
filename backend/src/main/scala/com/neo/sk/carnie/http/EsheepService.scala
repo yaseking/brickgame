@@ -78,30 +78,33 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     ) {
       case (recordId, playerId, frame, accessCode) =>
         log.info("success to render watchRecord page.")
-        //        val gameId = AppSettings.esheepGameId
-//        dealFutureResult{
-//          val msg: Future[String] = tokenActor ? AskForToken
-//          msg.map {token =>
-//            dealFutureResult{
-//              EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
-//                case Right(rsp) =>
-//                  //                    println(s"rsp: $rsp")
-////                  if(rsp.playerId == playerId){
-                    getFromResource("html/index.html")
-////                  } else {
-////                    complete(ErrorRsp(120004, "Some errors happened in verifyAccessCode."))
-////                  }
-//                case Left(e) =>
-//                  log.error(s"playGame error. fail to verifyAccessCode err: $e")
-////                  getFromResource("html/netSnake.html")
-//                  complete(ErrorRsp(120005, "Some errors happened in parse verifyAccessCode."))
-//              }
-//            }
-//          }
-//        }
+        getFromResource("html/index.html")
     }
   }
 
-  val esheepRoute: Route = playGame ~ watchRecord ~ watchGame
+  private val getBotList = (path("getBotList") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error,BotListReq]]) {
+      case Right(v) =>
+        val msg: Future[String] = tokenActor ? AskForToken
+        dealFutureResult{
+          msg.map{token =>
+            dealFutureResult{
+              EsheepClient.getBotList(v.userId, v.lastId, 10, token).map {
+                case Right(r) =>
+                  complete(r)
+                case Left(e) =>
+                  log.debug(s"Some errors happened in getBotList: $e")
+                  complete(ErrorRsp(120003, "Some errors happened in getBotList."))
+              }
+            }
+          }
+        }
+      case Left(e) =>
+        log.debug(s"getBotList errs: $e")
+        complete(ErrorRsp(120004, s"getBotList errs: $e"))
+    }
+  }
+
+  val esheepRoute: Route = playGame ~ watchRecord ~ watchGame ~ getBotList
 
 }

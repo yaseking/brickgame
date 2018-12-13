@@ -68,4 +68,19 @@ object Protocol4Agent {
                        tokenExpireTime: Long
                      )
 
+  final case class LoginByMailReq(
+                             email: String,
+                             password: String
+                           )
+
+  final case class ESheepUserInfoRsp(
+                                      userName: String,
+                                      userId: Long,
+                                      headImg: String,
+                                      token: String,
+                                      gender: Int,
+                                      errCode: Int = 0,
+                                      msg: String = "ok"
+                                    )
+
 }
