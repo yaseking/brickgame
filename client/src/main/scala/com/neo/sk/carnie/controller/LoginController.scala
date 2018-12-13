@@ -5,13 +5,14 @@ import java.io.ByteArrayInputStream
 import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.actor.LoginSocketClient
-import com.neo.sk.carnie.actor.LoginSocketClient.EstablishConnection2Es
+import com.neo.sk.carnie.actor.LoginSocketClient.{Connection2EsByMail, EstablishConnection2Es}
 import com.neo.sk.carnie.scene.{GameScene, LoginScene, RoomListScene, SelectScene}
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
+import com.neo.sk.carnie.utils.Api4GameAgent
 import javafx.geometry.Insets
 import javafx.scene.control.ButtonBar.ButtonData
 import javafx.scene.control._
@@ -33,7 +34,15 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     override def loginByMail(): Unit = {
       Boot.addToPlatform{
         val rst = initLoginDialog()
-        //todo 检验密码并换取token，进入到选择模式页面
+        if(rst.nonEmpty) {
+          Api4GameAgent.loginByMail(rst.get._1, rst.get._2).map {
+            case Right(r) =>
+              loginSocketClient ! Connection2EsByMail(r.userId, r.userName, r.token)
+            case Left(_) =>
+              log.debug("failed to getLoginRspFromEs.")
+//              loginSocketClient ! Connection2EsByMail(10000, "test123", "test123")
+          }
+        }
       }
     }
   })
@@ -72,16 +81,18 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
   }
 
   def init(): Unit = {
-    getLoginRspFromEs().map {
-      case Right(r) =>
-        val wsUrl = r.wsUrl
-        val scanUrl = r.scanUrl
-        loginScene.drawScanUrl(imageFromBase64(scanUrl))
-        loginSocketClient ! EstablishConnection2Es(wsUrl)
+    Boot.addToPlatform(
+      getLoginRspFromEs().map {
+        case Right(r) =>
+          val wsUrl = r.wsUrl
+          val scanUrl = r.scanUrl
+          loginScene.drawScanUrl(imageFromBase64(scanUrl))
+          loginSocketClient ! EstablishConnection2Es(wsUrl)
 
-      case Left(_) =>
-        log.debug("failed to getLoginRspFromEs.")
-    }
+        case Left(_) =>
+          log.debug("failed to getLoginRspFromEs.")
+      }
+    )
   }
 
   def imageFromBase64(base64Str:String): ByteArrayInputStream  = {

@@ -62,6 +62,7 @@ object Api4GameAgent extends HttpUtil {
               Right(res)
             else {
               log.debug(s"loginByMail error: ${res.errCode} msg: ${res.msg}")
+              Left(s"errCode: ${res.errCode}")
             }
           case Left(le) =>
             Left("decode error: " + le)
