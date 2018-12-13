@@ -80,12 +80,12 @@ object BotActor {
       implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers { implicit timer =>
         ctx.self ! Work
-        waitingGaming(botController)
+        waitingForWork(botController)
       }
     }
   }
 
-  def waitingGaming(botController: BotController)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+  def waitingForWork(botController: BotController)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Work =>
