@@ -188,12 +188,6 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
-          <div style="text-align: center;">
-            <button style="font-size: 30px ;" class="btn-primary" data-toggle="modal" data-target="#createRoom">创建房间</button>
-            <button style="font-size: 30px ;" class="btn-primary" onclick=
-            {() => switchToRoomListPage()}>房间列表</button>
-            {createRoomDialog()}
-          </div>
 
           <div style="overflow: hidden;" >
             <div style="margin-top: 5px;">
@@ -208,5 +202,11 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     </div>
   }
 
-//
+  //创建房间和房间列表
+//  <div style="text-align: center;">
+//    <button style="font-size: 30px ;" class="btn-primary" data-toggle="modal" data-target="#createRoom">创建房间</button>
+//    <button style="font-size: 30px ;" class="btn-primary" onclick=
+//    {() => switchToRoomListPage()}>房间列表</button>
+//    {createRoomDialog()}
+//  </div>
 }
