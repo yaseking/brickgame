@@ -125,7 +125,7 @@ class WebSocketClient (
 
   def getWebSocketUri4JoinRoomById(id: String, name: String, pwd: String, mode: Int, img: Int, roomId: Int): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/joinRoom4Client?id=$id&name=$name&mode=$mode&img=$img&pwd=$pwd&roomId=$roomId"
+    s"$wsProtocol://${dom.document.location.host}/carnie/joinRoomById?id=$id&name=$name&img=$img&roomId=$roomId"
   }
 
   def getWsState = wsSetup
