@@ -95,6 +95,10 @@ class BotController(player: PlayerInfoInClient,
       case Protocol.Id(id) =>
         log.debug(s"i receive my id:$id")
 
+      case Protocol.RoomId(roomId) =>
+        botActor ! BotActor.RoomId(roomId)
+        log.debug(s"i receive roomId:$roomId")
+
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         Boot.addToPlatform {
           if (grid.snakes.exists(_._1 == id)) {

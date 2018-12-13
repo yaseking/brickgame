@@ -169,7 +169,34 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             }
           }
         }
-      }~
+      } ~
+      (path("joinGameById") & get ) {
+        parameter(
+          'id.as[String],
+          'name.as[String],
+          'mode.as[Int].?,
+          'img.as[Int],
+          'roomId.as[Int].?
+        ) { (id, name, mode, img, roomId) =>
+//          dealFutureResult{
+            if(roomId.nonEmpty)
+              handleWebSocketMessages(webSocketChatFlow2(id, name, img, roomId.get))
+            else
+              handleWebSocketMessages(webSocketChatFlow(id, name, mode.get, img))
+//            val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
+//            msg.map{r=>
+//              if(r)
+//                getFromResource("html/errPage.html")
+//              else{
+//                if(roomId.nonEmpty)
+//                  handleWebSocketMessages(webSocketChatFlow2(id, name, img, roomId.get))
+//                else
+//                  handleWebSocketMessages(webSocketChatFlow(id, name, mode.get, img))
+//              }
+//            }
+//          }
+        }
+      } ~
       (path("joinGame4ClientCreateRoom") & get ) {
         parameter(
           'id.as[String],

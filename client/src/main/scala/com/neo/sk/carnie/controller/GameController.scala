@@ -6,7 +6,7 @@ import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.scene.{GameScene, LayeredCanvas, LayeredGameScene, PerformanceTool}
+import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene, PerformanceTool}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
+import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 
 /**
   * Created by dry on 2018/10/29.
@@ -178,7 +179,11 @@ class GameController(player: PlayerInfoInClient,
 //          BGM.play(30)
 //        }
         val offsetTime = System.currentTimeMillis() - logicFrameTime
+        val a = System.currentTimeMillis()
         layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        val x = getAllImage
+        val b = System.currentTimeMillis()
+        println("drawTime:" + (b-a) )
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
 
@@ -454,4 +459,17 @@ class GameController(player: PlayerInfoInClient,
 
   }
 
+  def getAllImage  = {
+    val imageList = layeredGameScene.layered.getAllImageData
+    val humanObservation : _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
+    val layeredObservation : LayeredObservation = LayeredObservation(
+      imageList.find(_._1 == "0").map(_._2),
+      imageList.find(_._1 == "1").map(_._2),
+      imageList.find(_._1 == "2").map(_._2),
+      imageList.find(_._1 == "3").map(_._2),
+      imageList.find(_._1 == "4").map(_._2),
+      imageList.find(_._1 == "5").map(_._2)
+    )
+    (humanObservation,layeredObservation, grid.frameCount.toInt)
+  }
 }

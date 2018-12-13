@@ -89,12 +89,17 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
   }
 
   def gotoGame(roomId: Int, playerId: String, playerName: String): Unit = {
+    val mod = roomSelected.model match {
+      case "正常" => 0
+      case "反转" => 1
+      case "加速" => 2
+    }
     if (roomId == -1) JsFunc.alert("请选择房间!")
     else {
       dom.document.getElementById("roomList").setAttribute("display","none")
       dom.document.getElementById("roomList").setAttribute("hidden","hidden")
       Main.refreshPage(new CanvasPage().render)
-      new NetGameHolder("playGame", joinRoomByIdPara(roomId,playerId, playerName),1).render
+      new NetGameHolder("playGame", joinRoomByIdPara(roomId,playerId, playerName),mod).render
     }
   }
 
