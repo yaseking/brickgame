@@ -141,7 +141,7 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
 
   override def render: Elem = {
     getRoomList()
-    <div style="height:100%" id="body" >
+    <div style="height:100%" id="roomList" >
       {renderRoomDiv}
     </div>
   }
