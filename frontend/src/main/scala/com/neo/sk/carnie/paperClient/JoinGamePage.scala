@@ -3,7 +3,7 @@ package com.neo.sk.carnie.paperClient
 import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.util.{Component, JsFunc, Modal}
 import com.neo.sk.carnie.paperClient.Protocol._
-import com.neo.sk.carnie.paperClient.WebSocketProtocol.{PlayGamePara, WebSocketPara}
+import com.neo.sk.carnie.paperClient.WebSocketProtocol.{CreateRoomPara, PlayGamePara, WebSocketPara}
 import org.scalajs.dom
 import org.scalajs.dom.html.Input
 
@@ -165,7 +165,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     println("prepareto createRoom.")
     val frameRate = if(modelSelected.id==2) frameRate2 else frameRate1
     val pwd = dom.document.getElementById("pwd").asInstanceOf[Input].value
-    println(s"pwd: $pwd")
+    Main.refreshPage(new CanvasPage().render)
+    new NetGameHolder("playGame", CreateRoomPara(webSocketPara.playerId, webSocketPara.playerName, pwd, modelSelected.id, headSelected.id), modelSelected.id, headSelected.id, frameRate).init()
   }
 
   override def render: Elem = {
@@ -187,13 +188,11 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             {() => gotoGame(modelSelected.id,headSelected.id,webSocketPara.playerId,webSocketPara.playerName)}>进入游戏</button>
           </div>
 
-          <br></br>
-
           <div style="text-align: center;">
             <button style="font-size: 30px ;" class="btn-primary" data-toggle="modal" data-target="#createRoom">创建房间</button>
-            {createRoomDialog()}
-            <button type="button"   style="font-size: 30px ;" class="btn-primary" onclick=
+            <button style="font-size: 30px ;" class="btn-primary" onclick=
             {() => switchToRoomListPage()}>房间列表</button>
+            {createRoomDialog()}
           </div>
 
           <div style="overflow: hidden;" >
