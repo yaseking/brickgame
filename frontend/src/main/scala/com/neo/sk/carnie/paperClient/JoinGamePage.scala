@@ -154,7 +154,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
         <label for="pwd">房间密码:</label>
         <input type="password" id="pwd"></input>
       </div>
-    new Modal(title,child,()=>createRoom(),"createRoom")
+    new Modal(title,child,()=>createRoom(),"createRoom").render
   }
 
   def createRoom():Unit = {
