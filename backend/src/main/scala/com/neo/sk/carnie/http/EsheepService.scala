@@ -82,20 +82,26 @@ trait EsheepService extends ServiceUtils with CirceSupport {
     }
   }
 
-  private val getBotList = (path("getBotList") & get & pathEndOrSingleSlash) {
-    val msg: Future[String] = tokenActor ? AskForToken
-    dealFutureResult{
-      msg.map{token =>
+  private val getBotList = (path("getBotList") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error,BotListReq]]) {
+      case Right(v) =>
+        val msg: Future[String] = tokenActor ? AskForToken
         dealFutureResult{
-          EsheepClient.getBotList(100012, 10000, 10, token).map {
-            case Right(r) =>
-              complete(r)
-            case Left(e) =>
-              log.debug(s"Some errors happened in getBotList: $e")
-              complete(ErrorRsp(120003, "Some errors happened in getBotList."))
+          msg.map{token =>
+            dealFutureResult{
+              EsheepClient.getBotList(v.userId, v.lastId, 10, token).map {
+                case Right(r) =>
+                  complete(r)
+                case Left(e) =>
+                  log.debug(s"Some errors happened in getBotList: $e")
+                  complete(ErrorRsp(120003, "Some errors happened in getBotList."))
+              }
+            }
           }
         }
-      }
+      case Left(e) =>
+        log.debug(s"getBotList errs: $e")
+        complete(ErrorRsp(120004, s"getBotList errs: $e"))
     }
   }
 
