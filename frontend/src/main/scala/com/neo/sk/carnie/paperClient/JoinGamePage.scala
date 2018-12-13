@@ -138,12 +138,16 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
       Main.refreshPage(new CanvasPage().render)
+      dom.document.getElementById("all").setAttribute("display","none")
+      dom.document.getElementById("all").setAttribute("hidden","hidden")
       val frameRate = if(modelId==2) frameRate2 else frameRate1
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
     }
   }
 
   def switchToRoomListPage():Unit = {
+    dom.document.getElementById("all").setAttribute("display","none")
+    dom.document.getElementById("all").setAttribute("hidden","hidden")
     Main.refreshPage(new RoomListPage(webSocketPara).render)
   }
 
@@ -166,7 +170,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   override def render: Elem = {
     {init()}
-    <div id ="resizeDiv">
+    <div id ="all">
       <div  style="background-color: #333333;height:750px" id="body" >
         <div  id="selectPage">
           <div  id="form">

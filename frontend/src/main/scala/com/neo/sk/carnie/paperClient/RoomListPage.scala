@@ -9,8 +9,9 @@ import com.neo.sk.carnie.util.{Http, JsFunc}
 import mhtml.{Rx, Var}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.dom
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable
 import scala.util.Random
 import scala.xml.Elem
@@ -90,6 +91,8 @@ class RoomListPage(webSocketPara: PlayGamePara) extends Component {
   def gotoGame(modelId: Int, headId: Int, playerId: String, playerName: String): Unit = {
     if (modelId == -1 || headId == -1) JsFunc.alert("请选择模式和头像!")
     else {
+      dom.document.getElementById("roomList").setAttribute("display","none")
+      dom.document.getElementById("roomList").setAttribute("hidden","hidden")
       Main.refreshPage(new CanvasPage().render)
       val frameRate = if(modelId==2) frameRate2 else frameRate1
       new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
