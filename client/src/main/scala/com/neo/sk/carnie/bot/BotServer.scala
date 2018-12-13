@@ -43,7 +43,6 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
       state = State.init_game
       Future.successful(CreateRoomRsp(state = state, msg = "ok"))
     } else Future.successful(CreateRoomRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
-
   }
 
   override def joinRoom(request: JoinRoomReq): Future[SimpleRsp] = {
@@ -92,13 +91,16 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   override def observation(request: Credit): Future[ObservationRsp] = {
     println(s"observation Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
-      val rstF: Future[(Option[ImgData], LayeredObservation, Int)]  = botActor ? (BotActor.ReturnObservation(request.playerId, _))
-      rstF.map {rst =>
-        ObservationRsp(Some(rst._2), rst._1, rst._3, state = state, msg = "ok")
-      }.recover {
-        case e: Exception =>
-          ObservationRsp(errCode = 10001, state = state, msg = s"internal error:$e")
-      }
+      if (state == State.in_game) {
+        val rstF: Future[(Option[ImgData], LayeredObservation, Int)]  = botActor ? (BotActor.ReturnObservation(request.playerId, _))
+        rstF.map {rst =>
+          ObservationRsp(Some(rst._2), rst._1, rst._3, state = state, msg = "ok")
+        }.recover {
+          case e: Exception =>
+            ObservationRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+        }
+      } else Future.successful(ObservationRsp(errCode = 10004, state = state, msg = s"not in_game state"))
+
     } else Future.successful(ObservationRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
