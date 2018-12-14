@@ -11,7 +11,9 @@ import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.paperClient.Score
 import com.neo.sk.carnie.common.BotAppSetting
 import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
-import com.neo.sk.carnie.Boot.{executor,scheduler,timeout}
+import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
+import com.neo.sk.carnie.actor.BotActor.Reincarnation
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -140,6 +142,17 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
           InformRsp(errCode = 10001, state = state, msg = s"internal error:$e")
       }
     } else Future.successful(InformRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
+  }
+
+  override def reincarnation(request: Credit): Future[SimpleRsp] = {
+    println(s"reincarnation Called by [$request")
+    if(request.apiToken == BotAppSetting.apiToken) {
+      val rstF: Future[SimpleRsp] = botActor ? Reincarnation
+      rstF.map {rsp =>
+        if(rsp.errCode == 0) rsp
+        else SimpleRsp(errCode = 10006, state = State.unknown, msg = "reincarnation error")
+      }
+    } else Future.successful(SimpleRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
 }

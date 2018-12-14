@@ -58,6 +58,10 @@ object BotActor {
 
   case object LeaveRoom extends Command
 
+  case class Reincarnation(replyTo: ActorRef[SimpleRsp]) extends Command
+
+  case object Dead extends Command
+
   case class Action(move: Move, replyTo: ActorRef[Int]) extends Command
 
   case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)]) extends Command
@@ -216,6 +220,9 @@ object BotActor {
           replyTo ! (botController.myCurrentRank, botController.grid.frameCount.toInt)
           Behaviors.same
 
+        case Dead =>
+          dead(actor, botController, playerInfo)
+
         case LeaveRoom=>
           log.info(s"player:${playerInfo.id} leave room, botActor stop.")
           Behaviors.stopped
@@ -230,7 +237,8 @@ object BotActor {
   def waitingForRoomId(actor: ActorRef[Protocol.WsSendMsg],
            botController: BotController,
            playerInfo: PlayerInfoInClient,
-           replyTo: ActorRef[String])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+           replyTo: ActorRef[String])(implicit stashBuffer: StashBuffer[Command],
+                                      timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case RoomId(roomId) =>
@@ -247,7 +255,8 @@ object BotActor {
   def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
                             botController: BotController,
                             playerInfo: PlayerInfoInClient,
-                            replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+                            replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)])(
+    implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Observation(obs) =>
@@ -256,6 +265,24 @@ object BotActor {
 
         case unknown@_ =>
           stashBuffer.stash(unknown)
+          Behaviors.same
+      }
+    }
+  }
+
+  def dead(actor: ActorRef[Protocol.WsSendMsg],
+           botController: BotController,
+           playerInfo: PlayerInfoInClient)(implicit stashBuffer: StashBuffer[Command],
+                                           timer: TimerScheduler[Command]): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case Reincarnation(replyTo) =>
+          replyTo ! SimpleRsp(state = State.in_game, msg = "ok")
+          log.info(s"recv msg:$msg")
+          gaming(actor, botController, playerInfo)
+
+        case unknown@_ =>
+          log.debug(s"i receive an unknown msg:$unknown when dead")
           Behaviors.same
       }
     }
