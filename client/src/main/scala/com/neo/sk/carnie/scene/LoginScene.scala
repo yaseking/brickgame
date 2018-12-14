@@ -36,7 +36,6 @@ class LoginScene {
   button.setLayoutX(217)
   button.setLayoutY(400)
   val shadow = new DropShadow()
-  button.setEffect(shadow)
 
   button.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
     override def handle(event: MouseEvent): Unit = {

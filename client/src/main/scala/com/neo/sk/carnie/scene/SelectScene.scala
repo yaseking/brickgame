@@ -1,9 +1,12 @@
 package com.neo.sk.carnie.scene
 
+import javafx.event.EventHandler
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
-import javafx.scene.control.{Button, PasswordField, RadioButton, ToggleGroup, TextField}
+import javafx.scene.control.{Button, PasswordField, RadioButton, TextField, ToggleGroup}
+import javafx.scene.effect.DropShadow
 import javafx.scene.image.{Image, ImageView}
+import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 
@@ -19,6 +22,7 @@ class SelectScene {
 
   val width = 500
   val height = 500
+  val shadow = new DropShadow()
   val group = new Group
   var listener: SelectSceneListener = _
 
@@ -104,6 +108,18 @@ class SelectScene {
   joinBtn.setLayoutX(220)
   joinBtn.setLayoutY(350)
 
+  joinBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      joinBtn.setEffect(shadow)
+    }
+  })
+
+  joinBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      joinBtn.setEffect(null)
+    }
+  })
+
   canvasCtx.drawImage(modeImg0, 50, 30, 120, 120)
   canvasCtx.drawImage(modeImg1, 190, 30, 120, 120)
   canvasCtx.drawImage(modeImg2, 340, 40, 120, 110)
@@ -124,6 +140,18 @@ class SelectScene {
   val roomListBtn = new Button("房间列表")
   roomListBtn.setLayoutX(420)
   roomListBtn.setLayoutY(440)
+
+  roomListBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      roomListBtn.setEffect(shadow)
+    }
+  })
+
+  roomListBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      roomListBtn.setEffect(null)
+    }
+  })
 
   group.getChildren.add(canvas)
   group.getChildren.add(mode0)

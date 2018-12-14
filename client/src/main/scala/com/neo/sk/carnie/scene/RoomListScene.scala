@@ -1,9 +1,12 @@
 package com.neo.sk.carnie.scene
 
 import javafx.collections.{FXCollections, ObservableList, ObservableMap}
+import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.control._
+import javafx.scene.effect.DropShadow
 import javafx.scene.image.{Image, ImageView}
+import javafx.scene.input.MouseEvent
 import javafx.scene.{Group, Scene}
 import javafx.scene.layout.{BorderPane, HBox, Priority, VBox}
 
@@ -19,6 +22,7 @@ abstract class RoomListSceneListener{
 class RoomListScene {
   val width = 500
   val height = 500
+  val shadow = new DropShadow()
 
   private val group = new Group()
   private val scene = new Scene(group, width, height)
@@ -35,6 +39,54 @@ class RoomListScene {
   private val roomBtn = new Button("创建房间")
   private val refreshBtn = new Button("刷新列表")
   private val backBtn = new Button("返回")
+
+  confirmBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      confirmBtn.setEffect(shadow)
+    }
+  })
+
+  confirmBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      confirmBtn.setEffect(null)
+    }
+  })
+
+  roomBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      roomBtn.setEffect(shadow)
+    }
+  })
+
+  roomBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      roomBtn.setEffect(null)
+    }
+  })
+
+  refreshBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      refreshBtn.setEffect(shadow)
+    }
+  })
+
+  refreshBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      refreshBtn.setEffect(null)
+    }
+  })
+
+  backBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      backBtn.setEffect(shadow)
+    }
+  })
+
+  backBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      backBtn.setEffect(null)
+    }
+  })
 
   var listener: RoomListSceneListener = _
 
