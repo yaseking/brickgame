@@ -17,9 +17,9 @@ class ModeScene {
   val normalBtn = new Button("普通模式")
   val botBtn = new Button("Bot模式")
 
-  normalBtn.setLayoutX(80)
+  normalBtn.setLayoutX(75)
   normalBtn.setLayoutY(130)
-  botBtn.setLayoutX(170)
+  botBtn.setLayoutX(165)
   botBtn.setLayoutY(130)
 
   def getScene = this.scene

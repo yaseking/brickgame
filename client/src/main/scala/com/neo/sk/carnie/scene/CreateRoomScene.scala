@@ -8,10 +8,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.Font
 
 abstract class CreateRoomSceneListener {
-  def joinGame(mode: Int, img: Int)
   def createRoom(mode: Int, img: Int, pwd: String)
-  def gotoRoomList()
-  def gotoBotList()
 }
 
 class CreateRoomScene {
@@ -22,7 +19,7 @@ class CreateRoomScene {
   val width = 500
   val height = 500
   val group = new Group
-  var listener: SelectSceneListener = _
+  var listener: CreateRoomSceneListener = _
 
   val canvas = new Canvas(width, height)
   val canvasCtx = canvas.getGraphicsContext2D
@@ -101,11 +98,6 @@ class CreateRoomScene {
   img5.setLayoutX(360)
   img5.setLayoutY(310)
 
-  val button1 = new Button("加入游戏")
-
-  button1.setLayoutX(220)
-  button1.setLayoutY(350)
-
   canvasCtx.drawImage(modeImg0, 50, 30, 120, 120)
   canvasCtx.drawImage(modeImg1, 190, 30, 120, 120)
   canvasCtx.drawImage(modeImg2, 340, 40, 120, 110)
@@ -119,23 +111,13 @@ class CreateRoomScene {
 
   val pwdField = new PasswordField()
   pwdField.setPromptText("房间密码")
-  //  pwdField.setMaxWidth(60)
   pwdField.setPrefWidth(80)
   pwdField.setLayoutX(180)
   pwdField.setLayoutY(400)
-  //  pwdField.setName("test")
 
-  val button2 = new  Button("创建房间")
-  button2.setLayoutX(280)
-  button2.setLayoutY(400)
-
-  val button3 = new Button("房间列表")
-  button3.setLayoutX(420)
-  button3.setLayoutY(440)
-
-  //  val button4 = new Button("Bot列表")
-  //  button4.setLayoutX(420)
-  //  button4.setLayoutY(460)
+  val roomBtn = new  Button("创建房间")
+  roomBtn.setLayoutX(280)
+  roomBtn.setLayoutY(400)
 
   group.getChildren.add(canvas)
   group.getChildren.add(mode0)
@@ -148,34 +130,28 @@ class CreateRoomScene {
   group.getChildren.add(img4)
   group.getChildren.add(img5)
   group.getChildren.add(pwdField)
-  group.getChildren.add(button1)
-  group.getChildren.add(button2)
-  group.getChildren.add(button3)
-  //  group.getChildren.add(button4)
-  val scene = new Scene(group)
+  group.getChildren.add(roomBtn)
+  private val scene = new Scene(group)
 
-  button1.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
-  button2.setOnAction(_ => listener.createRoom(selectedMode, selectedImg, pwdField.getText))
-  button3.setOnAction(_ => listener.gotoRoomList())
-  //  button4.setOnAction(_ => listener.gotoBotList())
+  def getScene = scene
+
+  roomBtn.setOnAction(_ => listener.createRoom(selectedMode, selectedImg, pwdField.getText))
 
   toggleGroup.selectedToggleProperty().addListener(_ => selectMode())
   toggleGroup2.selectedToggleProperty().addListener(_ => selectImg())
 
   def selectMode(): Unit = {
     val rst = toggleGroup.getSelectedToggle.getUserData.toString.toInt
-    //    println(s"rst: $rst")
     selectedMode = rst
 
   }
 
   def selectImg(): Unit ={
     val rst = toggleGroup2.getSelectedToggle.getUserData.toString.toInt
-    //    println(s"rst2 $rst")
     selectedImg = rst
   }
 
-  def setListener(listen: SelectSceneListener): Unit ={
-    listener = listen
+  def setListener(listener: CreateRoomSceneListener): Unit ={
+    this.listener = listener
   }
 }

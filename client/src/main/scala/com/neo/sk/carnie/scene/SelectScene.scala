@@ -9,9 +9,7 @@ import javafx.scene.text.Font
 
 abstract class SelectSceneListener {
   def joinGame(mode: Int, img: Int)
-  def createRoom(mode: Int, img: Int, pwd: String)
   def gotoRoomList()
-//  def gotoBotList()
 }
 
 class SelectScene {
@@ -101,10 +99,10 @@ class SelectScene {
   img5.setLayoutX(360)
   img5.setLayoutY(310)
 
-  val button1 = new Button("加入游戏")
+  val joinBtn = new Button("加入游戏")
 
-  button1.setLayoutX(220)
-  button1.setLayoutY(350)
+  joinBtn.setLayoutX(220)
+  joinBtn.setLayoutY(350)
 
   canvasCtx.drawImage(modeImg0, 50, 30, 120, 120)
   canvasCtx.drawImage(modeImg1, 190, 30, 120, 120)
@@ -119,23 +117,13 @@ class SelectScene {
 
   val pwdField = new PasswordField()
   pwdField.setPromptText("房间密码")
-//  pwdField.setMaxWidth(60)
   pwdField.setPrefWidth(80)
   pwdField.setLayoutX(180)
   pwdField.setLayoutY(400)
-//  pwdField.setName("test")
 
-  val button2 = new  Button("创建房间")
-  button2.setLayoutX(280)
-  button2.setLayoutY(400)
-
-  val button3 = new Button("房间列表")
-  button3.setLayoutX(420)
-  button3.setLayoutY(440)
-
-//  val button4 = new Button("Bot列表")
-//  button4.setLayoutX(420)
-//  button4.setLayoutY(460)
+  val roomListBtn = new Button("房间列表")
+  roomListBtn.setLayoutX(420)
+  roomListBtn.setLayoutY(440)
 
   group.getChildren.add(canvas)
   group.getChildren.add(mode0)
@@ -147,31 +135,24 @@ class SelectScene {
   group.getChildren.add(img3)
   group.getChildren.add(img4)
   group.getChildren.add(img5)
-  group.getChildren.add(pwdField)
-  group.getChildren.add(button1)
-  group.getChildren.add(button2)
-  group.getChildren.add(button3)
-//  group.getChildren.add(button4)
+  group.getChildren.add(joinBtn)
+  group.getChildren.add(roomListBtn)
   val scene = new Scene(group)
 
-  button1.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
-  button2.setOnAction(_ => listener.createRoom(selectedMode, selectedImg, pwdField.getText))
-  button3.setOnAction(_ => listener.gotoRoomList())
-//  button4.setOnAction(_ => listener.gotoBotList())
+  joinBtn.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
+  roomListBtn.setOnAction(_ => listener.gotoRoomList())
 
   toggleGroup.selectedToggleProperty().addListener(_ => selectMode())
   toggleGroup2.selectedToggleProperty().addListener(_ => selectImg())
 
   def selectMode(): Unit = {
     val rst = toggleGroup.getSelectedToggle.getUserData.toString.toInt
-//    println(s"rst: $rst")
     selectedMode = rst
 
   }
 
   def selectImg(): Unit ={
     val rst = toggleGroup2.getSelectedToggle.getUserData.toString.toInt
-//    println(s"rst2 $rst")
     selectedImg = rst
   }
 

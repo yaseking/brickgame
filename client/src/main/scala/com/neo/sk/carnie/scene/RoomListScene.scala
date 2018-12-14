@@ -5,12 +5,14 @@ import javafx.geometry.Pos
 import javafx.scene.control._
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.{Group, Scene}
-import javafx.scene.layout.{BorderPane, HBox, Priority}
+import javafx.scene.layout.{BorderPane, HBox, Priority, VBox}
 
 import scala.collection.mutable
 
 abstract class RoomListSceneListener{
   def confirm(roomId: Int, mode: Int, hasPwd: Boolean)
+  def gotoCreateRoomScene()
+  def reFresh()
 }
 
 class RoomListScene {
@@ -22,17 +24,22 @@ class RoomListScene {
   private val borderPane = new BorderPane()
 
   val hBox = new HBox(20)
+  val vBox = new VBox(20)
 
   val roomLockMap:mutable.HashMap[Int, (Int, Boolean)] = mutable.HashMap.empty[Int, (Int, Boolean)]//(roomId -> (mode, hasPwd))
   var botList:List[String] = List.empty[String]
   private val observableList:ObservableList[String] = FXCollections.observableArrayList()
   private val listView = new ListView[String](observableList)
   private val confirmBtn = new Button("进入房间")
+  private val roomBtn = new Button("创建房间")
+  private val refreshBtn = new Button("刷新列表")
 
   var listener: RoomListSceneListener = _
 
 //  confirmBtn.setPrefSize(100,20)
-  hBox.getChildren.addAll(listView, confirmBtn)
+  vBox.getChildren.addAll(confirmBtn,roomBtn,refreshBtn)
+  vBox.setAlignment(Pos.CENTER)
+  hBox.getChildren.addAll(listView, vBox)
   hBox.setAlignment(Pos.CENTER)
 //  HBox.setHgrow(listView,Priority.ALWAYS)
   //  borderPane.prefHeightProperty().bind(scene.heightProperty())
@@ -90,5 +97,6 @@ class RoomListScene {
     val roomId = selectedInfo.split("-").head.toInt
     listener.confirm(roomId, roomLockMap(roomId)._1, roomLockMap(roomId)._2)
   }
-//  confirmBtn.setOnAction(_ => println(listView.getSelectionModel.selectedItemProperty().get()))(Int, Int, Boolean)
+  roomBtn.setOnAction(_ => listener.gotoCreateRoomScene())
+  refreshBtn.setOnAction(_ => listener.reFresh())
 }
