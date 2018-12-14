@@ -56,8 +56,8 @@ class DrawGame(
     canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
-    borderCanvas.width = canvasUnit * Boundary.w
-    borderCanvas.height = canvasUnit * Boundary.h
+    borderCanvas.width = canvasUnit * BorderSize.w
+    borderCanvas.height = canvasUnit * BorderSize.h
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
     drawCache()
@@ -69,8 +69,8 @@ class DrawGame(
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
 
-    borderCanvas.width = canvasUnit * Boundary.w
-    borderCanvas.height = canvasUnit * Boundary.h
+    borderCanvas.width = canvasUnit * BorderSize.w
+    borderCanvas.height = canvasUnit * BorderSize.h
 
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt

@@ -1,20 +1,20 @@
 package com.neo.sk.carnie.scene
 
-import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
-import javafx.scene.control.{Button, PasswordField, RadioButton, ToggleGroup, TextField}
-import javafx.scene.image.{Image, ImageView}
+import javafx.scene.canvas.Canvas
+import javafx.scene.control.{Button, PasswordField, RadioButton, ToggleGroup}
+import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 
-abstract class SelectSceneListener {
+abstract class CreateRoomSceneListener {
   def joinGame(mode: Int, img: Int)
   def createRoom(mode: Int, img: Int, pwd: String)
   def gotoRoomList()
-//  def gotoBotList()
+  def gotoBotList()
 }
 
-class SelectScene {
+class CreateRoomScene {
 
   var selectedMode: Int = 0
   var selectedImg: Int = 0
@@ -119,11 +119,11 @@ class SelectScene {
 
   val pwdField = new PasswordField()
   pwdField.setPromptText("房间密码")
-//  pwdField.setMaxWidth(60)
+  //  pwdField.setMaxWidth(60)
   pwdField.setPrefWidth(80)
   pwdField.setLayoutX(180)
   pwdField.setLayoutY(400)
-//  pwdField.setName("test")
+  //  pwdField.setName("test")
 
   val button2 = new  Button("创建房间")
   button2.setLayoutX(280)
@@ -133,9 +133,9 @@ class SelectScene {
   button3.setLayoutX(420)
   button3.setLayoutY(440)
 
-//  val button4 = new Button("Bot列表")
-//  button4.setLayoutX(420)
-//  button4.setLayoutY(460)
+  //  val button4 = new Button("Bot列表")
+  //  button4.setLayoutX(420)
+  //  button4.setLayoutY(460)
 
   group.getChildren.add(canvas)
   group.getChildren.add(mode0)
@@ -151,27 +151,27 @@ class SelectScene {
   group.getChildren.add(button1)
   group.getChildren.add(button2)
   group.getChildren.add(button3)
-//  group.getChildren.add(button4)
+  //  group.getChildren.add(button4)
   val scene = new Scene(group)
 
   button1.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
   button2.setOnAction(_ => listener.createRoom(selectedMode, selectedImg, pwdField.getText))
   button3.setOnAction(_ => listener.gotoRoomList())
-//  button4.setOnAction(_ => listener.gotoBotList())
+  //  button4.setOnAction(_ => listener.gotoBotList())
 
   toggleGroup.selectedToggleProperty().addListener(_ => selectMode())
   toggleGroup2.selectedToggleProperty().addListener(_ => selectImg())
 
   def selectMode(): Unit = {
     val rst = toggleGroup.getSelectedToggle.getUserData.toString.toInt
-//    println(s"rst: $rst")
+    //    println(s"rst: $rst")
     selectedMode = rst
 
   }
 
   def selectImg(): Unit ={
     val rst = toggleGroup2.getSelectedToggle.getUserData.toString.toInt
-//    println(s"rst2 $rst")
+    //    println(s"rst2 $rst")
     selectedImg = rst
   }
 

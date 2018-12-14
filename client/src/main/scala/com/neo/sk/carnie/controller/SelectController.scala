@@ -55,12 +55,12 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
       }
     }
 
-    override def gotoBotList(): Unit = {
-      Boot.addToPlatform{
-        val botListScene = new BotListScene()
-        new BotListController(playerInfoInClient, botListScene, context, domain).showScene
-      }
-    }
+//    override def gotoBotList(): Unit = {
+//      Boot.addToPlatform{
+//        val botListScene = new BotListScene()
+//        new BotListController(playerInfoInClient, botListScene, context, domain).showScene
+//      }
+//    }
   })
 
   //todo 创建房间的弹窗demo

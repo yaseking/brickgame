@@ -19,7 +19,7 @@ class ModeController(modeScene: ModeScene, context: Context) {
     override def gotoBotScene(): Unit = {
       Boot.addToPlatform{
         val botScene = new BotScene
-        val botController = new BotSceneController(botScene,context)
+        val botController = new BotSceneController(modeScene,botScene,context)
         botController.showScene()
       }
     }

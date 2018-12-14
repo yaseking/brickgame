@@ -7,6 +7,7 @@ import javafx.scene.layout.{GridPane, HBox, VBox}
 
 abstract class BotSceneListener {
   def confirm(botId:String,botKey:String)
+  def comeBack()
 }
 
 class BotScene {
@@ -16,8 +17,12 @@ class BotScene {
   private val scene = new Scene(group, width, height)
 
   val confirm = new Button("确定")
-  confirm.setLayoutX(230)
+  val backBtn = new Button("返回")
+
+  confirm.setLayoutX(200)
   confirm.setLayoutY(230)
+  backBtn.setLayoutX(260)
+  backBtn.setLayoutY(230)
 
   val userName = new TextField()
   val passWorld = new PasswordField()
@@ -44,12 +49,14 @@ class BotScene {
 
   group.getChildren.add(grid)
   group.getChildren.add(confirm)
+  group.getChildren.add(backBtn)
 
   def getScene = this.scene
 
   var listener:BotSceneListener = _
 
   confirm.setOnAction(_ => listener.confirm(userName.getText(),passWorld.getText()))
+  backBtn.setOnAction(_ => listener.comeBack())
 
   def setListener(listener: BotSceneListener):Unit = {
     this.listener = listener

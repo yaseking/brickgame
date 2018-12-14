@@ -3,10 +3,13 @@ package com.neo.sk.carnie.scene
 import com.neo.sk.carnie.Boot
 import java.io.ByteArrayInputStream
 
+import javafx.event.{Event, EventHandler}
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.scene.control.Button
+import javafx.scene.effect.DropShadow
 import javafx.scene.image.Image
+import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 
@@ -30,8 +33,24 @@ class LoginScene {
   val canvasCtx = canvas.getGraphicsContext2D
   var loginSceneListener: LoginSceneListener = _
 
-  button.setLayoutX(380)
+  button.setLayoutX(217)
   button.setLayoutY(400)
+  val shadow = new DropShadow()
+  button.setEffect(shadow)
+
+  button.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      button.setEffect(shadow)
+    }
+  })
+
+  button.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      button.setEffect(null)
+    }
+  })
+
+  button.setStyle("-fx-font: 15 arial; -fx-base: #00BFFF;")
 
   canvasCtx.setFill(Color.rgb(255, 255, 255))
   canvasCtx.fillRect(0, 0, width, height)
