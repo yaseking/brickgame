@@ -62,6 +62,8 @@ object BotActor {
 
   case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)]) extends Command
 
+  case class Observation(obs: (Option[ImgData], LayeredObservation, Int)) extends Command
+
   case class ReturnInform(replyTo: ActorRef[(Score, Int)]) extends Command
 
   case class MsgToService(sendMsg: WsSendMsg) extends Command
@@ -136,6 +138,7 @@ object BotActor {
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
               ctx.self ! SwitchBehavior("waitingForRoomId", waitingForRoomId(stream, botController, playerInfo, replyTo))
               log.debug(s"switch behavior")
+              botController.startGameLoop()
               Future.successful("connect success")
             } else {
               replyTo ! "error"
@@ -166,6 +169,7 @@ object BotActor {
           val connected = response.flatMap { upgrade =>
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
               replyTo ! SimpleRsp(state = State.unknown, msg = "ok")
+              botController.startGameLoop()
               Future.successful("connect success")
             } else {
               replyTo ! SimpleRsp(errCode = 10006, state = State.unknown, msg = "join room error")
@@ -204,8 +208,9 @@ object BotActor {
           Behaviors.same
 
         case ReturnObservation(replyTo) =>
-          replyTo ! botController.getAllImage
-          Behaviors.same
+          botController.getAllImage
+//          Behaviors.same
+          waitingForObservation(actor, botController, playerInfo, replyTo)
 
         case ReturnInform(replyTo) =>
           replyTo ! (botController.myCurrentRank, botController.grid.frameCount.toInt)
@@ -230,6 +235,23 @@ object BotActor {
       msg match {
         case RoomId(roomId) =>
           replyTo ! roomId
+          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
+
+        case unknown@_ =>
+          stashBuffer.stash(unknown)
+          Behaviors.same
+      }
+    }
+  }
+
+  def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
+                            botController: BotController,
+                            playerInfo: PlayerInfoInClient,
+                            replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case Observation(obs) =>
+          replyTo ! obs
           stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
 
         case unknown@_ =>

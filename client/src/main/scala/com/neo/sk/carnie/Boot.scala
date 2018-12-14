@@ -87,13 +87,13 @@ class Boot extends javafx.application.Application {
 //    }
     //test
     val context = new Context(mainStage)
-//    val layeredGameScreen = new LayeredGameScene(0, 150)
-//    new BotController(PlayerInfoInClient("123", "abc", "test"), context, layeredGameScreen)
+    val layeredGameScreen = new LayeredGameScene(0, 150)
+    new BotController(PlayerInfoInClient("123", "abc", "test"), context, layeredGameScreen)
 
 //    val context = new Context(mainStage)
 
-    val modeScene = new ModeScene()
-    new ModeController(modeScene,context).showScene()
+//    val modeScene = new ModeScene()
+//    new ModeController(modeScene,context).showScene()
 
 //    val botScene = new BotScene()
 //    new BotSceneController(botScene,context).showScene()

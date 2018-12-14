@@ -6,12 +6,14 @@ import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction, UserLeft}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.util.Duration
+
 import org.slf4j.LoggerFactory
 import akka.actor.typed.scaladsl.adapter._
+import com.neo.sk.carnie.actor.BotActor.Observation
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene}
-import org.seekloud.esheepapi.pb.observations.{ImgData,LayeredObservation}
+import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 
 /**
   * Created by dry on 2018/12/4.
@@ -200,17 +202,19 @@ class BotController(player: PlayerInfoInClient,
   }
 
   def getAllImage  = {
-    val imageList = layeredGameScene.layered.getAllImageData
-    val humanObservation : _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
-    val layeredObservation : LayeredObservation = LayeredObservation(
+    Boot.addToPlatform{
+      val imageList = layeredGameScene.layered.getAllImageData
+      val humanObservation : _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
+      val layeredObservation : LayeredObservation = LayeredObservation(
         imageList.find(_._1 == "0").map(_._2),
         imageList.find(_._1 == "1").map(_._2),
         imageList.find(_._1 == "2").map(_._2),
         imageList.find(_._1 == "3").map(_._2),
         imageList.find(_._1 == "4").map(_._2),
         imageList.find(_._1 == "5").map(_._2)
-    )
-    (humanObservation,layeredObservation, grid.frameCount.toInt)
-  }
-
+      )
+      val observation = (humanObservation,layeredObservation, grid.frameCount.toInt)
+      botActor ! Observation(observation)
+    }
+    }
 }
