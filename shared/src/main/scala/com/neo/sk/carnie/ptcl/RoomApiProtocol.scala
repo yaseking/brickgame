@@ -133,7 +133,7 @@ object RoomApiProtocol {
                           data: RoomListInfo4Client,
                           errCode: Int = 0,
                           msg: String = "ok"
-                        )
+                        ) extends CommonRsp
 
   case class RoomListInfo4Client(
                            roomList: List[String]
