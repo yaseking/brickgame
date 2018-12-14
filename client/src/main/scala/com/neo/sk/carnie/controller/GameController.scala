@@ -220,7 +220,7 @@ class GameController(player: PlayerInfoInClient,
           BGM.stop()
         }
         gameScene.drawGameWin(player.id, winner, winData,winningData)
-        layeredGameScene.drawGameWin(player.id, winner, winData,winningData)
+//        layeredGameScene.drawGameWin(player.id, winner, winData,winningData)
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
@@ -239,7 +239,7 @@ class GameController(player: PlayerInfoInClient,
         }
 //        if (isContinue) audioDie.play()
         gameScene.drawGameDie(killerName, myScore, maxArea)
-        layeredGameScene.drawGameDie(killerName, myScore, maxArea)
+//        layeredGameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = None
         isContinue = false
     }

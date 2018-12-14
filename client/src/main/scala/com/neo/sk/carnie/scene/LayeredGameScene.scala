@@ -134,15 +134,15 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     selfViewCtx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
-    rank.drawClearRank()
-    layered.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
-  }
+//  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
+//    rank.drawClearRank()
+//    layered.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
+//  }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
-    rank.drawClearRank()
-    layered.drawGameDie(killerOpt, myScore,maxArea)
-  }
+//  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
+//    rank.drawClearRank()
+//    layered.drawGameDie(killerOpt, myScore,maxArea)
+//  }
 
 
   def drawRank(myId: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
@@ -150,8 +150,8 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   }
 
 
-  def drawBarrage(killedName: String, killerName: String): Unit = {
-    layered.drawUserDieInfo(killedName,killerName)
-  }
+//  def drawBarrage(killedName: String, killerName: String): Unit = {
+//    layered.drawUserDieInfo(killedName,killerName)
+//  }
 
 }

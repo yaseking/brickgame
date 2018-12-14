@@ -171,23 +171,12 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
     val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
 
-    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
-    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
-
 
     BorderCtx.setFill(Color.BLACK)
     val w = positionWindowBoundary.x //400
     val h = positionWindowBoundary.y //300
-//    BorderCtx.setGlobalAlpha(0.5)
     BorderCtx.fillRect(0, 0, w , h )
     BorderCtx.save()
-//    BorderCtx.restore()
-
-//    BorderCtx.setFill(ColorsSetting.backgroundColor)
-//    BorderCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
-
-//    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
-//    BorderCtx.save()
 
     BorderCtx.setFill(Color.rgb(105,105,105))
     //  //画边界
@@ -198,137 +187,137 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    BorderCtx.save()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
-    val winnerId = data.snakes.find(_.name == winner).map(_.id).get
-    val snakes = data.snakes
-    val snakesFields = data.fieldDetails
-    scale = 0.33
-    val width = windowBoundary.x - BorderSize.w * canvasUnit * scale
-    val height = windowBoundary.y - BorderSize.h * canvasUnit * scale
-    selfViewCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    selfViewCtx.save()
-    selfViewCtx.scale(scale, scale)
-    selfViewCtx.setFill(ColorsSetting.borderColor)
-    selfViewCtx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
-    selfViewCtx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
-    selfViewCtx.fillRect(1.5 * width - canvasUnit, BorderSize.h * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
-    selfViewCtx.fillRect(BorderSize.w * canvasUnit + 1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
-    snakesFields.foreach { field =>
-      if (field.uid == myId || field.uid == winnerId) {
-        val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).get
-        selfViewCtx.setFill(color)
-        field.scanField.foreach { point =>
-          point.x.foreach { x =>
-            selfViewCtx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-          }
-        }
-      }
-    }
-    selfViewCtx.restore()
-    selfViewCtx.save()
-    selfViewCtx.scale(1, 1)
-    selfViewCtx.setGlobalAlpha(1)
-    selfViewCtx.setFont(Font.font("Microsoft YaHei", FontPosture.findByName("bold"), 25))
-    selfViewCtx.setFill(ColorsSetting.defaultColor)
-
-    val txt1 = s"The Winner is $winner"
-    val txt2 = s"Press space to reStart"
-    val length = new Text(txt1).getLayoutBounds.getWidth
-    selfViewCtx.fillText(txt1, (windowBoundary.x - length) / 2 , windowBoundary.y / 5)
-    selfViewCtx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20))
-    //    ctx.setfont = "bold 24px Helvetica"
-    selfViewCtx.setFill(ColorsSetting.fontColor2)
-    val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
-    val length1 = new Text(txt4).getLayoutBounds.getWidth
-    if(winningData.yourScore.isDefined) {
-      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
-      selfViewCtx.fillText(txt3, (windowBoundary.x - length1) / 2 , windowBoundary.y / 4)
-    }
-    selfViewCtx.fillText(txt4, (windowBoundary.x - length1) / 2 , windowBoundary.y / 4 + 40)
-    selfViewCtx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
-    selfViewCtx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
-    selfViewCtx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, windowBoundary.y / 5 - 75, 50, 50)
-    selfViewCtx.restore()
-  }
+//  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
+//    val winnerId = data.snakes.find(_.name == winner).map(_.id).get
+//    val snakes = data.snakes
+//    val snakesFields = data.fieldDetails
+//    scale = 0.33
+//    val width = windowBoundary.x - BorderSize.w * canvasUnit * scale
+//    val height = windowBoundary.y - BorderSize.h * canvasUnit * scale
+//    selfViewCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    selfViewCtx.save()
+//    selfViewCtx.scale(scale, scale)
+//    selfViewCtx.setFill(ColorsSetting.borderColor)
+//    selfViewCtx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
+//    selfViewCtx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
+//    selfViewCtx.fillRect(1.5 * width - canvasUnit, BorderSize.h * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+//    selfViewCtx.fillRect(BorderSize.w * canvasUnit + 1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
+//    snakesFields.foreach { field =>
+//      if (field.uid == myId || field.uid == winnerId) {
+//        val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).get
+//        selfViewCtx.setFill(color)
+//        field.scanField.foreach { point =>
+//          point.x.foreach { x =>
+//            selfViewCtx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//          }
+//        }
+//      }
+//    }
+//    selfViewCtx.restore()
+//    selfViewCtx.save()
+//    selfViewCtx.scale(1, 1)
+//    selfViewCtx.setGlobalAlpha(1)
+//    selfViewCtx.setFont(Font.font("Microsoft YaHei", FontPosture.findByName("bold"), 25))
+//    selfViewCtx.setFill(ColorsSetting.defaultColor)
+//
+//    val txt1 = s"The Winner is $winner"
+//    val txt2 = s"Press space to reStart"
+//    val length = new Text(txt1).getLayoutBounds.getWidth
+//    selfViewCtx.fillText(txt1, (windowBoundary.x - length) / 2 , windowBoundary.y / 5)
+//    selfViewCtx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20))
+//    //    ctx.setfont = "bold 24px Helvetica"
+//    selfViewCtx.setFill(ColorsSetting.fontColor2)
+//    val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
+//    val length1 = new Text(txt4).getLayoutBounds.getWidth
+//    if(winningData.yourScore.isDefined) {
+//      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+//      selfViewCtx.fillText(txt3, (windowBoundary.x - length1) / 2 , windowBoundary.y / 4)
+//    }
+//    selfViewCtx.fillText(txt4, (windowBoundary.x - length1) / 2 , windowBoundary.y / 4 + 40)
+//    selfViewCtx.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 20)) //FontPosture.findByName("bold")
+//    selfViewCtx.fillText(txt2, windowBoundary.x - 300, windowBoundary.y - 100)
+//    selfViewCtx.drawImage(crownImg, (windowBoundary.x - length) / 2 + length - 50, windowBoundary.y / 5 - 75, 50, 50)
+//    selfViewCtx.restore()
+//  }
 
   import javafx.scene.text.Text
-  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
-    selfViewCtx.save()
-    //    ctx.globalAlpha = 0.6
+//  def drawUserDieInfo(killedName: String, killerName: String): Unit = {
+//    selfViewCtx.save()
+//    //    ctx.globalAlpha = 0.6
+//
+//    selfViewCtx.restore()
+//    selfViewCtx.save()
+//    selfViewCtx.setFont(Font.font(30))
+//    selfViewCtx.setFill(ColorsSetting.gameNameColor)
+//    val txt = s"$killedName is killed by $killerName"
+//    val text = new Text(txt)
+//    text.setFont(Font.font(30))
+//    text.setFill(ColorsSetting.gameNameColor)
+//    val length = text.getLayoutBounds.getWidth
+//    val offx = length / 2
+//    //    ctx.drawImage(bloodImg, windowBoundary.x / 2 - offx, 115, 300, 50)
+//    selfViewCtx.fillText(s"$killedName is killed by $killerName", windowBoundary.x / 2 - offx, 150)
+//    selfViewCtx.restore()
+//  }
 
-    selfViewCtx.restore()
-    selfViewCtx.save()
-    selfViewCtx.setFont(Font.font(30))
-    selfViewCtx.setFill(ColorsSetting.gameNameColor)
-    val txt = s"$killedName is killed by $killerName"
-    val text = new Text(txt)
-    text.setFont(Font.font(30))
-    text.setFill(ColorsSetting.gameNameColor)
-    val length = text.getLayoutBounds.getWidth
-    val offx = length / 2
-    //    ctx.drawImage(bloodImg, windowBoundary.x / 2 - offx, 115, 300, 50)
-    selfViewCtx.fillText(s"$killedName is killed by $killerName", windowBoundary.x / 2 - offx, 150)
-    selfViewCtx.restore()
-  }
+//  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore, maxArea: Int): Unit = {
+//    //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    //    val endTime = System.currentTimeMillis()
+//    //    if (myScore.area > maxArea) maxArea = myScore.area
+//    selfViewCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
+//    selfViewCtx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    selfViewCtx.setFill(ColorsSetting.gameNameColor)
+//    selfViewCtx.setFont(Font.font(20))
+//    scale = 1
+//    selfViewCtx.scale(1, 1)
+//
+//    val text = killerOpt match {
+//      case Some(killer) => s"Ops, You Are Killed By $killer! Press Space Key To Revenge!"
+//      case None => "Ops, Press Space Key To Restart!"
+//    }
+//    val txt =new Text(text)
+//    val length = txt.getLayoutBounds.getWidth
+//    val offx = length / 2
+//    val x = (windowBoundary.x / 2).toInt - 145
+//    val y = (windowBoundary.y / 2).toInt - 180
+//
+//    val gameTime = (myScore.endTime - myScore.startTime) / 1000
+//    val bestScore = maxArea / canvasSize * 100
+//    val time = {
+//      val tempM = gameTime / 60
+//      val s1 = gameTime % 60
+//      val s = if (s1 < 0) "00" else if (s1 < 10) "0" + s1 else s1.toString
+//      val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
+//      m + ":" + s
+//    }
+//    selfViewCtx.fillText(text, windowBoundary.x / 2 - offx - 50 , y) //(500,180)
+//    selfViewCtx.save()
+//    selfViewCtx.setFill(ColorsSetting.dieInfoFontColor)
+//    selfViewCtx.setFont(Font.font(20))
+//    selfViewCtx.fillText("YOUR SCORE:", x, y + 70)
+//    selfViewCtx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
+//    selfViewCtx.fillText("BEST SCORE:", x, y + 110)
+//    selfViewCtx.fillText(f"$bestScore%.2f" + "%", x + 230, y + 110)
+//    selfViewCtx.fillText(s"PLAYERS KILLED:", x, y + 150)
+//    selfViewCtx.fillText(s"${myScore.kill}", x + 230, y + 150)
+//    selfViewCtx.fillText(s"TIME PLAYED:", x, y + 190)
+//    selfViewCtx.fillText(s"$time", x + 230, y + 190)
+//    selfViewCtx.restore()
+//  }
 
-  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore, maxArea: Int): Unit = {
-    //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    //    val endTime = System.currentTimeMillis()
-    //    if (myScore.area > maxArea) maxArea = myScore.area
-    selfViewCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
-    selfViewCtx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    selfViewCtx.setFill(ColorsSetting.gameNameColor)
-    selfViewCtx.setFont(Font.font(20))
-    scale = 1
-    selfViewCtx.scale(1, 1)
-
-    val text = killerOpt match {
-      case Some(killer) => s"Ops, You Are Killed By $killer! Press Space Key To Revenge!"
-      case None => "Ops, Press Space Key To Restart!"
-    }
-    val txt =new Text(text)
-    val length = txt.getLayoutBounds.getWidth
-    val offx = length / 2
-    val x = (windowBoundary.x / 2).toInt - 145
-    val y = (windowBoundary.y / 2).toInt - 180
-
-    val gameTime = (myScore.endTime - myScore.startTime) / 1000
-    val bestScore = maxArea / canvasSize * 100
-    val time = {
-      val tempM = gameTime / 60
-      val s1 = gameTime % 60
-      val s = if (s1 < 0) "00" else if (s1 < 10) "0" + s1 else s1.toString
-      val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
-      m + ":" + s
-    }
-    selfViewCtx.fillText(text, windowBoundary.x / 2 - offx - 50 , y) //(500,180)
-    selfViewCtx.save()
-    selfViewCtx.setFill(ColorsSetting.dieInfoFontColor)
-    selfViewCtx.setFont(Font.font(20))
-    selfViewCtx.fillText("YOUR SCORE:", x, y + 70)
-    selfViewCtx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
-    selfViewCtx.fillText("BEST SCORE:", x, y + 110)
-    selfViewCtx.fillText(f"$bestScore%.2f" + "%", x + 230, y + 110)
-    selfViewCtx.fillText(s"PLAYERS KILLED:", x, y + 150)
-    selfViewCtx.fillText(s"${myScore.kill}", x + 230, y + 150)
-    selfViewCtx.fillText(s"TIME PLAYED:", x, y + 190)
-    selfViewCtx.fillText(s"$time", x + 230, y + 190)
-    selfViewCtx.restore()
-  }
-
-  def drawDieBarrage(killedName: String, killerName: String): Unit = {
-    selfViewCtx.save()
-    selfViewCtx.setGlobalAlpha(0.6)
-    //    ctx.drawImage(bloodImg, 670, 115, 300, 50)
-    selfViewCtx.restore()
-    selfViewCtx.save()
-    selfViewCtx.setFill(Color.rgb(255, 88, 9))
-    selfViewCtx.setFont(Font.font(25))
-    val length = 30
-    val offx = (270 - length) / 2
-    selfViewCtx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
-    selfViewCtx.restore()
-  }
+//  def drawDieBarrage(killedName: String, killerName: String): Unit = {
+//    selfViewCtx.save()
+//    selfViewCtx.setGlobalAlpha(0.6)
+//    //    ctx.drawImage(bloodImg, 670, 115, 300, 50)
+//    selfViewCtx.restore()
+//    selfViewCtx.save()
+//    selfViewCtx.setFill(Color.rgb(255, 88, 9))
+//    selfViewCtx.setFont(Font.font(25))
+//    val length = 30
+//    val offx = (270 - length) / 2
+//    selfViewCtx.fillText(s"$killedName is killed by $killerName", 670 + offx, 150)
+//    selfViewCtx.restore()
+//  }
   
   def drawCache(offx: Float, offy: Float): Unit = { //离屏缓存的更新--缓存边界
     //    ctx.clearRect(0,0,canvas.getWidth,canvas.getHeight)
@@ -551,11 +540,10 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
     val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
-    selfViewCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    selfViewCtx.setFill(Color.BLACK)
     val w = positionWindowBoundary.x //400
     val h = positionWindowBoundary.y //300
-//    selfViewCtx.clearRect(0,0,w,h)
+    selfViewCtx.clearRect(0, 0, w, h)
+    selfViewCtx.setFill(Color.BLACK)
     selfViewCtx.save()
     selfViewCtx.fillRect(0, 0, w , h )
     selfViewCtx.restore()
@@ -652,11 +640,10 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
     val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
-    selfCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    selfCtx.setFill(Color.BLACK)
     val w = positionWindowBoundary.x //400
     val h = positionWindowBoundary.y //300
-//    selfCtx.clearRect(0,0,w,h)
+    selfCtx.clearRect(0, 0, w, h)
+    selfCtx.setFill(Color.BLACK)
     selfCtx.save()
     selfCtx.fillRect(0, 0, w , h )
     selfCtx.restore()
@@ -676,11 +663,10 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     selfCtx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit, canvasUnit * BorderSize.h)
     selfCtx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
     selfCtx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
+
+
     selfCtx.setGlobalAlpha(0.6)
-
-
     val bd = data.bodyDetails.find(_.uid == uid)
-
     if(bd.isDefined){
       val bds = bd.get
       val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
@@ -714,7 +700,6 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     fieldInWindow.filter(_.uid == uid).foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       selfCtx.setFill(color)
-
       field.scanField.foreach { point =>
         point.x.foreach { x =>
           selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
@@ -736,8 +721,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       val img = if (s.id == uid) myHeaderImg else otherHeaderImg
       selfCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      selfCtx.setFont(Font.font(16))
-      selfCtx.setFill(Color.rgb(0, 0, 0))
+//      selfCtx.setFont(Font.font(16))
+//      selfCtx.setFill(Color.rgb(0, 0, 0))
 //      val t = new Text(s"${s.name}")
 //      selfCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
     }
@@ -834,7 +819,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private var lastRankNum = 0 //清屏用
   def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
 
-    val leftBegin = 20
+//    val leftBegin = 20
     val rightBegin = 20
 //    val maxArea = if(0.4 - currentRank.length * 0.5 > 0.15) 0.4 - currentRank.length * 0.5 else 0.15
     val maxArea = 0.10
