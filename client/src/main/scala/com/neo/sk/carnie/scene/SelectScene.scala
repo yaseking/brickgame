@@ -137,7 +137,9 @@ class SelectScene {
   group.getChildren.add(img5)
   group.getChildren.add(joinBtn)
   group.getChildren.add(roomListBtn)
-  val scene = new Scene(group)
+  private val scene = new Scene(group)
+
+  def getScene = scene
 
   joinBtn.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
   roomListBtn.setOnAction(_ => listener.gotoRoomList())

@@ -20,7 +20,7 @@ import com.neo.sk.carnie.common.AppSetting
 import scala.util.{Failure, Success}
 
 
-class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: RoomListScene, context: Context, domain: String) extends HttpUtil {
+class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, roomListScene: RoomListScene, context: Context, domain: String) extends HttpUtil {
   private val log = LoggerFactory.getLogger(this.getClass)
   //或许需要一个定时器,定时刷新请求
   updateRoomList()
@@ -115,6 +115,12 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
     override def reFresh(): Unit = {
       Boot.addToPlatform(
         updateRoomList()
+      )
+    }
+
+    override def comeBack(): Unit = {
+      Boot.addToPlatform(
+        context.switchScene(selectScene.getScene, "选择游戏模式及头像", false)
       )
     }
   }
