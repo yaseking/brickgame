@@ -35,10 +35,10 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
     postJsonRequestSend("post",url,List(),params,needLogRsp = false).map{
       case Right(value) =>
-        decode[RoomListRsp4Client](value) match {
+        decode[RoomListRsp4Client](value) match { //todo
           case Right(r) =>
+            println(s"roomData: $r")
             if(r.errCode == 0){
-              println(s"roomData: $r")
               Right(r)
             } else if (r.errCode==100000) {
               log.info("房间为空。")
@@ -48,12 +48,12 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
               Left("Error")
             }
           case Left(error) =>
-            log.debug(s"获取房间列表失败1，${error}")
+            log.debug(s"获取房间列表失败1，$error")
             Left("Error")
 
         }
       case Left(error) =>
-        log.debug(s"获取房间列表失败2，${error}")
+        log.debug(s"获取房间列表失败2，$error")
         Left("Error")
     }
   }
