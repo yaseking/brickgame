@@ -131,11 +131,11 @@ class SelectScene {
 
   val button3 = new Button("房间列表")
   button3.setLayoutX(420)
-  button3.setLayoutY(420)
+  button3.setLayoutY(440)
 
-  val button4 = new Button("Bot列表")
-  button4.setLayoutX(420)
-  button4.setLayoutY(460)
+//  val button4 = new Button("Bot列表")
+//  button4.setLayoutX(420)
+//  button4.setLayoutY(460)
 
   group.getChildren.add(canvas)
   group.getChildren.add(mode0)
@@ -151,13 +151,13 @@ class SelectScene {
   group.getChildren.add(button1)
   group.getChildren.add(button2)
   group.getChildren.add(button3)
-  group.getChildren.add(button4)
+//  group.getChildren.add(button4)
   val scene = new Scene(group)
 
   button1.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
   button2.setOnAction(_ => listener.createRoom(selectedMode, selectedImg, pwdField.getText))
   button3.setOnAction(_ => listener.gotoRoomList())
-  button4.setOnAction(_ => listener.gotoBotList())
+//  button4.setOnAction(_ => listener.gotoBotList())
 
   toggleGroup.selectedToggleProperty().addListener(_ => selectMode())
   toggleGroup2.selectedToggleProperty().addListener(_ => selectImg())

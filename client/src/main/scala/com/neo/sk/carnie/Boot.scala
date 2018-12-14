@@ -93,12 +93,10 @@ class Boot extends javafx.application.Application {
 //    val context = new Context(mainStage)
 
     val modeScene = new ModeScene()
-    val modeController = new ModeController(modeScene,context)
-    modeController.showScene()
+    new ModeController(modeScene,context).showScene()
 
 //    val botScene = new BotScene()
-//    val botSceneController = new BotSceneController(botScene,context)
-//    botSceneController.showScene()
+//    new BotSceneController(botScene,context).showScene()
 
 
 //    val playGameScreen = new GameScene()
