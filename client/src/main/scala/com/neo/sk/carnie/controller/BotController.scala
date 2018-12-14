@@ -9,7 +9,7 @@ import javafx.util.Duration
 
 import org.slf4j.LoggerFactory
 import akka.actor.typed.scaladsl.adapter._
-import com.neo.sk.carnie.actor.BotActor.Observation
+import com.neo.sk.carnie.actor.BotActor.{Dead, Observation}
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene}
@@ -155,6 +155,7 @@ class BotController(player: PlayerInfoInClient,
       case x@Protocol.DeadPage(id, kill, area, start, end) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
+          botActor ! Dead
         }
 
 
