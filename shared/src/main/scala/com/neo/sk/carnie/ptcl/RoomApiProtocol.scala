@@ -149,7 +149,7 @@ object RoomApiProtocol {
                                 data: RecordPlayerList,
                                 errCode: Int = 0,
                                 msg: String = "ok"
-                                ) extends
+                                ) extends CommonRsp
 
   final case class ErrorRsp(
                              errCode: Int,
