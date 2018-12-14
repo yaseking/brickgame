@@ -13,6 +13,7 @@ abstract class RoomListSceneListener{
   def confirm(roomId: Int, mode: Int, hasPwd: Boolean)
   def gotoCreateRoomScene()
   def reFresh()
+  def comeBack()
 }
 
 class RoomListScene {
@@ -33,11 +34,12 @@ class RoomListScene {
   private val confirmBtn = new Button("进入房间")
   private val roomBtn = new Button("创建房间")
   private val refreshBtn = new Button("刷新列表")
+  private val backBtn = new Button("返回")
 
   var listener: RoomListSceneListener = _
 
 //  confirmBtn.setPrefSize(100,20)
-  vBox.getChildren.addAll(confirmBtn,roomBtn,refreshBtn)
+  vBox.getChildren.addAll(confirmBtn,roomBtn,refreshBtn,backBtn)
   vBox.setAlignment(Pos.CENTER)
   hBox.getChildren.addAll(listView, vBox)
   hBox.setAlignment(Pos.CENTER)
@@ -60,7 +62,6 @@ class RoomListScene {
       roomLockMap += roomId -> (roomInfos(1).toInt, hasPwd)
       roomId.toString + "-" + modeName
     } foreach observableList.add
-//    println(observableList)
   }
 
   listView.setCellFactory(_ => new ListCell[String](){//todo 找锁的图片和无锁的图片，登录图片
@@ -99,4 +100,5 @@ class RoomListScene {
   }
   roomBtn.setOnAction(_ => listener.gotoCreateRoomScene())
   refreshBtn.setOnAction(_ => listener.reFresh())
+  backBtn.setOnAction(_ => listener.comeBack())
 }

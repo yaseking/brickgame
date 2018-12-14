@@ -115,14 +115,6 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     }
   }
 
-//  def switchToGaming(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
-//    Boot.addToPlatform {
-//      val playGameScreen = new GameScene()
-//      context.switchScene(playGameScreen.getScene, fullScreen = true)
-//      new GameController(playerInfoInClient, context, playGameScreen).start(domain)
-//    }
-//  }
-
   def switchToSelecting(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
     Boot.addToPlatform {
       val selectScene = new SelectScene()
@@ -130,10 +122,10 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     }
   }
 
-  def switchToRoomList(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
-    Boot.addToPlatform {
-      val roomListScene = new RoomListScene()
-      new RoomListController(playerInfoInClient, roomListScene, context, domain).showScene
-    }
-  }
+//  def switchToRoomList(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
+//    Boot.addToPlatform {
+//      val roomListScene = new RoomListScene()
+//      new RoomListController(playerInfoInClient, roomListScene, context, domain).showScene
+//    }
+//  }
 }

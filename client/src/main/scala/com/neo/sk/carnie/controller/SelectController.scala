@@ -35,7 +35,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
     override def gotoRoomList(): Unit = {
       Boot.addToPlatform {
         val roomListScene = new RoomListScene()
-        new RoomListController(playerInfoInClient, roomListScene, context, domain).showScene
+        new RoomListController(playerInfoInClient, selectScene, roomListScene, context, domain).showScene
       }
     }
   })
@@ -67,7 +67,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
 
   def showScene: Unit = {
     Boot.addToPlatform {
-      context.switchScene(selectScene.scene, "Select", false)
+      context.switchScene(selectScene.getScene, "选择游戏模式及头像", false)
     }
   }
 }
