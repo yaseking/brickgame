@@ -22,7 +22,7 @@ class BotController(player: PlayerInfoInClient,
                     mode: Int =0,
                     ) {
 
-  private val botActor = Boot.system.spawn(BotActor.create(this), "botActor")
+  private val botActor = Boot.system.spawn(BotActor.create(this, player), "botActor")
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
