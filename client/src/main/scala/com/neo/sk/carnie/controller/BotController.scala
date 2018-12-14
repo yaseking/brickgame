@@ -214,7 +214,7 @@ class BotController(player: PlayerInfoInClient,
         imageList.find(_._1 == "4").map(_._2),
         imageList.find(_._1 == "5").map(_._2)
       )
-      val observation = (humanObservation,layeredObservation, grid.frameCount.toInt)
+      val observation = (humanObservation,layeredObservation, grid.frameCount)
       botActor ! Observation(observation)
     }
     }

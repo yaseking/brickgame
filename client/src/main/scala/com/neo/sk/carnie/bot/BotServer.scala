@@ -99,9 +99,9 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   override def action(request: ActionReq): Future[ActionRsp] = {
     println(s"action Called by [$request")
     if (request.credit.nonEmpty & request.credit.get.apiToken == BotAppSetting.apiToken) {
-      val rstF: Future[Int] = botActor ? (BotActor.Action(request.move, _))
+      val rstF: Future[Long] = botActor ? (BotActor.Action(request.move, _))
       rstF.map {
-        case -1 => ActionRsp(errCode = 10002, state = state, msg = "action error")
+        case -1L => ActionRsp(errCode = 10002, state = state, msg = "action error")
         case frame => ActionRsp(frame, state = state)
       }.recover {
         case e: Exception =>
@@ -115,7 +115,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     println(s"observation Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
       if (state == State.in_game) {
-        val rstF: Future[(Option[ImgData], LayeredObservation, Int)]  = botActor ? BotActor.ReturnObservation
+        val rstF: Future[(Option[ImgData], LayeredObservation, Long)]  = botActor ? BotActor.ReturnObservation
         rstF.map {rst =>
           ObservationRsp(Some(rst._2), rst._1, rst._3, state = state, msg = "ok")
         }.recover {
@@ -130,7 +130,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   override def inform(request: Credit): Future[InformRsp] = {
     println(s"inform Called by [$request")
     if(request.apiToken == BotAppSetting.apiToken) {
-      val rstF: Future[(Score, Int)] = botActor ? BotActor.ReturnInform
+      val rstF: Future[(Score, Long)] = botActor ? BotActor.ReturnInform
       rstF.map { rst =>
         val health = state match {
           case State.in_game => 1
