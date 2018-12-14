@@ -58,7 +58,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = imgMap(img)
   private val crownImg = new Image("crown.png")
-  private var canvasUnit = positionWindowBoundary.x / window.x
+  private var canvasUnit = (positionWindowBoundary.x / window.x).toDouble
   private var humanCanvasUnit = humanWindowBoundary.x / window.x
   private var humanCanvasUnitY = humanWindowBoundary.y / window.y
   private var canvasUnitY =   positionWindowBoundary.y / window.y
@@ -591,7 +591,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       selfViewCtx.setFill(color)
       field.scanField.foreach { point =>
         point.x.foreach { x =>
-          selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.1)
         }
       }
     }
@@ -702,7 +702,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       selfCtx.setFill(color)
       field.scanField.foreach { point =>
         point.x.foreach { x =>
-          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.10)
         }
       }
     }
