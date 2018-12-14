@@ -181,9 +181,9 @@ class GameController(player: PlayerInfoInClient,
         val offsetTime = System.currentTimeMillis() - logicFrameTime
         val a = System.currentTimeMillis()
         layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-        val x = getAllImage
-        val b = System.currentTimeMillis()
-        println("drawTime:" + (b-a) )
+//        val x = getAllImage
+//        val b = System.currentTimeMillis()
+//        println("drawTime:" + (b-a) )
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
 
@@ -323,7 +323,7 @@ class GameController(player: PlayerInfoInClient,
           maxArea = Math.max(maxArea,currentRank.find(_.id == player.id).map(_.area).getOrElse(0))
           if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin){
             gameScene.drawRank(player.id, grid.getGridData.snakes, current)
-            layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
+//            layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
 //            layeredGameScene.drawHumanRank(player.id, grid.getGridData.snakes, currentRank)
           }
         }

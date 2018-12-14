@@ -39,47 +39,44 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 
   positionCanvas.setHeight(viewHeight)
   positionCanvas.setWidth(viewWidth)
-  positionCanvas.setLayoutY(50)
-  positionCanvas.setLayoutX(50)
+  positionCanvas.setLayoutY(190)
+  positionCanvas.setLayoutX(1000)
   positionCanvas.setId("0")
-
-  viewCanvas.setHeight(viewHeight)
-  viewCanvas.setWidth(viewWidth)
-  viewCanvas.setLayoutY(50)
-  viewCanvas.setLayoutX(1200)
-  viewCanvas.setId("2")
-
-
-  rankCanvas.setHeight(viewHeight)
-  rankCanvas.setWidth(viewWidth)
-  rankCanvas.setLayoutY(400)
-  rankCanvas.setLayoutX(1200)
-  rankCanvas.setId("5")
-
-
 
   BorderCanvas.setHeight(viewHeight)
   BorderCanvas.setWidth(viewWidth)
-  BorderCanvas.setLayoutY(50)
-  BorderCanvas.setLayoutX(600)
+  BorderCanvas.setLayoutY(190)
+  BorderCanvas.setLayoutX(1410)
   BorderCanvas.setId("1")
+
+  viewCanvas.setHeight(viewHeight)
+  viewCanvas.setWidth(viewWidth)
+  viewCanvas.setLayoutY(400)
+  viewCanvas.setLayoutX(1000)
+  viewCanvas.setId("2")
 
   selfViewCanvas.setHeight(viewHeight)
   selfViewCanvas.setWidth(viewWidth)
   selfViewCanvas.setLayoutY(400)
-  selfViewCanvas.setLayoutX(50)
+  selfViewCanvas.setLayoutX(1410)
   selfViewCanvas.setId("3")
 
   selfCanvas.setHeight(viewHeight)
   selfCanvas.setWidth(viewWidth)
-  selfCanvas.setLayoutY(400)
-  selfCanvas.setLayoutX(600)
+  selfCanvas.setLayoutY(610)
+  selfCanvas.setLayoutX(1000)
   selfCanvas.setId("4")
+
+  rankCanvas.setHeight(viewHeight)
+  rankCanvas.setWidth(viewWidth)
+  rankCanvas.setLayoutY(610)
+  rankCanvas.setLayoutX(1410)
+  rankCanvas.setId("5")
 
   humanViewCanvas.setHeight(humanViewHeight)
   humanViewCanvas.setWidth(humanViewWidth)
-  humanViewCanvas.setLayoutY(800)
-  humanViewCanvas.setLayoutX(50)
+  humanViewCanvas.setLayoutY(300)
+  humanViewCanvas.setLayoutX(100)
   humanViewCanvas.setId("6")
 
   group.getChildren.add(viewCanvas)
@@ -104,6 +101,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     layered.drawBorder(uid, data, offsetTime, grid, frameRate)
     layered.drawSelfView(uid, data, offsetTime, grid,  frameRate)
     layered.drawSelf(uid, data, offsetTime, grid, frameRate)
+    layered.drawRank(uid, data.snakes, currentRank)
     layered.drawBody(uid, data, offsetTime, grid, frameRate)
     layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate)
     layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))

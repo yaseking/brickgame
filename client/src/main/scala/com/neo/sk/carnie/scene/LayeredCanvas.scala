@@ -454,6 +454,11 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
       val off = direction * offsetTime.toFloat / frameRate
       humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+//      if (s.id == championId)
+//        humanViewCtx.drawImage(championHeaderImg, (s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y - 1) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+      val otherHeaderImg = imgMap(s.img)
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+      humanViewCtx.drawImage(img, (s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
       humanViewCtx.setFont(Font.font(16))
       humanViewCtx.setFill(Color.rgb(0, 0, 0))
       val t = new Text(s"${s.name}")
@@ -614,9 +619,9 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
 //      if (s.id == championId)
 //        selfViewCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-//      val otherHeaderImg = imgMap(s.img)
-//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-//      selfViewCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      val otherHeaderImg = imgMap(s.img)
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+      selfViewCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       selfViewCtx.setFont(Font.font(16))
       selfViewCtx.setFill(Color.rgb(0, 0, 0))
@@ -727,9 +732,9 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
 //      if (s.id == championId)
 //        selfCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-//      val otherHeaderImg = imgMap(s.img)
-//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-//      selfCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      val otherHeaderImg = imgMap(s.img)
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+      selfCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       selfCtx.setFont(Font.font(16))
       selfCtx.setFill(Color.rgb(0, 0, 0))
@@ -833,7 +838,10 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val rightBegin = 20
 //    val maxArea = if(0.4 - currentRank.length * 0.5 > 0.15) 0.4 - currentRank.length * 0.5 else 0.15
     val maxArea = 0.10
-    val areaUnit = 350 / maxArea
+    val ratioLen = 170
+    val areaUnit = ratioLen / maxArea
+    val killUnit = if(currentRank.nonEmpty){if(currentRank.map(_.k).max != 0)ratioLen / currentRank.map(_.k).max else ratioLen}
+                       else 0
 
     drawClearRank()//绘制前清除canvas
 
@@ -852,15 +860,21 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     rankCtx.save()
 //    rankCtx.restore()
 
-    val currentRankBaseLine = 2
+    val currentRankBaseLine = 1
     var index = 0
     currentRank.foreach { score =>
       val color = snakes.find(_.id == score.id).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       rankCtx.setGlobalAlpha(0.6)
       rankCtx.setFill(color)
       rankCtx.save()
-      rankCtx.fillRect(rightBegin.toInt, (index + currentRankBaseLine) * textLineHeightH,
-        0 + areaUnit * (score.area.toDouble / canvasSize), textLineHeightH)
+//      rankCtx.fillRect(rightBegin.toInt, (2 * index + currentRankBaseLine) * textLineHeightH,
+//        0 + areaUnit * (score.area.toDouble / canvasSize), textLineHeightH)
+//      rankCtx.fillRect(rightBegin.toInt, (2 * index + 1 + currentRankBaseLine) * textLineHeightH,
+//        0 + killUnit * score.k, textLineHeightH)
+      rankCtx.fillRect((2 * index + currentRankBaseLine) * textLineHeightH,rightBegin,
+        textLineHeightH,0 + areaUnit * (score.area.toDouble / canvasSize))
+      rankCtx.fillRect((2 * index + 1 + currentRankBaseLine) * textLineHeightH,rightBegin,
+        textLineHeightH,0 + killUnit * score.k)
       rankCtx.restore()
 
 //      rankCtx.setGlobalAlpha(1)
