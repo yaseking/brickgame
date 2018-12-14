@@ -49,7 +49,7 @@ class Boot extends javafx.application.Application {
 
     println("!!!!" + para)
 
-    //是否需要图像渲染
+//    是否需要图像渲染
 //    if(!para.isEmpty){
 //      val file = new File(para.get(0))
 //      if (file.isFile && file.exists) {
@@ -72,7 +72,7 @@ class Boot extends javafx.application.Application {
 //              linkGameAgent(gameId, botId, data.token).map {
 //                case Right(rst) =>
 //                  val layeredGameScreen = new LayeredGameScene(0, 150)
-//                  new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+//                  new BotController(PlayerInfoInClient(botId, data.botName, botKey, rst.accessCode), context, layeredGameScreen)
 //                case Left(e) =>
 //                  log.error(s"bot link game agent error, $e")
 //              }
@@ -95,6 +95,9 @@ class Boot extends javafx.application.Application {
     val modeScene = new ModeScene()
     new ModeController(modeScene,context).showScene()
 
+//    val loginScene = new LoginScene()
+//    new LoginController(loginScene,context).showScene()
+
 //    val botScene = new BotScene()
 //    new BotSceneController(botScene,context).showScene()
 
@@ -110,7 +113,5 @@ class Boot extends javafx.application.Application {
 //    val roomListScene = new RoomListScene()
 //    new RoomListController(PlayerInfoInClient("test", "test", "test"), roomListScene, context, "test").showScene
 
-//    val botListScene = new BotListScene()
-//    new BotListController(PlayerInfoInClient("test", "test", "test"), botListScene, context, "test").showScene
   }
 }

@@ -11,7 +11,9 @@ import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.paperClient.Score
 import com.neo.sk.carnie.common.BotAppSetting
 import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
-import com.neo.sk.carnie.Boot.{executor,scheduler,timeout}
+import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
+import com.neo.sk.carnie.actor.BotActor.Reincarnation
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -21,7 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object BotServer {
 
-  def build(port: Int, executionContext: ExecutionContext, botActor:  ActorRef[BotActor.Command]): Server = {
+  def build(port: Int, executionContext: ExecutionContext, botActor:  ActorRef[BotActor.Command], botName: String): Server = {
 
     val service = new BotServer(botActor:  ActorRef[BotActor.Command])
 
@@ -37,15 +39,17 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   private var state: State = State.unknown
 
   override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
-    println(s"createRoom Called by [$request")
+    println(s"!!!!!createRoom Called by [$request")
     if (request.credit.nonEmpty && request.credit.get.apiToken == BotAppSetting.apiToken) {
+      println(s"tttttttttttest")
+      state = State.init_game
       val rstF: Future[String] = botActor ?
-        (BotActor.CreateRoom(request.credit.get.playerId, request.credit.get.apiToken, request.password, _))
+        (BotActor.CreateRoom(request.credit.get.apiToken, request.password, _))
       rstF.map {
         case "error" =>
           CreateRoomRsp(errCode = 10005, state = State.unknown, msg = "create room error")
         case roomId =>
-          state = State.init_game
+          state = State.in_game
           CreateRoomRsp(roomId, state = state, msg = "ok")
       }.recover {
         case e: Exception =>
@@ -58,7 +62,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     println(s"joinRoom Called by [$request")
     if (request.credit.nonEmpty && request.credit.get.apiToken == BotAppSetting.apiToken) {
       val rstF: Future[SimpleRsp] = botActor ?
-        (BotActor.JoinRoom(request.roomId, request.credit.get.playerId, request.credit.get.apiToken, _))
+        (BotActor.JoinRoom(request.roomId, request.credit.get.apiToken, _))
       rstF.map {rsp =>
         rsp.errCode match {
           case 0 =>
@@ -76,7 +80,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   override def leaveRoom(request: Credit): Future[SimpleRsp] = {
     println(s"leaveRoom Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
-      botActor ! BotActor.LeaveRoom(request.playerId)
+      botActor ! BotActor.LeaveRoom
       state = State.ended
       Future.successful(SimpleRsp(state = state, msg = "ok"))
     } else Future.successful(SimpleRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
@@ -111,7 +115,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     println(s"observation Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
       if (state == State.in_game) {
-        val rstF: Future[(Option[ImgData], LayeredObservation, Int)]  = botActor ? (BotActor.ReturnObservation(request.playerId, _))
+        val rstF: Future[(Option[ImgData], LayeredObservation, Int)]  = botActor ? BotActor.ReturnObservation
         rstF.map {rst =>
           ObservationRsp(Some(rst._2), rst._1, rst._3, state = state, msg = "ok")
         }.recover {
@@ -138,6 +142,17 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
           InformRsp(errCode = 10001, state = state, msg = s"internal error:$e")
       }
     } else Future.successful(InformRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
+  }
+
+  override def reincarnation(request: Credit): Future[SimpleRsp] = {
+    println(s"reincarnation Called by [$request")
+    if(request.apiToken == BotAppSetting.apiToken) {
+      val rstF: Future[SimpleRsp] = botActor ? Reincarnation
+      rstF.map {rsp =>
+        if(rsp.errCode == 0) rsp
+        else SimpleRsp(errCode = 10006, state = State.unknown, msg = "reincarnation error")
+      }
+    } else Future.successful(SimpleRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
 }

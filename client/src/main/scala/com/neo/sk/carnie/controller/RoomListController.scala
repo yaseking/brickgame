@@ -3,7 +3,7 @@ package com.neo.sk.carnie.controller
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene, RoomListScene, RoomListSceneListener}
+import com.neo.sk.carnie.scene.{CreateRoomScene, _}
 import com.neo.sk.carnie.utils.HttpUtil
 import org.slf4j.LoggerFactory
 import io.circe.generic.auto._
@@ -16,6 +16,7 @@ import com.neo.sk.carnie.utils.SecureUtil._
 import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
 import com.neo.sk.carnie.common.AppSetting
+
 import scala.util.{Failure, Success}
 
 
@@ -102,6 +103,19 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
           )
         }
       }
+    }
+
+    override def gotoCreateRoomScene(): Unit = {
+      Boot.addToPlatform {
+        val createRoomScene = new CreateRoomScene()
+        new CreateRoomController(playerInfoInClient, createRoomScene, context, domain).showScene
+      }
+    }
+
+    override def reFresh(): Unit = {
+      Boot.addToPlatform(
+        updateRoomList()
+      )
     }
   }
 

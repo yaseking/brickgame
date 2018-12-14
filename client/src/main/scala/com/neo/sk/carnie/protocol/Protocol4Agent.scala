@@ -41,6 +41,7 @@ object Protocol4Agent {
                          )
 
   case class BotTokenData(
+                         botName: String,
                          token: String,
                          expireTime: Long
                          )

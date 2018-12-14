@@ -9,7 +9,6 @@ import javafx.collections.FXCollections
 import javafx.scene.control.ButtonBar.ButtonData
 import javafx.scene.control._
 import javafx.scene.layout.GridPane
-//import javafx.stage.Window
 
 
 class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, context: Context, domain: String) {
@@ -33,32 +32,10 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
       }
     }
 
-    override def createRoom(mode: Int, img: Int, pwd: String): Unit = {
-      Boot.addToPlatform {
-        val frameRate = if(mode==2) frameRate2 else frameRate1
-        println(s"pwd: $pwd")
-        val playGameScreen = new GameScene(img, frameRate)
-        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-        context.switchScene(playGameScreen.getScene, fullScreen = true)
-        new GameController(playerInfoInClient, context, playGameScreen, LayeredGameScreen, mode, frameRate).createRoom(domain, mode, img, pwd)
-//        initDialog
-//        val window = new Window()
-//        val window2 = new Dialog()
-//        window2.show()
-      }
-    }
-
     override def gotoRoomList(): Unit = {
       Boot.addToPlatform {
         val roomListScene = new RoomListScene()
         new RoomListController(playerInfoInClient, roomListScene, context, domain).showScene
-      }
-    }
-
-    override def gotoBotList(): Unit = {
-      Boot.addToPlatform{
-        val botListScene = new BotListScene()
-        new BotListController(playerInfoInClient, botListScene, context, domain).showScene
       }
     }
   })

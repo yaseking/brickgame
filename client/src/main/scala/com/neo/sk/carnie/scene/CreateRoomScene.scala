@@ -1,18 +1,17 @@
 package com.neo.sk.carnie.scene
 
-import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
-import javafx.scene.control.{Button, PasswordField, RadioButton, ToggleGroup, TextField}
-import javafx.scene.image.{Image, ImageView}
+import javafx.scene.canvas.Canvas
+import javafx.scene.control.{Button, PasswordField, RadioButton, ToggleGroup}
+import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 
-abstract class SelectSceneListener {
-  def joinGame(mode: Int, img: Int)
-  def gotoRoomList()
+abstract class CreateRoomSceneListener {
+  def createRoom(mode: Int, img: Int, pwd: String)
 }
 
-class SelectScene {
+class CreateRoomScene {
 
   var selectedMode: Int = 0
   var selectedImg: Int = 0
@@ -20,7 +19,7 @@ class SelectScene {
   val width = 500
   val height = 500
   val group = new Group
-  var listener: SelectSceneListener = _
+  var listener: CreateRoomSceneListener = _
 
   val canvas = new Canvas(width, height)
   val canvasCtx = canvas.getGraphicsContext2D
@@ -99,11 +98,6 @@ class SelectScene {
   img5.setLayoutX(360)
   img5.setLayoutY(310)
 
-  val joinBtn = new Button("加入游戏")
-
-  joinBtn.setLayoutX(220)
-  joinBtn.setLayoutY(350)
-
   canvasCtx.drawImage(modeImg0, 50, 30, 120, 120)
   canvasCtx.drawImage(modeImg1, 190, 30, 120, 120)
   canvasCtx.drawImage(modeImg2, 340, 40, 120, 110)
@@ -121,9 +115,9 @@ class SelectScene {
   pwdField.setLayoutX(180)
   pwdField.setLayoutY(400)
 
-  val roomListBtn = new Button("房间列表")
-  roomListBtn.setLayoutX(420)
-  roomListBtn.setLayoutY(440)
+  val roomBtn = new  Button("创建房间")
+  roomBtn.setLayoutX(280)
+  roomBtn.setLayoutY(400)
 
   group.getChildren.add(canvas)
   group.getChildren.add(mode0)
@@ -135,12 +129,13 @@ class SelectScene {
   group.getChildren.add(img3)
   group.getChildren.add(img4)
   group.getChildren.add(img5)
-  group.getChildren.add(joinBtn)
-  group.getChildren.add(roomListBtn)
-  val scene = new Scene(group)
+  group.getChildren.add(pwdField)
+  group.getChildren.add(roomBtn)
+  private val scene = new Scene(group)
 
-  joinBtn.setOnAction(_ => listener.joinGame(selectedMode, selectedImg))
-  roomListBtn.setOnAction(_ => listener.gotoRoomList())
+  def getScene = scene
+
+  roomBtn.setOnAction(_ => listener.createRoom(selectedMode, selectedImg, pwdField.getText))
 
   toggleGroup.selectedToggleProperty().addListener(_ => selectMode())
   toggleGroup2.selectedToggleProperty().addListener(_ => selectImg())
@@ -156,7 +151,7 @@ class SelectScene {
     selectedImg = rst
   }
 
-  def setListener(listen: SelectSceneListener): Unit ={
-    listener = listen
+  def setListener(listener: CreateRoomSceneListener): Unit ={
+    this.listener = listener
   }
 }

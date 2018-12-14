@@ -22,7 +22,7 @@ class BotClient (
 
   private val esheepStub: EsheepAgentStub = EsheepAgentGrpc.stub(channel)
 
-  val credit = Credit(playerId = playerId, apiToken = apiToken)
+  val credit = Credit(apiToken = apiToken)
 
 
   def createRoom(): Future[CreateRoomRsp] = esheepStub.createRoom(CreateRoomReq(Some(credit), "password"))
