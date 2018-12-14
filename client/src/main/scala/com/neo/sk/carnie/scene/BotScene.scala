@@ -20,7 +20,7 @@ class BotScene {
   confirm.setLayoutY(230)
 
   val userName = new TextField()
-  val passWorld = new TextField()
+  val passWorld = new PasswordField()
 
 //  val vBox = new VBox(30)
 //  val hBox1 = new HBox(20)
