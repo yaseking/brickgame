@@ -298,6 +298,7 @@ object RoomManager {
     }
   }
 
+  //Left,StopRePlay,WatcherLeft合并
   private def sink(actor: ActorRef[Command], id: String, name: String) = ActorSink.actorRef[Command](
     ref = actor,
     onCompleteMessage = Left(id, name),
@@ -336,7 +337,7 @@ object RoomManager {
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! Join(userId, name, mode, img, outActor))
+      ).mapMaterializedValue{outActor => println("lalala");actor ! Join(userId, name, mode, img, outActor)}
 
     Flow.fromSinkAndSource(in, out)
   }
