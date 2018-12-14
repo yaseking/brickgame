@@ -337,7 +337,7 @@ object RoomManager {
         },
         bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue{outActor => println("lalala");actor ! Join(userId, name, mode, img, outActor)}
+      ).mapMaterializedValue{outActor => actor ! Join(userId, name, mode, img, outActor)}
 
     Flow.fromSinkAndSource(in, out)
   }
