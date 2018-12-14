@@ -11,7 +11,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.paperClient.Protocol.{frameRate1, frameRate2}
-import com.neo.sk.carnie.ptcl.RoomApiProtocol.{PwdReq, RoomListRsp, RoomListRsp4Client, SuccessRsp}
+import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.utils.SecureUtil._
 import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
@@ -40,7 +40,10 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
             if(r.errCode == 0){
               println(s"roomData: $r")
               Right(r)
-            }else{
+            } else if (r.errCode==100000) {
+              log.info("房间为空。")
+              Right(RoomListRsp4Client(RoomListInfo4Client(List.empty[String])))
+            } else{
               log.debug(s"获取列表失败，errCode:${r.errCode},msg:${r.msg}")
               Left("Error")
             }
