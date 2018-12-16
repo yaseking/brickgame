@@ -4,7 +4,7 @@ import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{CreateRoomScene, _}
-import com.neo.sk.carnie.utils.HttpUtil
+import com.neo.sk.carnie.utils.{HttpUtil, WarningDialog}
 import org.slf4j.LoggerFactory
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -97,6 +97,9 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
                   playGame(mode, img, frameRate, roomId)
                 )
               case false =>
+                Boot.addToPlatform(
+                  WarningDialog.initWarningDialog("房间密码错误！")
+                )
               //              密码错误不做任何处理
             }
           }

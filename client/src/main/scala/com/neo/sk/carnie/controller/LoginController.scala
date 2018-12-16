@@ -12,7 +12,7 @@ import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
-import com.neo.sk.carnie.utils.Api4GameAgent
+import com.neo.sk.carnie.utils.{Api4GameAgent, WarningDialog}
 import javafx.geometry.Insets
 import javafx.scene.control.ButtonBar.ButtonData
 import javafx.scene.control._
@@ -41,6 +41,7 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
               loginSocketClient ! Connection2EsByMail(r.userId, r.userName, r.token)
             case Left(_) =>
               log.debug("failed to getLoginRspFromEs.")
+              WarningDialog.initWarningDialog("邮箱账号或密码错误！")
 //              loginSocketClient ! Connection2EsByMail(10000, "test123", "test123")
           }
         }
