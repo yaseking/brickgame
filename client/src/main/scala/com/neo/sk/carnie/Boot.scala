@@ -95,6 +95,8 @@ class Boot extends javafx.application.Application {
     val modeScene = new ModeScene()
     new ModeController(modeScene,context).showScene()
 
+//    WarningDialog.initWarningDialog("just test")
+
 //    val loginScene = new LoginScene()
 //    new LoginController(loginScene,context).showScene()
 
