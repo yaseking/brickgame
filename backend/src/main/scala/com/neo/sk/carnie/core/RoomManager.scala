@@ -301,7 +301,8 @@ object RoomManager {
   //Left,StopRePlay,WatcherLeft合并
   private def sink(actor: ActorRef[Command], id: String, name: String) = ActorSink.actorRef[Command](
     ref = actor,
-    onCompleteMessage = Left(id, name),
+//    onCompleteMessage = Left(id, name),
+    onCompleteMessage = CompleteMsgFront,
     onFailureMessage = FailMsgFront.apply
   )
 
