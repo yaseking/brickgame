@@ -119,7 +119,7 @@ object RoomActor {
           userMap.put(id, UserInfo(name, System.currentTimeMillis(), index%classify))
           subscribersMap.put(id, subscriber)
           log.debug(s"subscribersMap: $subscribersMap")
-//          ctx.watchWith(subscriber, UserLeft(subscriber))
+          ctx.watchWith(subscriber, UserLeft(subscriber))
           grid.addSnake(id, roomId, name, img)
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           userGroup.get(index%classify) match {
@@ -205,7 +205,7 @@ object RoomActor {
           Behaviors.same
 
         case UserLeft(actor) =>
-//          ctx.unwatch(actor)
+          ctx.unwatch(actor)
           log.debug(s"UserLeft:::")
           val subscribersOpt = subscribersMap.find(_._2.equals(actor))
           if(subscribersOpt.nonEmpty){
