@@ -3,17 +3,13 @@ package com.neo.sk.carnie.core
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
-import org.slf4j.LoggerFactory
 
 /**
   * Created by dry on 2018/12/17.
   **/
 object BotManager {
-  private val log = LoggerFactory.getLogger(this.getClass)
 
   sealed trait Command
-
-//  case class InitBot(roomId) extends Command
 
   val behaviors: Behavior[Command] = init()
 
@@ -31,7 +27,7 @@ object BotManager {
       msg match {
 
         case unknownMsg@_ =>
-          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
+//          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
           stashBuffer.stash(unknownMsg)
           Behaviors.unhandled
       }
