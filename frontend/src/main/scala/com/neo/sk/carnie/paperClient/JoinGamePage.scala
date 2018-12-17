@@ -179,7 +179,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
           </div>
           <div style="overflow: hidden;" >
             <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;margin-left:20%;margin-right:20%;text-align:center" >
-                {modelDiv}
+              {modelDiv}
             </div>
           </div>
 
@@ -194,10 +194,10 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
               <p style="text-align: center; margin-top: 0px;font-size: 20px;color:white" >选择头像</p>
             </div>
             <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
-                {headDiv}
+              {headDiv}
             </div>
           </div>
-          </div>
+        </div>
       </div>
     </div>
   }

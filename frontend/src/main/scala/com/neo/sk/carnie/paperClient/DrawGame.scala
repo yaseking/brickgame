@@ -4,7 +4,7 @@ import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
-import org.scalajs.dom.html.{Canvas, Image}
+import org.scalajs.dom.html.{Button, Canvas, Image}
 
 /**
   * Created by dry on 2018/9/3.
@@ -22,7 +22,7 @@ class DrawGame(
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val canvasSize = (border.x - 2) * (border.y - 2)
 
-    private val textLineHeight = 15
+  private val textLineHeight = 15
   private val fillWidth = 33
 
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //排行榜canvas
@@ -49,6 +49,7 @@ class DrawGame(
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
+//  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
   private var scale = 1.0
 
   def resetScreen(): Unit = {
@@ -164,8 +165,10 @@ class DrawGame(
 //  }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
+//    backBtn.style.display="block"
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
+//    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.gameNameColor
 
@@ -207,6 +210,14 @@ class DrawGame(
       ctx.fillText(s"$time", x + 230, y + 190)
     }
     ctx.restore()
+    //绘制退出房间
+    ctx.save()
+    ctx.fillStyle = ColorsSetting.darkYellowColor
+    ctx.fillRect(x, y + 250, 175, 60)
+    ctx.font = "bold 24px Helvetica"
+    ctx.fillStyle = ColorsSetting.fontColor2
+    ctx.fillText("退出房间", x+40, y + 285)
+    ctx.save()
   }
 
   def drawBarrage(killedName: String, killerName: String) = {
