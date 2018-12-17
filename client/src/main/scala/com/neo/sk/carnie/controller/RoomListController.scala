@@ -160,9 +160,9 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
                frameRate:Int,
                roomId:Int) = {
     val playGameScreen = new GameScene(img, frameRate)
-    val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+//    val LayeredGameScreen = new LayeredGameScene(img, frameRate)
     context.switchScene(playGameScreen.getScene, fullScreen = true)
-    new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
+    new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
   }
 
   def inputPwd = {

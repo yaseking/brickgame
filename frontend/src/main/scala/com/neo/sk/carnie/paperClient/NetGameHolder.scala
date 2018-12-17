@@ -132,6 +132,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
 
   def gameLoop(): Unit = {
+//    println(s"snakes:::::::::::::${grid.snakes.keys}")
     logicFrameTime = System.currentTimeMillis()
     if ((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.resetScreen()
@@ -273,7 +274,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
-                  grid.cleanData()
+//                  grid.cleanData()
+                  grid.cleanSnakeTurnPoint(myId)
+                  grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
                   drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
                   audio1.currentTime = 0

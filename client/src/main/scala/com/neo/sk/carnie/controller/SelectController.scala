@@ -20,14 +20,14 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
         val playGameScreen = new GameScene(img, frameRate)
         val LayeredGameScreen = new LayeredGameScene(img, frameRate)
         val x = false
-        if(x) {
+//        if(x) {
           context.switchScene(playGameScreen.getScene, fullScreen = true)
-          new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
-        }
-        else {
-          context.switchScene(LayeredGameScreen.getScene,fullScreen = true)
-          new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).start(domain, mode, img)
-        }
+          new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).start(domain, mode, img)
+//        }
+//        else {
+//          context.switchScene(LayeredGameScreen.getScene,fullScreen = true)
+//          new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).start(domain, mode, img)
+//        }
 
       }
     }

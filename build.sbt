@@ -52,22 +52,14 @@ lazy val frontend = (project in file("frontend"))
     scalaJSUseMainModuleInitializer := false,
     //mainClass := Some("com.neo.sk.virgour.front.Main"),
     libraryDependencies ++=     Seq(
-      //      "io.circe" %%% "circe-core" % "0.8.0",
-      //      "io.circe" %%% "circe-generic" % "0.8.0",
-      //      "io.circe" %%% "circe-parser" % "0.8.0",
       "io.circe" %%% "circe-core" % Dependencies.circeVersion,
       "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
       "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
       "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
       "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV,
-      //"in.nvilla" %%% "monadic-rx-cats" % "0.4.0-RC1",
       "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV,
       "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV,
       "org.seekloud" %%% "byteobject" % "0.1.1"
-      //"com.lihaoyi" %%% "upickle" % upickleV,
-      //"io.suzaku" %%% "diode" % "1.1.2",
-      //"org.scala-js" %%% "scalajs-java-time" % scalaJsJavaTime
-      //"com.lihaoyi" %%% "utest" % "0.3.0" % "test"
     )
   )
   .dependsOn(sharedJs)
@@ -123,15 +115,6 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
       )
     }.taskValue
   }
-  //  .settings(
-  //    (resourceGenerators in Compile) += Def.task {
-  //      val fullJsOut = (fullOptJS in Compile in frontend).value.data
-  //      val fullJsSourceMap = fullJsOut.getParentFile / (fullJsOut.getName + ".map")
-  //      Seq(
-  //        fullJsOut,
-  //        fullJsSourceMap
-  //      )
-  //    }.taskValue)
   .settings((resourceGenerators in Compile) += Def.task {
   Seq(
     (packageJSDependencies in Compile in frontend).value
@@ -144,9 +127,38 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
   )
   .dependsOn(sharedJvm)
 
+lazy val frontendAdmin = (project in file("frontendAdmin"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(name := "frontendAdmin")
+  .settings(commonSettings: _*)
+  .settings(
+    inConfig(Compile)(
+      Seq(
+        fullOptJS,
+        fastOptJS,
+        packageJSDependencies,
+        packageMinifiedJSDependencies
+      ).map(f => (crossTarget in f) ~= (_ / "sjsout"))
+    ))
+  .settings(skip in packageJSDependencies := false)
+  .settings(
+    scalaJSUseMainModuleInitializer := true,
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-core" % Dependencies.circeVersion,
+      "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
+      "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
+      "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
+      "io.suzaku" %%% "diode" % "1.1.2",
+      "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV withSources(),
+      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV withSources(),
+      "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV withSources(),
+    )
+  )
+  .dependsOn(sharedJs)
+
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
-  .aggregate(frontend, backend, client)
+  .aggregate(frontend, backend, client, frontendAdmin)
   .settings(name := "root")
 
 

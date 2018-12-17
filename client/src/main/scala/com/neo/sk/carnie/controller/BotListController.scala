@@ -133,15 +133,15 @@ class BotListController(playerInfoInClient: PlayerInfoInClient, botListScene: Bo
     }
   }
 
-  def playGame(mode: Int,
-               img:Int,
-               frameRate:Int,
-               roomId:Int) = {
-    val playGameScreen = new GameScene(img, frameRate)
-    val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-    context.switchScene(playGameScreen.getScene, fullScreen = true)
-    new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
-  }
+//  def playGame(mode: Int,
+//               img:Int,
+//               frameRate:Int,
+//               roomId:Int) = {
+//    val playGameScreen = new GameScene(img, frameRate)
+//    val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+//    context.switchScene(playGameScreen.getScene, fullScreen = true)
+//    new GameController(playerInfoInClient, context, playGameScreen,LayeredGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
+//  }
 
   def inputPwd = {
     val dialog = new TextInputDialog()
