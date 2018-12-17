@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.core
 
 import java.awt.event.KeyEvent
-
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -10,7 +9,6 @@ import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.core.GameRecorder.RecordData
 import com.neo.sk.carnie.common.AppSettings
-
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
@@ -19,7 +17,6 @@ import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.utils.EsheepClient
-
 import scala.concurrent.Future
 
 /**
@@ -47,6 +44,8 @@ object RoomActor {
   case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
 
   case class JoinRoom(id: String, name: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource], img: Int) extends Command
+
+  case class JoinRoom4Bot(id: String, name: String, subscriber: ActorRef[BotActor.Command], img: Int) extends Command
 
   case class LeftRoom(id: String, name: String) extends Command
 
@@ -375,10 +374,7 @@ object RoomActor {
           //for gameRecorder...
           val actionEvent = grid.getDirectionEvent(frame)
           val joinOrLeftEvent = gameEvent.filter(_._1 == frame)
-//            .map {
-//            case (f, JoinEvent(id, None)) => (f, JoinEvent(id, grid.snakes.get(id)))
-//            case other => other
-//          }
+
           val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
           val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails)
