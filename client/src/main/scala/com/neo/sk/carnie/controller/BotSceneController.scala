@@ -16,10 +16,14 @@ class BotSceneController(modeScene: ModeScene,botScene: BotScene, context: Conte
       botKey2Token(botId, botKey).map {
         case Right(data) =>
           val gameId = AppSetting.esheepGameId
-          linkGameAgent(gameId, botId, data.token).map {
+          linkGameAgent(gameId, "bot" + botId, data.token).map {
+            //todo 连接webSocket
             case Right(rst) =>
-              val layeredGameScreen = new LayeredGameScene(0, 150)
-              new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+              Boot.addToPlatform {
+                val layeredGameScreen = new LayeredGameScene(0, 150)
+                context.switchScene(layeredGameScreen.getScene, "layered", false)
+                new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+              }
             case Left(e) =>
               log.error(s"bot link game agent error, $e")
           }

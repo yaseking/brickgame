@@ -24,7 +24,7 @@ import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 class GameController(player: PlayerInfoInClient,
                      stageCtx: Context,
                      gameScene: GameScene,
-                     layeredGameScene: LayeredGameScene,
+//                     layeredGameScene: LayeredGameScene,
                      mode: Int =0,
                      frameRate: Int
                      ) {
@@ -77,7 +77,7 @@ class GameController(player: PlayerInfoInClient,
 
   def loseConnect(): Unit = {
     gameScene.drawGameOff(firstCome)
-    layeredGameScene.drawGameOff(firstCome)
+//    layeredGameScene.drawGameOff(firstCome)
   }
 
   def getRandom(s: Int):Int ={
@@ -180,7 +180,7 @@ class GameController(player: PlayerInfoInClient,
 //        }
         val offsetTime = System.currentTimeMillis() - logicFrameTime
         val a = System.currentTimeMillis()
-        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+//        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
 //        val x = getAllImage
 //        val b = System.currentTimeMillis()
 //        println("drawTime:" + (b-a) )
@@ -206,14 +206,14 @@ class GameController(player: PlayerInfoInClient,
           BGM.stop()
         }
         gameScene.drawGameWait()
-        layeredGameScene.drawGameWait()
+//        layeredGameScene.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
         if(BGM.isPlaying){
           BGM.stop()
         }
         gameScene.drawGameOff(firstCome)
-        layeredGameScene.drawGameOff(firstCome)
+//        layeredGameScene.drawGameOff(firstCome)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
         if(BGM.isPlaying){
@@ -368,50 +368,50 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def addUserActionListen():Unit = {
-    layeredGameScene.positionCanvas.requestFocus()
+//    layeredGameScene.positionCanvas.requestFocus()
 
-    layeredGameScene.positionCanvas.setOnKeyPressed{ event =>
-      val key = event.getCode
-      if (Constant.watchKeys.contains(key)) {
-        val delay = if(mode==2) 4 else 2
-        val frame = grid.frameCount + delay
-        val actionId = idGenerator.getAndIncrement()
-        val keyCode = Constant.keyCode2Int(key)
-        grid.addActionWithFrame(player.id, keyCode, frame)
-
-        if (key != KeyCode.SPACE) {
-          grid.myActionHistory += actionId -> (keyCode, frame)
-        } else {
-          //数据重置
-          drawFunction match {
-            case FrontProtocol.DrawBaseGame(_) =>
-            case _ =>
-              grid.cleanData()
-              drawFunction = FrontProtocol.DrawGameWait
-              audioWin.stop()
-              audioDie.stop()
-              firstCome = true
-              if(isWin){
-                isWin = false
-                winnerName = "unknown"
-              }
-              animationTimer.start()
-              isContinue = true
-          }
-        }
-        val newKeyCode =
-          if(mode == 1)
-            key match {
-              case KeyCode.LEFT => KeyCode.RIGHT
-              case KeyCode.RIGHT => KeyCode.LEFT
-              case KeyCode.DOWN => KeyCode.UP
-              case KeyCode.UP => KeyCode.DOWN
-              case _ => KeyCode.SPACE
-            }
-          else key
-        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
-      }
-    }
+//    layeredGameScene.positionCanvas.setOnKeyPressed{ event =>
+//      val key = event.getCode
+//      if (Constant.watchKeys.contains(key)) {
+//        val delay = if(mode==2) 4 else 2
+//        val frame = grid.frameCount + delay
+//        val actionId = idGenerator.getAndIncrement()
+//        val keyCode = Constant.keyCode2Int(key)
+//        grid.addActionWithFrame(player.id, keyCode, frame)
+//
+//        if (key != KeyCode.SPACE) {
+//          grid.myActionHistory += actionId -> (keyCode, frame)
+//        } else {
+//          //数据重置
+//          drawFunction match {
+//            case FrontProtocol.DrawBaseGame(_) =>
+//            case _ =>
+//              grid.cleanData()
+//              drawFunction = FrontProtocol.DrawGameWait
+//              audioWin.stop()
+//              audioDie.stop()
+//              firstCome = true
+//              if(isWin){
+//                isWin = false
+//                winnerName = "unknown"
+//              }
+//              animationTimer.start()
+//              isContinue = true
+//          }
+//        }
+//        val newKeyCode =
+//          if(mode == 1)
+//            key match {
+//              case KeyCode.LEFT => KeyCode.RIGHT
+//              case KeyCode.RIGHT => KeyCode.LEFT
+//              case KeyCode.DOWN => KeyCode.UP
+//              case KeyCode.UP => KeyCode.DOWN
+//              case _ => KeyCode.SPACE
+//            }
+//          else key
+//        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
+//      }
+//    }
     gameScene.viewCanvas.requestFocus()
 
     gameScene.viewCanvas.setOnKeyPressed{ event =>
@@ -459,17 +459,17 @@ class GameController(player: PlayerInfoInClient,
 
   }
 
-  def getAllImage  = {
-    val imageList = layeredGameScene.layered.getAllImageData
-    val humanObservation : _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
-    val layeredObservation : LayeredObservation = LayeredObservation(
-      imageList.find(_._1 == "0").map(_._2),
-      imageList.find(_._1 == "1").map(_._2),
-      imageList.find(_._1 == "2").map(_._2),
-      imageList.find(_._1 == "3").map(_._2),
-      imageList.find(_._1 == "4").map(_._2),
-      imageList.find(_._1 == "5").map(_._2)
-    )
-    (humanObservation,layeredObservation, grid.frameCount.toInt)
-  }
+//  def getAllImage  = {
+//    val imageList = layeredGameScene.layered.getAllImageData
+//    val humanObservation : _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
+//    val layeredObservation : LayeredObservation = LayeredObservation(
+//      imageList.find(_._1 == "0").map(_._2),
+//      imageList.find(_._1 == "1").map(_._2),
+//      imageList.find(_._1 == "2").map(_._2),
+//      imageList.find(_._1 == "3").map(_._2),
+//      imageList.find(_._1 == "4").map(_._2),
+//      imageList.find(_._1 == "5").map(_._2)
+//    )
+//    (humanObservation,layeredObservation, grid.frameCount.toInt)
+//  }
 }
