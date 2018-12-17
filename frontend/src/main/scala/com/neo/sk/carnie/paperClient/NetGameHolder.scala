@@ -259,7 +259,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
-                  grid.cleanData()
+//                  grid.cleanData()
+                  grid.cleanSnakeTurnPoint(myId)
+                  grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
                   drawFunction = FrontProtocol.DrawGameWait
                   audio1.pause()
                   audio1.currentTime = 0
