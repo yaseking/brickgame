@@ -13,7 +13,7 @@ object BotManager {
 
   sealed trait Command
 
-//  case class InitBot(roomId) extends Command
+  case class InitBot(roomId: Int) extends Command
 
   val behaviors: Behavior[Command] = init()
 
@@ -29,6 +29,8 @@ object BotManager {
   def idle()(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case InitBot(roomId) =>
+          Behaviors.same
 
         case unknownMsg@_ =>
           log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
@@ -37,5 +39,14 @@ object BotManager {
       }
     }
   }
+
+//  private def getBotActor(ctx: ActorContext[Command], roomId: Int, mode: Int) = {
+//    val childName = s"room_$roomId-mode_$mode"
+//    ctx.child(childName).getOrElse {
+//      val actor = ctx.spawn(BotActor.create(id: String, name: String, grid: GridOnServer, roomActor: ActorRef[RoomActor.Command], mode: Int), childName)
+//      actor
+//
+//    }.upcast[RoomActor.Command]
+//  }
 
 }
