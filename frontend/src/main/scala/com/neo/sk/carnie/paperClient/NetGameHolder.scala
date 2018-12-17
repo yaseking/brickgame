@@ -117,7 +117,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
 
   def gameLoop(): Unit = {
-    println(s"snakes:::::::::::::${grid.snakes.keys}")
+//    println(s"snakes:::::::::::::${grid.snakes.keys}")
     logicFrameTime = System.currentTimeMillis()
     if ((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.resetScreen()
