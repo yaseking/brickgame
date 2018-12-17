@@ -148,8 +148,8 @@ lazy val frontendAdmin = (project in file("frontendAdmin"))
       "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
       "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
       "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
-      "io.suzaku" %%% "diode" % Dependencies.scalaTagsV,
-      "com.lihaoyi" %%% "scalatags" % "0.6.7" withSources(),
+      "io.suzaku" %%% "diode" % "1.1.2",
+      "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV withSources(),
       "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV withSources(),
       "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV withSources(),
     )
