@@ -4,14 +4,14 @@ import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.scene.{CreateRoomScene, _}
-import com.neo.sk.carnie.utils.HttpUtil
+import com.neo.sk.carnie.utils.{HttpUtil, WarningDialog}
 import org.slf4j.LoggerFactory
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import com.neo.sk.carnie.Boot.executor
 import com.neo.sk.carnie.paperClient.Protocol.{frameRate1, frameRate2}
-import com.neo.sk.carnie.ptcl.RoomApiProtocol.{PwdReq, RoomListRsp, RoomListRsp4Client, SuccessRsp}
+import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import com.neo.sk.carnie.utils.SecureUtil._
 import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
@@ -20,7 +20,7 @@ import com.neo.sk.carnie.common.AppSetting
 import scala.util.{Failure, Success}
 
 
-class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: RoomListScene, context: Context, domain: String) extends HttpUtil {
+class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, roomListScene: RoomListScene, context: Context, domain: String) extends HttpUtil {
   private val log = LoggerFactory.getLogger(this.getClass)
   //或许需要一个定时器,定时刷新请求
   updateRoomList()
@@ -35,22 +35,25 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
     postJsonRequestSend("post",url,List(),params,needLogRsp = false).map{
       case Right(value) =>
-        decode[RoomListRsp4Client](value) match {
+        decode[RoomListRsp4Client](value) match { //todo
           case Right(r) =>
+            println(s"roomData: $r")
             if(r.errCode == 0){
-              println(s"roomData: $r")
               Right(r)
-            }else{
+            } else if (r.errCode==100000) {
+              log.info("房间为空。")
+              Right(RoomListRsp4Client(RoomListInfo4Client(List.empty[String])))
+            } else{
               log.debug(s"获取列表失败，errCode:${r.errCode},msg:${r.msg}")
               Left("Error")
             }
           case Left(error) =>
-            log.debug(s"获取房间列表失败1，${error}")
+            log.debug(s"获取房间列表失败1，$error")
             Left("Error")
 
         }
       case Left(error) =>
-        log.debug(s"获取房间列表失败2，${error}")
+        log.debug(s"获取房间列表失败2，$error")
         Left("Error")
     }
   }
@@ -94,6 +97,9 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
                   playGame(mode, img, frameRate, roomId)
                 )
               case false =>
+                Boot.addToPlatform(
+                  WarningDialog.initWarningDialog("房间密码错误！")
+                )
               //              密码错误不做任何处理
             }
           }
@@ -115,6 +121,12 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, roomListScene: 
     override def reFresh(): Unit = {
       Boot.addToPlatform(
         updateRoomList()
+      )
+    }
+
+    override def comeBack(): Unit = {
+      Boot.addToPlatform(
+        context.switchScene(selectScene.getScene, "选择游戏模式及头像", false)
       )
     }
   }

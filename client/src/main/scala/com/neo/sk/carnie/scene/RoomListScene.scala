@@ -1,9 +1,12 @@
 package com.neo.sk.carnie.scene
 
 import javafx.collections.{FXCollections, ObservableList, ObservableMap}
+import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.control._
+import javafx.scene.effect.DropShadow
 import javafx.scene.image.{Image, ImageView}
+import javafx.scene.input.MouseEvent
 import javafx.scene.{Group, Scene}
 import javafx.scene.layout.{BorderPane, HBox, Priority, VBox}
 
@@ -13,11 +16,13 @@ abstract class RoomListSceneListener{
   def confirm(roomId: Int, mode: Int, hasPwd: Boolean)
   def gotoCreateRoomScene()
   def reFresh()
+  def comeBack()
 }
 
 class RoomListScene {
   val width = 500
   val height = 500
+  val shadow = new DropShadow()
 
   private val group = new Group()
   private val scene = new Scene(group, width, height)
@@ -33,11 +38,60 @@ class RoomListScene {
   private val confirmBtn = new Button("进入房间")
   private val roomBtn = new Button("创建房间")
   private val refreshBtn = new Button("刷新列表")
+  private val backBtn = new Button("返回")
+
+  confirmBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      confirmBtn.setEffect(shadow)
+    }
+  })
+
+  confirmBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      confirmBtn.setEffect(null)
+    }
+  })
+
+  roomBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      roomBtn.setEffect(shadow)
+    }
+  })
+
+  roomBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      roomBtn.setEffect(null)
+    }
+  })
+
+  refreshBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      refreshBtn.setEffect(shadow)
+    }
+  })
+
+  refreshBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      refreshBtn.setEffect(null)
+    }
+  })
+
+  backBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      backBtn.setEffect(shadow)
+    }
+  })
+
+  backBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      backBtn.setEffect(null)
+    }
+  })
 
   var listener: RoomListSceneListener = _
 
 //  confirmBtn.setPrefSize(100,20)
-  vBox.getChildren.addAll(confirmBtn,roomBtn,refreshBtn)
+  vBox.getChildren.addAll(confirmBtn,roomBtn,refreshBtn,backBtn)
   vBox.setAlignment(Pos.CENTER)
   hBox.getChildren.addAll(listView, vBox)
   hBox.setAlignment(Pos.CENTER)
@@ -60,7 +114,6 @@ class RoomListScene {
       roomLockMap += roomId -> (roomInfos(1).toInt, hasPwd)
       roomId.toString + "-" + modeName
     } foreach observableList.add
-//    println(observableList)
   }
 
   listView.setCellFactory(_ => new ListCell[String](){//todo 找锁的图片和无锁的图片，登录图片
@@ -99,4 +152,5 @@ class RoomListScene {
   }
   roomBtn.setOnAction(_ => listener.gotoCreateRoomScene())
   refreshBtn.setOnAction(_ => listener.reFresh())
+  backBtn.setOnAction(_ => listener.comeBack())
 }

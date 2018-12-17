@@ -3,7 +3,12 @@ package com.neo.sk.carnie.scene
 import javafx.scene.{Group, Scene}
 import javafx.scene.control.Button
 
-abstract class ModeSceneListener {
+//abstract class ModeSceneListener {
+//  def gotoNormalScene()
+//  def gotoBotScene()
+//}
+
+trait ModeSceneListener {
   def gotoNormalScene()
   def gotoBotScene()
 }

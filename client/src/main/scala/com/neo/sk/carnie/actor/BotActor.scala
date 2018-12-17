@@ -62,13 +62,13 @@ object BotActor {
 
   case object Dead extends Command
 
-  case class Action(move: Move, replyTo: ActorRef[Int]) extends Command
+  case class Action(move: Move, replyTo: ActorRef[Long]) extends Command
 
-  case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)]) extends Command
+  case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], LayeredObservation, Long)]) extends Command
 
-  case class Observation(obs: (Option[ImgData], LayeredObservation, Int)) extends Command
+  case class Observation(obs: (Option[ImgData], LayeredObservation, Long)) extends Command
 
-  case class ReturnInform(replyTo: ActorRef[(Score, Int)]) extends Command
+  case class ReturnInform(replyTo: ActorRef[(Score, Long)]) extends Command
 
   case class MsgToService(sendMsg: WsSendMsg) extends Command
 
@@ -207,8 +207,8 @@ object BotActor {
             val frame = botController.grid.frameCount
             actor ! Key(playerInfo.id, actionNum, frame, actionId)
             botController.grid.addActionWithFrame(playerInfo.id, actionNum, frame)
-            replyTo ! frame.toInt
-          } else replyTo ! -1
+            replyTo ! frame
+          } else replyTo ! -1L
           Behaviors.same
 
         case ReturnObservation(replyTo) =>
@@ -217,7 +217,7 @@ object BotActor {
           waitingForObservation(actor, botController, playerInfo, replyTo)
 
         case ReturnInform(replyTo) =>
-          replyTo ! (botController.myCurrentRank, botController.grid.frameCount.toInt)
+          replyTo ! (botController.myCurrentRank, botController.grid.frameCount)
           Behaviors.same
 
         case Dead =>
@@ -255,7 +255,7 @@ object BotActor {
   def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
                             botController: BotController,
                             playerInfo: PlayerInfoInClient,
-                            replyTo: ActorRef[(Option[ImgData], LayeredObservation, Int)])(
+                            replyTo: ActorRef[(Option[ImgData], LayeredObservation, Long)])(
     implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
