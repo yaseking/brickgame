@@ -116,7 +116,7 @@ class RoomListScene {
     } foreach observableList.add
   }
 
-  listView.setCellFactory(_ => new ListCell[String](){//todo 找锁的图片和无锁的图片，登录图片
+  listView.setCellFactory(_ => new ListCell[String](){
     val img = new ImageView("img/suo.png")
     val img1 = new ImageView("img/suo_1.png")
     img.setFitWidth(15)
