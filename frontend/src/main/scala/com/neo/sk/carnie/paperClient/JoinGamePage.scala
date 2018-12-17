@@ -197,7 +197,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
                 {headDiv}
             </div>
           </div>
-          </div>
+        </div>
       </div>
     </div>
   }

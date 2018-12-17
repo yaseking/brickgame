@@ -10,7 +10,7 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.util.Component
+import com.neo.sk.carnie.util.{Component, JsFunc}
 
 import scala.xml.Elem
 
@@ -68,6 +68,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private val bgmAmount = bgmList.length
   private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
+  private val x = (dom.window.innerWidth / 2).toInt - 145
+  private val y = (dom.window.innerHeight / 2).toInt - 180
+//  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
 
   dom.document.addEventListener("visibilitychange", { e: Event =>
     if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
@@ -75,6 +78,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       updateListener()
     }
   })
+
+//  rankCanvas.addEventListener("click", {e: MouseEvent =>
+//    println(s"x-${e.pageX},y-${e.pageY}")
+//    val x = (dom.window.innerWidth / 2).toInt - 145
+//    val y = (dom.window.innerHeight / 2).toInt - 180
+//    if(
+//      e.pageX > x &&
+//        e.pageX < x + 175 &&
+//        e.pageY > y + 250 &&
+//        e.pageY < y + 310
+//    ) JsFunc.alert("退出房间")
+//  })
 
   private var logicFrameTime = System.currentTimeMillis()
 
@@ -271,6 +286,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   if (isWin) isWin = false
                   myScore = BaseScore(0, 0, 0l, 0l)
                   isContinue = true
+//                  backBtn.style.display="none"
+//                  rankCanvas.addEventListener("",null)
                   dom.window.requestAnimationFrame(gameRender())
               }
             }
@@ -280,6 +297,19 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           e.preventDefault()
         }
       }
+      }
+      rankCanvas.onmousedown = { e:dom.MouseEvent =>
+        drawFunction match {
+          case FrontProtocol.DrawGameDie(_) =>
+            if(
+              e.pageX > x &&
+                e.pageX < x + 175 &&
+                e.pageY > y + 250 &&
+                e.pageY < y + 310
+            ) dom.document.location.reload() //重新进入游戏
+          case _ =>
+        }
+        e.preventDefault()
       }
     }
     event0

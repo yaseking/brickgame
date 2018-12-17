@@ -27,6 +27,7 @@ object Constant {
     val redColor = "#FF0000"
     val greenColor = "#00FF00"
     val yellowColor = "#FFFF00"
+    val darkYellowColor = "#EBEB68"
     val backgroundColor2 = "#333333"
   }
 
