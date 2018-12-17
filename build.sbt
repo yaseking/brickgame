@@ -57,14 +57,9 @@ lazy val frontend = (project in file("frontend"))
       "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
       "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
       "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV,
-      //"in.nvilla" %%% "monadic-rx-cats" % "0.4.0-RC1",
       "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV,
       "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV,
       "org.seekloud" %%% "byteobject" % "0.1.1"
-      //"com.lihaoyi" %%% "upickle" % upickleV,
-      //"io.suzaku" %%% "diode" % "1.1.2",
-      //"org.scala-js" %%% "scalajs-java-time" % scalaJsJavaTime
-      //"com.lihaoyi" %%% "utest" % "0.3.0" % "test"
     )
   )
   .dependsOn(sharedJs)
@@ -153,10 +148,10 @@ lazy val frontendAdmin = (project in file("frontendAdmin"))
       "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
       "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
       "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
-      "io.suzaku" %%% "diode" % "1.1.2",
+      "io.suzaku" %%% "diode" % Dependencies.scalaTagsV,
       "com.lihaoyi" %%% "scalatags" % "0.6.7" withSources(),
-      "com.github.japgolly.scalacss" %%% "core" % "0.5.5" withSources(),
-      "in.nvilla" %%% "monadic-html" % "0.4.0-RC1" withSources(),
+      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV withSources(),
+      "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV withSources(),
     )
   )
   .dependsOn(sharedJs)
