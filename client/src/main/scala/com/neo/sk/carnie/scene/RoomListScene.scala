@@ -117,8 +117,8 @@ class RoomListScene {
   }
 
   listView.setCellFactory(_ => new ListCell[String](){//todo 找锁的图片和无锁的图片，登录图片
-    val img = new ImageView("img/Bob.png")
-    val img1 = new ImageView("img/luffy.png")
+    val img = new ImageView("img/suo.png")
+    val img1 = new ImageView("img/suo_1.png")
     img.setFitWidth(15)
     img.setFitHeight(15)
     img1.setFitWidth(15)
@@ -133,10 +133,10 @@ class RoomListScene {
 //        println(s"item: $item")
         val roomId = item.split("-")(0).toInt
         if(roomLockMap.contains(roomId) && roomLockMap(roomId)._2){
-          setGraphic(img)
+          setGraphic(img1)
         }
         else{
-          setGraphic(img1)
+          setGraphic(img)
         }
         setText(item)
       }

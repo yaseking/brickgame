@@ -100,7 +100,6 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
                 Boot.addToPlatform(
                   WarningDialog.initWarningDialog("房间密码错误！")
                 )
-              //              密码错误不做任何处理
             }
           }
         } else {
