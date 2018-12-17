@@ -5,5 +5,5 @@ package com.neo.sk.carnie.paperClient
   **/
 object ClientProtocol {
 
-  case class PlayerInfoInClient(id: String, name: String, accessCode: String)
+  case class PlayerInfoInClient(id: String, name: String, msg: String)//msg:token or accessCode
 }

@@ -16,12 +16,15 @@ import com.neo.sk.carnie.utils.SecureUtil._
 import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
 import com.neo.sk.carnie.common.AppSetting
+import com.neo.sk.carnie.utils.Api4GameAgent.linkGameAgent
 
 import scala.util.{Failure, Success}
 
 
-class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, roomListScene: RoomListScene, context: Context, domain: String) extends HttpUtil {
+class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, roomListScene: RoomListScene, context: Context) extends HttpUtil {
   private val log = LoggerFactory.getLogger(this.getClass)
+  private val domain = AppSetting.esheepDomain
+
   //或许需要一个定时器,定时刷新请求
   updateRoomList()
 
@@ -110,7 +113,7 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
     override def gotoCreateRoomScene(): Unit = {
       Boot.addToPlatform {
         val createRoomScene = new CreateRoomScene()
-        new CreateRoomController(playerInfoInClient, createRoomScene, context, domain).showScene
+        new CreateRoomController(playerInfoInClient, createRoomScene, context).showScene
       }
     }
 
@@ -159,10 +162,22 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
                img:Int,
                frameRate:Int,
                roomId:Int) = {
-    val playGameScreen = new GameScene(img, frameRate)
+    Boot.addToPlatform{
+      val gameId = AppSetting.esheepGameId
+      linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
+        case Right(r) =>
+          val playGameScreen = new GameScene(img, frameRate)
+          context.switchScene(playGameScreen.getScene, fullScreen = true)
+          new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+
+        case Left(e) =>
+          log.debug(s"linkGameAgent..$e")
+      }
+    }
+//    val playGameScreen = new GameScene(img, frameRate)
 //    val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-    context.switchScene(playGameScreen.getScene, fullScreen = true)
-    new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
+//    context.switchScene(playGameScreen.getScene, fullScreen = true)
+//    new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).joinByRoomId(domain, roomId, img)
   }
 
   def inputPwd = {

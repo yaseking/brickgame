@@ -116,10 +116,10 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     }
   }
 
-  def switchToSelecting(playerInfoInClient: PlayerInfoInClient, domain: String):Unit = {
+  def switchToSelecting(playerInfoInClient: PlayerInfoInClient):Unit = {
     Boot.addToPlatform {
       val selectScene = new SelectScene()
-      new SelectController(playerInfoInClient, selectScene, context, domain).showScene
+      new SelectController(playerInfoInClient, selectScene, context).showScene
     }
   }
 

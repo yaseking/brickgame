@@ -104,15 +104,14 @@ object LoginSocketClient {
                 } else {
                   val playerId = "user" + data.userId.toString
                   val playerName = data.nickname
-                  linkGameAgent(gameId, playerId, data.token).map {
-                    case Right(r) =>
-                      loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-//                      loginController.switchToRoomList(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-//                      loginController.switchToGaming(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-
-                    case Left(e) =>
-                      log.debug(s"linkGameAgent..$e")
-                  }
+                  loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, data.token))//domain,ip,port
+//                  linkGameAgent(gameId, playerId, data.token).map {
+//                    case Right(r) =>
+//                      loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
+//
+//                    case Left(e) =>
+//                      log.debug(s"linkGameAgent..$e")
+//                  }
                 }
 
               case HeartBeat =>

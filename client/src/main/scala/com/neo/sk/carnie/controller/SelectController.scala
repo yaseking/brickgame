@@ -1,28 +1,42 @@
 package com.neo.sk.carnie.controller
 
 import com.neo.sk.carnie.Boot
+import com.neo.sk.carnie.Boot.executor
+import com.neo.sk.carnie.actor.LoginSocketClient.log
 import com.neo.sk.carnie.scene._
-import com.neo.sk.carnie.common.Context
+import com.neo.sk.carnie.common.{AppSetting, Context}
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.paperClient.Protocol.{frameRate1, frameRate2}
+import com.neo.sk.carnie.utils.Api4GameAgent.linkGameAgent
 import javafx.collections.FXCollections
 import javafx.scene.control.ButtonBar.ButtonData
 import javafx.scene.control._
 import javafx.scene.layout.GridPane
+import org.slf4j.LoggerFactory
 
 
-class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, context: Context, domain: String) {
+class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: SelectScene, context: Context) {
+  private[this] val log = LoggerFactory.getLogger(this.getClass)
 
   selectScene.setListener(new SelectSceneListener{
     override def joinGame(mode: Int, img: Int): Unit = {
       Boot.addToPlatform {
         val frameRate = if(mode==2) frameRate2 else frameRate1
         val playGameScreen = new GameScene(img, frameRate)
-        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
-        val x = false
+//        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
+//        val x = false
 //        if(x) {
-          context.switchScene(playGameScreen.getScene, fullScreen = true)
-          new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).start(domain, mode, img)
+        val gameId = AppSetting.esheepGameId
+        linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
+          case Right(r) =>
+//            loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
+            context.switchScene(playGameScreen.getScene, fullScreen = true)
+            new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+
+          case Left(e) =>
+            log.debug(s"linkGameAgent..$e")
+        }
+
 //        }
 //        else {
 //          context.switchScene(LayeredGameScreen.getScene,fullScreen = true)
@@ -35,7 +49,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
     override def gotoRoomList(): Unit = {
       Boot.addToPlatform {
         val roomListScene = new RoomListScene()
-        new RoomListController(playerInfoInClient, selectScene, roomListScene, context, domain).showScene
+        new RoomListController(playerInfoInClient, selectScene, roomListScene, context).showScene
       }
     }
   })
