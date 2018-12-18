@@ -2,6 +2,7 @@ package com.neo.sk.carnie
 
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.paperClient._
+import com.neo.sk.carnie.paperClient.Protocol.frameRate1
 import com.neo.sk.carnie.ptcl.EsheepPtcl.PlayerMsg
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -10,6 +11,7 @@ import org.scalajs.dom
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
+import scala.util.Random
 import scala.xml.Elem
 /**
   * Created by haoshuhan on 2018/11/2.
@@ -60,8 +62,13 @@ object Main extends js.JSApp {
         println("playGame ...")
         val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
         val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
+//        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
+        currentPage = new CanvasPage().render
         show()
+        val modelId = 0
+        val frameRate = frameRate1
+        val headId = Random.nextInt(6)
+        new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
 
       case _ =>
         println(s"not playGame ${info(0)}")

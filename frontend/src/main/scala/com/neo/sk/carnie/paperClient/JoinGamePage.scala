@@ -49,12 +49,12 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   private val modelDiv = modelList.map { games =>
     games.map(game =>
-      <div style="width:27%;margin:0px;">
+      <div style="width:27%;margin:0px;" align="center">
         <div style="overflow:hidden" id={game.id.toString}>
           <div class={selectClass(game.id)} onclick={()=>selectGame(game.id)} style="margin-top:0px;height:150px;width:150px;">
             <img class="home-img" src={game.img}></img>
           </div>
-          <p style="font-size: 15px;color:white;margin-left:15%;margin-right:15%" > {game.name}</p>
+          <p style="font-size: 15px;color:white;" > {game.name}</p>
         </div>
       </div>
     )
@@ -62,7 +62,7 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
 
   private val headDiv = headList.map { games =>
     games.map(game =>
-      <div style="width:27%;margin:15px;">
+      <div style="width:27%;margin:15px;" align="center">
         <div style="overflow:hidden" id={game.id.toString}>
           <div class={selectHeadClass(game.id)} onclick={() => selectHead(game.id)} style="margin-top:0px;height:100px;width:100px;text-align: center">
             <img class="home-img" src={game.img}></img>
@@ -178,8 +178,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             <h1 style="font-family: Verdana;font-size:30px;color:white;text-align: center;" >欢迎来到carnie</h1>
           </div>
           <div style="overflow: hidden;" >
-            <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;margin-left:20%;margin-right:20%;text-align:center" >
-              {modelDiv}
+            <div style="display:flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items:center;text-align:center" >
+                {modelDiv}
             </div>
           </div>
 
@@ -193,8 +193,8 @@ class JoinGamePage(order: String, webSocketPara: PlayGamePara) extends Component
             <div style="margin-top: 5px;">
               <p style="text-align: center; margin-top: 0px;font-size: 20px;color:white" >选择头像</p>
             </div>
-            <div  style="text-align: center;display: flex; flex-wrap: nowrap;margin-left:12%;margin-right:12%">
-              {headDiv}
+            <div  style="text-align: center;display: flex; flex-wrap: nowrap;">
+                {headDiv}
             </div>
           </div>
         </div>

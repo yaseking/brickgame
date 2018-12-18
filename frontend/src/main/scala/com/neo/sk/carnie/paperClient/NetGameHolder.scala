@@ -70,7 +70,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
   private val x = (dom.window.innerWidth / 2).toInt - 145
   private val y = (dom.window.innerHeight / 2).toInt - 180
-//  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
 
   dom.document.addEventListener("visibilitychange", { e: Event =>
     if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
@@ -78,18 +77,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       updateListener()
     }
   })
-
-//  rankCanvas.addEventListener("click", {e: MouseEvent =>
-//    println(s"x-${e.pageX},y-${e.pageY}")
-//    val x = (dom.window.innerWidth / 2).toInt - 145
-//    val y = (dom.window.innerHeight / 2).toInt - 180
-//    if(
-//      e.pageX > x &&
-//        e.pageX < x + 175 &&
-//        e.pageY > y + 250 &&
-//        e.pageY < y + 310
-//    ) JsFunc.alert("退出房间")
-//  })
 
   private var logicFrameTime = System.currentTimeMillis()
 
@@ -298,19 +285,23 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
       }
       }
-      rankCanvas.onmousedown = { e:dom.MouseEvent =>
-        drawFunction match {
-          case FrontProtocol.DrawGameDie(_) =>
-            if(
-              e.pageX > x &&
-                e.pageX < x + 175 &&
-                e.pageY > y + 250 &&
-                e.pageY < y + 310
-            ) dom.document.location.reload() //重新进入游戏
-          case _ =>
-        }
-        e.preventDefault()
-      }
+      //退出房间触发事件
+//      rankCanvas.onmousedown = { e:dom.MouseEvent =>
+//        drawFunction match {
+//          case FrontProtocol.DrawGameDie(_) =>
+//            if(
+//              e.pageX > x &&
+//                e.pageX < x + 175 &&
+//                e.pageY > y + 250 &&
+//                e.pageY < y + 310
+//            ) {
+//              dom.document.location.reload() //重新进入游戏
+////              dom.window.location.reload()
+//            }
+//          case _ =>
+//        }
+//        e.preventDefault()
+//      }
     }
     event0
   }
@@ -358,20 +349,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             }
           }
         }
-
-//      case ReStartGame =>
-//        audio1.pause()
-//        audio1.currentTime = 0
-//        audioKilled.pause()
-//        audioKilled.currentTime = 0
-//        //        scoreFlag = true
-//        firstCome = true
-//        myScore = BaseScore(0, 0, 0l, 0l)
-//        if (isWin) {
-//          isWin = false
-//          //          winnerName = "unknown"
-//        }
-//        isContinue = true
 
       case UserLeft(id) =>
         println(s"user $id left:::")
