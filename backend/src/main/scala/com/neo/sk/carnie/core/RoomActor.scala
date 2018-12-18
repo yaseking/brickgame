@@ -361,6 +361,7 @@ object RoomActor {
               if (!userDeadList.contains(u._1)) {
                 gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
                 userDeadList += u._1
+                if(u._1.take(3) == "bot") getBotActor(ctx, u._1) ! BotDead
               }
             }
           }

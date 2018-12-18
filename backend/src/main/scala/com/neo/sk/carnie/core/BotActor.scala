@@ -35,6 +35,8 @@ object BotActor {
 
   private final case object SpaceKey
 
+  private var action = 0
+
 
   def create(botId: String): Behavior[Command] = {
     implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
@@ -48,7 +50,7 @@ object BotActor {
               case _ => Protocol.frameRate1
             }
             roomActor ! RoomActor.JoinRoom4Bot(botId, botName, ctx.self, new Random().nextInt(6))
-            timer.startPeriodicTimer(MakeActionKey, MakeAction, 5 * frameRate.millis)
+            timer.startPeriodicTimer(MakeActionKey, MakeAction, (1 + scala.util.Random.nextInt(20)) * frameRate.millis)
             gaming(botId, grid, roomActor, frameRate)
 
           case unknownMsg@_ =>
@@ -65,8 +67,9 @@ object BotActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case MakeAction =>
-          val actionCode = scala.util.Random.nextInt(4) + 37
+          val actionCode = action % 4 + 37
           roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
+          action += 1
           Behaviors.same
 
         case BotDead =>
@@ -99,7 +102,7 @@ object BotActor {
 
         case BackToGame =>
           log.info(s"back to game")
-          timer.startPeriodicTimer(MakeActionKey, MakeAction, frameRate.millis)
+          timer.startPeriodicTimer(MakeActionKey, MakeAction, (1 + scala.util.Random.nextInt(20)) * frameRate.millis)
           gaming(botId, grid, roomActor, frameRate)
 
         case KillBot =>
