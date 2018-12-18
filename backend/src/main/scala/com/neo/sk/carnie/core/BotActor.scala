@@ -2,8 +2,10 @@ package com.neo.sk.carnie.core
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
+import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.paperClient.{GridOnServer, Protocol}
 import org.slf4j.LoggerFactory
+
 import concurrent.duration._
 import scala.util.Random
 
@@ -16,8 +18,7 @@ object BotActor {
 
   sealed trait Command
 
-  case class ConnectGame(botId: String, botName: String, roomId: Int) extends Command
-
+  case class InitInfo(botName: String, mode: Int, grid: GridOnServer, roomActor: ActorRef[RoomActor.Command]) extends Command
   case object MakeAction extends Command
 
   case object KillBot extends Command
@@ -25,29 +26,39 @@ object BotActor {
   private final case object MakeActionKey
 
 
-  def create(id: String, name: String, grid: GridOnServer, roomActor: ActorRef[RoomActor.Command], mode: Int): Behavior[Command] = {
-    Behaviors.setup[Command] { ctx =>
-      implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
-      Behaviors.withTimers[Command] { implicit timer =>
-        val frameRate = mode match {
-          case 2 => Protocol.frameRate2
-          case _ => Protocol.frameRate1
+  def create(botId: String): Behavior[Command] = {
+    implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
+    Behaviors.withTimers[Command] { implicit timer =>
+
+      Behaviors.receive[Command] { (ctx, msg) =>
+        msg match {
+          case InitInfo(botName, mode, grid, roomActor) =>
+            val frameRate = mode match {
+              case 2 => Protocol.frameRate2
+              case _ => Protocol.frameRate1
+            }
+            roomActor ! RoomActor.JoinRoom4Bot(botId, botName, ctx.self, new Random().nextInt(6))
+            timer.startPeriodicTimer(MakeActionKey, MakeAction, frameRate.millis)
+            gaming(botId, grid, roomActor)
+
+          case unknownMsg@_ =>
+            log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
+            stashBuffer.stash(unknownMsg)
+            Behaviors.unhandled
         }
-        roomActor ! RoomActor.JoinRoom4Bot(id, name, ctx.self, new Random().nextInt(6))
-        timer.startPeriodicTimer(MakeActionKey, MakeAction, frameRate.millis)
-        gaming(grid, roomActor)
       }
     }
   }
 
-  def gaming(grid: GridOnServer, roomActor: ActorRef[RoomActor.Command])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+  def gaming(botId: String, grid: GridOnServer, roomActor: ActorRef[RoomActor.Command])(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case MakeAction =>
           Behaviors.same
 
         case KillBot =>
-          Behaviors.same
+          log.debug(s"botActor:$botId go to die...")
+          Behaviors.stopped
 
         case unknownMsg@_ =>
           log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
