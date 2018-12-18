@@ -2,7 +2,6 @@ package com.neo.sk.carnie.controller
 
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.Boot.executor
-import com.neo.sk.carnie.actor.LoginSocketClient.log
 import com.neo.sk.carnie.scene._
 import com.neo.sk.carnie.common.{AppSetting, Context}
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
@@ -27,15 +26,17 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
 //        val x = false
 //        if(x) {
         val gameId = AppSetting.esheepGameId
-        linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
-          case Right(r) =>
-//            loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-            context.switchScene(playGameScreen.getScene, fullScreen = true)
-            new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+        Boot.addToPlatform(
+          linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
+            case Right(r) =>
+              //            loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
+              context.switchScene(playGameScreen.getScene, fullScreen = true)
+              new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
 
-          case Left(e) =>
-            log.debug(s"linkGameAgent..$e")
-        }
+            case Left(e) =>
+              log.debug(s"linkGameAgent..$e")
+          }
+        )
 
 //        }
 //        else {

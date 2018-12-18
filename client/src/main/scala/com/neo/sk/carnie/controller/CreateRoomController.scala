@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 class CreateRoomController(playerInfoInClient: PlayerInfoInClient, createRoomScene: CreateRoomScene, context: Context) {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val domain = AppSetting.esheepDomain
+//  private val domain = AppSetting.esheepDomain
 
   createRoomScene.setListener(new CreateRoomSceneListener {
     override def createRoom(mode: Int, img: Int, pwd: String): Unit = {

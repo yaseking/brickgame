@@ -52,7 +52,7 @@ object PlayGameWebSocket {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case ConnectGame(playerInfo, domain, mode, img) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, mode, img)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerInfo.id, playerInfo.name, playerInfo.msg, domain, mode, img)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
@@ -77,7 +77,7 @@ object PlayGameWebSocket {
           connecting(stream)
 
         case CreateRoom(playerInfo, domain, mode, img, pwd) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4CreateRoom(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, mode, img, pwd)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4CreateRoom(playerInfo.id, playerInfo.name, playerInfo.msg, domain, mode, img, pwd)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
@@ -102,7 +102,7 @@ object PlayGameWebSocket {
           connecting(stream)
 
         case JoinByRoomId(playerInfo, domain, roomId, img) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4JoinByRoomId(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, roomId, img)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4JoinByRoomId(playerInfo.id, playerInfo.name, playerInfo.msg, domain, roomId, img)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
