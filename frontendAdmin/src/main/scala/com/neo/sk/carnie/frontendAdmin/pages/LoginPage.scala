@@ -12,6 +12,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 
 import scala.xml.{Elem, Node}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * User: Jason
@@ -95,7 +96,6 @@ object LoginPage extends Page{
   )
 
   override def render: Elem =
-    <div>carnie carniecarniecarniecarniecarniecarniecarnie</div>
       <div>
         <div class="container">
           {Title}

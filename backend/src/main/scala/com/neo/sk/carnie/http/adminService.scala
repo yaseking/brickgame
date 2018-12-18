@@ -26,7 +26,7 @@ import com.neo.sk.carnie.common.AppSettings
   * Date: 2018/12/17
   * Time: 16:29
   */
-trait adminService extends ServiceUtils
+trait AdminService extends ServiceUtils
   with CirceSupport
   with SessionBase
   with SessionSupport
