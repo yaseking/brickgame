@@ -166,6 +166,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
+            println(s"draw base game")
             if (firstCome) firstCome = false
             if (BGM.paused) {
               BGM = bgmList(getRandom(bgmAmount))
