@@ -19,24 +19,24 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
 
   selectScene.setListener(new SelectSceneListener{
     override def joinGame(mode: Int, img: Int): Unit = {
-      Boot.addToPlatform {
-        val frameRate = if(mode==2) frameRate2 else frameRate1
-        val playGameScreen = new GameScene(img, frameRate)
+      val frameRate = if(mode==2) frameRate2 else frameRate1
+      val playGameScreen = new GameScene(img, frameRate)
 //        val LayeredGameScreen = new LayeredGameScene(img, frameRate)
 //        val x = false
 //        if(x) {
-        val gameId = AppSetting.esheepGameId
-        Boot.addToPlatform(
-          linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
-            case Right(r) =>
-              //            loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-              context.switchScene(playGameScreen.getScene, fullScreen = true)
-              new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+      val gameId = AppSetting.esheepGameId
+      Boot.addToPlatform(
+        linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
+          case Right(r) =>
+            println("lalala")
+            println(s"got linkRsp: $r")
+            context.switchScene(playGameScreen.getScene, fullScreen = true)
+            new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
 
-            case Left(e) =>
-              log.debug(s"linkGameAgent..$e")
-          }
-        )
+          case Left(e) =>
+            log.debug(s"linkGameAgent..$e")
+        }
+      )
 
 //        }
 //        else {
@@ -44,7 +44,6 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
 //          new GameController(playerInfoInClient, context, playGameScreen, mode, frameRate).start(domain, mode, img)
 //        }
 
-      }
     }
 
     override def gotoRoomList(): Unit = {
