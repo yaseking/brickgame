@@ -210,11 +210,14 @@ object RoomActor {
           if(userMap.size < AppSettings.minPlayerNum){
             if(botMap.size == userMap.size){
               botMap.foreach(b => getBotActor(ctx, b._1) ! KillBot)
+              Behaviors.stopped
             } else {
-
+              val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains(roomId + b._1)).head
+              getBotActor(ctx, newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
+              Behaviors.same
             }
-          }
-          if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
+          } else Behaviors.same
+
 
         case WatcherLeftRoom(uid) =>
           log.debug(s"WatcherLeftRoom:::$uid")
