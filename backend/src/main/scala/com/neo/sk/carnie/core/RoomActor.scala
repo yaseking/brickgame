@@ -22,6 +22,7 @@ import com.neo.sk.carnie.core.BotActor.{BackToGame, BotDead, KillBot}
 import com.neo.sk.utils.EsheepClient
 
 import scala.concurrent.Future
+import scala.util.Random
 
 /**
   * Created by dry on 2018/10/12.
@@ -265,7 +266,7 @@ object RoomActor {
                   grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, headImgList(id))
                 } else {
                   log.error(s"can not find headImg of $id")
-                  grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, 0)
+                  grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, new Random().nextInt(6))
                 }
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2._1 == id).foreach { w =>

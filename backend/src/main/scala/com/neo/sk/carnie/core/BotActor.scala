@@ -48,7 +48,7 @@ object BotActor {
               case _ => Protocol.frameRate1
             }
             roomActor ! RoomActor.JoinRoom4Bot(botId, botName, ctx.self, new Random().nextInt(6))
-            timer.startPeriodicTimer(MakeActionKey, MakeAction, frameRate.millis)
+            timer.startPeriodicTimer(MakeActionKey, MakeAction, 5 * frameRate.millis)
             gaming(botId, grid, roomActor, frameRate)
 
           case unknownMsg@_ =>
@@ -70,6 +70,7 @@ object BotActor {
           Behaviors.same
 
         case BotDead =>
+          log.info(s"bot dead:$botId")
           timer.startSingleTimer(SpaceKey, Space, (2 + scala.util.Random.nextInt(8)) * frameRate.millis)
           timer.cancel(MakeActionKey)
           dead(botId, grid, roomActor, frameRate)
@@ -91,6 +92,7 @@ object BotActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Space =>
+          log.info(s"recv Space: botId:$botId")
           val actionCode = 32
           roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
           Behaviors.same
