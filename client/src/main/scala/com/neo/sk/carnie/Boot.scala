@@ -17,7 +17,7 @@ import javafx.application.Platform
 import javafx.stage.Stage
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.carnie.common.BotAppSetting._
 import concurrent.duration._
 import scala.language.postfixOps
 
@@ -45,9 +45,9 @@ class Boot extends javafx.application.Application {
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
   override def start(mainStage: Stage): Unit = {
-    val para = getParameters.getRaw
+//    val para = getParameters.getRaw
 
-    println("!!!!" + para)
+//    println("!!!!" + para)
 
 //    是否需要图像渲染
 //    if(!para.isEmpty){
@@ -57,43 +57,47 @@ class Boot extends javafx.application.Application {
 //
 //        val appConfig = botConfig.getConfig("app")
 //        val render = appConfig.getBoolean("render")
-//        val context = new Context(mainStage)
-//        if(render) {
-//          val modeScene = new ModeScene()
-//          val modeController = new ModeController(modeScene,context)
-//          modeController.showScene()
-//        } else {
+        val context = new Context(mainStage)
+        if(render) {
+          val modeScene = new ModeScene()
+          val modeController = new ModeController(modeScene,context)
+          modeController.showScene()
+        } else {
 //          val botInfo = appConfig.getConfig("botInfo")
 //          val botId = botInfo.getString("botId")
 //          val botKey = botInfo.getString("botKey")
-//          botKey2Token(botId, botKey).map {
-//            case Right(data) =>
-//              val gameId = AppSetting.esheepGameId
-//              linkGameAgent(gameId, botId, data.token).map {
-//                case Right(rst) =>
-//                  val layeredGameScreen = new LayeredGameScene(0, 150)
-//                  new BotController(PlayerInfoInClient(botId, data.botName, botKey, rst.accessCode), context, layeredGameScreen)
-//                case Left(e) =>
-//                  log.error(s"bot link game agent error, $e")
-//              }
-//
-//            case Left(e) =>
-//              log.error(s"botKey2Token error, $e")
-//          }
-//        }
+          botKey2Token(botId, botKey).map {
+            case Right(data) =>
+              val gameId = AppSetting.esheepGameId
+              linkGameAgent(gameId, botId, data.token).map {
+                case Right(rst) =>
+                  val layeredGameScreen = new LayeredGameScene(0, 150)
+                  new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+                case Left(e) =>
+                  log.error(s"bot link game agent error, $e")
+              }
+
+            case Left(e) =>
+              log.error(s"botKey2Token error, $e")
+          }
+        }
 //      }
 //    } else {
 //      log.debug("未输入参数.")
 //    }
+
     //test
-    val context = new Context(mainStage)
+//    val context = new Context(mainStage)
+//    val modeScene = new ModeScene()
+//    new ModeController(modeScene,context).showScene()
+
+
 //    val layeredGameScreen = new LayeredGameScene(0, 150)
 //    new BotController(PlayerInfoInClient("123", "abc", "test"), context, layeredGameScreen)
 
 //    val context = new Context(mainStage)
 
-    val modeScene = new ModeScene()
-    new ModeController(modeScene,context).showScene()
+
 
 //    WarningDialog.initWarningDialog("just test")
 
