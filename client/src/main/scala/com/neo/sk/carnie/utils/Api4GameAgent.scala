@@ -89,6 +89,23 @@ object Api4GameAgent extends HttpUtil {
     }
   }
 
+  def refreshToken(playerId: String, token: String) = {//todo 暂时用不到
+    val data = RefreshTokenReq(playerId).asJson.noSpaces
+    val url = "http://" + AppSetting.esheepDomain + s"/esheep/api/gameAgent/gaRefreshToken?token=$token"
+
+    postJsonRequestSend("post", url, Nil, data).map {
+      case Right(jsonStr) =>
+        decode[BotKey2TokenRsp](jsonStr) match {
+          case Right(res) =>
+            Right(res.data)
+          case Left(le) =>
+            Left("decode error: " + le)
+        }
+      case Left(erStr) =>
+        Left("get return error:" + erStr)
+    }
+  }
+
   def main(args: Array[String]): Unit = {
 //    getLoginRspFromEs()
     loginByMail("test@neotel.com.cn","test123")

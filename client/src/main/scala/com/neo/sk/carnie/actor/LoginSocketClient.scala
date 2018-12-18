@@ -96,7 +96,6 @@ object LoginSocketClient {
         import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
         import com.neo.sk.carnie.Boot.executor
 
-        val gameId = AppSetting.esheepGameId
         decode[WsData](msg) match {
           case Right(res) =>
             res match {

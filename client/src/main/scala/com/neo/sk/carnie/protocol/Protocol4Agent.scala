@@ -52,6 +52,10 @@ object Protocol4Agent {
                             msg: String
                             )
 
+  case class RefreshTokenReq(
+                              playerId: String
+                            )
+
   sealed trait WsData
 
   case class Ws4AgentRsp(

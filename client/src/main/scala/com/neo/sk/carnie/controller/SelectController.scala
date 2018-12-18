@@ -26,11 +26,11 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
 //        if(x) {
       val gameId = AppSetting.esheepGameId
       Boot.addToPlatform(
-        linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
+        linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.token).map {
           case Right(r) =>
             Boot.addToPlatform {
               context.switchScene(playGameScreen.getScene, fullScreen = true)
-              new GameController(playerInfoInClient.copy(msg = r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+              new GameController(playerInfoInClient.copy(accessCode = r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
             }
 
           case Left(e) =>
