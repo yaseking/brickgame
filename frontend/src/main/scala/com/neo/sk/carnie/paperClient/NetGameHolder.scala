@@ -306,7 +306,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 e.pageX < x + 175 &&
                 e.pageY > y + 250 &&
                 e.pageY < y + 310
-            ) dom.document.location.reload() //重新进入游戏
+            ) {
+//              dom.document.location.reload() //重新进入游戏
+              dom.window.location.reload()
+            }
           case _ =>
         }
         e.preventDefault()
