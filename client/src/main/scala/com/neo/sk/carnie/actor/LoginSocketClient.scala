@@ -68,17 +68,19 @@ object LoginSocketClient {
           Behavior.same
 
         case Connection2EsByMail(userId:Long, playerName:String, token:String) =>
-          val gameId = AppSetting.esheepGameId
+//          val gameId = AppSetting.esheepGameId
           val playerId = "user" + userId
-          linkGameAgent(gameId, playerId, token).map {
-            case Right(r) =>
-              loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
+          loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, token))//domain,ip,port
 
-            case Left(e) =>
-              log.debug(s"linkGameAgent..$e")
-//              loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, "test"), "test")//domain,ip,port
-
-          }
+//          linkGameAgent(gameId, playerId, token).map {
+//            case Right(r) =>
+//              loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
+//
+//            case Left(e) =>
+//              log.debug(s"linkGameAgent..$e")
+////              loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, "test"), "test")//domain,ip,port
+//
+//          }
           Behaviors.same
       }
     }
@@ -104,15 +106,14 @@ object LoginSocketClient {
                 } else {
                   val playerId = "user" + data.userId.toString
                   val playerName = data.nickname
-                  linkGameAgent(gameId, playerId, data.token).map {
-                    case Right(r) =>
-                      loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-//                      loginController.switchToRoomList(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-//                      loginController.switchToGaming(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
-
-                    case Left(e) =>
-                      log.debug(s"linkGameAgent..$e")
-                  }
+                  loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, data.token))//domain,ip,port
+//                  linkGameAgent(gameId, playerId, data.token).map {
+//                    case Right(r) =>
+//                      loginController.switchToSelecting(PlayerInfoInClient(playerId, playerName, r.accessCode), r.gsPrimaryInfo.domain)//domain,ip,port
+//
+//                    case Left(e) =>
+//                      log.debug(s"linkGameAgent..$e")
+//                  }
                 }
 
               case HeartBeat =>

@@ -86,6 +86,7 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def start(domain: String, mode: Int, img: Int): Unit = {
+    println(s"got accCode:${player.msg}")
     playActor ! PlayGameWebSocket.ConnectGame(player, domain, mode, img)
     addUserActionListen()
     startGameLoop()
