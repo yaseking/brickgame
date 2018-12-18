@@ -101,7 +101,7 @@ object BotActor {
           Behaviors.same
 
         case BackToGame =>
-          log.info(s"back to game")
+          log.info(s"back to game: botId:$botId")
           timer.startPeriodicTimer(MakeActionKey, MakeAction, (1 + scala.util.Random.nextInt(20)) * frameRate.millis)
           gaming(botId, grid, roomActor, frameRate)
 
