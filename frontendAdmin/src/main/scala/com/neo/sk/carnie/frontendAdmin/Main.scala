@@ -16,6 +16,7 @@ object Main {
   import scalacss.DevDefaults._
 
   def main(args: Array[String]): Unit ={
+    print("how you doing")
     MainEnter.show()
   }
 
@@ -24,8 +25,8 @@ object Main {
 object MainEnter extends PageSwitcher {
 
   val currentPage: Rx[Elem] = currentHashVar.map {
-    case Nil => loginPage.render
-    case "login" :: Nil => loginPage.render
+    case Nil => LoginPage.render
+    case "LoginPage" :: Nil => LoginPage.render
     case "View"  :: Nil => ViewPage.render
     case _ => <div>Error Page</div>
   }

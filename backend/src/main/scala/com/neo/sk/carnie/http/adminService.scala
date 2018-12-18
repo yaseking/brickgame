@@ -18,10 +18,7 @@ import com.neo.sk.carnie.ptcl.AdminPtcl._
 //import com.neo.sk.carnie.Boot.{executor, scheduler}
 import com.neo.sk.carnie.common.AppSettings
 //import com.neo.sk.carnie.models.dao.RecordDAO
-//import io.circe.generic.auto._
-//
 //import scala.concurrent.Future
-//import io.circe.Error
 //import scala.util.{Failure, Success}
 
 /**
@@ -31,8 +28,6 @@ import com.neo.sk.carnie.common.AppSettings
   */
 trait adminService extends ServiceUtils
   with CirceSupport
-  with PlayerService
-  with EsheepService
   with SessionBase
   with SessionSupport
 {

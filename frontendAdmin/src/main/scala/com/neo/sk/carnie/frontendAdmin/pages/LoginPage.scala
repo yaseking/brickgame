@@ -18,8 +18,8 @@ import scala.xml.{Elem, Node}
   * Date: 2018/12/18
   * Time: 9:54
   */
-object loginPage extends Page{
-  override val locationHashString: String = "#/login"
+object LoginPage extends Page{
+  override val locationHashString: String = "#/LoginPage"
 
   def login():Unit = {
     val name = dom.window.document.getElementById("username").asInstanceOf[Input].value
