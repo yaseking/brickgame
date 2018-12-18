@@ -2,6 +2,7 @@ package com.neo.sk.carnie.controller
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -11,10 +12,8 @@ import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
 import akka.actor.typed.scaladsl.adapter._
-import com.apple.eawt.AppEvent.ScreenSleepEvent
 import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
-import com.neo.sk.carnie.actor.PlayGameWebSocket.Terminate
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
@@ -471,10 +470,11 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def switchToSelecting() = {
-    //假设用户一次玩游戏时间不超过两小时，否则需要刷新token
+    //fixme 假设用户一次玩游戏时间不超过两小时，否则需要刷新token
     Boot.addToPlatform{
       println("come back to selectScene.")
-      playActor ! Terminate
+//      playActor ! Terminate
+      Boot.system.stop(playActor.toUntyped)
       Boot.addToPlatform{
         val selectScene = new SelectScene()
         new SelectController(player, selectScene, stageCtx).showScene

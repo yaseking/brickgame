@@ -3,7 +3,7 @@ package com.neo.sk.carnie.actor
 import java.net.URLEncoder
 
 import akka.actor.typed._
-import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
@@ -22,12 +22,16 @@ import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.paperClient.Protocol
 
+import scala.concurrent.duration.FiniteDuration
+
 /**
   * Created by dry on 2018/10/23.
   **/
 object PlayGameWebSocket {
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
+
+  private final case object BehaviorChangeKey
 
   sealed trait WsCommand
 
@@ -40,6 +44,25 @@ object PlayGameWebSocket {
   case class MsgToService(sendMsg: WsSendMsg) extends WsCommand
 
   case object Terminate extends WsCommand
+
+  final case class SwitchBehavior(
+                                   name: String,
+                                   behavior: Behavior[WsCommand],
+                                   durationOpt: Option[FiniteDuration] = None,
+                                   timeOut: TimeOut = TimeOut("busy time error")
+                                 ) extends WsCommand
+
+  case class TimeOut(msg:String) extends WsCommand
+
+  private[this] def switchBehavior(ctx: ActorContext[WsCommand],
+                                   behaviorName: String, behavior: Behavior[WsCommand], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
+                                  (implicit stashBuffer: StashBuffer[WsCommand],
+                                   timer:TimerScheduler[WsCommand]) = {
+    log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
+    timer.cancel(BehaviorChangeKey)
+    durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey,timeOut,_))
+    stashBuffer.unstashAll(ctx,behavior)
+  }
 
   def create(gameController: GameController): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
