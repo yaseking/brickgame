@@ -183,9 +183,7 @@ object RoomActor {
                 msgFuture.map { token =>
                   EsheepClient.inputBatRecord(id, name, u._2, 1, u._3.toFloat*100 / fullSize, "", startTime, endTime, token)
                 }
-              }
-            } else if (id.take(3) == "bot") {
-              getBotActor(ctx, id) ! BotDead
+              } else getBotActor(ctx, id) ! BotDead //bot死亡消息发送
             }
             userDeadList += id
           }
