@@ -18,4 +18,8 @@ object BotAppSetting {
 
   val apiToken = appConfig.getString("apiToken")
 
+  val botInfo = appConfig.getConfig("botInfo")
+  val botId = botInfo.getString("botId")
+  val botKey = botInfo.getString("botKey")
+
 }
