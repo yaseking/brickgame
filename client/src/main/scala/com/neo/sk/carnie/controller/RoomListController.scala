@@ -167,8 +167,10 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
       linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
         case Right(r) =>
           val playGameScreen = new GameScene(img, frameRate)
-          context.switchScene(playGameScreen.getScene, fullScreen = true)
-          new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+          Boot.addToPlatform{
+            context.switchScene(playGameScreen.getScene, fullScreen = true)
+            new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+          }
 
         case Left(e) =>
           log.debug(s"linkGameAgent..$e")

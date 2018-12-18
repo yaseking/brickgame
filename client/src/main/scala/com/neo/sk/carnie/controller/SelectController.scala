@@ -28,10 +28,10 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
       Boot.addToPlatform(
         linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
           case Right(r) =>
-            println("lalala")
-            println(s"got linkRsp: $r")
-            context.switchScene(playGameScreen.getScene, fullScreen = true)
-            new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+            Boot.addToPlatform {
+              context.switchScene(playGameScreen.getScene, fullScreen = true)
+              new GameController(playerInfoInClient.copy(msg = r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+            }
 
           case Left(e) =>
             log.debug(s"linkGameAgent..$e")
