@@ -18,7 +18,7 @@ import concurrent.duration._
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
-import com.neo.sk.carnie.core.BotActor.KillBot
+import com.neo.sk.carnie.core.BotActor.{BackToGame, BotDead, KillBot}
 import com.neo.sk.utils.EsheepClient
 
 import scala.concurrent.Future
@@ -87,7 +87,7 @@ object RoomActor {
             case _ => Protocol.frameRate1
           }
           log.info(s"frameRate: $frameRate")
-          AppSettings.botMap.foreach{b => getBotActor(ctx, roomId + b._1) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)}
+          AppSettings.botMap.foreach{b => getBotActor(ctx, "bot_"+roomId + b._1) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)}
           timer.startPeriodicTimer(SyncKey, Sync, frameRate millis)
           idle(0L, roomId, mode, grid, tickCount = 0l, winStandard = winStandard)
       }
@@ -183,6 +183,8 @@ object RoomActor {
                   EsheepClient.inputBatRecord(id, name, u._2, 1, u._3.toFloat*100 / fullSize, "", startTime, endTime, token)
                 }
               }
+            } else if (id.take(3) == "bot") {
+              getBotActor(ctx, id) ! BotDead
             }
             userDeadList += id
           }
@@ -212,7 +214,7 @@ object RoomActor {
               botMap.foreach(b => getBotActor(ctx, b._1) ! KillBot)
               Behaviors.stopped
             } else {
-              val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains(roomId + b._1)).head
+              val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
               getBotActor(ctx, newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
               Behaviors.same
             }
@@ -307,6 +309,7 @@ object RoomActor {
 
           if(grid.newInfo.nonEmpty) {
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
+              if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
                 ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
               }.toList)
@@ -426,7 +429,7 @@ object RoomActor {
   }
 
   private def getBotActor(ctx: ActorContext[Command], botId: String) = {
-    val childName = s"bot_$botId"
+    val childName = botId
     ctx.child(childName).getOrElse {
       val actor = ctx.spawn(BotActor.create(botId), childName)
       actor
