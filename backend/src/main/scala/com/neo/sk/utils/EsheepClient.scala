@@ -148,7 +148,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
     val url = s"http://$domain/carnie/getRoomList4Client"
     val appId = AppSettings.esheepGameId.toString
     val sn = appId + System.currentTimeMillis().toString
-    val data = {}.asJson.noSpaces
+    val data = "".asJson.noSpaces
     val gsKey = AppSettings.esheepGsKey
     val (timestamp, nonce, signature) = generateSignatureParameters(List(appId, sn, data), gsKey)
     val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
