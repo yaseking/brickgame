@@ -211,13 +211,13 @@ class DrawGame(
     }
     ctx.restore()
     //绘制退出房间
-    ctx.save()
-    ctx.fillStyle = ColorsSetting.darkYellowColor
-    ctx.fillRect(x, y + 250, 175, 60)
-    ctx.font = "bold 24px Helvetica"
-    ctx.fillStyle = ColorsSetting.fontColor2
-    ctx.fillText("退出房间", x+40, y + 285)
-    ctx.save()
+//    ctx.save()
+//    ctx.fillStyle = ColorsSetting.darkYellowColor
+//    ctx.fillRect(x, y + 250, 175, 60)
+//    ctx.font = "bold 24px Helvetica"
+//    ctx.fillStyle = ColorsSetting.fontColor2
+//    ctx.fillText("退出房间", x+40, y + 285)
+//    ctx.restore()
   }
 
   def drawBarrage(killedName: String, killerName: String) = {
