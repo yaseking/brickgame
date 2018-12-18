@@ -35,7 +35,7 @@ object BotActor {
 
   private final case object SpaceKey
 
-  private var action = 0
+//  private var action = 0
 
 
   def create(botId: String): Behavior[Command] = {
@@ -62,15 +62,18 @@ object BotActor {
     }
   }
 
-  def gaming(botId: String, grid: GridOnServer, roomActor: ActorRef[RoomActor.Command], frameRate: Int)
+  def gaming(botId: String, grid: GridOnServer, roomActor: ActorRef[RoomActor.Command], frameRate: Int, actionNum: Int = 0)
             (implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case MakeAction =>
-          val actionCode = action % 4 + 37
+          val actionCode = actionNum % 4 + 37
           roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
-          action += 1
-          Behaviors.same
+          actionNum match {
+            case 3 => gaming(botId, grid, roomActor, frameRate)
+            case _ => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
+          }
+
 
         case BotDead =>
           log.info(s"bot dead:$botId")
