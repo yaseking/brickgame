@@ -131,6 +131,7 @@ object RoomActor {
           headImgList.put(id, img)
           if(userMap.size > AppSettings.minPlayerNum && botMap.nonEmpty){
             val killBot = botMap.head
+            botMap.-=(killBot._1)
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
           }
           idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, headImgList, botMap)
@@ -361,7 +362,10 @@ object RoomActor {
               if (!userDeadList.contains(u._1)) {
                 gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
                 userDeadList += u._1
-                if(u._1.take(3) == "bot") getBotActor(ctx, u._1) ! BotDead
+                if(u._1.take(3) == "bot") {
+                  botMap.-=(u._1)
+                  getBotActor(ctx, u._1) ! BotDead
+                }
               }
             }
           }
