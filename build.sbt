@@ -85,6 +85,35 @@ lazy val client = (project in file("client")).enablePlugins(PackPlugin)
   )
 ).dependsOn(sharedJvm)
 
+lazy val frontendAdmin = (project in file("frontendAdmin"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(name := "frontendAdmin")
+  .settings(commonSettings: _*)
+  .settings(
+    inConfig(Compile)(
+      Seq(
+        fullOptJS,
+        fastOptJS,
+        packageJSDependencies,
+        packageMinifiedJSDependencies
+      ).map(f => (crossTarget in f) ~= (_ / "sjsout"))
+    ))
+  .settings(skip in packageJSDependencies := false)
+  .settings(
+    scalaJSUseMainModuleInitializer := true,
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-core" % Dependencies.circeVersion,
+      "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
+      "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
+      "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
+      "io.suzaku" %%% "diode" % "1.1.2",
+      "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV withSources(),
+      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV withSources(),
+      "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV withSources(),
+    )
+  )
+  .dependsOn(sharedJs)
+
 // Akka Http based backend
 lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
   .settings(commonSettings: _*)
@@ -125,36 +154,27 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     (resourceDirectories in Compile) += (crossTarget in frontend).value,
     watchSources ++= (watchSources in frontend).value
   )
-  .dependsOn(sharedJvm)
-
-lazy val frontendAdmin = (project in file("frontendAdmin"))
-  .enablePlugins(ScalaJSPlugin)
-  .settings(name := "frontendAdmin")
-  .settings(commonSettings: _*)
-  .settings(
-    inConfig(Compile)(
+  .settings {
+    (resourceGenerators in Compile) += Def.task {
+      val fastJsOut = (fastOptJS in Compile in frontendAdmin).value.data
+      val fastJsSourceMap = fastJsOut.getParentFile / (fastJsOut.getName + ".map")
       Seq(
-        fullOptJS,
-        fastOptJS,
-        packageJSDependencies,
-        packageMinifiedJSDependencies
-      ).map(f => (crossTarget in f) ~= (_ / "sjsout"))
-    ))
-  .settings(skip in packageJSDependencies := false)
-  .settings(
-    scalaJSUseMainModuleInitializer := true,
-    libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core" % Dependencies.circeVersion,
-      "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
-      "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
-      "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
-      "io.suzaku" %%% "diode" % "1.1.2",
-      "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV withSources(),
-      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV withSources(),
-      "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV withSources(),
+        fastJsOut,
+        fastJsSourceMap
+      )
+    }.taskValue
+  }
+  .settings((resourceGenerators in Compile) += Def.task {
+    Seq(
+      (packageJSDependencies in Compile in frontendAdmin).value
+      //(packageMinifiedJSDependencies in Compile in frontend).value
     )
+  }.taskValue)
+  .settings(
+    (resourceDirectories in Compile) += (crossTarget in frontendAdmin).value,
+    watchSources ++= (watchSources in frontendAdmin).value
   )
-  .dependsOn(sharedJs)
+  .dependsOn(sharedJvm)
 
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)

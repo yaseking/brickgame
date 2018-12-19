@@ -140,6 +140,7 @@ object RoomApiProtocol {
                 msg: String = "ok"
               )
 
+
   case class RoomListInfo4Client(
                            roomList: List[String]
                          )
