@@ -393,6 +393,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
+        if(data.snake.map(_.id).contains(myId)) isContinue = true
+        dom.window.requestAnimationFrame(gameRender())
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         killInfo = Some(killedId, killedName, killerName)
