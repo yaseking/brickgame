@@ -187,6 +187,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def draw(offsetTime: Long): Unit = {
+    println(s"drawFunction:::$drawFunction")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
         drawGame.drawGameWait()
