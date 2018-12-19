@@ -107,11 +107,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  var lastTime = 0l
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
-    println(s"${System.currentTimeMillis()-lastTime}")
-    lastTime = System.currentTimeMillis()
     //    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
