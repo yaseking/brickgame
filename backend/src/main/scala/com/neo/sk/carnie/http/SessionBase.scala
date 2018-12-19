@@ -20,17 +20,17 @@ object SessionBase extends CirceSupport{
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   object AdminSessionKey {
-    val SESSION_TYPE = "titans_adminSession"
-    val aid = "titans_aid"
-    val name = "titans_name"
-    val loginTime = "titans_loginTime"
+    val SESSION_TYPE = "carnie_adminSession"
+    val aid = "carnie_aid"
+    val name = "carnie_name"
+    val loginTime = "carnie_loginTime"
   }
 
   object UserSessionKey {
-    val SESSION_TYPE = "titans_userSession"
-    val uid = "titans_uid"
-    val userName = "titans_userName"
-    val timestamp = "titans_timestamp"
+    val SESSION_TYPE = "carnie_userSession"
+    val uid = "carnie_uid"
+    val userName = "carnie_userName"
+    val timestamp = "carnie_timestamp"
   }
 
   case class AdminInfo(

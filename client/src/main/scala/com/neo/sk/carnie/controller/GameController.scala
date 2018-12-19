@@ -2,11 +2,12 @@ package com.neo.sk.carnie.controller
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.common.{Constant, Context}
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene, PerformanceTool}
+import com.neo.sk.carnie.scene.{GameScene, LayeredGameScene, PerformanceTool, SelectScene}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
@@ -43,6 +44,7 @@ class GameController(player: PlayerInfoInClient,
   var exitFullScreen = false
   var winnerName = "unknown"
   var isContinues = true
+  var btnFlag = true
   var winnerData : Option[Protocol.Data4TotalSync] = None
   val audioFinish = new AudioClip(getClass.getResource("/mp3/finish.mp3").toString)
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
@@ -86,7 +88,7 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def start(domain: String, mode: Int, img: Int): Unit = {
-    println(s"got accCode:${player.msg}")
+//    println(s"got accCode:${player.msg}")
     playActor ! PlayGameWebSocket.ConnectGame(player, domain, mode, img)
     addUserActionListen()
     startGameLoop()
@@ -192,6 +194,10 @@ class GameController(player: PlayerInfoInClient,
       case None if isWin =>
 
       case None if !firstCome =>
+        if(btnFlag) {
+          gameScene.group.getChildren.add(gameScene.backBtn)
+          btnFlag = false
+        }
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
 
@@ -442,6 +448,8 @@ class GameController(player: PlayerInfoInClient,
               }
               animationTimer.start()
               isContinue = true
+              gameScene.group.getChildren.remove(gameScene.backBtn)
+              btnFlag = true
           }
         }
         val newKeyCode =
@@ -458,6 +466,20 @@ class GameController(player: PlayerInfoInClient,
       }
     }
 
+    gameScene.backBtn.setOnAction(_ => switchToSelecting())
+  }
+
+  def switchToSelecting() = {
+    //fixme 假设用户一次玩游戏时间不超过两小时，否则需要刷新token
+    Boot.addToPlatform{
+      println("come back to selectScene.")
+//      playActor ! Terminate
+      Boot.system.stop(playActor.toUntyped)
+      Boot.addToPlatform{
+        val selectScene = new SelectScene()
+        new SelectController(player, selectScene, stageCtx).showScene
+      }
+    }
   }
 
 //  def getAllImage  = {

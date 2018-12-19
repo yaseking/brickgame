@@ -3,7 +3,7 @@ package com.neo.sk.carnie.actor
 import java.net.URLEncoder
 
 import akka.actor.typed._
-import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, WebSocketRequest}
@@ -22,12 +22,16 @@ import com.neo.sk.carnie.Boot.{executor, materializer, scheduler, system}
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import com.neo.sk.carnie.paperClient.Protocol
 
+import scala.concurrent.duration.FiniteDuration
+
 /**
   * Created by dry on 2018/10/23.
   **/
 object PlayGameWebSocket {
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
+
+  private final case object BehaviorChangeKey
 
   sealed trait WsCommand
 
@@ -38,6 +42,27 @@ object PlayGameWebSocket {
   case class JoinByRoomId(playerInfo: PlayerInfoInClient, domain: String, roomId: Int, img: Int) extends WsCommand//roomId: Int, img: Int
 
   case class MsgToService(sendMsg: WsSendMsg) extends WsCommand
+
+  case object Terminate extends WsCommand
+
+  final case class SwitchBehavior(
+                                   name: String,
+                                   behavior: Behavior[WsCommand],
+                                   durationOpt: Option[FiniteDuration] = None,
+                                   timeOut: TimeOut = TimeOut("busy time error")
+                                 ) extends WsCommand
+
+  case class TimeOut(msg:String) extends WsCommand
+
+  private[this] def switchBehavior(ctx: ActorContext[WsCommand],
+                                   behaviorName: String, behavior: Behavior[WsCommand], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
+                                  (implicit stashBuffer: StashBuffer[WsCommand],
+                                   timer:TimerScheduler[WsCommand]) = {
+    log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
+    timer.cancel(BehaviorChangeKey)
+    durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey,timeOut,_))
+    stashBuffer.unstashAll(ctx,behavior)
+  }
 
   def create(gameController: GameController): Behavior[WsCommand] = {
     Behaviors.setup[WsCommand] { ctx =>
@@ -52,7 +77,7 @@ object PlayGameWebSocket {
     Behaviors.receive[WsCommand] { (ctx, msg) =>
       msg match {
         case ConnectGame(playerInfo, domain, mode, img) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerInfo.id, playerInfo.name, playerInfo.msg, domain, mode, img)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, mode, img)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
@@ -77,7 +102,7 @@ object PlayGameWebSocket {
           connecting(stream)
 
         case CreateRoom(playerInfo, domain, mode, img, pwd) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4CreateRoom(playerInfo.id, playerInfo.name, playerInfo.msg, domain, mode, img, pwd)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4CreateRoom(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, mode, img, pwd)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
@@ -102,7 +127,7 @@ object PlayGameWebSocket {
           connecting(stream)
 
         case JoinByRoomId(playerInfo, domain, roomId, img) =>
-          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4JoinByRoomId(playerInfo.id, playerInfo.name, playerInfo.msg, domain, roomId, img)))
+          val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(getWebSocketUri4JoinByRoomId(playerInfo.id, playerInfo.name, playerInfo.accessCode, domain, roomId, img)))
           val source = getSource
           val sink = getSink(gameController)
           val ((stream, response), closed) =
@@ -125,6 +150,9 @@ object PlayGameWebSocket {
           } //ws断开
           connected.onComplete(i => log.info(i.toString))
           connecting(stream)
+
+        case Terminate =>
+          Behaviors.stopped
 
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown")

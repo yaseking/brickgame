@@ -72,7 +72,7 @@ class Boot extends javafx.application.Application {
               linkGameAgent(gameId, botId, data.token).map {
                 case Right(rst) =>
                   val layeredGameScreen = new LayeredGameScene(0, 150)
-                  new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+                  new BotController(PlayerInfoInClient(botId, botKey, accessCode = rst.accessCode), context, layeredGameScreen)
                 case Left(e) =>
                   log.error(s"bot link game agent error, $e")
               }

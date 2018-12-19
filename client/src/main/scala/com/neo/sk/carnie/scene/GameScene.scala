@@ -4,9 +4,9 @@ import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, WinData}
 import com.neo.sk.carnie.paperClient._
 import javafx.scene.canvas.Canvas
+import javafx.scene.control.Button
 import javafx.scene.{Group, Scene}
 import javafx.scene.input.KeyCode
-import javafx.scene.media.AudioClip
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import javafx.stage.Screen
 
@@ -37,6 +37,9 @@ class GameScene(img: Int, frameRate: Int) {
 //  val backgroundCanvas = new Canvas()
   val viewCanvas = new Canvas()
   val rankCanvas = new Canvas()
+  val backBtn = new Button("退出房间")
+  backBtn.setLayoutX(20)
+  backBtn.setLayoutY(20)
 
   viewCanvas.setHeight(viewHeight)
   viewCanvas.setWidth(viewWidth)

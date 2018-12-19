@@ -136,6 +136,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
+        println(s"newSnakeInfo: $newSnakeInfo")
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
         }
@@ -165,6 +166,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
+            println(s"draw base game")
             if (firstCome) firstCome = false
             if (BGM.paused) {
               BGM = bgmList(getRandom(bgmAmount))
@@ -185,6 +187,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def draw(offsetTime: Long): Unit = {
+    println(s"drawFunction:::$drawFunction")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
         drawGame.drawGameWait()
@@ -206,7 +209,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        //        println("draw---DrawBaseGame!!")
+        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get

@@ -19,12 +19,12 @@ class CreateRoomController(playerInfoInClient: PlayerInfoInClient, createRoomSce
         val frameRate = if(mode==2) frameRate2 else frameRate1
 //        println(s"pwd: $pwd")
         val gameId = AppSetting.esheepGameId
-        linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.msg).map {
+        linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.token).map {
           case Right(r) =>
             val playGameScreen = new GameScene(img, frameRate)
             Boot.addToPlatform{
               context.switchScene(playGameScreen.getScene, fullScreen = true)
-              new GameController(playerInfoInClient.copy(msg=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+              new GameController(playerInfoInClient.copy(accessCode=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
             }
 
           case Left(e) =>
