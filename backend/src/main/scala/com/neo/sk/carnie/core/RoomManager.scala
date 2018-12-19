@@ -289,12 +289,9 @@ object RoomManager {
           Behaviors.same
 
         case BotsJoinRoom(roomId, bots) =>
-          log.info(s"bots: $bots")
           if (roomMap.get(roomId).nonEmpty) {
             val userInRoom = roomMap(roomId)._3
-            bots.foreach {b =>
-              roomMap += roomId -> roomMap(roomId).copy(_3 = userInRoom + b)
-            }
+            roomMap += roomId -> roomMap(roomId).copy(_3 = userInRoom ++ bots)
           }
           Behaviors.same
 
