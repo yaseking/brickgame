@@ -126,10 +126,10 @@ object CurrentDataPage extends Page{
   }
 
   private def showRoom(room: Room) = {
-//    getRoomPlayerList(room.id).onComplete{
-//      case Success(r) => roomPlayerList := r
-//      case Failure(e) => roomPlayerList := List()
-//    }
+    getRoomPlayerList(room.id).onComplete{
+      case Success(r) => roomPlayerList := r
+      case Failure(e) => roomPlayerList := List()
+    }
       <div class="row">
         <div class="col-xs-2">
         </div>
@@ -141,22 +141,22 @@ object CurrentDataPage extends Page{
         </div>
         <div class="col-xs-2" style="text-align:center;">
           {
-          isGetPlayer.map{
-            case true =>
-              <div>
-                {
-                roomPlayerMap(room).map{ i =>
-                <div>{s"${i.playerId}"}</div>
-                }}
-              </div>
-            case false => <div></div>
-          }
+//          isGetPlayer.map{
+//            case true =>
+//              <div>
+//                {
+//                roomPlayerMap(room).map{ i =>
+//                <div>{s"${i.playerId}"}</div>
+//                }}
+//              </div>
+//            case false => <div></div>
+//          }
 
-          //         roomPlayerList.map{
-          //           r => r.map{ i =>
-          //             <div>{s"${i.playerId}"}</div>
-          //           }
-          //         }
+                   roomPlayerList.map{
+                     r => r.map{ i =>
+                       <div>{s"${i.playerId}"}</div>
+                     }
+                   }
           }
         </div>
         <div class="col-xs-2" style="text-align:center;">
