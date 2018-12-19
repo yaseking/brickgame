@@ -8,6 +8,7 @@ import org.scalajs.dom
 import io.circe.generic.auto._
 import io.circe.syntax._
 
+import scala.util.{Failure, Success}
 import scala.xml.{Elem, Node}
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -26,9 +27,9 @@ object CurrentDataPage extends Page{
 
   var roomList: List[Room] = List.empty
 
-//  val roomPlayerList: Var[List[PlayerIdName]] = Var(List.empty)
+  val roomPlayerList: Var[List[PlayerIdName]] = Var(List.empty)
 
-  var roomPlayerList: List[PlayerIdName] = List.empty
+//  var roomPlayerList: List[PlayerIdName] = List.empty
 
   var roomPlayerMap: Map[Room,List[PlayerIdName]] = Map()
 
@@ -48,16 +49,16 @@ object CurrentDataPage extends Page{
               Room(roomId.toInt,modeName)
             }
             roomListVar := roomList
-            if(roomList.nonEmpty){
-              roomList.foreach{ r =>
-                getRoomPlayerList(r.id)
-                if(isGetPlayer){
-                  roomPlayerMap += (r -> roomPlayerList)
-                  isGetPlayer = false
-                }
-              }
-            }
-            println(roomPlayerMap)
+//            if(roomList.nonEmpty){
+//              roomList.foreach{ r =>
+//                getRoomPlayerList(r.id)
+//                if(isGetPlayer){
+//                  roomPlayerMap += (r -> roomPlayerList)
+//                  isGetPlayer = false
+//                }
+//              }
+//            }
+//            println(roomPlayerMap)
           }
           else {
             println("error======" + rsp.msg)
@@ -75,29 +76,26 @@ object CurrentDataPage extends Page{
     }
   }
 
-  def getRoomPlayerList(roomId: Int): Unit ={
+  def getRoomPlayerList(roomId: Int) ={
     val url = Routes.Admin.getRoomPlayerList
     val data = RoomIdReq(roomId).asJson.noSpaces
     Http.postJsonAndParse[PlayerListRsp](url,data).map{
       case Right(rsp) =>
-        try {
-          if (rsp.errCode == 0) {
-            roomPlayerList = rsp.data.playerList
-            isGetPlayer = true
-          }
-          else {
-            println("error======" + rsp.msg)
-            JsFunc.alert(rsp.msg)
-          }
+        if (rsp.errCode == 0) {
+//          roomPlayerList :=
+          rsp.data.playerList
+//          isGetPlayer = true
         }
-        catch {
-          case e: Exception =>
-            println(e)
+        else {
+          println("error======" + rsp.msg)
+//          JsFunc.alert(rsp.msg)
+          List()
         }
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("Login error!")
+//        JsFunc.alert("Login error!")
+        List()
     }
   }
 
@@ -116,7 +114,8 @@ object CurrentDataPage extends Page{
         </div>
         <div class="col-xs-1" style="text-align:center;font-weight:bold">roomId</div>
         <div class="col-xs-1" style="text-align:center;font-weight:bold">model</div>
-        <div class="col-xs-2" style="text-align:center;font-weight:bold">players</div>
+        <div class="col-xs-2" style="text-align:center;font-weight:bold">playerId</div>
+        <div class="col-xs-2" style="text-align:center;font-weight:bold">playerName</div>
         <br></br>
       </div>
       <div>
@@ -126,7 +125,10 @@ object CurrentDataPage extends Page{
   }
 
   private def showRoom(room: Room):Elem = {
-    getRoomPlayerList(room.id)
+    getRoomPlayerList(room.id).onComplete{
+      case Success(r) => roomPlayerList := r
+      case Failure(e) => roomPlayerList := List()
+    }
     <div class="row">
       <div class="col-xs-2">
       </div>
@@ -138,7 +140,20 @@ object CurrentDataPage extends Page{
       </div>
       <div class="col-xs-2" style="text-align:center;">
         {
-          roomPlayerList.toString()
+         roomPlayerList.map{
+           r => r.map{ i =>
+             <div>{s"${i.playerId}"}</div>
+           }
+         }
+        }
+      </div>
+      <div class="col-xs-2" style="text-align:center;">
+        {
+        roomPlayerList.map{
+          r => r.map{ i =>
+            <div>{s"${i.nickname}"}</div>
+          }
+        }
         }
       </div>
       <br></br>
