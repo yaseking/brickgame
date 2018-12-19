@@ -289,6 +289,7 @@ object RoomManager {
           Behaviors.same
 
         case BotsJoinRoom(roomId, bots) =>
+          log.info(s"bots: $bots")
           if (roomMap.get(roomId).nonEmpty) {
             val userInRoom = roomMap(roomId)._3
             bots.foreach {b =>
