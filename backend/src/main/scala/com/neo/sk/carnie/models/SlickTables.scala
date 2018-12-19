@@ -14,7 +14,7 @@ trait SlickTables {
   import slick.jdbc.{GetResult => GR}
 
   /** DDL for all tables. Call .create to execute. */
-  lazy val schema: profile.SchemaDescription = tGameRecord.schema ++ tUserInRecord.schema
+  lazy val schema: profile.SchemaDescription = tGameRecord.schema ++ tPlayerRecord.schema ++ tUserInRecord.schema
   @deprecated("Use .schema instead of .ddl", "3.0")
   def ddl = schema
 
@@ -49,6 +49,47 @@ trait SlickTables {
   }
   /** Collection-like TableQuery object for table tGameRecord */
   lazy val tGameRecord = new TableQuery(tag => new tGameRecord(tag))
+
+  /** Entity class storing rows of table tPlayerRecord
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param playerid Database column playerid SqlType(varchar), Length(255,true)
+    *  @param nickname Database column nickname SqlType(varchar), Length(255,true)
+    *  @param killing Database column killing SqlType(int4)
+    *  @param killed Database column killed SqlType(int4)
+    *  @param score Database column score SqlType(float8)
+    *  @param startTime Database column start_time SqlType(int8)
+    *  @param endTime Database column end_time SqlType(int8) */
+  case class rPlayerRecord(id: Long, playerid: String, nickname: String, killing: Int, killed: Int, score: Double, startTime: Long, endTime: Long)
+  /** GetResult implicit for fetching rPlayerRecord objects using plain SQL queries */
+  implicit def GetResultrPlayerRecord(implicit e0: GR[Long], e1: GR[String], e2: GR[Int], e3: GR[Double]): GR[rPlayerRecord] = GR{
+    prs => import prs._
+      rPlayerRecord.tupled((<<[Long], <<[String], <<[String], <<[Int], <<[Int], <<[Double], <<[Long], <<[Long]))
+  }
+  /** Table description of table player_record. Objects of this class serve as prototypes for rows in queries. */
+  class tPlayerRecord(_tableTag: Tag) extends profile.api.Table[rPlayerRecord](_tableTag, "player_record") {
+    def * = (id, playerid, nickname, killing, killed, score, startTime, endTime) <> (rPlayerRecord.tupled, rPlayerRecord.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (Rep.Some(id), Rep.Some(playerid), Rep.Some(nickname), Rep.Some(killing), Rep.Some(killed), Rep.Some(score), Rep.Some(startTime), Rep.Some(endTime)).shaped.<>({r=>import r._; _1.map(_=> rPlayerRecord.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    /** Database column playerid SqlType(varchar), Length(255,true) */
+    val playerid: Rep[String] = column[String]("playerid", O.Length(255,varying=true))
+    /** Database column nickname SqlType(varchar), Length(255,true) */
+    val nickname: Rep[String] = column[String]("nickname", O.Length(255,varying=true))
+    /** Database column killing SqlType(int4) */
+    val killing: Rep[Int] = column[Int]("killing")
+    /** Database column killed SqlType(int4) */
+    val killed: Rep[Int] = column[Int]("killed")
+    /** Database column score SqlType(float8) */
+    val score: Rep[Double] = column[Double]("score")
+    /** Database column start_time SqlType(int8) */
+    val startTime: Rep[Long] = column[Long]("start_time")
+    /** Database column end_time SqlType(int8) */
+    val endTime: Rep[Long] = column[Long]("end_time")
+  }
+  /** Collection-like TableQuery object for table tPlayerRecord */
+  lazy val tPlayerRecord = new TableQuery(tag => new tPlayerRecord(tag))
 
   /** Entity class storing rows of table tUserInRecord
     *  @param userId Database column user_id SqlType(varchar), Length(255,true)
