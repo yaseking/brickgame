@@ -107,8 +107,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     dom.window.requestAnimationFrame(gameRender())
   }
 
+  var lastTime = 0l
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
+    println(s"${System.currentTimeMillis()-lastTime}")
+    lastTime = System.currentTimeMillis()
     //    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
@@ -393,10 +396,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case data: Protocol.NewSnakeInfo =>
 //        println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
-        if(data.snake.map(_.id).contains(myId)) {
-          isContinue = true
-          dom.window.requestAnimationFrame(gameRender())
-        }
+
+//        if(data.snake.map(_.id).contains(myId)) {
+//          isContinue = true
+//          dom.window.requestAnimationFrame(gameRender())
+//        }
 
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
