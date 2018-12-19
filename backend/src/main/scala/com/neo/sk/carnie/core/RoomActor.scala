@@ -19,6 +19,8 @@ import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.core.BotActor.{BackToGame, BotDead, KillBot}
+import com.neo.sk.carnie.models.dao.PlayerRecordDAO
+import com.neo.sk.carnie.protocol.EsheepProtocol.PlayerRecord
 import com.neo.sk.utils.EsheepClient
 
 import scala.concurrent.Future
@@ -183,6 +185,7 @@ object RoomActor {
                 msgFuture.map { token =>
                   EsheepClient.inputBatRecord(id, name, u._2, 1, u._3.toFloat*100 / fullSize, "", startTime, endTime, token)
                 }
+                PlayerRecordDAO.addPlayerRecord(id, name, u._2, 1, u._3.toFloat*100 / fullSize, startTime, endTime)
               } else getBotActor(ctx, id) ! BotDead //bot死亡消息发送
             }
             userDeadList += id
