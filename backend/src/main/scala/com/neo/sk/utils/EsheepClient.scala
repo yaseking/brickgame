@@ -27,6 +27,7 @@ object EsheepClient extends HttpUtil with CirceSupport {
   private val baseUrl = AppSettings.esheepProtocol + "://" + domain + "/" + AppSettings.esheepUrl
 
   def getTokenRequest(gameId: Long, gsKey: String) = {
+
     val esheepUrl = baseUrl + "/api/gameServer/gsKey2Token"
     val sendData = GetToken(gameId, gsKey).asJson.noSpaces
 

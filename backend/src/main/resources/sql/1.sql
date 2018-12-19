@@ -15,3 +15,14 @@ CREATE TABLE public.user_in_record(
 CREATE INDEX user_in_record_record_id_idx ON user_in_record(record_id);
 
 ALTER TABLE public.user_in_record ADD nickname varchar(255) DEFAULT '' NOT NULL;
+
+CREATE TABLE public.player_record (
+  id SERIAL8 PRIMARY KEY NOT NULL,
+  player_id varchar(255) NOT NULL,
+  nickname varchar(255) NOT NULL,
+  killing INT   NOT NULL,
+  killed INT   NOT NULL,
+  score FLOAT NOT NULL,
+  start_time   BIGINT NOT NULL,
+  end_time     BIGINT NOT NULL
+);
