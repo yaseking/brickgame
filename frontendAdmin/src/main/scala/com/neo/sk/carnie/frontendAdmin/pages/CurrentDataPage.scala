@@ -8,6 +8,7 @@ import org.scalajs.dom
 import io.circe.generic.auto._
 import io.circe.syntax._
 
+
 import scala.util.{Failure, Success}
 import scala.xml.{Elem, Node}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,7 +34,7 @@ object CurrentDataPage extends Page{
 
   var roomPlayerMap: Map[Room,List[PlayerIdName]] = Map()
 
-  var isGetPlayer = false
+  var isGetPlayer = Var(false)
 
   def getRoomList() : Unit = {
     val url = Routes.Admin.getRoomList
@@ -49,16 +50,16 @@ object CurrentDataPage extends Page{
               Room(roomId.toInt,modeName)
             }
             roomListVar := roomList
-//            if(roomList.nonEmpty){
-//              roomList.foreach{ r =>
-//                getRoomPlayerList(r.id)
-//                if(isGetPlayer){
-//                  roomPlayerMap += (r -> roomPlayerList)
-//                  isGetPlayer = false
-//                }
-//              }
-//            }
-//            println(roomPlayerMap)
+            if(roomList.nonEmpty){
+              roomList.foreach{ r =>
+                getRoomPlayerList(r.id).onComplete{
+                  case Success(room) =>
+                    roomPlayerMap += (r -> room)
+                    isGetPlayer := true
+                  case Failure(e) => println(e)
+                }
+              }
+            }
           }
           else {
             println("error======" + rsp.msg)
@@ -124,41 +125,54 @@ object CurrentDataPage extends Page{
     </div>
   }
 
-  private def showRoom(room: Room):Elem = {
-    getRoomPlayerList(room.id).onComplete{
-      case Success(r) => roomPlayerList := r
-      case Failure(e) => roomPlayerList := List()
-    }
-    <div class="row">
-      <div class="col-xs-2">
-      </div>
-      <div class="col-xs-1" style="text-align:center;">
-        {room.id}
-      </div>
-      <div class="col-xs-1" style="text-align:center;">
-        {room.model}
-      </div>
-      <div class="col-xs-2" style="text-align:center;">
-        {
-         roomPlayerList.map{
-           r => r.map{ i =>
-             <div>{s"${i.playerId}"}</div>
-           }
-         }
-        }
-      </div>
-      <div class="col-xs-2" style="text-align:center;">
-        {
-        roomPlayerList.map{
-          r => r.map{ i =>
-            <div>{s"${i.nickname}"}</div>
+  private def showRoom(room: Room) = {
+//    getRoomPlayerList(room.id).onComplete{
+//      case Success(r) => roomPlayerList := r
+//      case Failure(e) => roomPlayerList := List()
+//    }
+      <div class="row">
+        <div class="col-xs-2">
+        </div>
+        <div class="col-xs-1" style="text-align:center;">
+          {room.id}
+        </div>
+        <div class="col-xs-1" style="text-align:center;">
+          {room.model}
+        </div>
+        <div class="col-xs-2" style="text-align:center;">
+          {
+          isGetPlayer.map{
+            case true =>
+              <div>
+                {
+                roomPlayerMap(room).map{ i =>
+                <div>{s"${i.playerId}"}</div>
+                }}
+              </div>
+            case false => <div></div>
           }
-        }
-        }
+
+          //         roomPlayerList.map{
+          //           r => r.map{ i =>
+          //             <div>{s"${i.playerId}"}</div>
+          //           }
+          //         }
+          }
+        </div>
+        <div class="col-xs-2" style="text-align:center;">
+          {
+          roomPlayerList.map{
+            r => r.map{ i =>
+              <div>{s"${i.nickname}"}</div>
+            }
+          }
+          }
+        </div>
+        <br></br>
       </div>
-      <br></br>
-    </div>
   }
+
+
 
   override def render: Elem = {
     getRoomList()

@@ -76,6 +76,7 @@ trait AdminService extends ServiceUtils
         dealFutureResult{
           msg.map { plist =>
             if(plist.nonEmpty){
+              log.info(s"${req.roomId}$plist")
               complete(PlayerListRsp(PlayerInfo(plist)))
             }
             else{

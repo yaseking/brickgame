@@ -259,7 +259,7 @@ object RoomActor {
               if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
                 val name = userMap.getOrElse(id, UserInfo("unknown", -1, -1)).name
                 userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
-                log.debug(s"recv space from id ====$id")
+//                log.debug(s"recv space from id ====$id")
                 if (headImgList.contains(id)) {
                   grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, headImgList(id))
                 } else {

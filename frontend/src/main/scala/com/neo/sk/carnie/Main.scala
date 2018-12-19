@@ -50,7 +50,8 @@ object Main extends js.JSApp {
 
   def selectPage():Unit = {
 //    currentPage = new RoomListPage(PlayGamePara("test", "test")).render
-    currentPage = new JoinGamePage("playGame", PlayGamePara("test", "test")).render
+    val r = Random.nextInt(1000)
+    currentPage = new JoinGamePage("playGame", PlayGamePara(s"test$r", s"test$r")).render
     show()
 //    val url = dom.window.location.href.split("carnie/")(1)
 //    val info = url.split("\\?")
