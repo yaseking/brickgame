@@ -136,7 +136,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
-        println(s"newSnakeInfo: $newSnakeInfo")
+        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
         }
@@ -187,12 +187,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def draw(offsetTime: Long): Unit = {
-    println(s"drawFunction:::$drawFunction")
+//    println(s"drawFunction:::$drawFunction")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
+        println(s"drawFunction::: drawGameWait")
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
+        println(s"drawFunction::: drawGameOff")
         if(!BGM.paused){
           BGM.pause()
           BGM.currentTime = 0
@@ -220,6 +222,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
+        println(s"drawFunction::: drawGameDie")
         if(!BGM.paused){
           BGM.pause()
           BGM.currentTime = 0
@@ -390,6 +393,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
+        if(data.snake.map(_.id).contains(myId)) {
+          isContinue = true
+          dom.window.requestAnimationFrame(gameRender())
+        }
+
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         killInfo = Some(killedId, killedName, killerName)
