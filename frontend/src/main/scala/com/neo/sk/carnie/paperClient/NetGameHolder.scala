@@ -208,7 +208,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-        //        println("draw---DrawBaseGame!!")
+        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
