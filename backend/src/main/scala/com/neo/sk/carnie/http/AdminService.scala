@@ -5,20 +5,21 @@ import akka.http.scaladsl.server.Route
 import com.neo.sk.utils.{CirceSupport, SessionSupport}
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
+import com.neo.sk.carnie.ptcl.RoomApiProtocol._
+//import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.{Directive1, Route}
+import com.neo.sk.carnie.core.RoomManager
 import io.circe.generic.auto._
 import io.circe.Error
 import com.neo.sk.carnie.http.SessionBase.{AdminInfo, AdminSession}
-//import akka.stream.scaladsl.{FileIO, Sink, Source}
-//import akka.actor.typed.scaladsl.AskPattern._
-//import akka.http.scaladsl.model.HttpEntity
-import com.neo.sk.carnie.ptcl.AdminPtcl._
-//import com.neo.sk.carnie.core.RoomManager
-//import com.neo.sk.carnie.Boot.{executor, scheduler}
+import com.neo.sk.carnie.ptcl.RoomApiProtocol
+import com.neo.sk.carnie.ptcl.RoomApiProtocol.RoomListInfo4Client
+import akka.actor.typed.scaladsl.AskPattern._
+
+import scala.concurrent.Future
+import com.neo.sk.carnie.ptcl.AdminPtcl
+import com.neo.sk.carnie.Boot.{executor, scheduler}
 import com.neo.sk.carnie.common.AppSettings
-//import com.neo.sk.carnie.models.dao.RecordDAO
-//import scala.concurrent.Future
 //import scala.util.{Failure, Success}
 
 /**
@@ -30,13 +31,14 @@ trait AdminService extends ServiceUtils
   with CirceSupport
   with SessionBase
   with SessionSupport
+  with RoomApiService
 {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
 
   private val login = (path("login") & post & pathEndOrSingleSlash){
-    entity(as[Either[Error, LoginReq]]) {
+    entity(as[Either[Error, AdminPtcl.LoginReq]]) {
       case Right(req) =>
         if(AppSettings.adminId == req.id && AppSettings.adminPassWord == req.passWord){
           setSession(
@@ -54,10 +56,53 @@ trait AdminService extends ServiceUtils
     }
   }
 
+  private val getRoomList = (path("getRoomList") & get & pathEndOrSingleSlash){
+    adminAuth{ _ =>
+      dealFutureResult {
+        val msg: Future[List[String]] = roomManager ? RoomManager.FindAllRoom4Client
+        msg.map {
+          allRoom =>
+            log.info("prepare to return roomList.")
+            complete(RoomApiProtocol.RoomListRsp4Client(RoomListInfo4Client(allRoom)))
+        }
+      }
+    }
+  }
+
+  private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, RoomIdReq]]){
+      case Right(req) =>
+        val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+        dealFutureResult{
+          msg.map { plist =>
+            if(plist.nonEmpty){
+              complete(PlayerListRsp(PlayerInfo(plist)))
+            }
+            else{
+              log.info("get player list error: this room doesn't exist")
+              complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
+            }
+
+          }
+        }
+      case Left(_) =>
+        complete(ErrorRsp(130001, "parse error."))
+    }
+  }
+
+  private val logout = path("logout") {
+    adminAuth {
+      _ =>
+        invalidateSession {
+          complete(SuccessRsp())
+        }
+    }
+  }
+
   val adminRoutes: Route = pathPrefix("admin"){
     pathEndOrSingleSlash {
       getFromResource("html/admin.html")
     } ~
-    login
+    login ~ logout ~ getRoomList ~ getRoomPlayerList
   }
 }
