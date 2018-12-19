@@ -187,12 +187,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def draw(offsetTime: Long): Unit = {
-    println(s"drawFunction:::$drawFunction")
+//    println(s"drawFunction:::$drawFunction")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
+        println(s"drawFunction::: drawGameWait")
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
+        println(s"drawFunction::: drawGameOff")
         if(!BGM.paused){
           BGM.pause()
           BGM.currentTime = 0
@@ -220,6 +222,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
+        println(s"drawFunction::: drawGameDie")
         if(!BGM.paused){
           BGM.pause()
           BGM.currentTime = 0
