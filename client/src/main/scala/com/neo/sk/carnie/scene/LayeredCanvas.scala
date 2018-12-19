@@ -260,50 +260,50 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    selfViewCtx.restore()
 //  }
 
-//  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore, maxArea: Int): Unit = {
-//    //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-//    //    val endTime = System.currentTimeMillis()
-//    //    if (myScore.area > maxArea) maxArea = myScore.area
-//    selfViewCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
-//    selfViewCtx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-//    selfViewCtx.setFill(ColorsSetting.gameNameColor)
-//    selfViewCtx.setFont(Font.font(20))
-//    scale = 1
-//    selfViewCtx.scale(1, 1)
-//
-//    val text = killerOpt match {
-//      case Some(killer) => s"Ops, You Are Killed By $killer! Press Space Key To Revenge!"
-//      case None => "Ops, Press Space Key To Restart!"
-//    }
-//    val txt =new Text(text)
-//    val length = txt.getLayoutBounds.getWidth
-//    val offx = length / 2
-//    val x = (windowBoundary.x / 2).toInt - 145
-//    val y = (windowBoundary.y / 2).toInt - 180
-//
-//    val gameTime = (myScore.endTime - myScore.startTime) / 1000
-//    val bestScore = maxArea / canvasSize * 100
-//    val time = {
-//      val tempM = gameTime / 60
-//      val s1 = gameTime % 60
-//      val s = if (s1 < 0) "00" else if (s1 < 10) "0" + s1 else s1.toString
-//      val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
-//      m + ":" + s
-//    }
-//    selfViewCtx.fillText(text, windowBoundary.x / 2 - offx - 50 , y) //(500,180)
-//    selfViewCtx.save()
-//    selfViewCtx.setFill(ColorsSetting.dieInfoFontColor)
-//    selfViewCtx.setFont(Font.font(20))
-//    selfViewCtx.fillText("YOUR SCORE:", x, y + 70)
-//    selfViewCtx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
-//    selfViewCtx.fillText("BEST SCORE:", x, y + 110)
-//    selfViewCtx.fillText(f"$bestScore%.2f" + "%", x + 230, y + 110)
-//    selfViewCtx.fillText(s"PLAYERS KILLED:", x, y + 150)
-//    selfViewCtx.fillText(s"${myScore.kill}", x + 230, y + 150)
-//    selfViewCtx.fillText(s"TIME PLAYED:", x, y + 190)
-//    selfViewCtx.fillText(s"$time", x + 230, y + 190)
-//    selfViewCtx.restore()
-//  }
+  def drawGameDie(killerOpt: Option[String],  myScore :BaseScore, maxArea: Int): Unit = {
+    //    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
+    //    val endTime = System.currentTimeMillis()
+    //    if (myScore.area > maxArea) maxArea = myScore.area
+    selfViewCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
+    selfViewCtx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    selfViewCtx.setFill(ColorsSetting.gameNameColor)
+    selfViewCtx.setFont(Font.font(20))
+    scale = 1
+    selfViewCtx.scale(1, 1)
+
+    val text = killerOpt match {
+      case Some(killer) => s"Ops, You Are Killed By $killer! Press Space Key To Revenge!"
+      case None => "Ops, Press Space Key To Restart!"
+    }
+    val txt =new Text(text)
+    val length = txt.getLayoutBounds.getWidth
+    val offx = length / 2
+    val x = (windowBoundary.x / 2).toInt - 145
+    val y = (windowBoundary.y / 2).toInt - 180
+
+    val gameTime = (myScore.endTime - myScore.startTime) / 1000
+    val bestScore = maxArea / canvasSize * 100
+    val time = {
+      val tempM = gameTime / 60
+      val s1 = gameTime % 60
+      val s = if (s1 < 0) "00" else if (s1 < 10) "0" + s1 else s1.toString
+      val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
+      m + ":" + s
+    }
+    selfViewCtx.fillText(text, windowBoundary.x / 2 - offx - 50 , y) //(500,180)
+    selfViewCtx.save()
+    selfViewCtx.setFill(ColorsSetting.dieInfoFontColor)
+    selfViewCtx.setFont(Font.font(20))
+    selfViewCtx.fillText("YOUR SCORE:", x, y + 70)
+    selfViewCtx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
+    selfViewCtx.fillText("BEST SCORE:", x, y + 110)
+    selfViewCtx.fillText(f"$bestScore%.2f" + "%", x + 230, y + 110)
+    selfViewCtx.fillText(s"PLAYERS KILLED:", x, y + 150)
+    selfViewCtx.fillText(s"${myScore.kill}", x + 230, y + 150)
+    selfViewCtx.fillText(s"TIME PLAYED:", x, y + 190)
+    selfViewCtx.fillText(s"$time", x + 230, y + 190)
+    selfViewCtx.restore()
+  }
 
 //  def drawDieBarrage(killedName: String, killerName: String): Unit = {
 //    selfViewCtx.save()

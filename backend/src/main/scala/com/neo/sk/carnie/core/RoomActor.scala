@@ -90,7 +90,13 @@ object RoomActor {
             case _ => Protocol.frameRate1
           }
           log.info(s"frameRate: $frameRate")
-          AppSettings.botMap.foreach{b => getBotActor(ctx, "bot_"+roomId + b._1) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)}
+          val botsList = AppSettings.botMap.map{b =>
+            val id = "bot_"+roomId + b._1
+            getBotActor(ctx, id) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)
+            (id, b._2)
+          }.toList
+
+          roomManager ! RoomManager.BotsJoinRoom(roomId, botsList)
           timer.startPeriodicTimer(SyncKey, Sync, frameRate millis)
           idle(0L, roomId, mode, grid, tickCount = 0l, winStandard = winStandard)
       }
@@ -134,6 +140,7 @@ object RoomActor {
           if(userMap.size > AppSettings.minPlayerNum && botMap.nonEmpty){
             val killBot = botMap.head
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
+            roomManager ! RoomManager.BotKilled(roomId, killBot._1)
           }
           idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, botMap)
 

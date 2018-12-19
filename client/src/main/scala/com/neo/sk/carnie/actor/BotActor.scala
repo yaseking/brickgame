@@ -64,9 +64,9 @@ object BotActor {
 
   case class Action(move: Move, replyTo: ActorRef[Long]) extends Command
 
-  case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], LayeredObservation, Long)]) extends Command
+  case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Long, Boolean)]) extends Command
 
-  case class Observation(obs: (Option[ImgData], LayeredObservation, Long)) extends Command
+  case class Observation(obs: (Option[ImgData], Option[LayeredObservation], Long, Boolean)) extends Command
 
   case class ReturnInform(replyTo: ActorRef[(Score, Long)]) extends Command
 
@@ -255,7 +255,7 @@ object BotActor {
   def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
                             botController: BotController,
                             playerInfo: PlayerInfoInClient,
-                            replyTo: ActorRef[(Option[ImgData], LayeredObservation, Long)])(
+                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Long, Boolean)])(
     implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
@@ -277,9 +277,21 @@ object BotActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Reincarnation(replyTo) =>
+          actor ! Key(playerInfo.id, 32, botController.grid.frameCount, -1)
           replyTo ! SimpleRsp(state = State.in_game, msg = "ok")
+//          botController.startGameLoop()
+          botController.grid.cleanSnakeTurnPoint(playerInfo.id)
+          botController.grid.actionMap = botController.grid.actionMap.filterNot(_._2.contains(playerInfo.id))
           log.info(s"recv msg:$msg")
           gaming(actor, botController, playerInfo)
+
+        case Action(move, replyTo) =>
+          replyTo ! -2L
+          Behaviors.same
+
+        case ReturnObservation(replyTo) =>
+          replyTo ! (None, None, botController.grid.frameCount, false)
+          Behaviors.same
 
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown when dead")

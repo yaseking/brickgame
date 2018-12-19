@@ -76,6 +76,10 @@ object RoomManager {
 
   case class UserLeft(id: String) extends Command
 
+  case class BotsJoinRoom(roomId: Int, bots: List[(String, String)]) extends Command
+
+  case class BotKilled(roomId: Int, botId: String) extends Command
+
   case class PreWatchGame(roomId: Int, playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
   private case object UnKnowAction extends Command
@@ -283,6 +287,24 @@ object RoomManager {
           log.debug(s"got all room")
           reply ! roomMap.map{i => s"${i._1}-${i._2._1}-${i._2._2.nonEmpty}"}.toList //roomId-mode-pwd(t/f)
           Behaviors.same
+
+        case BotsJoinRoom(roomId, bots) =>
+          if (roomMap.get(roomId).nonEmpty) {
+            val userInRoom = roomMap(roomId)._3
+            bots.foreach {b =>
+              roomMap += roomId -> roomMap(roomId).copy(_3 = userInRoom + b)
+            }
+          }
+          Behaviors.same
+
+        case BotKilled(roomId, botId) =>
+          if (roomMap.get(roomId).nonEmpty) {
+            val filterUserInfo = roomMap(roomId)._3.find(_._1 == botId)
+            if (filterUserInfo.nonEmpty)
+              roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2, roomMap(roomId)._3 - filterUserInfo.get))
+          }
+          Behaviors.same
+
 
         case unknown =>
           log.debug(s"${ctx.self.path} receive a msg unknown:$unknown")

@@ -102,6 +102,9 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
       val rstF: Future[Long] = botActor ? (BotActor.Action(request.move, _))
       rstF.map {
         case -1L => ActionRsp(errCode = 10002, state = state, msg = "action error")
+        case -2L =>
+          state = State.killed
+          ActionRsp(errCode = 10004, state = state, msg = "not in_game state")
         case frame => ActionRsp(frame, state = state)
       }.recover {
         case e: Exception =>
@@ -115,9 +118,16 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     println(s"observation Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
       if (state == State.in_game) {
-        val rstF: Future[(Option[ImgData], LayeredObservation, Long)]  = botActor ? BotActor.ReturnObservation
+        val rstF: Future[(Option[ImgData], Option[LayeredObservation], Long, Boolean)]  = botActor ? BotActor.ReturnObservation
         rstF.map {rst =>
-          ObservationRsp(Some(rst._2), rst._1, rst._3, state = state, msg = "ok")
+          if (rst._4) {//in game
+            state = State.in_game
+            ObservationRsp(rst._2, rst._1, rst._3, state = state, msg = "ok")
+
+          } else { //killed
+            state = State.killed
+            ObservationRsp(errCode = 10004, state = state, msg = s"not in_game state")
+          }
         }.recover {
           case e: Exception =>
             ObservationRsp(errCode = 10001, state = state, msg = s"internal error:$e")
@@ -149,10 +159,15 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     if(request.apiToken == BotAppSetting.apiToken) {
       val rstF: Future[SimpleRsp] = botActor ? Reincarnation
       rstF.map {rsp =>
-        if(rsp.errCode == 0) rsp
+        if(rsp.errCode == 0) {
+          state = State.in_game
+          rsp
+        }
         else SimpleRsp(errCode = 10006, state = State.unknown, msg = "reincarnation error")
       }
     } else Future.successful(SimpleRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
+
+
 
 }
