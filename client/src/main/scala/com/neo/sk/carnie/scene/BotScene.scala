@@ -1,8 +1,11 @@
 package com.neo.sk.carnie.scene
 
+import javafx.event.EventHandler
 import javafx.geometry.{Insets, Pos}
 import javafx.scene.{Group, Scene}
 import javafx.scene.control.{Button, Label, PasswordField, TextField}
+import javafx.scene.effect.DropShadow
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{GridPane, HBox, VBox}
 
 abstract class BotSceneListener {
@@ -17,7 +20,35 @@ class BotScene {
   private val scene = new Scene(group, width, height)
 
   val confirm = new Button("确定")
+  confirm.setStyle("-fx-font: 15 arial; -fx-base: #67B567; -fx-background-radius: 10px;")
   val backBtn = new Button("返回")
+  backBtn.setStyle("-fx-font: 15 arial; -fx-base: #CA5C54; -fx-background-radius: 10px;")//red
+
+  val shadow = new DropShadow()
+
+  confirm.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      confirm.setEffect(shadow)
+    }
+  })
+
+  confirm.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      confirm.setEffect(null)
+    }
+  })
+
+  backBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      backBtn.setEffect(shadow)
+    }
+  })
+
+  backBtn.addEventHandler(MouseEvent.MOUSE_EXITED,new EventHandler[MouseEvent] {
+    override def handle(event: MouseEvent): Unit = {
+      backBtn.setEffect(null)
+    }
+  })
 
   confirm.setLayoutX(200)
   confirm.setLayoutY(230)
