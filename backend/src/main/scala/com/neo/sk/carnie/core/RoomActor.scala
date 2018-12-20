@@ -185,7 +185,7 @@ object RoomActor {
               val endTime = System.currentTimeMillis()
               dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
               watcherMap.filter(_._2._1==id).foreach(user => dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, startTime, endTime)))
-              log.debug(s"watchMap: ${watcherMap.filter(_._2._1==id)}, watchedId: $id")
+//              log.debug(s"watchMap: ${watcherMap.filter(_._2._1==id)}, watchedId: $id")
               //上传战绩
               if(subscribersMap.get(id).nonEmpty){ //bot的战绩不上传
                 val msgFuture: Future[String] = tokenActor ? AskForToken
