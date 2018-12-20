@@ -11,4 +11,10 @@ object PlayerRecordDAO {
     db.run{
       tPlayerRecord += rPlayerRecord(-1l, playerId, nickName, killing, killed, score, startTime, endTime)
     }
+
+  def getPlayerRecord()={
+    db.run{
+      tPlayerRecord.result
+    }
+  }
 }

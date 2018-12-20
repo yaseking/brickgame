@@ -31,7 +31,7 @@ object LoginPage extends Page{
       case Right(rsp) =>
         try {
           if (rsp.errCode == 0) {
-            dom.window.location.href="#/View"
+            dom.window.location.href="#/CurrentDataPage"
           }
           else {
             println("error======" + rsp.msg)

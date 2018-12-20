@@ -2,6 +2,7 @@ package com.neo.sk.carnie.frontendAdmin.pages
 
 import com.neo.sk.carnie.frontendAdmin.Routes
 import com.neo.sk.carnie.frontendAdmin.util.{Http, JsFunc, Page}
+import com.neo.sk.carnie.ptcl.AdminPtcl._
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import mhtml.Var
 import org.scalajs.dom
@@ -35,39 +36,9 @@ object CurrentDataPage extends Page{
 //  var roomPlayerMap: Map[Room,List[PlayerIdName]] = Map()
 
   var roomMap: Map[Int, (Int, Option[String], mutable.HashSet[(String, String)])] = Map()
+
   var roomPlayerMap: Map[Int, mutable.HashSet[(String, String)]] = Map()
 
-
-//  def getRoomList() : Unit = {
-//    val url = Routes.Admin.getRoomList
-//    Http.getAndParse[RoomListRsp4Client](url).map{
-//      case Right(rsp) =>
-//        try {
-//          if (rsp.errCode == 0) {
-//            roomList = rsp.data.roomList.map{ s =>
-//              val roomInfo = s.split("-")
-//              val roomId = roomInfo(0).toInt
-//              val modeName = if(roomInfo(1)=="0") "正常" else if(roomInfo(2)=="1") "反转" else "加速"
-//              //              val hasPwd = if(roomInfo(2)=="true") true else false
-//              Room(roomId.toInt,modeName)
-//            }
-//            roomListVar := roomList
-//          }
-//          else {
-//            println("error======" + rsp.msg)
-//            JsFunc.alert(rsp.msg)
-//          }
-//        }
-//        catch {
-//          case e: Exception =>
-//            println(e)
-//        }
-//
-//      case Left(e) =>
-//        println("error======" + e)
-//        JsFunc.alert("Login error!")
-//    }
-//  }
 
   def getRoomPlayerList():Unit ={
     val url = Routes.Admin.getRoomPlayerList
@@ -84,6 +55,7 @@ object CurrentDataPage extends Page{
                 val modeName = if (i._2._1 == 0) "正常" else if (i._2._1 == 1) "反转" else "加速"
                 Room(roomId, modeName)
             }.toList
+            roomListVar := roomList
           }
           else {
             println("error======" + rsp.msg)
@@ -97,7 +69,7 @@ object CurrentDataPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("Login error!")
+        JsFunc.alert("get room players error!")
     }
   }
 

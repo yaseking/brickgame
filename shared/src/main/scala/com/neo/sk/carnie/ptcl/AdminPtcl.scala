@@ -26,4 +26,27 @@ object AdminPtcl {
     id: String,
     passWord: String
   )
+
+  case class PlayerRecord(
+    id: Long,
+    playerId: String,
+    nickname: String,
+    killing: Int,
+    killed: Int,
+    score: Double,
+    startTime: Long,
+    endTime: Long
+  )
+
+  case class PlayerRecordRsp(
+    data: List[PlayerRecord],
+    playerAmount: Int,
+    playerAmountToday: Int,
+    errCode: Int = 0,
+    msg: String = "ok"
+  ) extends CommonRsp
+
+  case class PageReq(
+    page: Int
+  )
 }
