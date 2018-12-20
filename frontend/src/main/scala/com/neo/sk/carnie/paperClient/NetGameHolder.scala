@@ -142,6 +142,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+        if (newSnakeInfo.get.snake.map(_.id).contains(myId)) isContinue = true
         newSnakeInfo = None
       }
 
