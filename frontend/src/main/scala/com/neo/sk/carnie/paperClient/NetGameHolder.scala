@@ -142,6 +142,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+        if (newSnakeInfo.get.snake.map(_.id).contains(myId)) isContinue = true
         newSnakeInfo = None
       }
 
@@ -267,6 +268,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
+                  println(s"drawFunction: $drawFunction")
 //                  grid.cleanData()
                   grid.cleanSnakeTurnPoint(myId)
                   grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
@@ -391,7 +393,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-//        println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
+        if(data.snake.map(_.id).contains(myId)) println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
 
 //        if(data.snake.map(_.id).contains(myId)) {
