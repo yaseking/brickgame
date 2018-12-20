@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.core
 
 import java.awt.event.KeyEvent
-
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -10,7 +9,6 @@ import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.core.GameRecorder.RecordData
 import com.neo.sk.carnie.common.AppSettings
-
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
@@ -20,7 +18,6 @@ import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.core.BotActor.{BackToGame, BotDead, KillBot}
 import com.neo.sk.utils.EsheepClient
-
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -210,6 +207,7 @@ object RoomActor {
           if (headImgList.contains(id)) headImgList.remove(id)
           if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           if(userMap.size < AppSettings.minPlayerNum){
+            println("1:" + userMap.size + "--" + "2:" + botMap.size)
             if(botMap.size == userMap.size){
               botMap.foreach(b => getBotActor(ctx, b._1) ! KillBot)
               Behaviors.stopped
