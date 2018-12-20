@@ -137,7 +137,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
 //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
-        if (newSnakeInfo.get.snake.map(_.id).contains(myId)) spaceKey()
+        if (newSnakeInfo.get.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
         }
@@ -156,6 +156,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           val frame = newFieldInfo.keys.min
           val newFieldData = newFieldInfo(frame)
           if (frame == grid.frameCount) {
+            if(newFieldData.fieldDetails.map(_.uid).contains(myId))
+              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
             grid.addNewFieldInfo(newFieldData)
             newFieldInfo -= frame
           } else if (frame < grid.frameCount) {

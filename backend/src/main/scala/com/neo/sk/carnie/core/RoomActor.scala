@@ -156,7 +156,7 @@ object RoomActor {
 //          headImgList.put(id, img)
           idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap)
 
-          case m@WatchGame(playerId, userId, subscriber) =>
+        case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
           val truePlayerId = if (playerId == "unknown") userMap.head._1 else playerId
           watcherMap.put(userId, (truePlayerId, index%classify))
@@ -181,10 +181,11 @@ object RoomActor {
               val startTime = userMap(id).startTime
               grid.cleanSnakeTurnPoint(id)
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
-              log.debug(s"user $id dead:::::")
+//              log.debug(s"user $id dead:::::")
               val endTime = System.currentTimeMillis()
               dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
               watcherMap.filter(_._2._1==id).foreach(user => dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, startTime, endTime)))
+//              log.debug(s"watchMap: ${watcherMap.filter(_._2._1==id)}, watchedId: $id")
               //上传战绩
               if(subscribersMap.get(id).nonEmpty){ //bot的战绩不上传
                 val msgFuture: Future[String] = tokenActor ? AskForToken
@@ -202,6 +203,7 @@ object RoomActor {
           log.debug(s"LeftRoom:::$id")
           if(userDeadList.contains(id)) userDeadList -= id
           grid.removeSnake(id)
+          grid.cleanSnakeTurnPoint(id)
           userMap.filter(_._1 == id).foreach{ u =>
             userGroup.get(u._2.group) match {
               case Some(s) => userGroup.update(u._2.group,s - id)
@@ -218,14 +220,15 @@ object RoomActor {
 //          if (headImgList.contains(id)) headImgList.remove(id)
           if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           if(userMap.size < AppSettings.minPlayerNum){
-            println("1:" + userMap.size + "--" + "2:" + botMap.size)
+//            println("1:" + userMap.size + "--" + "2:" + botMap.size)
             if(botMap.size == userMap.size){
               botMap.foreach(b => getBotActor(ctx, b._1) ! KillBot)
               Behaviors.stopped
             } else {
+//              log.debug(s"botMap:::$botMap")
               if(!AppSettings.botMap.forall(b => botMap.keys.toList.contains("bot_" + roomId + b._1))) {
                 val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
-                getBotActor(ctx, newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
+                getBotActor(ctx, "bot_" + roomId + newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
               }
               Behaviors.same
             }
@@ -271,7 +274,7 @@ object RoomActor {
               if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
                 val info = userMap.getOrElse(id, UserInfo("", -1L, -1L, 0))
                 userMap.put(id, UserInfo(info.name, System.currentTimeMillis(), info.group, info.img))
-                log.debug(s"recv space from id ====$id")
+//                log.debug(s"recv space from id ====$id")
 //                if (headImgList.contains(id)) {
                 grid.addSnake(id, roomId, info.name, info.img)
 //                } else {
