@@ -239,7 +239,15 @@ object RoomActor {
           log.debug(s"WatcherLeftRoom:::$uid")
           subscribersMap.get(uid).foreach(r => ctx.unwatch(r))//
           subscribersMap.remove(uid)
-          watcherMap.remove(uid)
+          if(watcherMap.contains(uid)) {
+            val groupId = watcherMap(uid)._2
+            userGroup.get(groupId) match {
+              case Some(s) => userGroup.update(groupId,s - uid)
+              case None => userGroup.put(groupId, Set.empty)
+            }
+            watcherMap.remove(uid)
+          }
+//          watcherMap.remove(uid)
           Behaviors.same
 
         case UserLeft(actor) =>
