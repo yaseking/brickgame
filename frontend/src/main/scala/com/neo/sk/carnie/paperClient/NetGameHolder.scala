@@ -137,12 +137,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
 //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
+        if (newSnakeInfo.get.snake.map(_.id).contains(myId)) spaceKey()
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
-        if (newSnakeInfo.get.snake.map(_.id).contains(myId)) println("hahahhahahhahahah"); isContinue = true
+
         newSnakeInfo = None
       }
 
@@ -265,27 +266,27 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             if (newKeyCode != KeyCode.Space) {
               myActionHistory += actionId -> (newKeyCode, frame)
             } else { //重新开始游戏
-              drawFunction match {
-                case FrontProtocol.DrawBaseGame(_) =>
-                  println(s"111111111")
-                case _ =>
-                  println(s"drawFunction: $drawFunction")
-//                  grid.cleanData()
-                  grid.cleanSnakeTurnPoint(myId)
-                  grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
-                  drawFunction = FrontProtocol.DrawGameWait
-                  audio1.pause()
-                  audio1.currentTime = 0
-                  audioKilled.pause()
-                  audioKilled.currentTime = 0
-                  firstCome = true
-                  if (isWin) isWin = false
-                  myScore = BaseScore(0, 0, 0l, 0l)
-                  isContinue = true
-//                  backBtn.style.display="none"
-//                  rankCanvas.addEventListener("",null)
-                  dom.window.requestAnimationFrame(gameRender())
-              }
+//              drawFunction match {
+//                case FrontProtocol.DrawBaseGame(_) =>
+//                  println(s"111111111")
+//                case _ =>
+//                  println(s"drawFunction: $drawFunction")
+////                  grid.cleanData()
+//                  grid.cleanSnakeTurnPoint(myId)
+//                  grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
+//                  drawFunction = FrontProtocol.DrawGameWait
+//                  audio1.pause()
+//                  audio1.currentTime = 0
+//                  audioKilled.pause()
+//                  audioKilled.currentTime = 0
+//                  firstCome = true
+//                  if (isWin) isWin = false
+//                  myScore = BaseScore(0, 0, 0l, 0l)
+//                  isContinue = true
+////                  backBtn.style.display="none"
+////                  rankCanvas.addEventListener("",null)
+//                  dom.window.requestAnimationFrame(gameRender())
+//              }
             }
             Key(myId, newKeyCode, frame, actionId)
           }
@@ -429,6 +430,23 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case x@_ =>
         println(s"receive unknown msg:$x")
     }
+  }
+
+  def spaceKey(): Unit = {
+    grid.cleanSnakeTurnPoint(myId)
+    grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
+    drawFunction = FrontProtocol.DrawGameWait
+    audio1.pause()
+    audio1.currentTime = 0
+    audioKilled.pause()
+    audioKilled.currentTime = 0
+    firstCome = true
+    if (isWin) isWin = false
+    myScore = BaseScore(0, 0, 0l, 0l)
+    isContinue = true
+    //                  backBtn.style.display="none"
+    //                  rankCanvas.addEventListener("",null)
+    dom.window.requestAnimationFrame(gameRender())
   }
 
   override def render: Elem = {
