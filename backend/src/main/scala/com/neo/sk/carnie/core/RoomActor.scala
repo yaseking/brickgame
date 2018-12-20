@@ -129,6 +129,7 @@ object RoomActor {
           if(userMap.size > AppSettings.minPlayerNum && botMap.nonEmpty){
             val killBot = botMap.head
             botMap.-=(killBot._1)
+            userMap.-=(killBot._1)
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
           }
           idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, headImgList, botMap)
