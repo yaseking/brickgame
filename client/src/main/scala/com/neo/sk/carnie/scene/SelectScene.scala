@@ -104,6 +104,7 @@ class SelectScene {
   img5.setLayoutY(310)
 
   val joinBtn = new Button("加入游戏")
+  joinBtn.setStyle("-fx-font: 15 arial; -fx-base: #67B567; -fx-background-radius: 10px;")
 
   joinBtn.setLayoutX(220)
   joinBtn.setLayoutY(350)
@@ -138,6 +139,8 @@ class SelectScene {
   pwdField.setLayoutY(400)
 
   val roomListBtn = new Button("房间列表")
+  roomListBtn.setStyle("-fx-font: 15 arial; -fx-base: #307CF0; -fx-background-radius: 10px;")
+
   roomListBtn.setLayoutX(420)
   roomListBtn.setLayoutY(440)
 

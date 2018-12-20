@@ -36,9 +36,13 @@ class RoomListScene {
   private val observableList:ObservableList[String] = FXCollections.observableArrayList()
   private val listView = new ListView[String](observableList)
   private val confirmBtn = new Button("进入房间")
+  confirmBtn.setStyle("-fx-font: 15 arial; -fx-base: #67B567; -fx-background-radius: 10px;")
   private val roomBtn = new Button("创建房间")
+  roomBtn.setStyle("-fx-font: 15 arial; -fx-base: #307CF0; -fx-background-radius: 10px;")
   private val refreshBtn = new Button("刷新列表")
+  refreshBtn.setStyle("-fx-font: 15 arial; -fx-base: #E6AF5F; -fx-background-radius: 10px;")
   private val backBtn = new Button("返回")
+  backBtn.setStyle("-fx-font: 15 arial; -fx-base: #CA5C54; -fx-background-radius: 10px;")
 
   confirmBtn.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
     override def handle(event: MouseEvent): Unit = {

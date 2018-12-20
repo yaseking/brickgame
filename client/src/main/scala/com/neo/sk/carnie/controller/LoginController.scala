@@ -41,7 +41,9 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
               loginSocketClient ! Connection2EsByMail(r.userId, r.userName, r.token)
             case Left(_) =>
               log.debug("failed to getLoginRspFromEs.")
-              WarningDialog.initWarningDialog("邮箱账号或密码错误！")
+              Boot.addToPlatform(
+                WarningDialog.initWarningDialog("邮箱账号或密码错误！")
+              )
 //              loginSocketClient ! Connection2EsByMail(10000, "test123", "test123")
           }
         }
