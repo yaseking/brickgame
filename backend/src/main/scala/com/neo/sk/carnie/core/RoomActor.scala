@@ -181,7 +181,7 @@ object RoomActor {
               val startTime = userMap(id).startTime
               grid.cleanSnakeTurnPoint(id)
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
-              log.debug(s"user $id dead:::::")
+//              log.debug(s"user $id dead:::::")
               val endTime = System.currentTimeMillis()
               dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
               watcherMap.filter(_._2._1==id).foreach(user => dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, startTime, endTime)))
@@ -272,7 +272,7 @@ object RoomActor {
               if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
                 val info = userMap.getOrElse(id, UserInfo("", -1L, -1L, 0))
                 userMap.put(id, UserInfo(info.name, System.currentTimeMillis(), info.group, info.img))
-                log.debug(s"recv space from id ====$id")
+//                log.debug(s"recv space from id ====$id")
 //                if (headImgList.contains(id)) {
                 grid.addSnake(id, roomId, info.name, info.img)
 //                } else {
