@@ -82,27 +82,26 @@ object CurrentDataPage extends Page{
   }
 
   private def showRoomL(roomL: List[Room]):Elem = {
-    <div style="margin-top: 30px;">
-      <div class="row">
-        <div class="col-xs-2">
+    <div>
+      <div style="margin-top: 30px;">
+        <div class="row">
+          <div class="col-xs-2">
+          </div>
+          <div class="col-xs-1" style="text-align:center;font-weight:bold">roomId</div>
+          <div class="col-xs-1" style="text-align:center;font-weight:bold">model</div>
+          <div class="col-xs-2" style="text-align:center;font-weight:bold">playerId</div>
+          <div class="col-xs-2" style="text-align:center;font-weight:bold">playerName</div>
+          <br></br>
         </div>
-        <div class="col-xs-1" style="text-align:center;font-weight:bold">roomId</div>
-        <div class="col-xs-1" style="text-align:center;font-weight:bold">model</div>
-        <div class="col-xs-2" style="text-align:center;font-weight:bold">playerId</div>
-        <div class="col-xs-2" style="text-align:center;font-weight:bold">playerName</div>
-        <br></br>
-      </div>
-      <div>
-        {roomL.map { i => showRoom(i) }}
+        <div>
+          {roomL.map { i => showRoom(i) }}
+        </div>
       </div>
     </div>
   }
 
   private def showRoom(room: Room) = {
-//    getRoomPlayerList(room.id).onComplete{
-//      case Success(r) => //roomPlayerList := r
-//      case Failure(e) => roomPlayerList := List()
-//    }
+    <div>
       <div class="row">
         <div class="col-xs-2">
         </div>
@@ -114,16 +113,10 @@ object CurrentDataPage extends Page{
         </div>
         <div class="col-xs-2" style="text-align:center;">
           {
-            roomPlayerMap(room.id).toList.map{
-              i =>
-                <div>{s"${i._1}"}</div>
-              }
-//            roomPlayerList.map{
-//              r => r.map{ i =>
-//                <div>{s"${i.playerId}"}</div>
-//              }
-//            }
-
+          roomPlayerMap(room.id).toList.map{
+            i =>
+              <div>{s"${i._1}"}</div>
+          }
           }
         </div>
         <div class="col-xs-2" style="text-align:center;">
@@ -132,15 +125,13 @@ object CurrentDataPage extends Page{
             i =>
               <div>{s"${i._2}"}</div>
           }
-//          roomPlayerList.map{
-//            r => r.map{ i =>
-//              <div>{s"${i.nickname}"}</div>
-//            }
-//          }
           }
         </div>
-        <br></br>
       </div>
+      <hr />
+      <br></br>
+    </div>
+
   }
 
 
