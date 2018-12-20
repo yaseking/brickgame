@@ -1,7 +1,6 @@
 package com.neo.sk.carnie.core
 
 import java.awt.event.KeyEvent
-
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import com.neo.sk.carnie.paperClient.Protocol._
@@ -10,7 +9,6 @@ import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.core.GameRecorder.RecordData
 import com.neo.sk.carnie.common.AppSettings
-
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
@@ -19,8 +17,9 @@ import com.neo.sk.carnie.Boot.{executor, scheduler, timeout, tokenActor}
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.core.BotActor.{BackToGame, BotDead, KillBot}
+import com.neo.sk.carnie.models.dao.PlayerRecordDAO
+import com.neo.sk.carnie.protocol.EsheepProtocol.PlayerRecord
 import com.neo.sk.utils.EsheepClient
-
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -64,7 +63,7 @@ object RoomActor {
 
   private case object Sync extends Command
 
-  case class UserInfo(name: String, startTime: Long, group: Long)
+  case class UserInfo(name: String, startTime: Long, group: Long, img: Int)
 
   final case class SwitchBehavior(
                                    name: String,
@@ -88,7 +87,12 @@ object RoomActor {
             case _ => Protocol.frameRate1
           }
           log.info(s"frameRate: $frameRate")
-          AppSettings.botMap.foreach{b => getBotActor(ctx, "bot_"+roomId + b._1) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)}
+          val botsList = AppSettings.botMap.map{b =>
+            val id = "bot_"+roomId + b._1
+            getBotActor(ctx, id) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)
+            (id, b._2)
+          }.toList
+          roomManager ! RoomManager.BotsJoinRoom(roomId, botsList)
           timer.startPeriodicTimer(SyncKey, Sync, frameRate millis)
           idle(0L, roomId, mode, grid, tickCount = 0l, winStandard = winStandard)
       }
@@ -108,7 +112,7 @@ object RoomActor {
             gameEvent: mutable.ArrayBuffer[(Long, GameEvent)] = mutable.ArrayBuffer[(Long, GameEvent)](),
             winStandard: Double,
             firstComeList: List[String] = List.empty[String],
-            headImgList: mutable.HashMap[String, Int] = mutable.HashMap.empty[String, Int],
+//            headImgList: mutable.HashMap[String, Int] = mutable.HashMap.empty[String, Int],
             botMap: mutable.HashMap[String, ActorRef[BotActor.Command]] = mutable.HashMap[String, ActorRef[BotActor.Command]]()
           )(
             implicit timer: TimerScheduler[Command]
@@ -117,7 +121,7 @@ object RoomActor {
       msg match {
         case m@JoinRoom(id, name, subscriber, img) =>
           log.info(s"got JoinRoom $m")
-          userMap.put(id, UserInfo(name, System.currentTimeMillis(), index%classify))
+          userMap.put(id, UserInfo(name, System.currentTimeMillis(), index%classify, img))
           subscribersMap.put(id, subscriber)
           log.debug(s"subscribersMap: $subscribersMap")
 //          ctx.watchWith(subscriber, UserLeft(subscriber))
@@ -128,15 +132,19 @@ object RoomActor {
             case None => userGroup.put(index%classify, Set(id))
           }
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
-          headImgList.put(id, img)
+//          headImgList.put(id, img)
           if(userMap.size > AppSettings.minPlayerNum && botMap.nonEmpty){
             val killBot = botMap.head
+            val name = userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name
+            botMap.-=(killBot._1)
+            userMap.-=(killBot._1)
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
+            ctx.self ! LeftRoom(killBot._1, name)
           }
-          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, headImgList, botMap)
+          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id::firstComeList, botMap)
 
         case JoinRoom4Bot(id, name, botActor, img) =>
-          userMap.put(id, UserInfo(name, System.currentTimeMillis(), index % classify))
+          userMap.put(id, UserInfo(name, System.currentTimeMillis(), index % classify, img))
           botMap.put(id, botActor)
           grid.addSnake(id, roomId, name, img)
           dispatchTo(subscribersMap, id, Protocol.Id(id))
@@ -145,8 +153,8 @@ object RoomActor {
             case None => userGroup.put(index % classify, Set(id))
           }
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
-          headImgList.put(id, img)
-          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, headImgList, botMap)
+//          headImgList.put(id, img)
+          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap)
 
           case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
@@ -155,7 +163,7 @@ object RoomActor {
           subscribersMap.put(userId, subscriber)
           ctx.watchWith(subscriber, WatcherLeftRoom(userId))
           dispatchTo(subscribersMap, userId, Protocol.Id4Watcher(truePlayerId, userId))
-          val img = headImgList(playerId)
+          val img = if(userMap.get(playerId).nonEmpty) userMap.get(playerId).head.img else 0
           dispatchTo(subscribersMap, userId, Protocol.StartWatching(mode, img))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
@@ -163,7 +171,7 @@ object RoomActor {
             case Some(s) => userGroup.update(index % classify, s + userId)
             case None => userGroup.put(index % classify, Set(userId))
           }
-          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, headImgList, botMap)
+          idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap)
 
         case UserDead(_, _, users) =>
           users.foreach { u =>
@@ -183,6 +191,7 @@ object RoomActor {
                 msgFuture.map { token =>
                   EsheepClient.inputBatRecord(id, name, u._2, 1, u._3.toFloat*100 / fullSize, "", startTime, endTime, token)
                 }
+                PlayerRecordDAO.addPlayerRecord(id, name, u._2, 1, u._3.toFloat*100 / fullSize, startTime, endTime)
               } else getBotActor(ctx, id) ! BotDead //bot死亡消息发送
             }
             userDeadList += id
@@ -206,15 +215,18 @@ object RoomActor {
           watcherMap.filter(_._2._1 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
-          if (headImgList.contains(id)) headImgList.remove(id)
+//          if (headImgList.contains(id)) headImgList.remove(id)
           if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           if(userMap.size < AppSettings.minPlayerNum){
+            println("1:" + userMap.size + "--" + "2:" + botMap.size)
             if(botMap.size == userMap.size){
               botMap.foreach(b => getBotActor(ctx, b._1) ! KillBot)
               Behaviors.stopped
             } else {
-              val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
-              getBotActor(ctx, newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
+              if(!AppSettings.botMap.forall(b => botMap.keys.toList.contains("bot_" + roomId + b._1))) {
+                val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
+                getBotActor(ctx, newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
+              }
               Behaviors.same
             }
           } else Behaviors.same
@@ -242,7 +254,7 @@ object RoomActor {
                 case None => userGroup.put(u._2.group, Set.empty)
               }
             }
-            if (headImgList.contains(id)) headImgList.remove(id)
+//            if (headImgList.contains(id)) headImgList.remove(id)
             subscribersMap.remove(id)
             userMap.remove(id)
             grid.cleanSnakeTurnPoint(id)
@@ -257,15 +269,15 @@ object RoomActor {
           action match {
             case Key(_, keyCode, frameCount, actionId) =>
               if (keyCode == KeyEvent.VK_SPACE && userDeadList.contains(id)) {
-                val name = userMap.getOrElse(id, UserInfo("unknown", -1, -1)).name
-                userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L))
-//                log.debug(s"recv space from id ====$id")
-                if (headImgList.contains(id)) {
-                  grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, headImgList(id))
-                } else {
-                  log.error(s"can not find headImg of $id")
-                  grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, new Random().nextInt(6))
-                }
+                val info = userMap.getOrElse(id, UserInfo("", -1L, -1L, 0))
+                userMap.put(id, UserInfo(info.name, System.currentTimeMillis(), info.group, info.img))
+                log.debug(s"recv space from id ====$id")
+//                if (headImgList.contains(id)) {
+                grid.addSnake(id, roomId, info.name, info.img)
+//                } else {
+//                  log.error(s"can not find headImg of $id")
+//                  grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, new Random().nextInt(6))
+//                }
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2._1 == id).foreach { w =>
                   log.info(s"send reStart to ${w._1}")
@@ -361,7 +373,10 @@ object RoomActor {
               if (!userDeadList.contains(u._1)) {
                 gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
                 userDeadList += u._1
-                if(u._1.take(3) == "bot") getBotActor(ctx, u._1) ! BotDead
+                if(u._1.take(3) == "bot") {
+                  botMap.-=(u._1)
+                  getBotActor(ctx, u._1) ! BotDead
+                }
               }
             }
           }
@@ -390,7 +405,7 @@ object RoomActor {
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid, mode) ! recordData
-          idle(index, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, headImgList = headImgList, botMap = botMap)
+          idle(index, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, botMap = botMap)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")

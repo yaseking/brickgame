@@ -473,7 +473,7 @@ class GameController(player: PlayerInfoInClient,
     //fixme 假设用户一次玩游戏时间不超过两小时，否则需要刷新token
     Boot.addToPlatform{
       println("come back to selectScene.")
-//      playActor ! Terminate
+      stageCtx.getStage.setFullScreen(false)
       Boot.system.stop(playActor.toUntyped)
       Boot.addToPlatform{
         val selectScene = new SelectScene()
