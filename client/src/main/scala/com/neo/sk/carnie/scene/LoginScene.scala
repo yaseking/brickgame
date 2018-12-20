@@ -33,7 +33,7 @@ class LoginScene {
   val canvasCtx = canvas.getGraphicsContext2D
   var loginSceneListener: LoginSceneListener = _
 
-  button.setLayoutX(217)
+  button.setLayoutX(212)
   button.setLayoutY(400)
   val shadow = new DropShadow()
 
@@ -49,13 +49,13 @@ class LoginScene {
     }
   })
 
-  button.setStyle("-fx-font: 15 arial; -fx-base: #00BFFF;")
+  button.setStyle("-fx-font: 15 arial; -fx-base: #67B567; -fx-background-radius: 10px;") //green
 
   canvasCtx.setFill(Color.rgb(255, 255, 255))
   canvasCtx.fillRect(0, 0, width, height)
   canvasCtx.setFont(Font.font(18))
   canvasCtx.setFill(Color.BLACK)
-  canvasCtx.fillText("扫码登录", 220, 380)
+  canvasCtx.fillText("扫码登录", 215, 380)
   group.getChildren.add(canvas)
   group.getChildren.add(button)
   val scene = new Scene(group)

@@ -116,6 +116,8 @@ class CreateRoomScene {
   pwdField.setLayoutY(400)
 
   val roomBtn = new  Button("创建房间")
+  roomBtn.setStyle("-fx-font: 15 arial; -fx-base: #67B567; -fx-background-radius: 10px;")
+
   roomBtn.setLayoutX(280)
   roomBtn.setLayoutY(400)
 
