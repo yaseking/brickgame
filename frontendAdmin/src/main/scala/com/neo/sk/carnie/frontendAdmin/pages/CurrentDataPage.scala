@@ -2,6 +2,7 @@ package com.neo.sk.carnie.frontendAdmin.pages
 
 import com.neo.sk.carnie.frontendAdmin.Routes
 import com.neo.sk.carnie.frontendAdmin.util.{Http, JsFunc, Page}
+import com.neo.sk.carnie.ptcl.AdminPtcl._
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 import mhtml.Var
 import org.scalajs.dom
@@ -28,7 +29,7 @@ object CurrentDataPage extends Page{
 
   var roomList: List[Room] = List.empty
 
-//  val roomPlayerList: Var[List[PlayerIdName]] = Var(List.empty)
+  val roomPlayerList: Var[List[PlayerIdName]] = Var(List.empty)
 
 //  var roomPlayerList: List[PlayerIdName] = List.empty
 
@@ -38,37 +39,6 @@ object CurrentDataPage extends Page{
 
   var roomPlayerMap: Map[Int, mutable.HashSet[(String, String)]] = Map()
 
-
-//  def getRoomList() : Unit = {
-//    val url = Routes.Admin.getRoomList
-//    Http.getAndParse[RoomListRsp4Client](url).map{
-//      case Right(rsp) =>
-//        try {
-//          if (rsp.errCode == 0) {
-//            roomList = rsp.data.roomList.map{ s =>
-//              val roomInfo = s.split("-")
-//              val roomId = roomInfo(0).toInt
-//              val modeName = if(roomInfo(1)=="0") "正常" else if(roomInfo(2)=="1") "反转" else "加速"
-//              //              val hasPwd = if(roomInfo(2)=="true") true else false
-//              Room(roomId.toInt,modeName)
-//            }
-//            roomListVar := roomList
-//          }
-//          else {
-//            println("error======" + rsp.msg)
-//            JsFunc.alert(rsp.msg)
-//          }
-//        }
-//        catch {
-//          case e: Exception =>
-//            println(e)
-//        }
-//
-//      case Left(e) =>
-//        println("error======" + e)
-//        JsFunc.alert("Login error!")
-//    }
-//  }
 
   def getRoomPlayerList():Unit ={
     val url = Routes.Admin.getRoomPlayerList
@@ -99,7 +69,7 @@ object CurrentDataPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("Login error!")
+        JsFunc.alert("get room players error!")
     }
   }
 
@@ -129,6 +99,10 @@ object CurrentDataPage extends Page{
   }
 
   private def showRoom(room: Room) = {
+//    getRoomPlayerList(room.id).onComplete{
+//      case Success(r) => //roomPlayerList := r
+//      case Failure(e) => roomPlayerList := List()
+//    }
       <div class="row">
         <div class="col-xs-2">
         </div>
@@ -144,6 +118,11 @@ object CurrentDataPage extends Page{
               i =>
                 <div>{s"${i._1}"}</div>
               }
+//            roomPlayerList.map{
+//              r => r.map{ i =>
+//                <div>{s"${i.playerId}"}</div>
+//              }
+//            }
 
           }
         </div>
@@ -153,6 +132,11 @@ object CurrentDataPage extends Page{
             i =>
               <div>{s"${i._2}"}</div>
           }
+//          roomPlayerList.map{
+//            r => r.map{ i =>
+//              <div>{s"${i.nickname}"}</div>
+//            }
+//          }
           }
         </div>
         <br></br>
@@ -163,6 +147,7 @@ object CurrentDataPage extends Page{
 
   override def render: Elem = {
     getRoomPlayerList()
+//    getRoomList()
     <div>
       {roomDiv}
     </div>
