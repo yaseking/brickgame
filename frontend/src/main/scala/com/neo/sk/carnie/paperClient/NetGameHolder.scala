@@ -137,7 +137,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
 //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
-        if (newSnakeInfo.get.snake.map(_.id).contains(myId)) spaceKey()
+        if (newSnakeInfo.get.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
         }

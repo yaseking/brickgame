@@ -156,7 +156,7 @@ object RoomActor {
 //          headImgList.put(id, img)
           idle(index + 1, roomId, mode, grid, userMap, userGroup, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap)
 
-          case m@WatchGame(playerId, userId, subscriber) =>
+        case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
           val truePlayerId = if (playerId == "unknown") userMap.head._1 else playerId
           watcherMap.put(userId, (truePlayerId, index%classify))
