@@ -203,6 +203,7 @@ object RoomActor {
           log.debug(s"LeftRoom:::$id")
           if(userDeadList.contains(id)) userDeadList -= id
           grid.removeSnake(id)
+          grid.cleanSnakeTurnPoint(id)
           userMap.filter(_._1 == id).foreach{ u =>
             userGroup.get(u._2.group) match {
               case Some(s) => userGroup.update(u._2.group,s - id)
