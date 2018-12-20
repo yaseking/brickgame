@@ -267,6 +267,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             } else { //重新开始游戏
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
+                  println(s"111111111")
                 case _ =>
                   println(s"drawFunction: $drawFunction")
 //                  grid.cleanData()
