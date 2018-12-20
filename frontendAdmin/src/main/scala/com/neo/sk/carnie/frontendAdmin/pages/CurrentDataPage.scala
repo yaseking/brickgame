@@ -84,6 +84,7 @@ object CurrentDataPage extends Page{
                 val modeName = if (i._2._1 == 0) "正常" else if (i._2._1 == 1) "反转" else "加速"
                 Room(roomId, modeName)
             }.toList
+            roomListVar := roomList
           }
           else {
             println("error======" + rsp.msg)
