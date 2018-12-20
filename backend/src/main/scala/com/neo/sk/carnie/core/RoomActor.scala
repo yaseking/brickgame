@@ -220,11 +220,12 @@ object RoomActor {
 //          if (headImgList.contains(id)) headImgList.remove(id)
           if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           if(userMap.size < AppSettings.minPlayerNum){
-            println("1:" + userMap.size + "--" + "2:" + botMap.size)
+//            println("1:" + userMap.size + "--" + "2:" + botMap.size)
             if(botMap.size == userMap.size){
               botMap.foreach(b => getBotActor(ctx, b._1) ! KillBot)
               Behaviors.stopped
             } else {
+              log.debug(s"botMap:::$botMap")
               if(!AppSettings.botMap.forall(b => botMap.keys.toList.contains("bot_" + roomId + b._1))) {
                 val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
                 getBotActor(ctx, newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
