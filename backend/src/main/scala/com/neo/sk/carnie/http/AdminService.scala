@@ -6,6 +6,8 @@ import com.neo.sk.utils.{CirceSupport, SessionSupport}
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
+
+import scala.collection.mutable
 //import akka.http.scaladsl.model.{ContentTypes, DateTime, HttpEntity}
 import akka.http.scaladsl.server.{Directive1, Route}
 import com.neo.sk.carnie.core.RoomManager
@@ -69,25 +71,22 @@ trait AdminService extends ServiceUtils
     }
   }
 
-  private val getRoomPlayerList = (path("getRoomPlayerList") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error, RoomIdReq]]){
-      case Right(req) =>
-        val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-        dealFutureResult{
-          msg.map { plist =>
-            if(plist.nonEmpty){
-              log.info(s"${req.roomId}$plist")
-              complete(PlayerListRsp(PlayerInfo(plist)))
-            }
-            else{
-              log.info("get player list error: this room doesn't exist")
-              complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
-            }
-
-          }
+  private val getRoomPlayerList = (path("getRoomPlayerList") & get & pathEndOrSingleSlash) {
+//    val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+    val msg: Future[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]] = roomManager ? RoomManager.ReturnRoomMap
+    dealFutureResult{
+      msg.map { r =>
+        val plist =r.map(i => i._1 -> i._2._3)
+        if(plist.nonEmpty){
+//          log.info(s"${req.roomId}$plist")
+          complete(RoomMapRsp(RoomMapInfo(plist)))
         }
-      case Left(_) =>
-        complete(ErrorRsp(130001, "parse error."))
+        else{
+          log.info("get player list error: this room doesn't exist")
+          complete(ErrorRsp(100001, "get player list error: this room doesn't exist"))
+        }
+
+      }
     }
   }
 

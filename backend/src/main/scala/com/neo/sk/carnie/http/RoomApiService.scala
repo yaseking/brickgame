@@ -111,9 +111,10 @@ trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService w
 
   private val getRoomList = (path("getRoomList") & post & pathEndOrSingleSlash) {
     dealPostReqWithoutData {
-      val msg: Future[List[Int]] = roomManager ? RoomManager.FindAllRoom
+      val msg: Future[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]] = roomManager ? RoomManager.ReturnRoomMap
       msg.map {
-        allRoom =>
+        r =>
+          val allRoom = r.keySet.toList
           if (allRoom.nonEmpty){
             log.info("prepare to return roomList.")
             complete(RoomListRsp(RoomListInfo(allRoom)))

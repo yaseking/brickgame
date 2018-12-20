@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.ptcl
 
+import scala.collection.mutable
+
 /**
   * User: Jason
   * Date: 2018/10/19
@@ -124,6 +126,16 @@ object RoomApiProtocol {
                           errCode: Int = 0,
                           msg: String = "ok"
                         )
+
+  case class RoomMapRsp(
+                          data:RoomMapInfo,
+                          errCode: Int = 0,
+                          msg: String = "ok"
+                        )
+
+  case class RoomMapInfo(
+                          roomMap: mutable.HashMap[Int, mutable.HashSet[(String, String)]]
+  )
 
   case class RoomListInfo(
                            roomList: List[Int]

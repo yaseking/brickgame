@@ -8,7 +8,7 @@ import org.scalajs.dom
 import io.circe.generic.auto._
 import io.circe.syntax._
 
-
+import scala.collection.mutable
 import scala.util.{Failure, Success}
 import scala.xml.{Elem, Node}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,7 +32,9 @@ object CurrentDataPage extends Page{
 
 //  var roomPlayerList: List[PlayerIdName] = List.empty
 
-  var roomPlayerMap: Map[Room,List[PlayerIdName]] = Map()
+//  var roomPlayerMap: Map[Room,List[PlayerIdName]] = Map()
+
+  var roomPlayerMap: Map[Int, mutable.HashSet[(String, String)]] = Map()
 
   var isGetPlayer = Var(false)
 
@@ -50,16 +52,6 @@ object CurrentDataPage extends Page{
               Room(roomId.toInt,modeName)
             }
             roomListVar := roomList
-            if(roomList.nonEmpty){
-              roomList.foreach{ r =>
-                getRoomPlayerList(r.id).onComplete{
-                  case Success(room) =>
-                    roomPlayerMap += (r -> room)
-                    isGetPlayer := true
-                  case Failure(e) => println(e)
-                }
-              }
-            }
           }
           else {
             println("error======" + rsp.msg)
@@ -77,26 +69,27 @@ object CurrentDataPage extends Page{
     }
   }
 
-  def getRoomPlayerList(roomId: Int) ={
+  def getRoomPlayerList():Unit ={
     val url = Routes.Admin.getRoomPlayerList
-    val data = RoomIdReq(roomId).asJson.noSpaces
-    Http.postJsonAndParse[PlayerListRsp](url,data).map{
+//    val data = RoomIdReq(roomId).asJson.noSpaces
+    Http.getAndParse[RoomMapRsp](url).map{
       case Right(rsp) =>
         if (rsp.errCode == 0) {
+          roomPlayerMap = rsp.data.roomMap.toMap
 //          roomPlayerList :=
-          rsp.data.playerList
+//          rsp.data.playerList
 //          isGetPlayer = true
         }
         else {
           println("error======" + rsp.msg)
-//          JsFunc.alert(rsp.msg)
-          List()
+          JsFunc.alert(rsp.msg)
+//          List()
         }
 
       case Left(e) =>
         println("error======" + e)
-//        JsFunc.alert("Login error!")
-        List()
+        JsFunc.alert("Login error!")
+//        List()
     }
   }
 
@@ -126,10 +119,10 @@ object CurrentDataPage extends Page{
   }
 
   private def showRoom(room: Room) = {
-    getRoomPlayerList(room.id).onComplete{
-      case Success(r) => roomPlayerList := r
-      case Failure(e) => roomPlayerList := List()
-    }
+//    getRoomPlayerList(room.id).onComplete{
+//      case Success(r) => //roomPlayerList := r
+//      case Failure(e) => roomPlayerList := List()
+//    }
       <div class="row">
         <div class="col-xs-2">
         </div>
@@ -141,31 +134,29 @@ object CurrentDataPage extends Page{
         </div>
         <div class="col-xs-2" style="text-align:center;">
           {
-//          isGetPlayer.map{
-//            case true =>
-//              <div>
-//                {
-//                roomPlayerMap(room).map{ i =>
+            roomPlayerMap(room.id).toList.map{
+              i =>
+                <div>{s"${i._1}"}</div>
+              }
+//            roomPlayerList.map{
+//              r => r.map{ i =>
 //                <div>{s"${i.playerId}"}</div>
-//                }}
-//              </div>
-//            case false => <div></div>
-//          }
+//              }
+//            }
 
-                   roomPlayerList.map{
-                     r => r.map{ i =>
-                       <div>{s"${i.playerId}"}</div>
-                     }
-                   }
           }
         </div>
         <div class="col-xs-2" style="text-align:center;">
           {
-          roomPlayerList.map{
-            r => r.map{ i =>
-              <div>{s"${i.nickname}"}</div>
-            }
+          roomPlayerMap(room.id).toList.map{
+            i =>
+              <div>{s"${i._2}"}</div>
           }
+//          roomPlayerList.map{
+//            r => r.map{ i =>
+//              <div>{s"${i.nickname}"}</div>
+//            }
+//          }
           }
         </div>
         <br></br>
@@ -175,6 +166,7 @@ object CurrentDataPage extends Page{
 
 
   override def render: Elem = {
+    getRoomPlayerList()
     getRoomList()
     <div>
       {roomDiv}

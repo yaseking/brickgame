@@ -52,6 +52,8 @@ object RoomManager {
 
   case class FindPlayerList(roomId: Int, reply: ActorRef[List[PlayerIdName]]) extends Command
 
+  case class ReturnRoomMap(reply: ActorRef[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]]) extends Command
+
   case class VerifyPwd(roomId: Int, pwd: String, reply: ActorRef[Boolean]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
@@ -276,6 +278,11 @@ object RoomManager {
             roomInfo.get._3.toList.map { p => PlayerIdName(p._1, p._2) }
           } else Nil
           reply ! replyMsg
+          Behaviors.same
+
+        case ReturnRoomMap(reply) =>
+          log.info(s"got room map")
+          reply ! roomMap
           Behaviors.same
 
         case FindAllRoom(reply) =>
