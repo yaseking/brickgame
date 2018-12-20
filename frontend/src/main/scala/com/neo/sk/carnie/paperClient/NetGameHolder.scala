@@ -268,6 +268,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
+                  println(s"drawFunction: $drawFunction")
 //                  grid.cleanData()
                   grid.cleanSnakeTurnPoint(myId)
                   grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
