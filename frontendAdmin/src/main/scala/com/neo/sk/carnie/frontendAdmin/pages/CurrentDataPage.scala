@@ -34,24 +34,56 @@ object CurrentDataPage extends Page{
 
 //  var roomPlayerMap: Map[Room,List[PlayerIdName]] = Map()
 
+  var roomMap: Map[Int, (Int, Option[String], mutable.HashSet[(String, String)])] = Map()
   var roomPlayerMap: Map[Int, mutable.HashSet[(String, String)]] = Map()
 
-  var isGetPlayer = Var(false)
 
-  def getRoomList() : Unit = {
-    val url = Routes.Admin.getRoomList
-    Http.getAndParse[RoomListRsp4Client](url).map{
+//  def getRoomList() : Unit = {
+//    val url = Routes.Admin.getRoomList
+//    Http.getAndParse[RoomListRsp4Client](url).map{
+//      case Right(rsp) =>
+//        try {
+//          if (rsp.errCode == 0) {
+//            roomList = rsp.data.roomList.map{ s =>
+//              val roomInfo = s.split("-")
+//              val roomId = roomInfo(0).toInt
+//              val modeName = if(roomInfo(1)=="0") "正常" else if(roomInfo(2)=="1") "反转" else "加速"
+//              //              val hasPwd = if(roomInfo(2)=="true") true else false
+//              Room(roomId.toInt,modeName)
+//            }
+//            roomListVar := roomList
+//          }
+//          else {
+//            println("error======" + rsp.msg)
+//            JsFunc.alert(rsp.msg)
+//          }
+//        }
+//        catch {
+//          case e: Exception =>
+//            println(e)
+//        }
+//
+//      case Left(e) =>
+//        println("error======" + e)
+//        JsFunc.alert("Login error!")
+//    }
+//  }
+
+  def getRoomPlayerList():Unit ={
+    val url = Routes.Admin.getRoomPlayerList
+//    val data = RoomIdReq(roomId).asJson.noSpaces
+    Http.getAndParse[RoomMapRsp](url).map{
       case Right(rsp) =>
         try {
           if (rsp.errCode == 0) {
-            roomList = rsp.data.roomList.map{ s =>
-              val roomInfo = s.split("-")
-              val roomId = roomInfo(0).toInt
-              val modeName = if(roomInfo(1)=="0") "正常" else if(roomInfo(2)=="1") "反转" else "加速"
-              //              val hasPwd = if(roomInfo(2)=="true") true else false
-              Room(roomId.toInt,modeName)
-            }
-            roomListVar := roomList
+            roomMap = rsp.data.roomMap.toMap
+            roomPlayerMap = roomMap.map(i => i._1 -> i._2._3)
+            roomList = roomMap.map {
+              i =>
+                val roomId = i._1
+                val modeName = if (i._2._1 == 0) "正常" else if (i._2._1 == 1) "反转" else "加速"
+                Room(roomId, modeName)
+            }.toList
           }
           else {
             println("error======" + rsp.msg)
@@ -66,30 +98,6 @@ object CurrentDataPage extends Page{
       case Left(e) =>
         println("error======" + e)
         JsFunc.alert("Login error!")
-    }
-  }
-
-  def getRoomPlayerList():Unit ={
-    val url = Routes.Admin.getRoomPlayerList
-//    val data = RoomIdReq(roomId).asJson.noSpaces
-    Http.getAndParse[RoomMapRsp](url).map{
-      case Right(rsp) =>
-        if (rsp.errCode == 0) {
-          roomPlayerMap = rsp.data.roomMap.toMap
-//          roomPlayerList :=
-//          rsp.data.playerList
-//          isGetPlayer = true
-        }
-        else {
-          println("error======" + rsp.msg)
-          JsFunc.alert(rsp.msg)
-//          List()
-        }
-
-      case Left(e) =>
-        println("error======" + e)
-        JsFunc.alert("Login error!")
-//        List()
     }
   }
 
@@ -167,7 +175,7 @@ object CurrentDataPage extends Page{
 
   override def render: Elem = {
     getRoomPlayerList()
-    getRoomList()
+//    getRoomList()
     <div>
       {roomDiv}
     </div>

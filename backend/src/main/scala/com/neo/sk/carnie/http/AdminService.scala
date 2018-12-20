@@ -75,8 +75,8 @@ trait AdminService extends ServiceUtils
 //    val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
     val msg: Future[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]] = roomManager ? RoomManager.ReturnRoomMap
     dealFutureResult{
-      msg.map { r =>
-        val plist =r.map(i => i._1 -> i._2._3)
+      msg.map { plist =>
+//        val plist =r.map(i => i._1 -> i._2._3)
         if(plist.nonEmpty){
 //          log.info(s"${req.roomId}$plist")
           complete(RoomMapRsp(RoomMapInfo(plist)))

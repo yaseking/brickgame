@@ -134,7 +134,7 @@ object RoomApiProtocol {
                         )
 
   case class RoomMapInfo(
-                          roomMap: mutable.HashMap[Int, mutable.HashSet[(String, String)]]
+                          roomMap: mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]
   )
 
   case class RoomListInfo(
