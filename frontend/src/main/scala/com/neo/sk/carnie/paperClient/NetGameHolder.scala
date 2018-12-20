@@ -391,7 +391,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-//        println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
+        println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
 
 //        if(data.snake.map(_.id).contains(myId)) {
