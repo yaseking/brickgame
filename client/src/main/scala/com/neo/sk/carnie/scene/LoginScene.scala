@@ -8,7 +8,7 @@ import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.scene.control.Button
 import javafx.scene.effect.DropShadow
-import javafx.scene.image.Image
+import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
@@ -32,6 +32,9 @@ class LoginScene {
   val canvas = new Canvas(width, height)
   val canvasCtx = canvas.getGraphicsContext2D
   var loginSceneListener: LoginSceneListener = _
+
+  val img = new Image("img/Paper-Io-Online.jpg")
+  Boot.addToPlatform(canvasCtx.drawImage(img, 0, 0 ,500 ,500))
 
   button.setLayoutX(212)
   button.setLayoutY(400)

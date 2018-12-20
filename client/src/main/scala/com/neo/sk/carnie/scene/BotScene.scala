@@ -5,6 +5,7 @@ import javafx.geometry.{Insets, Pos}
 import javafx.scene.{Group, Scene}
 import javafx.scene.control.{Button, Label, PasswordField, TextField}
 import javafx.scene.effect.DropShadow
+import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{GridPane, HBox, VBox}
 
@@ -18,6 +19,11 @@ class BotScene {
   val height = 500
   val group = new Group()
   private val scene = new Scene(group, width, height)
+
+  val img = new ImageView("img/Paper-Io-Online.jpg")
+  img.setFitWidth(500)
+  img.setFitHeight(500)
+  group.getChildren.add(img)
 
   val confirm = new Button("确定")
   confirm.setStyle("-fx-font: 15 arial; -fx-base: #67B567; -fx-background-radius: 10px;")
