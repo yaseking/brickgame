@@ -28,13 +28,14 @@ object CurrentDataPage extends Page{
 
   var roomList: List[Room] = List.empty
 
-  val roomPlayerList: Var[List[PlayerIdName]] = Var(List.empty)
+//  val roomPlayerList: Var[List[PlayerIdName]] = Var(List.empty)
 
 //  var roomPlayerList: List[PlayerIdName] = List.empty
 
 //  var roomPlayerMap: Map[Room,List[PlayerIdName]] = Map()
 
   var roomMap: Map[Int, (Int, Option[String], mutable.HashSet[(String, String)])] = Map()
+
   var roomPlayerMap: Map[Int, mutable.HashSet[(String, String)]] = Map()
 
 
@@ -128,10 +129,6 @@ object CurrentDataPage extends Page{
   }
 
   private def showRoom(room: Room) = {
-//    getRoomPlayerList(room.id).onComplete{
-//      case Success(r) => //roomPlayerList := r
-//      case Failure(e) => roomPlayerList := List()
-//    }
       <div class="row">
         <div class="col-xs-2">
         </div>
@@ -147,11 +144,6 @@ object CurrentDataPage extends Page{
               i =>
                 <div>{s"${i._1}"}</div>
               }
-//            roomPlayerList.map{
-//              r => r.map{ i =>
-//                <div>{s"${i.playerId}"}</div>
-//              }
-//            }
 
           }
         </div>
@@ -161,11 +153,6 @@ object CurrentDataPage extends Page{
             i =>
               <div>{s"${i._2}"}</div>
           }
-//          roomPlayerList.map{
-//            r => r.map{ i =>
-//              <div>{s"${i.nickname}"}</div>
-//            }
-//          }
           }
         </div>
         <br></br>
@@ -176,7 +163,6 @@ object CurrentDataPage extends Page{
 
   override def render: Elem = {
     getRoomPlayerList()
-//    getRoomList()
     <div>
       {roomDiv}
     </div>
