@@ -87,12 +87,12 @@ object RoomActor {
             case _ => Protocol.frameRate1
           }
           log.info(s"frameRate: $frameRate")
-          val botsList = AppSettings.botMap.map{b =>
-            val id = "bot_"+roomId + b._1
-            getBotActor(ctx, id) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)
-            (id, b._2)
-          }.toList
-          roomManager ! RoomManager.BotsJoinRoom(roomId, botsList)
+//          val botsList = AppSettings.botMap.map{b =>
+//            val id = "bot_"+roomId + b._1
+//            getBotActor(ctx, id) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)
+//            (id, b._2)
+//          }.toList
+//          roomManager ! RoomManager.BotsJoinRoom(roomId, botsList)
           timer.startPeriodicTimer(SyncKey, Sync, frameRate millis)
           idle(0L, roomId, mode, grid, tickCount = 0l, winStandard = winStandard)
       }
