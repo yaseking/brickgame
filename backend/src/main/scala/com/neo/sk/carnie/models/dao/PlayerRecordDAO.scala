@@ -14,7 +14,7 @@ object PlayerRecordDAO {
 
   def getPlayerRecord()={
     db.run{
-      tPlayerRecord.result
+      tPlayerRecord.sortBy(_.startTime.desc).result
     }
   }
 }

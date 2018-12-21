@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import com.neo.sk.utils.{CirceSupport, SessionSupport}
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
-import com.neo.sk.carnie.ptcl.AdminPtcl.PageReq
+import com.neo.sk.carnie.ptcl.AdminPtcl.{PageReq,PageTimeReq}
 import com.neo.sk.carnie.ptcl.RoomApiProtocol._
 
 import scala.collection.mutable
@@ -108,6 +108,32 @@ trait AdminService extends ServiceUtils
     }
   }
 
+  private val getPlayerRecordByTime = (path("getPlayerRecordByTime") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error,PageTimeReq]]){
+      case Right(req) =>
+        val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val date = dateFormat.format(System.currentTimeMillis())
+        val start = date.take(11) + "00:00:00"
+        val end = date.take(11) + "23:59:59"
+        val startS = req.time.take(10) + " 00:00:00"
+        val endS = req.time.take(10) + " 23:59:59"
+        dealFutureResult{
+          PlayerRecordDAO.getPlayerRecord().map{p =>
+            complete(AdminPtcl.PlayerRecordRsp(p.toList.filter(i => dateFormat.format(i.startTime) >= startS && dateFormat.format(i.endTime) <= endS).map{i =>
+              AdminPtcl.PlayerRecord(i.id, i.playerId, i.nickname, i.killing, i.killed,
+                i.score, i.startTime, i.endTime)}.slice((req.page - 1) * 5, req.page * 5),p.count(i => dateFormat.format(i.startTime) >= startS && dateFormat.format(i.endTime) <= endS),
+              p.count(i => dateFormat.format(i.startTime) >= start && dateFormat.format(i.endTime) <= end)))
+          }.recover {
+            case e: Exception =>
+              log.info(s"getPlayerRecord exception.." + e.getMessage)
+              complete(ErrorRsp(130019, "getPlayerRecord error."))
+          }
+        }
+      case Left(_) =>
+        complete(ErrorRsp(130026, "parse error."))
+    }
+  }
+
   private val logout = path("logout") {
     adminAuth {
       _ =>
@@ -121,6 +147,6 @@ trait AdminService extends ServiceUtils
     pathEndOrSingleSlash {
       getFromResource("html/admin.html")
     } ~
-    login ~ logout ~ getRoomPlayerList ~ getPlayerRecord
+    login ~ logout ~ getRoomPlayerList ~ getPlayerRecord ~ getPlayerRecordByTime
   }
 }

@@ -3,8 +3,13 @@
   <link rel="stylesheet" href="/carnie/static/css/bootstrap.min.css">
   <script src="/carnie/static/js/jquery.min.js"></script>
   <script src="/carnie/static/js/bootstrap.min.js"></script>
+  <script src="/carnie/static/js/WdatePicker.js"></script>
   <link rel="stylesheet" href="/carnie/static/css/canvas.css">
   <link rel="stylesheet" href="/carnie/static/css/adminPage.css">
+  <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdn.bootcss.com/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
   <!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">-->
 
   <meta charset="UTF-8">
@@ -13,6 +18,36 @@
 </head>
 <body>
 <script type="text/javascript" src="/carnie/static/sjsout/frontendadmin-fastopt.js"></script>
+<script type="text/javascript">
+  function formatter(date){
+    var y = date.getFullYear();
+    var m = date.getMonth()+1;
+    var d = date.getDate();
+    var h = date.getHours();
+    var m1 = date.getMinutes();
+    var s = date.getSeconds();
+    return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+    // +' '+(h<10?('0'+h):h)+':'
+    // +(m1<10?('0'+m1):m1)+':'+(s<10?('0'+s):s)
+  }
+  function parser(s){
+    if (!s) return new Date();
+    var ss = (s.split('-'));
+    var aa = (s.split(':'));
+    var y = parseInt(ss[0],10);
+    var m = parseInt(ss[1],10);
+    var d = parseInt(ss[2],10);
+    var h = parseInt(aa[0],10);
+    var m1 = parseInt(aa[1],10);
+    var s1 = parseInt(aa[2],10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d) ){
+      return new Date(y,m-1,d);
+    } else {
+      return new Date();
+    }
+  }
+</script>
+
 </body>
 
 </html>

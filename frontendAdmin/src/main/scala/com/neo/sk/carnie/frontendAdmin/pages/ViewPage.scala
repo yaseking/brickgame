@@ -2,9 +2,11 @@ package com.neo.sk.carnie.frontendAdmin.pages
 
 import com.neo.sk.carnie.frontendAdmin.Routes
 import com.neo.sk.carnie.frontendAdmin.util.{Http, JsFunc, Page}
-import com.neo.sk.carnie.ptcl.AdminPtcl.{PageReq, PlayerRecord, PlayerRecordRsp}
+import com.neo.sk.carnie.ptcl.AdminPtcl._
 import com.neo.sk.carnie.frontendAdmin.util.TimeTool
 import mhtml.Var
+import org.scalajs.dom
+import org.scalajs.dom.html.Input
 import org.scalajs.dom.raw.MouseEvent
 
 import scala.xml.Elem
@@ -28,6 +30,8 @@ object ViewPage extends Page{
 
   var playerAmount = 0
 
+  var playerAmountS = 0
+
   var playerAmountToday= 0
 
   private var page = 1
@@ -37,6 +41,8 @@ object ViewPage extends Page{
   private val pageLimit = 5
 
   val isGetAmount = Var(false)
+
+  val isSearch = Var(false)
 
   val pageRx = pageVar.map{
     i => i._1
@@ -65,9 +71,18 @@ object ViewPage extends Page{
       else
         Some("disabled")
   }
-  val upBtn = <button class="btn btn-default" onclick={(e:MouseEvent) => e.preventDefault();getPlayerRecord(page-1)} disabled={upBtnRx}>上一页</button>
-  val downBtn = <button class="btn btn-default" onclick={(e:MouseEvent) => e.preventDefault();getPlayerRecord(page+1)} disabled={downBtnRx}>下一页</button>
-
+  val upBtn = isSearch.map{
+    case false =>
+      <button class="btn btn-default" onclick={(e:MouseEvent) => e.preventDefault();getPlayerRecord(page-1)} disabled={upBtnRx}>上一页</button>
+    case true =>
+      <button class="btn btn-default" onclick={(e:MouseEvent) => e.preventDefault();getPlayerRecordByTime(page-1)} disabled={upBtnRx}>上一页</button>
+  }
+  val downBtn = isSearch.map{
+    case false =>
+      <button class="btn btn-default" onclick={(e:MouseEvent) => e.preventDefault();getPlayerRecord(page+1)} disabled={downBtnRx}>下一页</button>
+    case true =>
+      <button class="btn btn-default" onclick={(e:MouseEvent) => e.preventDefault();getPlayerRecordByTime(page+1)} disabled={downBtnRx}>下 一页</button>
+  }
 
   private val playerRecordsRx = playerRecordsVar.map{
     case Nil =>
@@ -136,12 +151,49 @@ object ViewPage extends Page{
             playerRecordsVar := rsp.data
             playerAmount = rsp.playerAmount
             playerAmountToday = rsp.playerAmountToday
-            isGetAmount := true
             ViewPage.page = page
             if(rsp.data.nonEmpty)
               pageVar := (page, rsp.playerAmount)
             else
               pageVar := (page, 0)
+            isGetAmount := true
+            isSearch := false
+          }
+          else {
+            println("error======" + rsp.msg)
+            JsFunc.alert(rsp.msg)
+          }
+        }
+        catch {
+          case e: Exception =>
+            println(e)
+        }
+
+      case Left(e) =>
+        println("error======" + e)
+        JsFunc.alert("get player records error!")
+    }
+  }
+
+  def getPlayerRecordByTime(page: Int) : Unit = {
+    val url = Routes.Admin.getPlayerRecordByTime
+    val time = dom.document.getElementById("timeInput").asInstanceOf[Input].value.toString
+    val data = PageTimeReq(page,time).asJson.noSpaces
+    println("time: " + time)
+    Http.postJsonAndParse[PlayerRecordRsp](url,data).map{
+      case Right(rsp) =>
+        try {
+          if (rsp.errCode == 0) {
+            playerRecordsVar := rsp.data
+            playerAmountS = rsp.playerAmount
+            playerAmountToday = rsp.playerAmountToday
+            ViewPage.page = page
+            if(rsp.data.nonEmpty)
+              pageVar := (page, rsp.playerAmount)
+            else
+              pageVar := (page, 0)
+            isGetAmount := true
+            isSearch := true
           }
           else {
             println("error======" + rsp.msg)
@@ -167,10 +219,14 @@ object ViewPage extends Page{
         <div>
           {
           isGetAmount.map{
-            case true => <div style="font-family:楷体;font-size:20px;">历史玩家总数:{playerAmount},今日玩家数:{playerAmountToday}。</div>
+            case true => <div style="font-family:楷体;font-size:20px;">历史玩家总数:{playerAmount},今日玩家数:{playerAmountToday},所选日期玩家总数:{playerAmountS}。</div>
             case _ => <div></div>
           }
           }
+        </div>
+        <div>
+          <button class="btn btn-success" style="font-size:16px;border-radius:10px;outline:none" onclick={() => getPlayerRecordByTime(1)}>按日期查询</button>
+          <input  type="date" id="timeInput"></input>
         </div>
         <br></br>
         <h4 style="padding-left: 100px;"><b>游戏记录：</b></h4>

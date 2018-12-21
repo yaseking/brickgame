@@ -14,5 +14,6 @@ object Routes {
     val getRoomList = baseUrl + "/getRoomList"
     val getRoomPlayerList = baseUrl + "/getRoomPlayerList"
     val getPlayerRecord = baseUrl + "/getPlayerRecord"
+    val getPlayerRecordByTime = baseUrl + "/getPlayerRecordByTime"
   }
 }

@@ -49,4 +49,9 @@ object AdminPtcl {
   case class PageReq(
     page: Int
   )
+
+  case class PageTimeReq(
+    page: Int,
+    time: String
+  )
 }
