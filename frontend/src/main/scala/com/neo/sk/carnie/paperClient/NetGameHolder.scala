@@ -272,6 +272,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   } else e.keyCode
               println(s"onkeydown：$newKeyCode -- $actionFrame")
               grid.addActionWithFrame(myId, newKeyCode, actionFrame)
+              myActionHistory += actionId -> (newKeyCode, actionFrame)
               val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
               webSocketClient.sendMessage(msg)
 
