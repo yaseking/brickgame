@@ -18,7 +18,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 //  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {}
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
-    var gridMap = grid.filter(_._2 match { case Border => true case _ => false })
+    var gridMap = grid.filter(_._2 match { case Body(_, _) => false case _ => true })
     data.bodyDetails.foreach{ bodys =>
       val uid = bodys.uid
       if(bodys.turn.turnPoint.nonEmpty) {
@@ -49,7 +49,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
 //    }
 
     if(data.fieldDetails.nonEmpty) {
-      data.fieldDetails.get.foreach { baseInfo =>
+      gridMap = gridMap.filter(_._2 match { case Field(_) => false case _ => true })
+      data.fieldDetails.foreach { baseInfo =>
         baseInfo.scanField.foreach { fids =>
           fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
             fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => gridMap += Point(x, y) -> Field(baseInfo.uid)) }

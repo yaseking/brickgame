@@ -402,7 +402,7 @@ trait Grid {
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      Some(fieldDetails)
+      fieldDetails
 //      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
     )
   }
