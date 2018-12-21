@@ -359,7 +359,8 @@ object RoomActor {
 
           //错峰发送
           for((u, i) <- userMap) {
-            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newData)
+            val newDataNoField = Protocol.Data4TotalSyncNoField(newData.frameCount, newData.snakes, newData.bodyDetails)
+            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newDataNoField)
             if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5)
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5)))
           }
