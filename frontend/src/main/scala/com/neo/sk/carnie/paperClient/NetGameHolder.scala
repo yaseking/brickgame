@@ -403,7 +403,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
 
       case data: Protocol.NewFieldInfo =>
-        println(s"((((((((((((recv new field info")
+        println(s"((((((((((((recv new field info, frame: ${data.frameCount}")
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         newFieldInfo += data.frameCount -> data
