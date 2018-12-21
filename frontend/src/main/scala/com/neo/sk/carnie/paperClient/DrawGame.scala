@@ -506,6 +506,7 @@ class DrawGame(
       drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
 
+    index += 1
     val color = snakes.find(_.id == personalScore.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
     rankCtx.globalAlpha = 0.6
     rankCtx.fillStyle = color

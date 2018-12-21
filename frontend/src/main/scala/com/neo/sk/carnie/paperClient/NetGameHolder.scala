@@ -157,11 +157,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if (newFieldInfo.nonEmpty) {
         val minFrame = newFieldInfo.keys.min
         (minFrame to grid.frameCount).foreach { frame =>
-          val newFieldData = newFieldInfo(frame)
-          if (newFieldData.fieldDetails.map(_.uid).contains(myId))
-            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
-          grid.addNewFieldInfo(newFieldData)
-          newFieldInfo -= frame
+          if (newFieldInfo.get(frame).nonEmpty) {
+            val newFieldData = newFieldInfo(frame)
+            if (newFieldData.fieldDetails.map(_.uid).contains(myId))
+              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+            grid.addNewFieldInfo(newFieldData)
+            newFieldInfo -= frame
+          }
         }
       }
 
@@ -270,6 +272,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   } else e.keyCode
               println(s"onkeydown：$newKeyCode -- $actionFrame")
               grid.addActionWithFrame(myId, newKeyCode, actionFrame)
+              myActionHistory += actionId -> (newKeyCode, actionFrame)
               val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
               webSocketClient.sendMessage(msg)
 
@@ -321,6 +324,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
+              } else{
+                println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
+                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
@@ -332,6 +338,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
                 } else{
+                  println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
                   webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                 }
               }
@@ -365,7 +372,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.WinnerBestScore(score) =>
         maxArea = Math.max(maxArea, score)
-
 
       case Protocol.Ranks(current, score, rank) =>
         currentRank = current
@@ -402,7 +408,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
 
       case data: Protocol.NewFieldInfo =>
-        println(s"((((((((((((recv new field info")
+        println(s"((((((((((((recv new field info, frame: ${data.frameCount}")
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         newFieldInfo += data.frameCount -> data
