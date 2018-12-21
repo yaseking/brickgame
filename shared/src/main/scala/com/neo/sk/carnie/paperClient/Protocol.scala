@@ -32,6 +32,13 @@ object Protocol {
 //                             killHistory: List[Kill]
                            ) extends GameMessage
 
+//  case class Data4TotalSyncNoField(
+//                             frameCount: Long,
+//                             snakes: List[SkDt],
+//                             bodyDetails: List[BodyBaseInfo]
+////                             fieldDetails: List[FieldByColumn]
+//                           ) extends GameMessage
+
   case class NewSnakeInfo(
                          frameCount: Long,
                          snake: List[SkDt],
@@ -60,7 +67,7 @@ object Protocol {
                           )
 
   case class ScanByColumn(
-                           y: Int,
+                           y: List[(Int, Int)],
                            x: List[(Int, Int)]
                          )
 
@@ -166,5 +173,7 @@ object Protocol {
 
   val frameRate1 = 150 //normal-mode
   val frameRate2 = 75 //doubleSpeed-mode
+  val maxContainableAction = 3
+
 
 }

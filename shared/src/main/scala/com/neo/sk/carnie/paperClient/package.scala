@@ -57,14 +57,14 @@ package object paperClient {
   case class SkDt(
                    id: String,
                    name: String,
-                   color: String,//may change to rgb(Int, Int, Int)
+                   color: String,
                    startPoint: Point,
                    header: Point,
                    direction: Point = Point(0, 0),
                    kill: Int = 0,
                    startTime: Long,
                    endTime: Long,
-                   img: Int =0//头部图片
+                   img: Int =0
                  )
 
   case class UpdateSnakeInfo(

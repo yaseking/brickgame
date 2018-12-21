@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
+import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, ScanByColumn, WinData}
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Button, Canvas, Image}
@@ -255,9 +255,16 @@ class DrawGame(
       if (field.uid == myId || field.uid == winnerId) {
         val color = snakes.find(_.id == field.uid).map(_.color).get
         ctx.fillStyle = color
-        field.scanField.foreach { point =>
-          point.x.foreach { x =>
-            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//        field.scanField.foreach { point =>
+//          point.x.foreach { x =>
+//            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//          }
+//        }
+        field.scanField.foreach { fids =>
+          fids.y.foreach{y =>
+            fids.x.foreach{x =>
+              ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, y._1 * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1))
+            }
           }
         }
       }
@@ -327,7 +334,9 @@ class DrawGame(
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.map{s => ScanByColumn(s.y.filter(r => r._1 < maxPoint.y && r._2 > minPoint.y), s.x.filter(r => r._1 < maxPoint.x && r._2 > minPoint.x))}) }
+    val fieldInWindow = data.fieldDetails
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     ctx.save()
@@ -366,9 +375,16 @@ class DrawGame(
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//      field.scanField.foreach { point =>
+//        point.x.foreach { x =>
+//          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//        }
+//      }
+      field.scanField.foreach { fids =>
+        fids.y.foreach{y =>
+          fids.x.foreach{x =>
+            ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1))
+          }
         }
       }
     }

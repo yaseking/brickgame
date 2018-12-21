@@ -287,6 +287,7 @@ object RoomActor {
           action match {
             case Key(_, keyCode, frameCount, actionId) =>
               val realFrame = if (frameCount >= grid.frameCount) frameCount else grid.frameCount
+//              else Math.max(grid.frameCount, grid.actionMap.keys.toList.sorted.headOption.getOrElse(-1l) + 1)
               grid.addActionWithFrame(id, keyCode, realFrame)
               dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
                 Protocol.SnakeAction(id, keyCode, realFrame, actionId))
@@ -343,8 +344,13 @@ object RoomActor {
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
               dispatchTo(subscribersMap, f._1, newData) //同步全量数据
               if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
+//              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+//                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+//              }.toList)
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+                (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+              }.toList.groupBy(_._2).map { case (r, target) =>
+                ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
               }.toList)
             }
             dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
@@ -358,7 +364,8 @@ object RoomActor {
 
           //错峰发送
           for((u, i) <- userMap) {
-            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newData)
+            val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, Nil)
+            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newDataNoField)
             if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5)
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5)))
           }
@@ -375,8 +382,14 @@ object RoomActor {
           if (finishFields.nonEmpty) { //发送圈地数据
             newField = finishFields.map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+                (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+              }.toList.groupBy(_._2).map { case (r, target) =>
+                ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
               }.toList)
+
+//              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+//                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+//              }.toList)
             }
 
             userMap.filterNot(_._2.joinFrame == -1L).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
