@@ -256,9 +256,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               val msg: Protocol.UserAction = PressSpace
               webSocketClient.sendMessage(msg)
 
-            case _ =>
-              val actionFrame = if(grid.actionMap.nonEmpty && grid.actionMap.maxBy(_._1)._1 < frame + Protocol.maxContainableAction)
-                Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame) else frame
+            case _ if grid.actionMap.keys.toList.sorted.headOption.getOrElse(frame) < frame + Protocol.maxContainableAction =>
+              val actionFrame = if (grid.actionMap.isEmpty) frame else Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
               val actionId = idGenerator.getAndIncrement()
               val newKeyCode =
                 if (mode == 1)
@@ -276,7 +275,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
           e.preventDefault()
         }
-      }}
+      }
+      }
 
       //退出房间触发事件
       //      rankCanvas.onmousedown = { e:dom.MouseEvent =>
