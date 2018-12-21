@@ -125,6 +125,8 @@ object Protocol {
 
   case class NeedToSync(id: String) extends UserAction
 
+  case object PressSpace extends UserAction
+
   //essf
   sealed trait GameEvent extends GameMessage
 
