@@ -38,8 +38,6 @@ trait Grid {
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
 
-//  def checkEvents(enclosure: List[(String, List[Point])]): Unit
-
   def removeSnake(id: String): Option[SkDt] = {
     val r = snakes.get(id)
     if (r.isDefined) {
@@ -396,12 +394,6 @@ trait Grid {
     )
   }
 
-//  def getKilledSkData: Protocol.KilledSkData = {
-//    Protocol.KilledSkData(
-//      killedSks.map(k => KilledSkDt(k._2._1, k._2._2, k._2._3, k._2._4, k._2._5, k._2._6)).toList
-//    )
-//  }
-
   def getKiller(myId: String): Option[(String, String, Long)] = {
     killHistory.get(myId)
   }
@@ -414,10 +406,6 @@ trait Grid {
 //    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
     snakeTurnPoints = snakeTurnPoints.empty
   }
-
-//  def cleanKilledSkData(): Unit = {
-//    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
-//  }
 
   def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地
     snakeTurnPoints -= snakeId
