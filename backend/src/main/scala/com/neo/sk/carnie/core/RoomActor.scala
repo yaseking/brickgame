@@ -398,7 +398,7 @@ object RoomActor {
            if(count % 2 == 0) {
              userGroup.get(count / 2).foreach { g =>
                if (g.nonEmpty) {
-                 dispatch(subscribersMap.filter(s => g.contains(s._1)), Protocol.Ranks(grid.currentRank))
+                 dispatch(subscribersMap.filter(s => g.contains(s._1)), Protocol.Ranks(grid.currentRank.take(5)))
                }
              }
            }
