@@ -46,9 +46,17 @@ class GridOnClient(override val boundary: Point) extends Grid {
       snakeTurnPoints += ((uid, bodys.turn.turnPoint))
     }
 
+//    data.fieldDetails.foreach { baseInfo =>
+//      baseInfo.scanField.foreach { fids =>
+//        fids.x.foreach { l => (l._1 to l._2 by 1).foreach(x => gridMap += Point(x, fids.y) -> Field(baseInfo.uid)) }
+//      }
+//    }
+
     data.fieldDetails.foreach { baseInfo =>
       baseInfo.scanField.foreach { fids =>
-        fids.x.foreach { l => (l._1 to l._2 by 1).foreach(x => gridMap += Point(x, fids.y) -> Field(baseInfo.uid)) }
+        fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
+          fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => gridMap += Point(x, y) -> Field(baseInfo.uid)) }
+        }}
       }
     }
 
@@ -60,9 +68,16 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def addNewFieldInfo(data: Protocol.NewFieldInfo): Unit = {
+//    data.fieldDetails.foreach { baseInfo =>
+//      baseInfo.scanField.foreach { fids =>
+//        fids.x.foreach { l => (l._1 to l._2 by 1).foreach(x => grid += Point(x, fids.y) -> Field(baseInfo.uid)) }
+//      }
+//    }
     data.fieldDetails.foreach { baseInfo =>
       baseInfo.scanField.foreach { fids =>
-        fids.x.foreach { l => (l._1 to l._2 by 1).foreach(x => grid += Point(x, fids.y) -> Field(baseInfo.uid)) }
+        fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
+          fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => grid += Point(x, y) -> Field(baseInfo.uid)) }
+        }}
       }
     }
   }

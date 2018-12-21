@@ -60,7 +60,7 @@ object Protocol {
                           )
 
   case class ScanByColumn(
-                           y: Int,
+                           y: List[(Int, Int)],
                            x: List[(Int, Int)]
                          )
 

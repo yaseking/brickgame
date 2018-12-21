@@ -386,7 +386,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     humanViewCtx.setFill(ColorsSetting.backgroundColor)
     humanViewCtx.fillRect(0,0,humanWindowBoundary.x,humanWindowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offX, y = i.header.y + offY)))
-    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+    val fieldInWindow = data.fieldDetails
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     humanViewCtx.save()
@@ -428,9 +429,16 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       humanViewCtx.setFill(color)
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          humanViewCtx.fillRect((x._1 + offX) * humanCanvasUnit, (point.y + offY) * humanCanvasUnit, humanCanvasUnit * (x._2 - x._1 + 1), humanCanvasUnit * 1.05)
+//      field.scanField.foreach { point =>
+//        point.x.foreach { x =>
+//          humanViewCtx.fillRect((x._1 + offX) * humanCanvasUnit, (point.y + offY) * humanCanvasUnit, humanCanvasUnit * (x._2 - x._1 + 1), humanCanvasUnit * 1.05)
+//        }
+//      }
+      field.scanField.foreach { fids =>
+        fids.y.foreach{y =>
+          fids.x.foreach{x =>
+            humanViewCtx.fillRect((x._1 + offX) * humanCanvasUnit, (y._1 + offY) * humanCanvasUnit, humanCanvasUnit * (x._2 - x._1 + 1), humanCanvasUnit * (y._2 - y._1 + 1))
+          }
         }
       }
     }
@@ -550,7 +558,9 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    selfViewCtx.setFill(ColorsSetting.backgroundColor)
 //    selfViewCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+    val fieldInWindow = data.fieldDetails
+
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     selfViewCtx.save()
@@ -589,9 +599,16 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       selfViewCtx.setFill(color)
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.1)
+//      field.scanField.foreach { point =>
+//        point.x.foreach { x =>
+//          selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.1)
+//        }
+//      }
+      field.scanField.foreach { fids =>
+        fids.y.foreach{y =>
+          fids.x.foreach{x =>
+            selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1))
+          }
         }
       }
     }
@@ -650,7 +667,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    selfCtx.setFill(ColorsSetting.backgroundColor)
 //    selfCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+    val fieldInWindow = data.fieldDetails
 
     scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
     selfCtx.save()
@@ -700,9 +718,16 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     fieldInWindow.filter(_.uid == uid).foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       selfCtx.setFill(color)
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.10)
+//      field.scanField.foreach { point =>
+//        point.x.foreach { x =>
+//          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.10)
+//        }
+//      }
+      field.scanField.foreach { fids =>
+        fids.y.foreach{y =>
+          fids.x.foreach{x =>
+            selfCtx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1))
+          }
         }
       }
     }

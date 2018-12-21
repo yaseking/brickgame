@@ -381,11 +381,26 @@ trait Grid {
       case _ => //doNothing
     }
 
-    val fieldDetails = fields.groupBy(_.id).map { case (userId, fieldPoints) =>
+//    val fieldDetails = fields.groupBy(_.id).map { case (userId, fieldPoints) =>
+//      FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
+//        ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+//      }.toList)
+//    }.toList
+
+    val fieldDetails =
+      fields.groupBy(_.id).map { case (userId, fieldPoints) =>
       FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
-        ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+        (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+      }.toList.groupBy(_._2).map { case (r, target) =>
+        ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
       }.toList)
     }.toList
+
+//    FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+//      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+//    }.toList.groupBy(_._2).map { case (r, target) =>
+//      ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+//    }.toList)
 
     Protocol.Data4TotalSync(
       frameCount,
