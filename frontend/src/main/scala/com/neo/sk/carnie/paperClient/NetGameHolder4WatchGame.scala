@@ -133,11 +133,14 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
     if (webSocketClient.getWsState) {
       if (newSnakeInfo.nonEmpty) {
+        //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
+        if (newSnakeInfo.get.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
         newSnakeInfo.get.snake.foreach { s =>
           grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
         }
         grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
         grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+
         newSnakeInfo = None
       }
 
@@ -146,17 +149,43 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         syncGridData = None
       } else {
         grid.update("f")
-        if (newFieldInfo.nonEmpty) {
-          val frame = newFieldInfo.keys.min
+      }
+
+      if (newFieldInfo.nonEmpty) {
+        val minFrame = newFieldInfo.keys.min
+        (minFrame to grid.frameCount).foreach { frame =>
           val newFieldData = newFieldInfo(frame)
-          if (frame == grid.frameCount) {
-            grid.addNewFieldInfo(newFieldData)
-            newFieldInfo -= frame
-          } else if (frame < grid.frameCount) {
-            webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
-          }
+          if (newFieldData.fieldDetails.map(_.uid).contains(myId))
+            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+          grid.addNewFieldInfo(newFieldData)
+          newFieldInfo -= frame
         }
       }
+//      if (newSnakeInfo.nonEmpty) {
+//        newSnakeInfo.get.snake.foreach { s =>
+//          grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
+//        }
+//        grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
+//        grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+//        newSnakeInfo = None
+//      }
+//
+//      if (syncGridData.nonEmpty) { //逻辑帧更新数据
+//        grid.initSyncGridData(syncGridData.get)
+//        syncGridData = None
+//      } else {
+//        grid.update("f")
+//        if (newFieldInfo.nonEmpty) {
+//          val frame = newFieldInfo.keys.min
+//          val newFieldData = newFieldInfo(frame)
+//          if (frame == grid.frameCount) {
+//            grid.addNewFieldInfo(newFieldData)
+//            newFieldInfo -= frame
+//          } else if (frame < grid.frameCount) {
+//            webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
+//          }
+//        }
+//      }
 
       if (!isWin) {
         val gridData = grid.getGridData
@@ -365,6 +394,23 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case x@_ =>
         println(s"receive unknown msg:$x")
     }
+  }
+
+  def spaceKey(): Unit = {
+    grid.cleanSnakeTurnPoint(myId)
+    grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
+    drawFunction = FrontProtocol.DrawGameWait
+    audio1.pause()
+    audio1.currentTime = 0
+    audioKilled.pause()
+    audioKilled.currentTime = 0
+    firstCome = true
+    if (isWin) isWin = false
+    myScore = BaseScore(0, 0, 0l, 0l)
+    isContinue = true
+    //                  backBtn.style.display="none"
+    //                  rankCanvas.addEventListener("",null)
+    dom.window.requestAnimationFrame(gameRender())
   }
 
   override def render: Elem = {
