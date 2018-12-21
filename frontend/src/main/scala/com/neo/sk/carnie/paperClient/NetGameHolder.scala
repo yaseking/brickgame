@@ -332,6 +332,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
                 } else{
+                  println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
                   webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                 }
               }
