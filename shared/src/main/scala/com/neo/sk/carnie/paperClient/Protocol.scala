@@ -104,7 +104,8 @@ object Protocol {
   case class ReplayFinish(id: String) extends GameMessage
 
   //  case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
-  case class Ranks(currentRank: List[Score]) extends GameMessage
+  case class Ranks(currentRank: List[Score], personalScore: Score, personalRank: Int) extends GameMessage
+//  case class Rank4Self(score: Score, rank: Int) extends GameMessage
 
   case object ReStartGame extends GameMessage
 

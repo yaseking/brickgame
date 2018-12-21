@@ -439,7 +439,7 @@ class DrawGame(
     }
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int): Unit = {
 
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
@@ -505,6 +505,21 @@ class DrawGame(
       drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
       drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
+
+    val color = snakes.find(_.id == personalScore.id).map(_.color).getOrElse(ColorsSetting.defaultColor)
+    rankCtx.globalAlpha = 0.6
+    rankCtx.fillStyle = color
+    rankCtx.save()
+    rankCtx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
+      fillWidth + windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), textLineHeight)
+    rankCtx.restore()
+
+    rankCtx.globalAlpha = 1
+    rankCtx.fillStyle = ColorsSetting.fontColor2
+    index += 1
+    drawTextLine(s"[$personalRank]: ${personalScore.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
+    drawTextLine(s"area=" + f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
+    drawTextLine(s"kill=${personalScore.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
   }
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
