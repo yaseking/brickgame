@@ -54,6 +54,7 @@ object Main extends js.JSApp {
     val headId = Random.nextInt(6)
     currentPage = new CanvasPage().render
     show()
+    new NetGameHolder4WatchGame("watchGame", WatchGamePara(s"test$r", s"test$r", " ")).init()
     new NetGameHolder("playGame", PlayGamePara(s"test$r", s"test$r", 0, headId), 0, headId, frameRate1).init()
 //    currentPage = new JoinGamePage("playGame", PlayGamePara(s"test$r", s"test$r")).render
 

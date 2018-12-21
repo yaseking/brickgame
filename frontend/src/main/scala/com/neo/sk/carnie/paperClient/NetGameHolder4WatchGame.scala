@@ -2,12 +2,12 @@ package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.carnie.common.Constant
+//import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.util.Component
 import org.scalajs.dom
-import org.scalajs.dom.ext.KeyCode
+//import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Canvas, Document => _}
 import org.scalajs.dom.raw._
 
@@ -89,7 +89,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
   }
 
-  def getRandom(s: Int) = {
+  def getRandom(s: Int):Int = {
     val rnd = new scala.util.Random
     rnd.nextInt(s)
   }
@@ -260,7 +260,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
-  private def connectOpenSuccess(event0: Event, order: String) = {
+  private def connectOpenSuccess(event0: Event, order: String):Unit = {
     drawGame.drawGameWait()
   }
 

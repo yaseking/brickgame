@@ -130,7 +130,7 @@ trait Grid {
 
         grid.get(newHeader) match {
           case Some(x: Body) => //进行碰撞检测
-            debug(s"snake[${snake.id}] hit wall.")
+//            debug(s"snake[${snake.id}] hit wall.")
             if (x.id != snake.id) { //撞到了别人的身体
               killHistory += x.id -> (snake.id, snake.name, frameCount)
             }

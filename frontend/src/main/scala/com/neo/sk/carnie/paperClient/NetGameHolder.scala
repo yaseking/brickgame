@@ -416,7 +416,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
 
-      case x@Protocol.WinData(winnerScore,yourScore) =>
+      case x@Protocol.WinData(_,_) =>
         println(s"receive winningData msg:$x")
         winningData = x
 

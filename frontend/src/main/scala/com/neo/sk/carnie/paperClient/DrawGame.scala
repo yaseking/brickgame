@@ -176,7 +176,7 @@ class DrawGame(
     ctx.scale(1, 1)
 
     val text = killerOpt match {
-      case Some(killer) => s"Ops, You Killed By $killer! Press Space Key To Revenge!"
+      case Some(killer) => s"Ops, You Are Killed By $killer! Press Space Key To Revenge!"
       case None => "Ops, Press Space Key To Restart!"
     }
 
