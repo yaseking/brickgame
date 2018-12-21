@@ -50,41 +50,41 @@ object Main extends js.JSApp {
 
   def selectPage():Unit = {
 //    currentPage = new RoomListPage(PlayGamePara("test", "test")).render
-    val r = Random.nextInt(1000)
-    val headId = Random.nextInt(6)
-    currentPage = new CanvasPage().render
-    show()
-    new NetGameHolder4WatchGame("watchGame", WatchGamePara(s"test$r", s"test$r", " ")).init()
-    new NetGameHolder("playGame", PlayGamePara(s"test$r", s"test$r", 0, headId), 0, headId, frameRate1).init()
+//    val r = Random.nextInt(1000)
+//    val headId = Random.nextInt(6)
+//    currentPage = new CanvasPage().render
+//    show()
+//    new NetGameHolder4WatchGame("watchGame", WatchGamePara(s"test$r", s"test$r", " ")).init()
+//    new NetGameHolder("playGame", PlayGamePara(s"test$r", s"test$r", 0, headId), 0, headId, frameRate1).init()
 //    currentPage = new JoinGamePage("playGame", PlayGamePara(s"test$r", s"test$r")).render
 
-//    val url = dom.window.location.href.split("carnie/")(1)
-//    val info = url.split("\\?")
-//    val playerMsgMap = info(1).split("&").map {
-//      a =>
-//        val b = a.split("=")
-//        (b(0), b(1))
-//    }.toMap
-////    println(s"hello ${info(0)}....")
-//    info(0) match {
-//      case "playGame" =>
-//        println("playGame ...")
-//        val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
-//        val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
-////        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
-//        currentPage = new CanvasPage().render
-//        show()
-//        val modelId = 0
-//        val frameRate = frameRate1
-//        val headId = Random.nextInt(6)
-//        new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
-//
-//      case _ =>
-//        println(s"not playGame ${info(0)}")
-//        currentPage = new CanvasPage().render
-//        show()
-//        newGameHolder(playerMsgMap, info)
-//    }
+    val url = dom.window.location.href.split("carnie/")(1)
+    val info = url.split("\\?")
+    val playerMsgMap = info(1).split("&").map {
+      a =>
+        val b = a.split("=")
+        (b(0), b(1))
+    }.toMap
+//    println(s"hello ${info(0)}....")
+    info(0) match {
+      case "playGame" =>
+        println("playGame ...")
+        val playerId = if (playerMsgMap.contains("playerId")) playerMsgMap("playerId") else "unKnown"
+        val playerName = if (playerMsgMap.contains("playerName")) playerMsgMap("playerName") else "unKnown"
+//        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
+        currentPage = new CanvasPage().render
+        show()
+        val modelId = 0
+        val frameRate = frameRate1
+        val headId = Random.nextInt(6)
+        new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
+
+      case _ =>
+        println(s"not playGame ${info(0)}")
+        currentPage = new CanvasPage().render
+        show()
+        newGameHolder(playerMsgMap, info)
+    }
   }
 
   def refreshPage(newPage: Elem): Cancelable = {
