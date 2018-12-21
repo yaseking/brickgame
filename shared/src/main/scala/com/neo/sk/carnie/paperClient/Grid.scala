@@ -1,9 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
-
 import com.neo.sk.carnie.paperClient.Protocol._
-
 import scala.util.Random
 import scala.collection.mutable
 

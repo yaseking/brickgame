@@ -166,5 +166,7 @@ object Protocol {
 
   val frameRate1 = 150 //normal-mode
   val frameRate2 = 75 //doubleSpeed-mode
+  val maxContainableAction = 3
+
 
 }

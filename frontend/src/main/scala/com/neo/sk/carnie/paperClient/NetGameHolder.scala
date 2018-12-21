@@ -44,7 +44,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
   val delay:Int = if(mode == 2) 4 else 2
-  val maxContainableAction = 3
 
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
@@ -257,8 +256,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               val msg: Protocol.UserAction = PressSpace
               webSocketClient.sendMessage(msg)
 
-            case _ if grid.actionMap.nonEmpty && grid.actionMap.maxBy(_._1)._1 < frame + maxContainableAction =>
-              val actionFrame = Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
+            case _ =>
+              val actionFrame = if(grid.actionMap.nonEmpty && grid.actionMap.maxBy(_._1)._1 < frame + Protocol.maxContainableAction)
+                Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame) else frame
               val actionId = idGenerator.getAndIncrement()
               val newKeyCode =
                 if (mode == 1)
@@ -273,8 +273,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               grid.addActionWithFrame(myId, newKeyCode, actionFrame)
               val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
               webSocketClient.sendMessage(msg)
-
-            case _ =>
           }
           e.preventDefault()
         }
