@@ -28,16 +28,16 @@ object Protocol {
                              frameCount: Long,
                              snakes: List[SkDt],
                              bodyDetails: List[BodyBaseInfo],
-                             fieldDetails: List[FieldByColumn]
+                             fieldDetails: Option[List[FieldByColumn]]
 //                             killHistory: List[Kill]
                            ) extends GameMessage
 
-  case class Data4TotalSyncNoField(
-                             frameCount: Long,
-                             snakes: List[SkDt],
-                             bodyDetails: List[BodyBaseInfo]
-//                             fieldDetails: List[FieldByColumn]
-                           ) extends GameMessage
+//  case class Data4TotalSyncNoField(
+//                             frameCount: Long,
+//                             snakes: List[SkDt],
+//                             bodyDetails: List[BodyBaseInfo]
+////                             fieldDetails: List[FieldByColumn]
+//                           ) extends GameMessage
 
   case class NewSnakeInfo(
                          frameCount: Long,

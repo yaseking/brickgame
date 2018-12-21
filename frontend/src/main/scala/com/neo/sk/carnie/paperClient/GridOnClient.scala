@@ -48,11 +48,13 @@ class GridOnClient(override val boundary: Point) extends Grid {
 //      }
 //    }
 
-    data.fieldDetails.foreach { baseInfo =>
-      baseInfo.scanField.foreach { fids =>
-        fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
-          fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => gridMap += Point(x, y) -> Field(baseInfo.uid)) }
-        }}
+    if(data.fieldDetails.nonEmpty) {
+      data.fieldDetails.get.foreach { baseInfo =>
+        baseInfo.scanField.foreach { fids =>
+          fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
+            fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => gridMap += Point(x, y) -> Field(baseInfo.uid)) }
+          }}
+        }
       }
     }
 

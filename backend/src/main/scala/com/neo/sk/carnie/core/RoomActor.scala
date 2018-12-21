@@ -364,7 +364,7 @@ object RoomActor {
 
           //错峰发送
           for((u, i) <- userMap) {
-            val newDataNoField = Protocol.Data4TotalSyncNoField(newData.frameCount, newData.snakes, newData.bodyDetails)
+            val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, None)
             if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newDataNoField)
             if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5)
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5)))
@@ -449,7 +449,7 @@ object RoomActor {
 
           val baseEvent = if (tickCount % 10 == 3) RankEvent(grid.currentRank) :: (actionEvent ::: joinOrLeftEvent.map(_._2).toList) else actionEvent ::: joinOrLeftEvent.map(_._2).toList
           gameEvent --= joinOrLeftEvent
-          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails)
+          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails.getOrElse(Nil))
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid, mode) ! recordData
@@ -484,7 +484,7 @@ object RoomActor {
     val childName = "gameRecorder"
     ctx.child(childName).getOrElse {
       val newData = grid.getGridData
-      val actor = ctx.spawn(GameRecorder.create(roomId, Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails),
+      val actor = ctx.spawn(GameRecorder.create(roomId, Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails.getOrElse(Nil)),
         GameInformation(roomId, System.currentTimeMillis(), 0, grid.frameCount, mode)), childName)
       ctx.watchWith(actor, ChildDead(childName, actor))
       actor
