@@ -317,6 +317,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case r@Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+            println("?????????????")
             println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
