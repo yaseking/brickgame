@@ -256,7 +256,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               val msg: Protocol.UserAction = PressSpace
               webSocketClient.sendMessage(msg)
 
-            case _ if grid.actionMap.keys.toList.sorted.headOption.getOrElse(-1) < frame + Protocol.maxContainableAction =>
+            case _ if grid.actionMap.keys.toList.sorted.headOption.getOrElse(-1l) < frame + Protocol.maxContainableAction =>
               val actionFrame = if (grid.actionMap.isEmpty) frame else Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
               val actionId = idGenerator.getAndIncrement()
               val newKeyCode =
