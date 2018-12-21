@@ -10,12 +10,12 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.util.{Component, JsFunc}
+import com.neo.sk.carnie.util.Component
 
 import scala.xml.Elem
 
 /**
-  * User: Taoz
+  * User: Tao
   * Date: 9/1/2016
   * Time: 12:45 PM
   */
@@ -152,17 +152,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         syncGridData = None
       } else {
         grid.update("f")
-        if (newFieldInfo.nonEmpty) {
-          val frame = newFieldInfo.keys.min
+      }
+
+      if (newFieldInfo.nonEmpty) {
+        val minFrame = newFieldInfo.keys.min
+        (minFrame to grid.frameCount).foreach { frame =>
           val newFieldData = newFieldInfo(frame)
-          if (frame == grid.frameCount) {
-            if(newFieldData.fieldDetails.map(_.uid).contains(myId))
-              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
-            grid.addNewFieldInfo(newFieldData)
-            newFieldInfo -= frame
-          } else if (frame < grid.frameCount) {
-            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
-          }
+          if (newFieldData.fieldDetails.map(_.uid).contains(myId))
+            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+          grid.addNewFieldInfo(newFieldData)
+          newFieldInfo -= frame
         }
       }
 
@@ -256,8 +255,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               val msg: Protocol.UserAction = PressSpace
               webSocketClient.sendMessage(msg)
 
-            case _ if grid.actionMap.keys.toList.sorted.headOption.getOrElse(-1l) < frame + Protocol.maxContainableAction =>
-              val actionFrame = if (grid.actionMap.isEmpty) frame else Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
+            case _ =>
+//              val actionFrame = if (grid.actionMap.isEmpty) frame else Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
+              val actionFrame = frame
               val actionId = idGenerator.getAndIncrement()
               val newKeyCode =
                 if (mode == 1)
@@ -268,10 +268,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                     case KeyCode.Up => KeyCode.Down
                     case _ => KeyCode.Space
                   } else e.keyCode
-              println(s"onkeydown：$newKeyCode")
+              println(s"onkeydown：$newKeyCode -- $actionFrame")
               grid.addActionWithFrame(myId, newKeyCode, actionFrame)
               val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
               webSocketClient.sendMessage(msg)
+
+            case _ =>
           }
           e.preventDefault()
         }
@@ -310,7 +312,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        //        println(s"i got ${grid.frameCount}, frame : $frame")
+//        println(s"snakeAction $actionId, frame : $frame")
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
@@ -329,6 +331,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   val oldGrid = grid
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
+                } else{
+                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                 }
               }
               myActionHistory -= actionId
@@ -409,6 +413,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case x@Protocol.WinData(winnerScore,yourScore) =>
         println(s"receive winningData msg:$x")
         winningData = x
+
 
       case x@_ =>
         println(s"receive unknown msg:$x")
