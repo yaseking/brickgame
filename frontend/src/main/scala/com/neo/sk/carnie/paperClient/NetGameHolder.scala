@@ -157,11 +157,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if (newFieldInfo.nonEmpty) {
         val minFrame = newFieldInfo.keys.min
         (minFrame to grid.frameCount).foreach { frame =>
-          val newFieldData = newFieldInfo(frame)
-          if (newFieldData.fieldDetails.map(_.uid).contains(myId))
-            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
-          grid.addNewFieldInfo(newFieldData)
-          newFieldInfo -= frame
+          if (newFieldInfo.get(frame).nonEmpty) {
+            val newFieldData = newFieldInfo(frame)
+            if (newFieldData.fieldDetails.map(_.uid).contains(myId))
+              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+            grid.addNewFieldInfo(newFieldData)
+            newFieldInfo -= frame
+          }
         }
       }
 
