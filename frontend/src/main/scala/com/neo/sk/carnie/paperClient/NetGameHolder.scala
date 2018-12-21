@@ -252,57 +252,49 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
           val frame = grid.frameCount + delay
-//          e.keyCode match {
-//            case KeyCode.Space =>
-//              val msg: Protocol.UserAction =  PressSpace
-//              webSocketClient.sendMessage(msg)
-//
-//            case _ if =>
-//              val maxFrame = grid.actionMap.maxBy(_._1)._1
-//
-//          }
+          e.keyCode match {
+            case KeyCode.Space =>
+              val msg: Protocol.UserAction = PressSpace
+              webSocketClient.sendMessage(msg)
 
-          val newKeyCode =
-            if (mode == 1)
-              e.keyCode match {
-                case KeyCode.Left => KeyCode.Right
-                case KeyCode.Right => KeyCode.Left
-                case KeyCode.Down => KeyCode.Up
-                case KeyCode.Up => KeyCode.Down
-                case _ => KeyCode.Space
-              } else e.keyCode
-          println(s"onkeydown：$newKeyCode")
-          grid.addActionWithFrame(myId, newKeyCode, frame)
-
-          val msg: Protocol.UserAction = {
-            val actionId = idGenerator.getAndIncrement()
-            if (newKeyCode != KeyCode.Space) {
-              myActionHistory += actionId -> (newKeyCode, frame)
-            }
-            Key(myId, newKeyCode, frame, actionId)
+            case _ if grid.actionMap.maxBy(_._1)._1 < frame + maxContainableAction =>
+              val actionFrame = Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
+              val actionId = idGenerator.getAndIncrement()
+              val newKeyCode =
+                if (mode == 1)
+                  e.keyCode match {
+                    case KeyCode.Left => KeyCode.Right
+                    case KeyCode.Right => KeyCode.Left
+                    case KeyCode.Down => KeyCode.Up
+                    case KeyCode.Up => KeyCode.Down
+                    case _ => KeyCode.Space
+                  } else e.keyCode
+              println(s"onkeydown：$newKeyCode")
+              grid.addActionWithFrame(myId, newKeyCode, actionFrame)
+              val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
+              webSocketClient.sendMessage(msg)
           }
-          webSocketClient.sendMessage(msg)
           e.preventDefault()
         }
-      }
-      }
+      }}
+
       //退出房间触发事件
-//      rankCanvas.onmousedown = { e:dom.MouseEvent =>
-//        drawFunction match {
-//          case FrontProtocol.DrawGameDie(_) =>
-//            if(
-//              e.pageX > x &&
-//                e.pageX < x + 175 &&
-//                e.pageY > y + 250 &&
-//                e.pageY < y + 310
-//            ) {
-//              dom.document.location.reload() //重新进入游戏
-////              dom.window.location.reload()
-//            }
-//          case _ =>
-//        }
-//        e.preventDefault()
-//      }
+      //      rankCanvas.onmousedown = { e:dom.MouseEvent =>
+      //        drawFunction match {
+      //          case FrontProtocol.DrawGameDie(_) =>
+      //            if(
+      //              e.pageX > x &&
+      //                e.pageX < x + 175 &&
+      //                e.pageY > y + 250 &&
+      //                e.pageY < y + 310
+      //            ) {
+      //              dom.document.location.reload() //重新进入游戏
+      ////              dom.window.location.reload()
+      //            }
+      //          case _ =>
+      //        }
+      //        e.preventDefault()
+      //      }
     }
     event0
   }
