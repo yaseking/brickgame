@@ -167,6 +167,26 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.update("f")
       }
 
+      if (newFieldInfo.nonEmpty) {
+        val minFrame = newFieldInfo.keys.min
+        (minFrame to grid.frameCount).foreach { frame =>
+          val newFieldData = newFieldInfo(frame)
+          if (newFieldData.fieldDetails.map(_.uid).contains(myId))
+            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+          grid.addNewFieldInfo(newFieldData)
+          newFieldInfo -= frame
+        }
+        //          val newFieldData = newFieldInfo(frame)
+        //          if (frame == grid.frameCount) {
+        //            if(newFieldData.fieldDetails.map(_.uid).contains(myId))
+        //              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+        //            grid.addNewFieldInfo(newFieldData)
+        //            newFieldInfo -= frame
+        //          } else if (frame < grid.frameCount) {
+        //            webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+        //          }
+      }
+
       if (!isWin) {
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
@@ -333,6 +353,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   val oldGrid = grid
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
+                } else{
+                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                 }
               }
               myActionHistory -= actionId
