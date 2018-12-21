@@ -276,7 +276,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
               webSocketClient.sendMessage(msg)
 
-            case _ =>
           }
           e.preventDefault()
         }
