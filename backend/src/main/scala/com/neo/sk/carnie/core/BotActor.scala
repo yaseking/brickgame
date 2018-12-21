@@ -4,7 +4,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.core.RoomActor.{UserActionOnServer, dispatch}
-import com.neo.sk.carnie.paperClient.Protocol.Key
+import com.neo.sk.carnie.paperClient.Protocol.{Key, PressSpace}
 import com.neo.sk.carnie.paperClient.{GridOnServer, Protocol}
 import org.slf4j.LoggerFactory
 
@@ -99,8 +99,8 @@ object BotActor {
       msg match {
         case Space =>
 //          log.info(s"recv Space: botId:$botId")
-          val actionCode = 32
-          roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
+//          val actionCode = 32
+          roomActor ! UserActionOnServer(botId, PressSpace)
           Behaviors.same
 
         case BackToGame =>

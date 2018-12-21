@@ -69,10 +69,8 @@ object Main extends js.JSApp {
 //        currentPage = new JoinGamePage("playGame", PlayGamePara(playerId, playerName)).render
         currentPage = new CanvasPage().render
         show()
-        val modelId = 0
-        val frameRate = frameRate1
         val headId = Random.nextInt(6)
-        new NetGameHolder("playGame", PlayGamePara(playerId, playerName, modelId, headId), modelId, headId, frameRate).init()
+        new NetGameHolder("playGame", PlayGamePara(playerId, playerName, 0, headId), 0, headId, frameRate1).init()
 
       case _ =>
         println(s"not playGame ${info(0)}")
