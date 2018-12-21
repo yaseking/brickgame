@@ -1,6 +1,6 @@
 package com.neo.sk.carnie.paperClient
-import org.scalajs.dom.raw.CloseEvent
-import com.neo.sk.carnie.model.ReplayInfo
+//import org.scalajs.dom.raw.CloseEvent
+//import com.neo.sk.carnie.model.ReplayInfo
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.bytesDecode
@@ -79,8 +79,9 @@ class WebSocketClient (
                   data match {
                     case ReceivePingPacket(_) =>
 
-                    case _ => println(s"msg type is:${data.getClass}, and size is:" + blobMsg.size)
-
+                    case _ =>
+                      if(blobMsg.size > 100)
+                        println(s"msg type is:${data.getClass},${blobMsg.`type`} ,and size is:" + blobMsg.size)
                   }
                   messageHandler(data)
 
@@ -129,7 +130,7 @@ class WebSocketClient (
     s"$wsProtocol://${dom.document.location.host}/carnie/joinGameById?id=$id&name=$name&mode=$mode&img=$img&roomId=$roomId"
   }
 
-  def getWsState = wsSetup
+  def getWsState:Boolean = wsSetup
 
 
 }

@@ -10,12 +10,12 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.util.{Component, JsFunc}
+import com.neo.sk.carnie.util.Component
 
 import scala.xml.Elem
 
 /**
-  * User: Taoz
+  * User: Tao
   * Date: 9/1/2016
   * Time: 12:45 PM
   */
