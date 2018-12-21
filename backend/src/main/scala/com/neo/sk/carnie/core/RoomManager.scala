@@ -343,6 +343,7 @@ object RoomManager {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
         case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
       .to(sink(actor, userId, name))
@@ -368,6 +369,7 @@ object RoomManager {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
         case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
       .to(sink(actor, userId, name))
@@ -393,6 +395,7 @@ object RoomManager {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
         case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
         case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
       .to(sink(actor, userId, name))
