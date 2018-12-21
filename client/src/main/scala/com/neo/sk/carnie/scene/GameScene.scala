@@ -116,8 +116,8 @@ class GameScene(img: Int, frameRate: Int) {
   }
 
 
-  def drawRank(myId: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
-    rank.drawRank(myId, snakes, currentRank)
+  def drawRank(myId: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int): Unit = {
+    rank.drawRank(myId, snakes, currentRank, personalScore, personalRank)
   }
 
   def drawBarrage(killedName: String, killerName: String): Unit = {

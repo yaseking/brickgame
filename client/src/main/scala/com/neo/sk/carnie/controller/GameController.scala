@@ -324,12 +324,12 @@ class GameController(player: PlayerInfoInClient,
         }
 
 
-      case Protocol.Ranks(current) =>
+      case Protocol.Ranks(current, score, rank) =>
         Boot.addToPlatform {
           currentRank = current
-          maxArea = Math.max(maxArea,currentRank.find(_.id == player.id).map(_.area).getOrElse(0))
+          maxArea = Math.max(maxArea, score.area)
           if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin){
-            gameScene.drawRank(player.id, grid.getGridData.snakes, current)
+            gameScene.drawRank(player.id, grid.getGridData.snakes, current, score, rank)
 //            layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
 //            layeredGameScene.drawHumanRank(player.id, grid.getGridData.snakes, currentRank)
           }

@@ -443,7 +443,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       case RankEvent(current) =>
         currentRank = current
         maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank4Replay(myId, grid.getGridData.snakes, currentRank)
 
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails) =>

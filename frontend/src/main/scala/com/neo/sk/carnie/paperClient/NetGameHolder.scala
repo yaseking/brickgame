@@ -367,7 +367,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         currentRank = current
         maxArea = Math.max(maxArea, score.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
-          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
+          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, score , rank)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")

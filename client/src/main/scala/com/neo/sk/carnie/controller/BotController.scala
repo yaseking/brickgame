@@ -159,13 +159,14 @@ class BotController(player: PlayerInfoInClient,
         }
 
 
-      case Protocol.Ranks(current) =>
+      case Protocol.Ranks(current, score, _) =>
         Boot.addToPlatform {
           currentRank = current
-          val myCurrent = current.find(_.id == player.id)
-          myCurrentRank = if (myCurrent.nonEmpty) {
-            myCurrent.get
-          } else myCurrentRank.copy(k = 0, area = 0)
+//          val myCurrent = current.find(_.id == player.id)
+//          myCurrentRank = if (myCurrent.nonEmpty) {
+//            myCurrent.get
+//          } else myCurrentRank.copy(k = 0, area = 0)
+          myCurrentRank = score
         }
 
       case data: Protocol.Data4TotalSync =>
