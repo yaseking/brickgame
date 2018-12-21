@@ -268,7 +268,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                     case KeyCode.Up => KeyCode.Down
                     case _ => KeyCode.Space
                   } else e.keyCode
-              println(s"onkeydown：$newKeyCode")
+              println(s"onkeydown：$newKeyCode -- $actionFrame")
               grid.addActionWithFrame(myId, newKeyCode, actionFrame)
               val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
               webSocketClient.sendMessage(msg)
@@ -310,7 +310,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myId = id
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        //        println(s"i got ${grid.frameCount}, frame : $frame")
+        println(s"snakeAction $actionId, frame : $frame")
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
