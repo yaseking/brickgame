@@ -37,6 +37,7 @@ object AppSettings {
   val limitNum = appConfig.getInt("limitNum")
   val upperLimit = appConfig.getString("upperLimit")
   val lowerLimit = appConfig.getString("lowerLimit")
+  val decreaseRate = appConfig.getDouble("decreaseRate")
   val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
   val minPlayerNum = appConfig.getInt("minPlayerNum")
 

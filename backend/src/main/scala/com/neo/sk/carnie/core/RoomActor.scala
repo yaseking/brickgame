@@ -35,6 +35,8 @@ object RoomActor {
 
   private val lowerLimit = AppSettings.lowerLimit.toFloat
 
+  private val decreaseRate = AppSettings.decreaseRate
+
   private val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
 
   private val classify = 5
@@ -403,7 +405,7 @@ object RoomActor {
 //          if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
           val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
             val maxSize = grid.currentRank.head.area
-            if ((maxSize + fullSize * 0.1) < winStandard) fullSize * Math.max(upperLimit - userMap.size * 0.05, lowerLimit) else winStandard
+            if ((maxSize + fullSize * 0.1) < winStandard) fullSize * Math.max(upperLimit - userMap.size * decreaseRate, lowerLimit) else winStandard
           } else winStandard
 
           //for gameRecorder...
