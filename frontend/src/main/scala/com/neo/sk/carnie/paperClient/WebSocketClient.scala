@@ -81,6 +81,7 @@ class WebSocketClient (
 //
 //                    case _ => println(blobMsg.size + "!!!" + data)
 //                  }
+                  println(s"msg type is:${data.getClass}, and size is:" + blobMsg.size)
                   messageHandler(data)
 
                 case Left(e) =>
