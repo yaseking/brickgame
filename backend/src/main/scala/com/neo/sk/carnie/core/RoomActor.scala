@@ -332,33 +332,34 @@ object RoomActor {
           grid.killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList.foreach {
             i =>
               if (i.frameCount + 1 == newData.frameCount) {
-                dispatch(subscribersMap, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
+                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+                  Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
                 gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName)))
               }
           }
 
           if(grid.newInfo.nonEmpty) {
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
+              dispatchTo(subscribersMap, f._1, newData) //同步全量数据
               if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
                 ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
               }.toList)
             }
-            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
+            dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
             grid.newInfo = Nil
           }
 
-          firstComeList.foreach { id =>
-            dispatchTo(subscribersMap, id, newData)
-          }
+//          firstComeList.foreach { id =>
+//            dispatchTo(subscribersMap, id, newData)
+//          }
 
           //错峰发送
           for((u, i) <- userMap) {
-            if((tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newData)
-            if((tickCount - i.joinFrame) % 20 == 5)
+            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newData)
+            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5)
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5)))
-
-
           }
 
 //          if (shouldSync) {
@@ -377,8 +378,14 @@ object RoomActor {
               }.toList)
             }
 
-            userMap.foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
-            watcherMap.foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            userMap.filterNot(_._2.joinFrame == -1L).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            watcherMap.filter(w =>
+              userMap.get(w._2._1) match {
+                case None => false
+                case Some(userInfo) if userInfo.joinFrame == -1=> false
+                case _ => true
+              }
+            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
