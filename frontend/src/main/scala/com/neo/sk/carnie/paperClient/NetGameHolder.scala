@@ -321,6 +321,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
+              } else{
+                println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
+                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
@@ -366,7 +369,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.WinnerBestScore(score) =>
         maxArea = Math.max(maxArea, score)
-
 
       case Protocol.Ranks(current, score, rank) =>
         currentRank = current
