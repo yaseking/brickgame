@@ -338,7 +338,7 @@ class DrawGame(
 //    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.map{s => ScanByColumn(s.y.filter(r => r._1 < maxPoint.y && r._2 > minPoint.y), s.x.filter(r => r._1 < maxPoint.x && r._2 > minPoint.x))}) }
     val fieldInWindow = data.fieldDetails
 
-    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008, 0.85)
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
