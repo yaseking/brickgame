@@ -54,6 +54,16 @@ trait Grid {
     actionMap += (frame -> tmp)
   }
 
+  def getUserMaxActionFrame(id: String, frontFrame:Long): Long = {
+    val existFrame = actionMap.map{a => (a._1, a._2.filter(_._1 == id))}.filter(_._2.nonEmpty).keys
+    try {
+      Math.max(existFrame.max + 1, frontFrame)
+    } catch {
+      case e: Exception =>
+        frontFrame
+    }
+  }
+
   def checkActionFrame(id: String, frontFrame:Long): Long = {
     val backendFrame = Math.max(frontFrame, frameCount)
     val existFrame = actionMap.map{a => (a._1, a._2.filter(_._1 == id))}.filter(_._2.nonEmpty).keys

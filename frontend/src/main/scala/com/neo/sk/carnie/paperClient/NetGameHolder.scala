@@ -251,32 +251,32 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       rankCanvas.focus()
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
-          val actionFrame = grid.frameCount + delay
+          val frame = grid.frameCount + delay
           e.keyCode match {
             case KeyCode.Space =>
               val msg: Protocol.UserAction = PressSpace
               webSocketClient.sendMessage(msg)
 
             case _ =>
-//              val actionFrame = if (grid.actionMap.isEmpty) frame else Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
-//              val actionFrame = frame
-              val actionId = idGenerator.getAndIncrement()
-              val newKeyCode =
-                if (mode == 1)
-                  e.keyCode match {
-                    case KeyCode.Left => KeyCode.Right
-                    case KeyCode.Right => KeyCode.Left
-                    case KeyCode.Down => KeyCode.Up
-                    case KeyCode.Up => KeyCode.Down
-                    case _ => KeyCode.Space
-                  } else e.keyCode
-              println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
-              grid.addActionWithFrame(myId, newKeyCode, actionFrame)
-              myActionHistory += actionId -> (newKeyCode, actionFrame)
-              val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
-              webSocketClient.sendMessage(msg)
+              val actionFrame = grid.getUserMaxActionFrame(myId, frame)
+              if(actionFrame < frame + maxContainableAction) {
+                val actionId = idGenerator.getAndIncrement()
+                val newKeyCode =
+                  if (mode == 1)
+                    e.keyCode match {
+                      case KeyCode.Left => KeyCode.Right
+                      case KeyCode.Right => KeyCode.Left
+                      case KeyCode.Down => KeyCode.Up
+                      case KeyCode.Up => KeyCode.Down
+                      case _ => KeyCode.Space
+                    } else e.keyCode
+                println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
+                grid.addActionWithFrame(myId, newKeyCode, actionFrame)
+                myActionHistory += actionId -> (newKeyCode, actionFrame)
+                val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
+                webSocketClient.sendMessage(msg)
+              }
 
-//            case _ =>
           }
           e.preventDefault()
         }
