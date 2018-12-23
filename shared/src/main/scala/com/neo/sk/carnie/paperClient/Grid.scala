@@ -427,7 +427,10 @@ trait Grid {
   }
 
   def getKiller(myId: String): Option[(String, String, Long)] = {
-    killHistory.get(myId)
+    killHistory.get(myId) match {
+      case Some(info) if info._3 > frameCount - 3=> Some(info)
+      case _ => None
+    }
   }
 
   def cleanData(): Unit = {

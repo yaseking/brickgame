@@ -129,8 +129,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
           drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData,winningData)
         } else {
-//          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
-          FrontProtocol.DrawGameDie(killInfo.map(_._3))        }
+          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+        }
       }
     }
 
@@ -180,8 +180,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
-//            FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
-            FrontProtocol.DrawGameDie(killInfo.map(_._3))
+            FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
           case _ =>
             FrontProtocol.DrawGameWait
