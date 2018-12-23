@@ -405,7 +405,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         println(s"===========recv total data")
         //        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
-        newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+        if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
         //        justSynced = true
         isSynced = true
 

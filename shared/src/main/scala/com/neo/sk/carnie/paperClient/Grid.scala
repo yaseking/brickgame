@@ -262,7 +262,6 @@ trait Grid {
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
-
       snakeTurnPoints -= sid
     }
 
