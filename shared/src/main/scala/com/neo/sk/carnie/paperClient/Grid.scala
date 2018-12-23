@@ -283,7 +283,7 @@ trait Grid {
   }
 
   def enclosure(snake: SkDt, origin: String, newHeader: Point, newDirection: Point) = {
-    println(s"enclosure!!!${snake.name}")
+    println(s"enclosure!!!${snake.name} -- frame:$frameCount")
     snakeTurnPoints -= snake.id
 
     if (mayBeDieSnake.keys.exists(_ == snake.id)) { //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废
