@@ -146,7 +146,7 @@ trait Grid {
 
       if (newDirection != Point(0, 0)) {
         val newHeader = snake.header + newDirection
-
+        if(origin == "f") println(s"enclosure-$frameCount!!new:${grid.get(newHeader)}--old:${grid.get(snake.header)}")
         grid.get(newHeader) match {
           case Some(x: Body) => //进行碰撞检测
 //            debug(s"snake[${snake.id}] hit wall.")
