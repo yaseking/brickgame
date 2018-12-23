@@ -167,6 +167,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         newSnakeInfo = None
       }
 
+      if (syncGridData.nonEmpty) { //逻辑帧更新数据
+        grid.initSyncGridData(syncGridData.get)
+        syncGridData = None
+      } else {
+        grid.update("f")
+      }
+
       if (newFieldInfo.nonEmpty) {
         val minFrame = newFieldInfo.keys.min
         (minFrame to grid.frameCount).foreach { frame =>
@@ -178,13 +185,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             newFieldInfo -= frame
           }
         }
-      }
-
-      if (syncGridData.nonEmpty) { //逻辑帧更新数据
-        grid.initSyncGridData(syncGridData.get)
-        syncGridData = None
-      } else {
-        grid.update("f")
       }
 
       if (!isWin) {
