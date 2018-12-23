@@ -172,7 +172,7 @@ object Protocol {
 //  case class ReplayFrameData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]]) extends GameMessage
   case class ReplayFrameData(frameIndex: Int, eventsData: GameEvent, stateData: Option[GameEvent]) extends GameMessage
 
-  val frameRate1 = 150 //normal-mode
+  val frameRate1 = 100 //normal-mode
   val frameRate2 = 75 //doubleSpeed-mode
   val maxContainableAction = 3
 
