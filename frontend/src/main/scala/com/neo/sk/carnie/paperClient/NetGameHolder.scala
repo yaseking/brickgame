@@ -284,10 +284,23 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       rankCanvas.onmouseup = { e:dom.MouseEvent =>
         val myField = grid.grid.filter(_._2 == Field(myId))
-        val myBody = grid.grid.filter(_._2 == Body(myId, Some(myId)))
-        println(s"=======myField:$myField, myBody:$myBody")
+        val myBody = grid.snakeTurnPoints.getOrElse(myId, Nil)
 
 
+//        newField = myField.map { f =>
+         val myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
+            (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+          }.toList.groupBy(_._2).map { case (r, target) =>
+            ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+          }.toList)
+
+
+        println(s"=======myField:$myGroupField, myBody:$myBody")
+
+          //              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+          //                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+          //              }.toList)
+//        }
       }
 
       //退出房间触发事件
