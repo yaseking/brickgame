@@ -477,6 +477,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         newFieldInfo += data.frameCount -> data
+        grid.historyFieldInfo += data.frameCount -> data
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)

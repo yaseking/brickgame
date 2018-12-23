@@ -32,6 +32,7 @@ trait Grid {
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
   var historyStateMap = Map.empty[Long, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
+  var historyFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //回溯
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -96,6 +97,7 @@ trait Grid {
     val isFinish = updateSnakes(origin)
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
+    historyFieldInfo = historyFieldInfo.filter(_._1 > (frameCount - (maxDelayed + 1)))
     historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
     frameCount += 1
     isFinish
@@ -461,7 +463,20 @@ trait Grid {
         grid = state._2
         (startFrame until endFrame).foreach { frame =>
           frameCount = frame
-          updateSnakes("b")
+          updateSnakes("f")
+          historyFieldInfo.get(frame).foreach { data =>
+            data.fieldDetails.foreach { baseInfo =>
+              baseInfo.scanField.foreach { fids =>
+                fids.y.foreach { ly =>
+                  (ly._1 to ly._2 by 1).foreach { y =>
+                    fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => grid += Point(x, y) -> Field(baseInfo.uid)) }
+                  }
+
+                }
+              }
+            }
+          }
+
         }
 
       case None =>
