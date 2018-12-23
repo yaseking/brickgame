@@ -54,6 +54,17 @@ trait Grid {
     actionMap += (frame -> tmp)
   }
 
+  def checkActionFrame(id: String, frontFrame:Long): Long = {
+    val backendFrame = Math.max(frontFrame, frameCount)
+    val existFrame = actionMap.map{a => (a._1, a._2.filter(_._1 == id))}.filter(_._2.nonEmpty).keys
+    try {
+      Math.max(existFrame.max + 1, backendFrame)
+    } catch {
+      case e: Exception =>
+        backendFrame
+    }
+  }
+
   def deleteActionWithFrame(id: String, frame: Long): Unit = {
     val map = actionMap.getOrElse(frame, Map.empty)
     val tmp = map - id
