@@ -348,7 +348,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
               } else{
-                println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
+                println("!!!!!!!!:NeedToSync1")
                 webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
               }
             } else {
@@ -363,7 +363,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
                 } else{
-                  println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
+                  println("!!!!!!!!:NeedToSync2")
                   webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                 }
               }
@@ -379,7 +379,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               grid = oldGrid
               println(s"after recall time: ${System.currentTimeMillis() - time1}")
             } else{
-              println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
+              println("!!!!!!!!:NeedToSync3")
               webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
             }
           }
