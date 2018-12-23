@@ -80,8 +80,8 @@ class WebSocketClient (
                     case ReceivePingPacket(_) =>
 
                     case _ =>
-                      if(blobMsg.size > 100)
-                        println(s"msg type is:${data.getClass},${blobMsg.`type`} ,and size is:" + blobMsg.size)
+//                      if(blobMsg.size > 100)
+//                        println(s"msg type is:${data.getClass},${blobMsg.`type`} ,and size is:" + blobMsg.size)
                   }
                   messageHandler(data)
 
