@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
+import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.common.Constant
@@ -168,7 +169,27 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (newFieldInfo.get(grid.frameCount).nonEmpty && newFieldInfo(grid.frameCount).fieldDetails.map(_.uid).contains(myId)){
-        println(s"old header:${grid.grid.get(grid.snakes(myId).header)} -- ")
+        val snake = grid.snakes(myId)
+        val acts = grid.actionMap.getOrElse(grid.frameCount, Map.empty[String, Int])
+        val keyCode = acts.get(myId)
+        val newDirection = {
+          val keyDirection = keyCode match {
+            case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
+            case Some(KeyEvent.VK_RIGHT) => Point(1, 0)
+            case Some(KeyEvent.VK_UP) => Point(0, -1)
+            case Some(KeyEvent.VK_DOWN) => Point(0, 1)
+            case _ => snake.direction
+          }
+          if (keyDirection + snake.direction != Point(0, 0)) {
+            keyDirection
+          } else {
+            snake.direction
+          }
+        }
+        val header = grid.grid.get(snake.header)
+        val newHeader = grid.grid.get(snake.header + newDirection)
+
+        println(s"old header:$header --new header:$newHeader ")
       }
 
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
