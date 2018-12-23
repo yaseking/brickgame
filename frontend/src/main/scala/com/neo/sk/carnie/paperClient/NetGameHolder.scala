@@ -160,7 +160,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           if (newFieldInfo.get(frame).nonEmpty) {
             val newFieldData = newFieldInfo(frame)
             if (newFieldData.fieldDetails.map(_.uid).contains(myId))
-              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+//              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
             grid.addNewFieldInfo(newFieldData)
             newFieldInfo -= frame
           }
@@ -296,7 +296,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }.toList)
 
 
-        println(s"=======myField:$myGroupField, myBody:$myBody")
+//        println(s"=======myField:$myGroupField, myBody:$myBody")
 
           //              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
           //                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
@@ -338,12 +338,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case r@Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-            println(s"recv:$r")
+//            println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
                 if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                  println("recall for empty...")
+//                  println("recall for empty...")
                   val oldGrid = grid
                   oldGrid.recallGrid(frame, grid.frameCount)
                   grid = oldGrid
@@ -354,7 +354,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-                println(s"history:${myActionHistory(actionId)._2}...backend:$frame")
+//                println(s"history:${myActionHistory(actionId)._2}...backend:$frame")
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
@@ -381,9 +381,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
-                println(s"after recall time: ${System.currentTimeMillis() - time1}")
+//                println(s"after recall time: ${System.currentTimeMillis() - time1}")
               } else {
-                println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
+//                println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
                 webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
               }
             }
@@ -424,7 +424,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-        if(data.snake.map(_.id).contains(myId)) println(s"!!!!!!new snake---${data} join!!!isContinue$isContinue")
+//        if(data.snake.map(_.id).contains(myId)) println(s"!!!!!!new snake---${data} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
