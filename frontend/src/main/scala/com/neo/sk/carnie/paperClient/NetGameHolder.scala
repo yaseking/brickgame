@@ -98,8 +98,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
-    BGM = bgmList(getRandom(bgmAmount))
-    BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
