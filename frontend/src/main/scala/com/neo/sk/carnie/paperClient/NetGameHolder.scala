@@ -282,6 +282,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
       }
 
+      rankCanvas.onmouseup = { e:dom.MouseEvent =>
+        println(s"=========click:(${e.pageX},${e.pageY},)")
+        println(s"==========grid:(${grid.grid.filter(_._1 == Point(e.pageX.toFloat, e.pageY.toFloat))})")
+
+
+      }
+
       //退出房间触发事件
       //      rankCanvas.onmousedown = { e:dom.MouseEvent =>
       //        drawFunction match {
