@@ -28,7 +28,8 @@ object Tool {
   }
 
   def main(args: Array[String]): Unit = {
-    findContinuous(Array(1,2,3,4,5,6,7,8,9,10,11))
+//    findContinuous(Array(1,2,3,4,5,6,7,8,9,10,11))
+    println(123)
   }
 
 }

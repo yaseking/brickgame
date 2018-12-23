@@ -180,14 +180,14 @@ object EsheepClient extends HttpUtil with CirceSupport {
 
   def main(args: Array[String]): Unit = {
 
-    val appId = AppSettings.esheepGameId.toString
-    val sn = appId + System.currentTimeMillis().toString
-    val data = RoomApiProtocol.RecordByPlayerReq("test",0,5).asJson.noSpaces
-    val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), AppSettings.esheepGsKey)
-    val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
+//    val appId = AppSettings.esheepGameId.toString
+//    val sn = appId + System.currentTimeMillis().toString
+//    val data = RoomApiProtocol.RecordByPlayerReq("test",0,5).asJson.noSpaces
+//    val (timestamp, nonce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), AppSettings.esheepGsKey)
+//    val params = PostEnvelope(appId, sn, timestamp, nonce, data,signature).asJson.noSpaces
 
 //    val a = genPostEnvelope(AppSettings.esheepAppId,sn,data,AppSettings.esheepSecureKey)
-    println(params)
+    println(123)
 //    val gsKey = AppSettings.esheepGsKey
 //    val msg: Future[String] = tokenActor ? AskForToken
 //    msg.map {token =>

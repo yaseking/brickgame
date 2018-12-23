@@ -96,5 +96,6 @@ object TmpTest {
 
 
   def main(args: Array[String]): Unit = {
+    println(123)
   }
 }
