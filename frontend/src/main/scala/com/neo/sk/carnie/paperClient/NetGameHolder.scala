@@ -342,6 +342,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                println("recall for empty...")
                 val oldGrid = grid
                 oldGrid.recallGrid(frame, grid.frameCount)
                 grid = oldGrid
@@ -356,6 +357,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
                 if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
+                  println("recall for my differ...")
                   val oldGrid = grid
                   oldGrid.recallGrid(miniFrame, grid.frameCount)
                   grid = oldGrid
@@ -369,6 +371,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
             if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+              println("recall for other differ...")
               val oldGrid = grid
               oldGrid.recallGrid(frame, grid.frameCount)
               grid = oldGrid
