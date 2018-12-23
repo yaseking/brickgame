@@ -141,6 +141,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         case Some(-1) =>
           println("!!!!!!!!:NeedToSync2")
           webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+          recallFrame = None
 
         case Some(frame) =>
           val time1 = System.currentTimeMillis()
@@ -149,6 +150,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           oldGrid.recallGrid(frame, grid.frameCount)
           grid = oldGrid
           println(s"after recall time: ${System.currentTimeMillis() - time1}")
+          recallFrame = None
 
         case None =>
       }
