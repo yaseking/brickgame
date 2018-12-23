@@ -49,6 +49,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
 
+  private var recallFrame: scala.Option[Long] = None
+
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
@@ -135,6 +137,22 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     }
 
     if (webSocketClient.getWsState) {
+      recallFrame match {
+        case Some(-1) =>
+          println("!!!!!!!!:NeedToSync2")
+          webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+
+        case Some(frame) =>
+          val time1 = System.currentTimeMillis()
+          println(s"recall ...")
+          val oldGrid = grid
+          oldGrid.recallGrid(frame, grid.frameCount)
+          grid = oldGrid
+          println(s"after recall time: ${System.currentTimeMillis() - time1}")
+
+        case None =>
+      }
+
       if (newSnakeInfo.nonEmpty) {
 //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
         if (newSnakeInfo.get.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
@@ -343,13 +361,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
                 if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                  println("recall for empty...")
-                  val oldGrid = grid
-                  oldGrid.recallGrid(frame, grid.frameCount)
-                  grid = oldGrid
+                  recallFrame = recallFrame match {
+                    case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                    case None => Some(frame)
+                  }
+//                  println("recall for empty...")
+//                  val oldGrid = grid
+//                  oldGrid.recallGrid(frame, grid.frameCount)
+//                  grid = oldGrid
                 } else {
-                  println("!!!!!!!!:NeedToSync1")
-                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                  recallFrame = Some(-1)
+//                  println("!!!!!!!!:NeedToSync1")
+//                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                 }
               }
             } else {
@@ -360,13 +383,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
                 if (miniFrame < grid.frameCount) {
                   if (grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                    println("recall for my differ...")
-                    val oldGrid = grid
-                    oldGrid.recallGrid(miniFrame, grid.frameCount)
-                    grid = oldGrid
+                    recallFrame = recallFrame match {
+                      case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                      case None => Some(frame)
+                    }
+//                    println("recall for my differ...")
+//                    val oldGrid = grid
+//                    oldGrid.recallGrid(miniFrame, grid.frameCount)
+//                    grid = oldGrid
                   } else {
-                    println("!!!!!!!!:NeedToSync2")
-                    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                    recallFrame = Some(-1)
+//                    println("!!!!!!!!:NeedToSync2")
+//                    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                   }
                 }
               }
@@ -376,15 +404,20 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             grid.addActionWithFrame(id, keyCode, frame)
             if (frame < grid.frameCount) {
               if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                val time1 = System.currentTimeMillis()
-                println(s"recall for other differ...")
-                val oldGrid = grid
-                oldGrid.recallGrid(frame, grid.frameCount)
-                grid = oldGrid
-                println(s"after recall time: ${System.currentTimeMillis() - time1}")
+                recallFrame = recallFrame match {
+                  case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                  case None => Some(frame)
+                }
+//                val time1 = System.currentTimeMillis()
+//                println(s"recall for other differ...")
+//                val oldGrid = grid
+//                oldGrid.recallGrid(frame, grid.frameCount)
+//                grid = oldGrid
+//                println(s"after recall time: ${System.currentTimeMillis() - time1}")
               } else {
-                println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
-                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                recallFrame = Some(-1)
+//                println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
+//                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
               }
             }
           }
