@@ -202,7 +202,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       if (newFieldInfo.nonEmpty) {
         val minFrame = newFieldInfo.keys.min
-        (minFrame to grid.frameCount).foreach { frame =>
+        (minFrame until grid.frameCount).foreach { frame =>
           if (newFieldInfo.get(frame).nonEmpty) {
             val newFieldData = newFieldInfo(frame)
             if (newFieldData.fieldDetails.map(_.uid).contains(myId))
