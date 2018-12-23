@@ -169,6 +169,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (newFieldInfo.get(grid.frameCount).nonEmpty && newFieldInfo(grid.frameCount).fieldDetails.map(_.uid).contains(myId)){
+        println(s"11111111111111111")
         val snake = grid.snakes(myId)
         val acts = grid.actionMap.getOrElse(grid.frameCount, Map.empty[String, Int])
         val keyCode = acts.get(myId)
