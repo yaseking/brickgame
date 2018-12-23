@@ -167,6 +167,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         newSnakeInfo = None
       }
 
+      if (newFieldInfo.get(grid.frameCount).nonEmpty && newFieldInfo(grid.frameCount).fieldDetails.map(_.uid).contains(myId)){
+        println(s"old header:${grid.grid.get(grid.snakes(myId).header)} -- ")
+      }
+
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
         grid.initSyncGridData(syncGridData.get)
         syncGridData = None
