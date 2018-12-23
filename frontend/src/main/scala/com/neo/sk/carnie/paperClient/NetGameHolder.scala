@@ -341,14 +341,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
-              if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                println("recall for empty...")
-                val oldGrid = grid
-                oldGrid.recallGrid(frame, grid.frameCount)
-                grid = oldGrid
-              } else{
-                println("!!!!!!!!:NeedToSync1")
-                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+              if (frame < grid.frameCount) {
+                if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                  println("recall for empty...")
+                  val oldGrid = grid
+                  oldGrid.recallGrid(frame, grid.frameCount)
+                  grid = oldGrid
+                } else {
+                  println("!!!!!!!!:NeedToSync1")
+                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                }
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
@@ -356,30 +358,34 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                  println("recall for my differ...")
-                  val oldGrid = grid
-                  oldGrid.recallGrid(miniFrame, grid.frameCount)
-                  grid = oldGrid
-                } else{
-                  println("!!!!!!!!:NeedToSync2")
-                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                if (miniFrame < grid.frameCount) {
+                  if (grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
+                    println("recall for my differ...")
+                    val oldGrid = grid
+                    oldGrid.recallGrid(miniFrame, grid.frameCount)
+                    grid = oldGrid
+                  } else {
+                    println("!!!!!!!!:NeedToSync2")
+                    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                  }
                 }
               }
               myActionHistory -= actionId
             }
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
-            if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-              val time1 = System.currentTimeMillis()
-              println(s"recall for other differ...")
-              val oldGrid = grid
-              oldGrid.recallGrid(frame, grid.frameCount)
-              grid = oldGrid
-              println(s"after recall time: ${System.currentTimeMillis() - time1}")
-            } else{
-              println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
-              webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+            if (frame < grid.frameCount) {
+              if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                val time1 = System.currentTimeMillis()
+                println(s"recall for other differ...")
+                val oldGrid = grid
+                oldGrid.recallGrid(frame, grid.frameCount)
+                grid = oldGrid
+                println(s"after recall time: ${System.currentTimeMillis() - time1}")
+              } else {
+                println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
+                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+              }
             }
           }
         }
