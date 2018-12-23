@@ -372,10 +372,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
             if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-              println("recall for other differ...")
+              val time1 = System.currentTimeMillis()
+              println(s"recall for other differ...")
               val oldGrid = grid
               oldGrid.recallGrid(frame, grid.frameCount)
               grid = oldGrid
+              println(s"after recall time: ${System.currentTimeMillis() - time1}")
+            } else{
+              println("!!!!!!!!!!!!!!!!!!!!!!!!!!:NeedToSync")
+              webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
             }
           }
         }
