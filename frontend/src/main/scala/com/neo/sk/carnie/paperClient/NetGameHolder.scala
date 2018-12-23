@@ -168,10 +168,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         newSnakeInfo = None
       }
 
-      if (newFieldInfo.get(grid.frameCount).nonEmpty && newFieldInfo(grid.frameCount).fieldDetails.map(_.uid).contains(myId)){
+      if (newFieldInfo.get(grid.frameCount + 1).nonEmpty && newFieldInfo(grid.frameCount + 1).fieldDetails.map(_.uid).contains(myId)){
         println(s"11111111111111111")
         val snake = grid.snakes(myId)
-        val acts = grid.actionMap.getOrElse(grid.frameCount, Map.empty[String, Int])
+        val acts = grid.actionMap.getOrElse(grid.frameCount + 1, Map.empty[String, Int])
         val keyCode = acts.get(myId)
         val newDirection = {
           val keyDirection = keyCode match {
