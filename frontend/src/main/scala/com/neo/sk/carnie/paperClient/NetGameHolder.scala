@@ -379,7 +379,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               grid = oldGrid
               println(s"after recall time: ${System.currentTimeMillis() - time1}")
             } else{
-              println("!!!!!!!!:NeedToSync3")
+              println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
               webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
             }
           }
