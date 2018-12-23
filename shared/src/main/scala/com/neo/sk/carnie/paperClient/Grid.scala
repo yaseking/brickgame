@@ -76,8 +76,6 @@ trait Grid {
     updateSpots()
     actionMap -= (frameCount - maxDelayed)
     historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
-    //testEvents
-//    checkEvents(isFinish)
     frameCount += 1
     isFinish
   }
@@ -286,6 +284,7 @@ trait Grid {
   }
 
   def enclosure(snake: SkDt, origin: String, newHeader: Point, newDirection: Point) = {
+    println(s"enclosure!!!${snake.name}")
     snakeTurnPoints -= snake.id
 
     if (mayBeDieSnake.keys.exists(_ == snake.id)) { //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废

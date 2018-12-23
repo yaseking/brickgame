@@ -251,15 +251,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       rankCanvas.focus()
       rankCanvas.onkeydown = { e: dom.KeyboardEvent => {
         if (Constant.watchKeys.contains(e.keyCode)) {
-          val frame = grid.frameCount + delay
+          val actionFrame = grid.frameCount + delay
           e.keyCode match {
             case KeyCode.Space =>
               val msg: Protocol.UserAction = PressSpace
               webSocketClient.sendMessage(msg)
 
-            case _ =>
+            case _ if grid.actionMap(actionFrame).isEmpty=>
 //              val actionFrame = if (grid.actionMap.isEmpty) frame else Math.max(grid.actionMap.maxBy(_._1)._1 + 1, frame)
-              val actionFrame = frame
+//              val actionFrame = frame
               val actionId = idGenerator.getAndIncrement()
               val newKeyCode =
                 if (mode == 1)
@@ -276,6 +276,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
               webSocketClient.sendMessage(msg)
 
+            case _ =>
           }
           e.preventDefault()
         }
