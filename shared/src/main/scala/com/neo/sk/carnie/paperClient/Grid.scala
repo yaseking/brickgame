@@ -463,6 +463,7 @@ trait Grid {
         (startFrame until endFrame).foreach { frame =>
           frameCount = frame
           updateSnakes("f")
+          updateSpots()
           historyFieldInfo.get(frame).foreach { data =>
             data.fieldDetails.foreach { baseInfo =>
               baseInfo.scanField.foreach { fids =>
@@ -475,8 +476,8 @@ trait Grid {
               }
             }
           }
-
         }
+        frameCount += 1
 
       case None =>
         println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")
