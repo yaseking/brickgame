@@ -335,9 +335,11 @@ object RoomActor {
           grid.killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList.foreach {
             i =>
               if (i.frameCount + 1 == newData.frameCount) {
-                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
-                  Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
-                gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName)))
+                if(userMap.get(i.killedId).nonEmpty) {
+                  dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+                    Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
+                  gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName)))
+                }
               }
           }
 
