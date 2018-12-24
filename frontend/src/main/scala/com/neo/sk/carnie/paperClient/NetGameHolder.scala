@@ -146,11 +146,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
         case Some(frame) =>
           val time1 = System.currentTimeMillis()
-          println(s"recall ...")
+          println(s"recall ...before frame:${grid.frameCount}")
           val oldGrid = grid
           oldGrid.recallGrid(frame, grid.frameCount)
           grid = oldGrid
-          println(s"after recall time: ${System.currentTimeMillis() - time1}")
+          println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
           recallFrame = None
 
         case None =>
