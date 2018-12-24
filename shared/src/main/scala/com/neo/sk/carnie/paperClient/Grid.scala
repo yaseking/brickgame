@@ -507,5 +507,12 @@ trait Grid {
       snakeTurnPoints -= sid
     }
   }
+
+  def cleanDiedSnake(id: String): Unit= {
+    val r = snakes.get(id)
+    if (r.isDefined) {
+      snakes -= id
+    }
+  }
 }
 

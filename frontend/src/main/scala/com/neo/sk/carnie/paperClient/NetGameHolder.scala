@@ -198,8 +198,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
         grid.initSyncGridData(syncGridData.get)
         syncGridData = None
+        println(s"sync: ${grid.getGridData.snakes.map(_.id)}")
       } else {
         grid.update("f")
+        println(s"update: ${grid.getGridData.snakes.map(_.id)}")
       }
 
       if (newFieldInfo.nonEmpty) {
@@ -504,9 +506,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case x@Protocol.DeadPage(id, kill, area, start, end) =>
         println(s"recv userDead $x")
-        //        grid.cleanSnakeTurnPoint(id)
         myScore = BaseScore(kill, area, start, end)
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+        grid.cleanDiedSnake(id)
 
       case data: Protocol.NewFieldInfo =>
         println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
