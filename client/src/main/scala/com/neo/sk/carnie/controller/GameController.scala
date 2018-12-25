@@ -458,7 +458,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
-        println(s"all data : ${data.snakes.map(_.id)}")
+//        println(s"all data : ${data.snakes.map(_.id)}")
         Boot.addToPlatform{
           syncGridData = Some(data)
           if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
@@ -581,26 +581,20 @@ class GameController(player: PlayerInfoInClient,
 
         }
       }
-      gameScene.viewCanvas.setOnKeyReleased { e =>
-        val myField = grid.grid.filter(_._2 == Field(player.id))
-        val myBody = grid.snakeTurnPoints.getOrElse(player.id, Nil)
-
-
-        //        newField = myField.map { f =>
-        val myGroupField =  FieldByColumn(player.id, myField.keys.groupBy(_.y).map { case (y, target) =>
-          (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
-        }.toList.groupBy(_._2).map { case (r, target) =>
-          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
-        }.toList)
-
-
-        println(s"=======myField:$myGroupField, myBody:$myBody")
-
-        //              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-        //                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
-        //              }.toList)
+//      gameScene.viewCanvas.setOnKeyReleased { e =>
+//        val myField = grid.grid.filter(_._2 == Field(player.id))
+//        val myBody = grid.snakeTurnPoints.getOrElse(player.id, Nil)
+//
+//
+//        //        newField = myField.map { f =>
+//        val myGroupField =  FieldByColumn(player.id, myField.keys.groupBy(_.y).map { case (y, target) =>
+//          (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+//        }.toList.groupBy(_._2).map { case (r, target) =>
+//          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+//        }.toList)
+//        println(s"=======myField:$myGroupField, myBody:$myBody")
         //        }
-      }
+//      }
 //        if (key != KeyCode.SPACE) {
 //          grid.myActionHistory += actionId -> (keyCode, frame)
 //        } else {
