@@ -266,6 +266,7 @@ class GameController(player: PlayerInfoInClient,
 
       case None if !firstCome =>
         if(btnFlag) {
+          println("first come to diePage.")
           gameScene.group.getChildren.add(gameScene.backBtn)
           btnFlag = false
         }
