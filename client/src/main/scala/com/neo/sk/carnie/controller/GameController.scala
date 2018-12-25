@@ -197,6 +197,7 @@ class GameController(player: PlayerInfoInClient,
       syncGridData = None
     } else {
       grid.update("f")
+//      println(s"update: ${grid.getGridData.snakes.map(_.id)}")
     }
 
     if (newFieldInfo.nonEmpty) {
@@ -438,7 +439,6 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case x@Protocol.DeadPage(id, kill, area, start, end) =>
-        val a = System.currentTimeMillis()
         println(s"recv userDead $x")
         Boot.addToPlatform {
           myScore = BaseScore(kill, area, start, end)
@@ -460,7 +460,8 @@ class GameController(player: PlayerInfoInClient,
         println(s"all data : ${data.snakes.map(_.id)}")
         Boot.addToPlatform{
           syncGridData = Some(data)
-          newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+          if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+//          newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
         }
 
       case data: Protocol.NewSnakeInfo =>
@@ -480,6 +481,7 @@ class GameController(player: PlayerInfoInClient,
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
           newFieldInfo += data.frameCount -> data
+          grid.historyFieldInfo += data.frameCount -> data
         }
 
       case x@Protocol.ReceivePingPacket(_) =>
@@ -578,6 +580,26 @@ class GameController(player: PlayerInfoInClient,
 
         }
       }
+      gameScene.viewCanvas.setOnKeyReleased { e =>
+        val myField = grid.grid.filter(_._2 == Field(player.id))
+        val myBody = grid.snakeTurnPoints.getOrElse(player.id, Nil)
+
+
+        //        newField = myField.map { f =>
+        val myGroupField =  FieldByColumn(player.id, myField.keys.groupBy(_.y).map { case (y, target) =>
+          (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+        }.toList.groupBy(_._2).map { case (r, target) =>
+          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+        }.toList)
+
+
+        println(s"=======myField:$myGroupField, myBody:$myBody")
+
+        //              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+        //                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+        //              }.toList)
+        //        }
+      }
 //        if (key != KeyCode.SPACE) {
 //          grid.myActionHistory += actionId -> (keyCode, frame)
 //        } else {
@@ -641,6 +663,7 @@ class GameController(player: PlayerInfoInClient,
     if (isWin) isWin = false
     myScore = BaseScore(0, 0, 0l, 0l)
     isContinue = true
+//    animationTimer.start()
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)
   }
