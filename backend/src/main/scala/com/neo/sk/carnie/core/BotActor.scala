@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.core.RoomActor.{UserActionOnServer, dispatch}
 import com.neo.sk.carnie.paperClient.Protocol.{Key, PressSpace}
-import com.neo.sk.carnie.paperClient.{GridOnServer, Protocol}
+import com.neo.sk.carnie.paperClient.{Point,Body, Field, GridOnServer, Protocol}
 import org.slf4j.LoggerFactory
 
 import concurrent.duration._
@@ -68,7 +68,18 @@ object BotActor {
       msg match {
         case MakeAction =>
           timer.startSingleTimer(MakeActionKey, MakeAction, (1 + scala.util.Random.nextInt(20)) * frameRate.millis)
-          val actionCode = actionNum % 4 + 37
+          var actionCode = actionNum % 4 + 37
+          if(grid.snakes.exists(_._1 == botId)){
+            val header = grid.snakes.find(_._1 == botId).get._2.header
+            val direction = grid.snakes.find(_._1 == botId).get._2.direction
+            val newHeader = header + direction
+            grid.grid(newHeader) match {
+              case Body(bid, _) if bid == botId =>  actionCode = 37
+              case Field(fid) if fid == botId => actionCode = 38
+            }
+          }
+
+
           roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
           actionNum match {
             case 3 => gaming(botId, grid, roomActor, frameRate)
@@ -117,6 +128,15 @@ object BotActor {
           stashBuffer.stash(unknownMsg)
           Behaviors.unhandled
       }
+    }
+  }
+
+  def pointsToAction(p: Point) ={
+    p match {
+      case Point(1,0) =>
+      case Point(-1,0) =>
+      case Point(0,1) =>
+      case Point(0,-1) =>
     }
   }
 }

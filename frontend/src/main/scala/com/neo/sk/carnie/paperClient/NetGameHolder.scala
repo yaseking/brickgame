@@ -198,10 +198,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
         grid.initSyncGridData(syncGridData.get)
         syncGridData = None
-        println(s"sync: ${grid.getGridData.snakes.map(_.id)}")
       } else {
         grid.update("f")
-        println(s"update: ${grid.getGridData.snakes.map(_.id)}")
       }
 
       if (newFieldInfo.nonEmpty) {
@@ -224,7 +222,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //            println(s"draw base game")
             if (firstCome) firstCome = false
             if (!isPlay) {
-              println("you can't play")
+//              println("you can't play")
               BGM = bgmList(getRandom(bgmAmount))
               BGM.play()
               isPlay = true
@@ -312,28 +310,39 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           val frame = grid.frameCount + delay
           e.keyCode match {
             case KeyCode.Space =>
-              val msg: Protocol.UserAction = PressSpace
-              webSocketClient.sendMessage(msg)
+              drawFunction match {
+                case FrontProtocol.DrawBaseGame(_) =>
+                case _ =>
+                  grid.cleanData()
+                  val msg: Protocol.UserAction = PressSpace
+                  webSocketClient.sendMessage(msg)
+              }
+
 
             case _ =>
-              val actionFrame = grid.getUserMaxActionFrame(myId, frame)
-              if(actionFrame < frame + maxContainableAction) {
-                val actionId = idGenerator.getAndIncrement()
-                val newKeyCode =
-                  if (mode == 1)
-                    e.keyCode match {
-                      case KeyCode.Left => KeyCode.Right
-                      case KeyCode.Right => KeyCode.Left
-                      case KeyCode.Down => KeyCode.Up
-                      case KeyCode.Up => KeyCode.Down
-                      case _ => KeyCode.Space
-                    } else e.keyCode
-                println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
-                grid.addActionWithFrame(myId, newKeyCode, actionFrame)
-                myActionHistory += actionId -> (newKeyCode, actionFrame)
-                val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
-                webSocketClient.sendMessage(msg)
+              drawFunction match {
+                case FrontProtocol.DrawBaseGame(_) =>
+                  val actionFrame = grid.getUserMaxActionFrame(myId, frame)
+                  if(actionFrame < frame + maxContainableAction) {
+                    val actionId = idGenerator.getAndIncrement()
+                    val newKeyCode =
+                      if (mode == 1)
+                        e.keyCode match {
+                          case KeyCode.Left => KeyCode.Right
+                          case KeyCode.Right => KeyCode.Left
+                          case KeyCode.Down => KeyCode.Up
+                          case KeyCode.Up => KeyCode.Down
+                          case _ => KeyCode.Space
+                        } else e.keyCode
+                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
+                    grid.addActionWithFrame(myId, newKeyCode, actionFrame)
+                    myActionHistory += actionId -> (newKeyCode, actionFrame)
+                    val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
+                    webSocketClient.sendMessage(msg)
+                  }
+                case _ =>
               }
+
 
           }
           e.preventDefault()
