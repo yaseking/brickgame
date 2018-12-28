@@ -271,7 +271,7 @@ class GameController(player: PlayerInfoInClient,
           gameScene.group.getChildren.add(gameScene.backBtn)
           btnFlag = false
         }
-        println("111" + grid.killHistory)
+//        println("111" + grid.killHistory)
 //        val a = System.currentTimeMillis()
 //        println(s"${grid.getGridData.snakes.map(_.id)},$a")
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
