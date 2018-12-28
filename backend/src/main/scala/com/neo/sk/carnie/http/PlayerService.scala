@@ -316,47 +316,47 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
-
-          val a = BinaryMessage.Strict(ByteString(
+          val a = ByteString(
             //encoded process
             msg.fillMiddleBuffer(sendBuffer).result()
-          ))
+          )
+
           msg match {
             case ReceivePingPacket(_) =>
-              ping = ping + sendBuffer.getByte()
+              ping = ping + a.length
 
             case SnakeAction(_, _, _, _) =>
-              snakeAction = snakeAction + sendBuffer.getByte()
+              snakeAction = snakeAction + a.length
 
             case NewFieldInfo(_, _) =>
-              newField = newField + sendBuffer.getByte()
+              newField = newField + a.length
 
             case Data4TotalSync(_, _, _, _) =>
-              data4TotalSync = data4TotalSync + sendBuffer.getByte()
+              data4TotalSync = data4TotalSync + a.length
 
             case Ranks(_, _, _) =>
-              rank = rank + sendBuffer.getByte()
+              rank = rank + a.length
 
             case NewSnakeInfo(_, _, _) =>
-              newSnakeInfo = newSnakeInfo + sendBuffer.getByte()
+              newSnakeInfo = newSnakeInfo + a.length
 
             case SomeOneKilled(_, _, _) =>
-              someoneKill = someoneKill + sendBuffer.getByte()
+              someoneKill = someoneKill + a.length
 
             case DeadPage(_, _, _, _, _) =>
-              dead = dead + sendBuffer.getByte()
+              dead = dead + a.length
 
             case WinData(_, _) =>
-              win = win + sendBuffer.getByte()
+              win = win + a.length
 
             case _ =>
-              other = other + sendBuffer.getByte()
+              other = other + a.length
           }
           if(System.currentTimeMillis() - updateTime > 60*1000){
             updateTime = System.currentTimeMillis()
             log.debug(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo,someoneKill:$someoneKill, dead$dead, win:$win,other:$other")
           }
-          a
+          BinaryMessage.Strict(a)
 
         case x =>
           TextMessage.apply("")
