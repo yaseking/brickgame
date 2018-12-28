@@ -107,13 +107,13 @@ object Protocol {
 
   sealed trait UserAction extends WsSendMsg
 
-  case class Key(id: String, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
+  case class Key(keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
 
   case class TextInfo(msg: String) extends UserAction
 
-  case class SendPingPacket(id: String, createTime: Long) extends UserAction
+  case class SendPingPacket(createTime: Long) extends UserAction
 
-  case class NeedToSync(id: String) extends UserAction
+  case object NeedToSync extends UserAction
 
   case object PressSpace extends UserAction
 

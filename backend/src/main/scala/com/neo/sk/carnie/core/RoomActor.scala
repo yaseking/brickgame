@@ -278,7 +278,7 @@ object RoomActor {
 
         case UserActionOnServer(id, action) =>
           action match {
-            case Key(_, keyCode, frameCount, actionId) =>
+            case Key(keyCode, frameCount, actionId) =>
               val realFrame = grid.checkActionFrame(id, frameCount)
               //                if (frameCount >= grid.frameCount) frameCount else grid.frameCount
               //              else Math.max(grid.frameCount, grid.actionMap.keys.toList.sorted.headOption.getOrElse(-1l) + 1)
@@ -286,10 +286,10 @@ object RoomActor {
               dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
                 Protocol.SnakeAction(id, keyCode, realFrame, actionId))
 
-            case SendPingPacket(_, createTime) =>
+            case SendPingPacket(createTime) =>
               dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(createTime))
 
-            case NeedToSync(_) =>
+            case NeedToSync =>
               dispatchTo(subscribersMap, id, grid.getGridData)
 
             case PressSpace =>

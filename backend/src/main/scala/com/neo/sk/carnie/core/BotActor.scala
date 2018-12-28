@@ -83,7 +83,7 @@ object BotActor {
             actionCode = pointsToAction(directionToRight(direction))
           }
           if (actionNum == 0) actionCode = Random.nextInt(4) + 37
-          roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
+          roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           actionNum match {
             case 0 => gaming(botId, grid, roomActor, frameRate,actionNum + 1)
             case _ => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
@@ -108,7 +108,7 @@ object BotActor {
             }
           }
 //          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
-          roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
+          roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           gaming(botId, grid, roomActor, frameRate, actionNum)
 
         case BotDead =>

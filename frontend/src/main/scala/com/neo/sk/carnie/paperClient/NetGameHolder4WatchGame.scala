@@ -88,7 +88,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   def updateListener(): Unit = {
-    webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
+    webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
   }
 
   def getRandom(s: Int):Int = {
@@ -102,7 +102,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket(watcherId, System.currentTimeMillis()).asInstanceOf[UserAction])
+      webSocketClient.sendMessage(SendPingPacket(System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -137,7 +137,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       recallFrame match {
         case Some(-1) =>
           println("!!!!!!!!:NeedToSync2")
-          webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+          webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
           recallFrame = None
 
         case Some(frame) =>

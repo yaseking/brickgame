@@ -92,7 +92,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def updateListener(): Unit = {
-    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+    webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
   }
 
   def getRandom(s: Int):Int = {
@@ -107,7 +107,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //    isPlay = true
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
+      webSocketClient.sendMessage(SendPingPacket(System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -143,7 +143,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       recallFrame match {
         case Some(-1) =>
           println("!!!!!!!!:NeedToSync2")
-          webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+          webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
           recallFrame = None
 
         case Some(frame) =>
@@ -326,7 +326,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
                     grid.addActionWithFrame(myId, newKeyCode, actionFrame)
                     myActionHistory += actionId -> (newKeyCode, actionFrame)
-                    val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
+                    val msg: Protocol.UserAction = Key(newKeyCode, actionFrame, actionId)
                     webSocketClient.sendMessage(msg)
                   }
                 case _ =>
@@ -470,8 +470,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
         }
 
-      case Protocol.SomeOneWin(winner, finalData) =>
-        drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
+      case Protocol.SomeOneWin(winner) =>
+        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData)
         isWin = true
         //        winnerName = winner
         //        winData = finalData

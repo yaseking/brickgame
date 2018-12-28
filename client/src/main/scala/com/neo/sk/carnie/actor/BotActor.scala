@@ -205,7 +205,7 @@ object BotActor {
           if(actionNum != -1) {
             val actionId = idGenerator.getAndIncrement()
             val frame = botController.grid.frameCount
-            actor ! Key(playerInfo.id, actionNum, frame, actionId)
+            actor ! Key(actionNum, frame, actionId)
             botController.grid.addActionWithFrame(playerInfo.id, actionNum, frame)
             replyTo ! frame
           } else replyTo ! -1L

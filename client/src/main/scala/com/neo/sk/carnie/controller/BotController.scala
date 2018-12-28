@@ -61,7 +61,7 @@ class BotController(player: PlayerInfoInClient,
     recallFrame match {
       case Some(-1) =>
         println("!!!!!!!!:NeedToSync2")
-        botActor ! BotActor.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+        botActor ! BotActor.MsgToService(NeedToSync.asInstanceOf[UserAction])
         recallFrame = None
 
       case Some(frame) =>

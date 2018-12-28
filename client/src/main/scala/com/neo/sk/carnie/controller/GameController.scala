@@ -135,12 +135,12 @@ class GameController(player: PlayerInfoInClient,
       stageCtx.getStage.setHeight(stageHeight)
     }
     logicFrameTime = System.currentTimeMillis()
-    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
+    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(System.currentTimeMillis()))
 
     recallFrame match {
       case Some(-1) =>
         println("!!!!!!!!:NeedToSync2")
-        playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+        playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
         recallFrame = None
 
       case Some(frame) =>
@@ -552,7 +552,7 @@ class GameController(player: PlayerInfoInClient,
 //              println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), actionFrame, actionId)}")
               grid.addActionWithFrame(player.id, Constant.keyCode2Int(newKeyCode), actionFrame)
               grid.myActionHistory += actionId -> (Constant.keyCode2Int(newKeyCode), actionFrame)
-              val msg: Protocol.UserAction = Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId)
+              val msg: Protocol.UserAction = Protocol.Key(Constant.keyCode2Int(newKeyCode), frame, actionId)
               playActor ! PlayGameWebSocket.MsgToService(msg)
             }
 
