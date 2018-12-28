@@ -281,6 +281,7 @@ class BotController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.NewFieldInfo =>
+        println(s"====================new field")
         Boot.addToPlatform{
 //          if(data.fieldDetails.exists(_.uid == player.id))
           newFieldInfo += data.frameCount -> data
