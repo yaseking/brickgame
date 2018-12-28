@@ -119,7 +119,7 @@ class WebSocketClient (
                     case _ =>
                       other = other + blobMsg.size
                   }
-                  if(System.currentTimeMillis() - updateTime > 60*1000) {
+                  if(System.currentTimeMillis() - updateTime > 30*1000) {
                     updateTime = System.currentTimeMillis()
                     println(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo,someoneKill:$someoneKill, dead$dead, win:$win,other:$other")
                     snakeAction = 0
