@@ -171,16 +171,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
-        val frame = grid.frameCount + delay
+        val frame = grid.frameCount
         println("front Frame" + frame)
         getMyField()
         val a = myGroupField
+        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         grid.initSyncGridData(syncGridData.get)
         getMyField()
+        val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         val b = myGroupField
         if (a != b){
-//          println(s"=======myField1:$a")
-//          println(s"=======myField2:$b")
+          println(s"=======myField1:$a,myBody1:$myBody1")
+          println(s"=======myField2:$b,myBody2:$myBody2")
           println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
         }
         syncGridData = None

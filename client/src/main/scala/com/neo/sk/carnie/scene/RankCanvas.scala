@@ -111,7 +111,7 @@ class RankCanvas(canvas: Canvas)  {
     ctx.setGlobalAlpha(0.6)
     ctx.setFill(color)
     ctx.save()
-    ctx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight + 10,
+    ctx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight + canvas.getHeight/15,
       fillWidth + windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), textLineHeight)
     ctx.restore()
 
@@ -139,7 +139,7 @@ class RankCanvas(canvas: Canvas)  {
   }
 
   def drawTextLineSelf(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
-    ctx.fillText(str, x, (lineNum + lineBegin) * textLineHeight + 10)
+    ctx.fillText(str, x, (lineNum + lineBegin) * textLineHeight + canvas.getHeight/15)
   }
 
 
