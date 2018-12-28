@@ -267,7 +267,6 @@ class GameController(player: PlayerInfoInClient,
 
       case None if !firstCome =>
         if(btnFlag) {
-          println("first come to diePage.")
           gameScene.group.getChildren.add(gameScene.backBtn)
           btnFlag = false
         }
@@ -659,6 +658,10 @@ class GameController(player: PlayerInfoInClient,
     if (isWin) isWin = false
     myScore = BaseScore(0, 0, 0l, 0l)
     isContinue = true
+    Boot.addToPlatform{
+      gameScene.group.getChildren.remove(gameScene.backBtn)
+      btnFlag = true
+    }
 //    animationTimer.start()
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)
