@@ -74,7 +74,7 @@ object BotActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case MakeAction(a) =>
-          val rTime = 1 + scala.util.Random.nextInt(8)
+          val rTime = 1 + scala.util.Random.nextInt(15)
           timer.startSingleTimer(MakeActionKey, MakeAction(rTime), (rTime + Random.nextInt(a+1)) * frameRate.millis)
           var actionCode = actionNum % 4 + 37
           if(grid.snakes.exists(_._1 == botId)) {
@@ -107,7 +107,7 @@ object BotActor {
               }
             }
           }
-          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
+//          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
           roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
           gaming(botId, grid, roomActor, frameRate, actionNum)
 
@@ -115,7 +115,7 @@ object BotActor {
 //          log.info(s"bot dead:$botId")
           timer.startSingleTimer(SpaceKey, Space, (2 + scala.util.Random.nextInt(8)) * frameRate.millis)
           timer.cancel(MakeActionKey)
-          timer.cancel(MakeMiniActionKey)
+//          timer.cancel(MakeMiniActionKey)
           dead(botId, grid, roomActor, frameRate)
 
         case KillBot =>
@@ -144,7 +144,7 @@ object BotActor {
 //          log.info(s"back to game: botId:$botId")
           val randomTime = 2 + scala.util.Random.nextInt(20)
           timer.startSingleTimer(MakeActionKey, MakeAction(0), randomTime * frameRate.millis)
-          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
+//          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
           gaming(botId, grid, roomActor, frameRate)
 
         case KillBot =>
