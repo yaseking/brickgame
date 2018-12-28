@@ -79,7 +79,7 @@ object Protocol {
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
-  case class SnakeAction(id: String, keyCode: Int, frame: Int, actionId: Int) extends GameMessage
+  case class SnakeAction(id: String, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
 
   case class SnakeLeft(id: String, name: String) extends GameMessage
 
