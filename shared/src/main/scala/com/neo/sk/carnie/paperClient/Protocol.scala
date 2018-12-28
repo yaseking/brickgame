@@ -73,6 +73,8 @@ object Protocol {
 
   case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
 
+  case class UserDead(id: String) extends GameMessage with GameEvent
+
   case class UserLeft(userId: String) extends GameMessage
 
   case class InitReplayError(info: String) extends GameMessage
@@ -92,6 +94,8 @@ object Protocol {
   case object ReStartGame extends GameMessage
 
   case class SomeOneWin(winnerName: String) extends GameMessage with GameEvent
+
+//  case class SomeWin(winnerName: String,finalData:Data4TotalSync) extends GameMessage with GameEvent
 
   case class WinData(winnerScore: Int,yourScore: Option[Int]) extends GameMessage with GameEvent
 

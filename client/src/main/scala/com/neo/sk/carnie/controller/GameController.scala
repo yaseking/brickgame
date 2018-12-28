@@ -448,6 +448,13 @@ class GameController(player: PlayerInfoInClient,
           newSnakeInfo = Some(data)
         }
 
+      case Protocol.UserDead(id) =>
+        println("I've clean it")
+        Boot.addToPlatform {
+          grid.cleanDiedSnake(id)
+          grid.cleanSnakeTurnPoint(id)
+        }
+
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
         Boot.addToPlatform {
           grid.killInfo = Some(killedId, killedName, killerName)
