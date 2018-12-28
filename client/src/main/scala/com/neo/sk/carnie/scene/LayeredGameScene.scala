@@ -38,8 +38,8 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   val humanViewCanvas = new Canvas()
   val allCanvas = new Canvas()
 
-  allCanvas.setHeight(viewHeight)
-  allCanvas.setWidth(viewWidth)
+  allCanvas.setHeight(0)
+  allCanvas.setWidth(0)
 
   positionCanvas.setHeight(viewHeight)
   positionCanvas.setWidth(viewWidth)
@@ -98,7 +98,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 
   private val selfViewCtx = selfViewCanvas.getGraphicsContext2D
 
-  private val allCtx = selfViewCanvas.getGraphicsContext2D
+  private val allCtx = allCanvas.getGraphicsContext2D
 
   val getScene: Scene = new Scene(group)
 
@@ -116,14 +116,28 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 
 
   def drawGameWait(w:Int,h:Int): Unit = {
+    println(w,h)
     allCanvas.setHeight(h)
     allCanvas.setWidth(w)
     allCtx.save()
     allCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
-    allCtx.fillRect(0, 0, viewWidth, viewHeight)
+    allCtx.fillRect(0, 0, w, h)
     allCtx.setFill(ColorsSetting.dieInfoFontColor)
     allCtx.setFont(Font.font(30))
     allCtx.fillText("Please wait.", 150, 180)
+    allCtx.restore()
+  }
+
+  def cleanGameWait(w:Int,h:Int): Unit = {
+    println(w,h)
+    allCanvas.setHeight(h)
+    allCanvas.setWidth(w)
+    allCtx.save()
+//    allCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
+    allCtx.clearRect(0, 0, w, h)
+//    allCtx.setFill(ColorsSetting.dieInfoFontColor)
+//    allCtx.setFont(Font.font(30))
+//    allCtx.fillText("Please wait.", 150, 180)
     allCtx.restore()
   }
 
