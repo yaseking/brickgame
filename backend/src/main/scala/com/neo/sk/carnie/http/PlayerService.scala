@@ -272,6 +272,17 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
   }
 
+  var snakeAction : Double = 0
+  var ping : Double = 0
+  var newField : Double = 0
+  var data4TotalSync : Double = 0
+  var rank : Double = 0
+  var newSnakeInfo : Double = 0
+  var someoneKill : Double = 0
+  var dead :Double = 0
+  var win :Double = 0
+  var other :Double = 0
+  var updateTime = 0l
 
   def webSocketChatFlow(playedId: String, sender: String, mode: Int, img: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
@@ -305,6 +316,43 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
+
+          msg match {
+            case ReceivePingPacket(_) =>
+              ping = ping + sendBuffer.getByte()
+
+            case SnakeAction(_, _, _, _) =>
+              snakeAction = snakeAction + sendBuffer.getByte()
+
+            case NewFieldInfo(_, _) =>
+              newField = newField + sendBuffer.getByte()
+
+            case Data4TotalSync(_, _, _, _) =>
+              data4TotalSync = data4TotalSync + sendBuffer.getByte()
+
+            case Ranks(_, _, _) =>
+              rank = rank + sendBuffer.getByte()
+
+            case NewSnakeInfo(_, _, _) =>
+              newSnakeInfo = newSnakeInfo + sendBuffer.getByte()
+
+            case SomeOneKilled(_, _, _) =>
+              someoneKill = someoneKill + sendBuffer.getByte()
+
+            case DeadPage(_, _, _, _, _) =>
+              dead = dead + sendBuffer.getByte()
+
+            case WinData(_, _) =>
+              win = win + sendBuffer.getByte()
+
+            case _ =>
+              other = other + sendBuffer.getByte()
+          }
+          if(System.currentTimeMillis() - updateTime > 60*1000){
+            updateTime = System.currentTimeMillis()
+            log.debug(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo,someoneKill:$someoneKill, dead$dead, win:$win,other:$other")
+          }
+
           BinaryMessage.Strict(ByteString(
             //encoded process
             msg.fillMiddleBuffer(sendBuffer).result()

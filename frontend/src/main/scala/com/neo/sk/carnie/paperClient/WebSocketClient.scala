@@ -66,6 +66,18 @@ class WebSocketClient (
         close(event)
       }
 
+      var snakeAction : Double = 0
+      var ping : Double = 0
+      var newField : Double = 0
+      var data4TotalSync : Double = 0
+      var rank : Double = 0
+      var newSnakeInfo : Double = 0
+      var someoneKill : Double = 0
+      var dead :Double = 0
+      var win :Double = 0
+      var other :Double = 0
+      var updateTime = 0l
+
       gameStream.onmessage = { event: MessageEvent =>
         event.data match {
           case blobMsg: Blob =>
@@ -78,10 +90,38 @@ class WebSocketClient (
                 case Right(data) =>
                   data match {
                     case ReceivePingPacket(_) =>
+                      ping =  ping + blobMsg.size
+
+                    case SnakeAction(_, _, _, _) =>
+                      snakeAction = snakeAction + blobMsg.size
+
+                    case NewFieldInfo(_,_) =>
+                      newField = newField + blobMsg.size
+
+                    case Data4TotalSync(_,_,_,_) =>
+                      data4TotalSync = data4TotalSync + blobMsg.size
+
+                    case Ranks(_,_,_) =>
+                      rank = rank + blobMsg.size
+
+                    case NewSnakeInfo(_,_,_) =>
+                      newSnakeInfo = newSnakeInfo + blobMsg.size
+
+                    case SomeOneKilled(_, _, _) =>
+                      someoneKill = someoneKill + blobMsg.size
+
+                    case DeadPage(_,_,_,_,_) =>
+                      dead = dead + blobMsg.size
+
+                    case WinData(_,_) =>
+                      win = win + blobMsg.size
 
                     case _ =>
-                      if(blobMsg.size > 50)
-                        println(s"msg type is:${data.getClass},${blobMsg.`type`} ,and size is:" + blobMsg.size)
+                      other = other + blobMsg.size
+                  }
+                  if(System.currentTimeMillis() - updateTime > 60*1000){
+                    updateTime = System.currentTimeMillis()
+                    println(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo,someoneKill:$someoneKill, dead$dead, win:$win,other:$other")
                   }
                   messageHandler(data)
 

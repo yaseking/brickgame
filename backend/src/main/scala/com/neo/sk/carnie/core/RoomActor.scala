@@ -266,13 +266,6 @@ object RoomActor {
             log.debug(s"got Terminated id = $id")
             //            if(userDeadList.contains(id)) userDeadList -= id
             val name = userMap.get(id).head.name
-//            userMap.filter(_._1 == id).foreach{ u =>
-//              userGroup.get(u._2.group) match {
-//                case Some(s) => userGroup.update(u._2.group,s - id)
-//                case None => userGroup.put(u._2.group, Set.empty)
-//              }
-//            }
-//            if (headImgList.contains(id)) headImgList.remove(id)
             subscribersMap.remove(id)
             userMap.remove(id)
             grid.cleanSnakeTurnPoint(id)
