@@ -76,13 +76,13 @@ object BotActor {
         case MakeAction(a) =>
           val rTime = 1 + scala.util.Random.nextInt(15)
           timer.startSingleTimer(MakeActionKey, MakeAction(rTime), (rTime + Random.nextInt(a+1)) * frameRate.millis)
-          var actionCode = actionNum % 4 + 37
+          var actionCode = (actionNum % 4 + 37).toByte
           if(grid.snakes.exists(_._1 == botId)) {
 //            val header = grid.snakes.find(_._1 == botId).get._2.header
             val direction = grid.snakes.find(_._1 == botId).get._2.direction
             actionCode = pointsToAction(directionToRight(direction))
           }
-          if (actionNum == 0) actionCode = Random.nextInt(4) + 37
+          if (actionNum == 0) actionCode = (Random.nextInt(4) + 37).toByte
           roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           actionNum match {
             case 0 => gaming(botId, grid, roomActor, frameRate,actionNum + 1)
@@ -92,7 +92,7 @@ object BotActor {
         case MakeMiniAction(a@Point(x,y)) =>
 
 //          log.info("miniAction")
-          var actionCode = 32
+          var actionCode: Byte = 32
           if(grid.snakes.exists(_._1 == botId)){
             val header = grid.snakes.find(_._1 == botId).get._2.header
             val direction = grid.snakes.find(_._1 == botId).get._2.direction
@@ -173,7 +173,7 @@ object BotActor {
     }
   }
 
-  def pointsToAction(p: Point):Int  ={
+  def pointsToAction(p: Point):Byte  ={
     p match {
       case Point(1,0) => 39
       case Point(-1,0) => 37
@@ -193,7 +193,7 @@ object BotActor {
     }
   }
 
-  def pointsToAvoid(p: Point):Int  ={
+  def pointsToAvoid(p: Point):Byte  ={
     val a = List(38,40)
     val b = List(37,39)
     val r = Random.nextInt(2)

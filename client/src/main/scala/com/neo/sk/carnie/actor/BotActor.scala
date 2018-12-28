@@ -64,9 +64,9 @@ object BotActor {
 
   case class Action(move: Move, replyTo: ActorRef[Long]) extends Command
 
-  case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Long, Boolean)]) extends Command
+  case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Int, Boolean)]) extends Command
 
-  case class Observation(obs: (Option[ImgData], Option[LayeredObservation], Long, Boolean)) extends Command
+  case class Observation(obs: (Option[ImgData], Option[LayeredObservation], Int, Boolean)) extends Command
 
   case class ReturnInform(replyTo: ActorRef[(Score, Long)]) extends Command
 
@@ -255,7 +255,7 @@ object BotActor {
   def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
                             botController: BotController,
                             playerInfo: PlayerInfoInClient,
-                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Long, Boolean)])(
+                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Int, Boolean)])(
     implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {

@@ -22,17 +22,17 @@ trait Grid {
 
   val maxDelayed = 11 //最大接收10帧以内的延时
   val historyRankLength = 5
-  var frameCount = 0l
+  var frameCount = 0
   var grid: Map[Point, Spot] = Map[Point, Spot]()
   var snakes = Map.empty[String, SkDt]
-  var actionMap = Map.empty[Long, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
-  var killHistory = Map.empty[String, (String, String, Long)] //killedId, (killerId, killerName,frameCount)
+  var actionMap = Map.empty[Int, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
+  var killHistory = Map.empty[String, (String, String, Int)] //killedId, (killerId, killerName,frameCount)
   //  var killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]//killedId, (killedId, killedName, killing, startTime, endTime)
   var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
-  var historyStateMap = Map.empty[Long, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
-  var historyFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //回溯
+  var historyStateMap = Map.empty[Int, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
+  var historyFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //回溯
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -49,13 +49,13 @@ trait Grid {
     addActionWithFrame(id, keyCode, frameCount)
   }
 
-  def addActionWithFrame(id: String, keyCode: Int, frame: Long): Unit = {
+  def addActionWithFrame(id: String, keyCode: Int, frame: Int): Unit = {
     val map = actionMap.getOrElse(frame, Map.empty)
     val tmp = map + (id -> keyCode)
     actionMap += (frame -> tmp)
   }
 
-  def getUserMaxActionFrame(id: String, frontFrame: Long): Long = {
+  def getUserMaxActionFrame(id: String, frontFrame: Int): Int = {
     val existFrame = actionMap.map { a => (a._1, a._2.filter(_._1 == id)) }.filter(_._2.nonEmpty).keys
     try {
       Math.max(existFrame.max + 1, frontFrame)
@@ -65,7 +65,7 @@ trait Grid {
     }
   }
 
-  def checkActionFrame(id: String, frontFrame: Long): Long = {
+  def checkActionFrame(id: String, frontFrame: Int): Int = {
     val backendFrame = Math.max(frontFrame, frameCount)
     val existFrame = actionMap.map { a => (a._1, a._2.filter(_._1 == id)) }.filter(_._2.nonEmpty).keys
     try {
@@ -76,7 +76,7 @@ trait Grid {
     }
   }
 
-  def deleteActionWithFrame(id: String, frame: Long): Unit = {
+  def deleteActionWithFrame(id: String, frame: Int): Unit = {
     val map = actionMap.getOrElse(frame, Map.empty)
     val tmp = map - id
     actionMap += (frame -> tmp)
@@ -448,7 +448,7 @@ trait Grid {
     )
   }
 
-  def getKiller(myId: String): Option[(String, String, Long)] = {
+  def getKiller(myId: String): Option[(String, String, Int)] = {
     killHistory.get(myId) match {
       case Some(info) if info._3 > frameCount - 3 => Some(info)
       case _ => None
@@ -464,9 +464,9 @@ trait Grid {
 
   def cleanData(): Unit = {
     snakes = Map.empty[String, SkDt]
-    actionMap = Map.empty[Long, Map[String, Int]]
+    actionMap = Map.empty[Int, Map[String, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
-    killHistory = Map.empty[String, (String, String, Long)]
+    killHistory = Map.empty[String, (String, String, Int)]
     //    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
     snakeTurnPoints = snakeTurnPoints.empty
   }
@@ -482,7 +482,7 @@ trait Grid {
     grid = newGrid
   }
 
-  def recallGrid(startFrame: Long, endFrame: Long): Unit = {
+  def recallGrid(startFrame: Int, endFrame: Int): Unit = {
     historyStateMap.get(startFrame) match {
       case Some(state) =>
         println(s"recallGrid-start$startFrame-end-$endFrame")

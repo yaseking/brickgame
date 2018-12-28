@@ -38,7 +38,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
   //  var winData: Protocol.Data4TotalSync = grid.getGridData
-  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
@@ -47,13 +47,13 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
-  private var recallFrame: scala.Option[Long] = None
+  private var recallFrame: scala.Option[Int] = None
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
 
   val idGenerator = new AtomicInteger(1)
-  private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
+  private var myActionHistory = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]

@@ -59,12 +59,12 @@ class GameController(player: PlayerInfoInClient,
   val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
 
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   private val bgmAmount = bgmList.length
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  private var recallFrame: scala.Option[Long] = None
+  private var recallFrame: scala.Option[Int] = None
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
@@ -459,6 +459,7 @@ class GameController(player: PlayerInfoInClient,
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
           newFieldInfo += data.frameCount -> data
+
           grid.historyFieldInfo += data.frameCount -> data
         }
 
@@ -529,7 +530,7 @@ class GameController(player: PlayerInfoInClient,
         val delay = if(mode==2) 4 else 2
         val frame = grid.frameCount + delay
 //        val actionId = idGenerator.getAndIncrement()
-        val keyCode = Constant.keyCode2Int(key)
+        val keyCode = Constant.keyCode2Byte(key)
         grid.addActionWithFrame(player.id, keyCode, frame)
         key match {
           case KeyCode.SPACE =>
@@ -550,9 +551,9 @@ class GameController(player: PlayerInfoInClient,
                     case _ => KeyCode.SPACE
                   } else key
 //              println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), actionFrame, actionId)}")
-              grid.addActionWithFrame(player.id, Constant.keyCode2Int(newKeyCode), actionFrame)
-              grid.myActionHistory += actionId -> (Constant.keyCode2Int(newKeyCode), actionFrame)
-              val msg: Protocol.UserAction = Protocol.Key(Constant.keyCode2Int(newKeyCode), frame, actionId)
+              grid.addActionWithFrame(player.id, Constant.keyCode2Byte(newKeyCode), actionFrame)
+              grid.myActionHistory += actionId -> (Constant.keyCode2Byte(newKeyCode), actionFrame)
+              val msg: Protocol.UserAction = Protocol.Key(Constant.keyCode2Byte(newKeyCode), frame, actionId)
               playActor ! PlayGameWebSocket.MsgToService(msg)
             }
 

@@ -39,7 +39,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
   //  var winData: Protocol.Data4TotalSync = grid.getGridData
-  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var isContinue = true
@@ -51,10 +51,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
 
-  private var recallFrame: scala.Option[Long] = None
+  private var recallFrame: scala.Option[Int] = None
 
   val idGenerator = new AtomicInteger(1)
-  private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
+  private var myActionHistory = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
@@ -315,14 +315,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   if(actionFrame < frame + maxContainableAction) {
                     val actionId = idGenerator.getAndIncrement()
                     val newKeyCode =
-                      if (mode == 1)
-                        e.keyCode match {
+                      if (mode == 1){
+                        val code = e.keyCode match {
                           case KeyCode.Left => KeyCode.Right
                           case KeyCode.Right => KeyCode.Left
                           case KeyCode.Down => KeyCode.Up
                           case KeyCode.Up => KeyCode.Down
                           case _ => KeyCode.Space
-                        } else e.keyCode
+                        }
+                        code.toByte
+                      } else e.keyCode.toByte
 //                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
                     grid.addActionWithFrame(myId, newKeyCode, actionFrame)
                     myActionHistory += actionId -> (newKeyCode, actionFrame)

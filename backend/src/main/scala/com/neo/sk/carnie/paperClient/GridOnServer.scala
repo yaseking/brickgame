@@ -135,7 +135,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     isFinish
   }
 
-  def getDirectionEvent(frameCount: Long): List[Protocol.DirectionEvent] = {
+  def getDirectionEvent(frameCount: Int): List[Protocol.DirectionEvent] = {
     actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2))
   }
 

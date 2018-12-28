@@ -35,10 +35,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   var fieldNum = 1
   var snakeNum = 1
   var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
-  var snapshotMap = Map.empty[Long, Snapshot]
-  var encloseMap = Map.empty[Long, NewFieldInfo]
-  var spaceEvent = Map.empty[Long, SpaceEvent]
-  var rankEvent = Map.empty[Long, RankEvent]
+  var snapshotMap = Map.empty[Int, Snapshot]
+  var encloseMap = Map.empty[Int, NewFieldInfo]
+  var spaceEvent = Map.empty[Int, SpaceEvent]
+  var rankEvent = Map.empty[Int, RankEvent]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var replayFinish = false
   var gameLoopInterval = -1
@@ -255,10 +255,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         dom.window.clearInterval(requestAnimationInterval)
         loading = true
         drawGame.drawGameOff(firstCome, Some(false), loading, false)
-        grid.frameCount = frame.toLong
+        grid.frameCount = frame
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, List(), List(), List()))
-        snapshotMap = Map.empty[Long, Snapshot]
-        encloseMap = Map.empty[Long, NewFieldInfo]
+        snapshotMap = Map.empty[Int, Snapshot]
+        encloseMap = Map.empty[Int, NewFieldInfo]
 
 
       case Protocol.StartReplay(firstSnapshotFrame, firstReplayFrame) =>
@@ -333,8 +333,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
               (event, loading) match {
                 case (EncloseEvent(_), true) => replayMessageHandler(event, frameIndex)
                 case (DirectionEvent(_, _), true) => replayMessageHandler(event, frameIndex)
-                case (e@SpaceEvent(_), true) => spaceEvent += (frameIndex.toLong -> e)
-                case (e@RankEvent(_), true) => rankEvent += (frameIndex.toLong -> e)
+                case (e@SpaceEvent(_), true) => spaceEvent += (frameIndex -> e)
+                case (e@RankEvent(_), true) => rankEvent += (frameIndex -> e)
                 case (_, false) => replayMessageHandler(event, frameIndex)
                 case _ =>
               }
@@ -388,12 +388,12 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
 
       case DirectionEvent(id, keyCode) =>
-        grid.addActionWithFrame(id, keyCode, frameIndex.toLong)
+        grid.addActionWithFrame(id, keyCode, frameIndex)
 
       case msg@SpaceEvent(id) =>
         //        println(s"get space event:$id, frame: $frameIndex")
-        if (grid.frameCount < frameIndex.toLong) {
-          spaceEvent += (frameIndex.toLong -> msg)
+        if (grid.frameCount < frameIndex) {
+          spaceEvent += (frameIndex -> msg)
         } else {
           if (id == myId) {
             audio1.pause()
@@ -429,16 +429,16 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         //        println(s"got enclose event")
         //        println(s"当前帧号：${grid.frameCount}")
         //        println(s"传输帧号：$frameIndex")
-        if (grid.frameCount < frameIndex.toLong) {
-          encloseMap += (frameIndex.toLong -> NewFieldInfo(frameIndex.toLong, enclosure))
-        } else if (grid.frameCount == frameIndex.toLong) {
+        if (grid.frameCount < frameIndex) {
+          encloseMap += (frameIndex -> NewFieldInfo(frameIndex, enclosure))
+        } else if (grid.frameCount == frameIndex) {
           //          println(s"圈地")
           //          println(s"enclosure:$enclosure")
           enclosure.map(_.uid).foreach { id =>
             grid.cleanSnakeTurnPoint(id)
           }
           //          grid.cleanTurnPoint4Reply(myId)
-          grid.addNewFieldInfo(NewFieldInfo(frameIndex.toLong, enclosure))
+          grid.addNewFieldInfo(NewFieldInfo(frameIndex, enclosure))
         }
 
       case RankEvent(current) =>
@@ -449,9 +449,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
       case msg@Snapshot(snakes, bodyDetails, fieldDetails) =>
         //        println(s"snapshot, frame:$frameIndex, snakes:${snakes.map(_.id)}")
-        snapshotMap += frameIndex.toLong -> msg
+        snapshotMap += frameIndex -> msg
         if (grid.frameCount >= frameIndex.toLong) { //重置
-          syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex.toLong + 1, snakes, bodyDetails, fieldDetails))
+          syncGridData4Replay = Some(Protocol.Data4TotalSync(frameIndex + 1, snakes, bodyDetails, fieldDetails))
           justSynced = true
         }
 

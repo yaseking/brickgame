@@ -10,19 +10,19 @@ object Protocol {
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
   case class NewFieldInfo(
-                           frameCount: Long,
+                           frameCount: Int,
                            fieldDetails: List[FieldByColumn]
                          ) extends GameMessage
 
   case class Data4TotalSync(
-                             frameCount: Long,
+                             frameCount: Int,
                              snakes: List[SkDt],
                              bodyDetails: List[BodyBaseInfo],
                              fieldDetails: List[FieldByColumn]
                            ) extends GameMessage
 
   case class NewSnakeInfo(
-                         frameCount: Long,
+                         frameCount: Int,
                          snake: List[SkDt],
                          filedDetails: List[FieldByColumn]
                          ) extends GameMessage
@@ -79,7 +79,7 @@ object Protocol {
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
-  case class SnakeAction(id: String, keyCode: Int, frame: Long, actionId: Int) extends GameMessage
+  case class SnakeAction(id: String, keyCode: Int, frame: Int, actionId: Int) extends GameMessage
 
   case class SnakeLeft(id: String, name: String) extends GameMessage
 
@@ -107,7 +107,7 @@ object Protocol {
 
   sealed trait UserAction extends WsSendMsg
 
-  case class Key(keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
+  case class Key(keyCode: Byte, frameCount: Int, actionId: Int) extends UserAction
 
   case class TextInfo(msg: String) extends UserAction
 
