@@ -334,7 +334,7 @@ object BotActor {
             println(s"decode error: ${e.message}")
         }
 
-      case msg:BinaryMessage.Streamed =>
+      case msg:BinaryMessage.Streamed => //分片
         val f = msg.dataStream.runFold(new ByteStringBuilder().result()){
           case (s, str) => s.++(str)
         }

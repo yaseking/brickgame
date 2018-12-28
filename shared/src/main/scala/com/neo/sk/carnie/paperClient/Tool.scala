@@ -4,8 +4,8 @@ package com.neo.sk.carnie.paperClient
   * Created by dry on 2018/9/7.
   **/
 object Tool {
-  def findContinuous(points: Array[Int]): List[(Int, Int)] = {
-    var target = List.empty[(Int, Int)]
+  def findContinuous(points: Array[Short]): List[(Short, Short)] = {
+    var target = List.empty[(Short, Short)]
     if (points.max - points.min == (points.length - 1)) { //仅存在一段
       target = List((points.min, points.max))
     } else { //分段寻找

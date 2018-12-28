@@ -131,30 +131,9 @@ class BotController(player: PlayerInfoInClient,
         }
       }
     }
-//    if (newSnakeInfo.nonEmpty) {
-//      grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
-//      grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
-//      newSnakeInfo = None
-//    }
-//
-//    if (syncGridData.nonEmpty) {
-//      grid.initSyncGridData(syncGridData.get)
-//      syncGridData = None
-//    } else {
-//      grid.update("f")
-//      if (newFieldInfo.nonEmpty) {
-//        val frame = newFieldInfo.keys.min
-//        val newFieldData = newFieldInfo(frame)
-//        if (frame == grid.frameCount) {
-//          grid.addNewFieldInfo(newFieldData)
-//          newFieldInfo -= frame
-//        } else if (frame < grid.frameCount) {
-//          botActor ! BotActor.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
-//        }
-//      }
-//    }
 
     val gridData = grid.getGridData
+    println("before draw!")
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
