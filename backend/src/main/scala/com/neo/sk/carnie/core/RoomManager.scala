@@ -292,6 +292,7 @@ object RoomManager {
 
         case FindAllRoom4Client(reply) => //或许可以用个计时器，定时请求房间列表，清除无人的房间
           log.debug(s"got all room")
+          log.info(s"roomIds: ${roomMap.keys}")
           reply ! roomMap.map{i => s"${i._1}-${i._2._1}-${i._2._2.nonEmpty}"}.toList //roomId-mode-pwd(t/f)
           Behaviors.same
 
