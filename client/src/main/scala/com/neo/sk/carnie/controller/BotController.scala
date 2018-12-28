@@ -192,6 +192,12 @@ class BotController(player: PlayerInfoInClient,
           grid.cleanData()
         }
 
+      case Protocol.UserDead(id) =>
+        Boot.addToPlatform {
+          grid.cleanDiedSnake(id)
+          grid.cleanSnakeTurnPoint(id)
+        }
+
       case Protocol.UserLeft(id) =>
         Boot.addToPlatform {
           println(s"user $id left:::")

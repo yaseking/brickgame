@@ -479,6 +479,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //        winData = finalData
         grid.cleanData()
 
+//      case Protocol.SomeWin(winner,finalData) =>
+////        val finalData = grid.getGridData
+//        drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
+//        isWin = true
+//        //        winnerName = winner
+//        //        winData = finalData
+//        grid.cleanData()
+
       case Protocol.WinnerBestScore(score) =>
         maxArea = Constant.shortMax(maxArea, score)
 
@@ -509,7 +517,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myScore = BaseScore(kill, area, playTime)
         maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         grid.cleanDiedSnake(id)
-        FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
+
+      case Protocol.UserDead(id) =>
+        grid.cleanDiedSnake(id)
+        grid.cleanSnakeTurnPoint(id)
 
       case data: Protocol.NewFieldInfo =>
 //        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
