@@ -133,7 +133,6 @@ class BotController(player: PlayerInfoInClient,
     }
 
     val gridData = grid.getGridData
-    println("before draw!")
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
@@ -158,6 +157,7 @@ class BotController(player: PlayerInfoInClient,
         log.debug(s"i receive roomId:$roomId")
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
+        log.debug(s"i receive SnakeAction:$id")
         Boot.addToPlatform {
           if (grid.snakes.exists(_._1 == id)) {
             if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
@@ -242,6 +242,7 @@ class BotController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
+        println("data!!!")
         Boot.addToPlatform{
           syncGridData = Some(data)
           if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
