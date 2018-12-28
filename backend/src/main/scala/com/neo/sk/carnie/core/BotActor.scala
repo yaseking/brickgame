@@ -57,7 +57,7 @@ object BotActor {
             roomActor ! RoomActor.JoinRoom4Bot(botId, botName, ctx.self, new Random().nextInt(6))
             val randomTime = 1 + scala.util.Random.nextInt(20)
             timer.startSingleTimer(MakeActionKey, MakeAction(0), randomTime * frameRate.millis)
-            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
+//            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
             gaming(botId, grid, roomActor, frameRate)
 
           case unknownMsg@_ =>

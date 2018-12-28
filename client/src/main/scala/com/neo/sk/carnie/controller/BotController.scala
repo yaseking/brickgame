@@ -265,7 +265,7 @@ class BotController(player: PlayerInfoInClient,
       case data: Protocol.Data4TotalSync =>
         Boot.addToPlatform{
           syncGridData = Some(data)
-          newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+          if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
         }
 
       case data: Protocol.NewSnakeInfo =>
@@ -282,8 +282,9 @@ class BotController(player: PlayerInfoInClient,
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
-          if(data.fieldDetails.exists(_.uid == player.id))
+//          if(data.fieldDetails.exists(_.uid == player.id))
           newFieldInfo += data.frameCount -> data
+          grid.historyFieldInfo += data.frameCount -> data
         }
 
       case x@Protocol.ReceivePingPacket(_) =>
