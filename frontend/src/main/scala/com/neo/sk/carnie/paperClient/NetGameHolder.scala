@@ -470,7 +470,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
         }
 
-      case Protocol.SomeOneWin(winner, finalData) =>
+      case Protocol.SomeOneWin(winner) =>
+        val finalData = grid.getGridData
         drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
         isWin = true
         //        winnerName = winner
