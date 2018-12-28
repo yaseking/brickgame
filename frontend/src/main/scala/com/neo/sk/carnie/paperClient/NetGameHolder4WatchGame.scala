@@ -49,7 +49,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   private var recallFrame: scala.Option[Int] = None
   private var myScore = BaseScore(0, 0, 0)
-  private var maxArea: Int = 0
+  private var maxArea: Short = 0
   private var winningData = WinData(0,Some(0))
 
   val idGenerator = new AtomicInteger(1)
@@ -469,7 +469,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     audioKilled.currentTime = 0
     firstCome = true
     if (isWin) isWin = false
-    myScore = BaseScore(0, 0, 0l, 0l)
+    myScore = BaseScore(0, 0, 0)
     isContinue = true
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)

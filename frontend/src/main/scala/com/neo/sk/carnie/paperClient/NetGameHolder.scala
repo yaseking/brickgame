@@ -48,7 +48,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   val delay:Int = if(mode == 2) 4 else 2
 
   private var myScore = BaseScore(0, 0, 0)
-  private var maxArea: Int = 0
+  private var maxArea: Short = 0
   private var winningData = WinData(0,Some(0))
 
   private var recallFrame: scala.Option[Int] = None

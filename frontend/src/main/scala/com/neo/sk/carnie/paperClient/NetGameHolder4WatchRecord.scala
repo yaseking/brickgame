@@ -46,7 +46,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   var requestAnimationInterval = -1
 
   private var myScore = BaseScore(0, 0, 0)
-  private var maxArea: Int = 0
+  private var maxArea: Short = 0
   private var winningData = WinData(0,Some(0))
 
 
