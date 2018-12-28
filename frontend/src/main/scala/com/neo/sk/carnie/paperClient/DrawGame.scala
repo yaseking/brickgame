@@ -255,11 +255,6 @@ class DrawGame(
       if (field.uid == myId || field.uid == winnerId) {
         val color = snakes.find(_.id == field.uid).map(_.color).get
         ctx.fillStyle = color
-//        field.scanField.foreach { point =>
-//          point.x.foreach { x =>
-//            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-//          }
-//        }
         field.scanField.foreach { fids =>
           fids.y.foreach{y =>
             fids.x.foreach{x =>

@@ -25,8 +25,6 @@ package object paperClient {
 
   case class Bord(x: Float, y: Float)
 
-  case class Kill(killedId: String, killerId: String, killerName: String,frameCount:Long)
-
   case class KilledSkDt(
                       id:String,
                       nickname:String,

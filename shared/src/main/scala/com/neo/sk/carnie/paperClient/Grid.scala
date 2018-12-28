@@ -20,7 +20,7 @@ trait Grid {
 
   val random = new Random(System.nanoTime())
 
-  val maxDelayed = 6 //最大接收5帧以内的延时
+  val maxDelayed = 11 //最大接收10帧以内的延时
   val historyRankLength = 5
   var frameCount = 0l
   var grid: Map[Point, Spot] = Map[Point, Spot]()

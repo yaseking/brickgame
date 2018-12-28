@@ -521,7 +521,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         println(s"receive winningData msg:$x")
         winningData = x
 
-
       case x@_ =>
         println(s"receive unknown msg:$x")
     }
