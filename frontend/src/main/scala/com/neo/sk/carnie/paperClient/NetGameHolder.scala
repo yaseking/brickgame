@@ -47,7 +47,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
   val delay:Int = if(mode == 2) 4 else 2
 
-  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
 
@@ -541,7 +541,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     audioKilled.currentTime = 0
     firstCome = true
     if (isWin) isWin = false
-    myScore = BaseScore(0, 0, 0l, 0l)
+    myScore = BaseScore(0, 0, 0)
     isContinue = true
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)

@@ -45,7 +45,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   //  var pingInterval = -1
   var requestAnimationInterval = -1
 
-  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
 
@@ -169,7 +169,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
             case Some(snake) =>
               firstCome = false
               if (scoreFlag) {
-                myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
+                myScore = BaseScore(0, 0, 0)
                 //                drawGame.cleanMyScore
                 scoreFlag = false
               }
@@ -202,7 +202,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
               else {
                 if (isContinue) audioKilled.play()
                 currentRank.filter(_.id == myId).foreach { score =>
-                  myScore = myScore.copy(kill = score.k, area = score.area, endTime = System.currentTimeMillis())
+                  myScore = myScore.copy(kill = score.k, area = score.area)
                 }
 //                drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea, true)
                 drawGame.drawGameDie4Replay()
@@ -402,7 +402,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
             audioKilled.currentTime = 0
             scoreFlag = true
             firstCome = true
-            myScore = BaseScore(0, 0, 0l, 0l)
+            myScore = BaseScore(0, 0, 0)
             if (isWin) {
               isWin = false
               winnerName = "unknown"

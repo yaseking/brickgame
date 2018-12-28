@@ -48,7 +48,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
   private var recallFrame: scala.Option[Int] = None
-  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
 
@@ -384,7 +384,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         audioKilled.pause()
         audioKilled.currentTime = 0
         firstCome = true
-        myScore = BaseScore(0, 0, 0l, 0l)
+        myScore = BaseScore(0, 0, 0)
         if (isWin) {
           isWin = false
         }

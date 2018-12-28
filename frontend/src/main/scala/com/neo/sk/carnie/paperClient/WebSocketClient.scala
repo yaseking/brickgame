@@ -110,7 +110,7 @@ class WebSocketClient (
                     case SomeOneKilled(_, _, _) =>
                       someoneKill = someoneKill + blobMsg.size
 
-                    case DeadPage(_,_,_,_,_) =>
+                    case DeadPage(_,_,_,_) =>
                       dead = dead + blobMsg.size
 
                     case WinData(_,_) =>
