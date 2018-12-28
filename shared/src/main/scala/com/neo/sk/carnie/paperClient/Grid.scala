@@ -289,7 +289,7 @@ trait Grid {
 
     val newSnakes = updatedSnakes.filterNot(s => finalDie.contains(s.data.id)).map { s =>
       mapKillCounter.get(s.data.id) match {
-        case Some(k) => s.copy(data = s.data.copy(kill = k + s.data.kill))
+        case Some(k) => s.copy(data = s.data.copy(kill = (k + s.data.kill).toShort))
         case None => s
       }
     }

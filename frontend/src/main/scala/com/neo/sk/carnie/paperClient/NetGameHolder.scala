@@ -504,9 +504,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         killInfo = Some(killedId, killedName, killerName)
         barrageDuration = 100
 
-      case x@Protocol.DeadPage(id, kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
-        myScore = BaseScore(kill, area, start, end)
+        myScore = BaseScore(kill, area, playTime)
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         grid.cleanDiedSnake(id)
         FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))

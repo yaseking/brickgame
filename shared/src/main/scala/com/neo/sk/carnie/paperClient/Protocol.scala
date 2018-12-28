@@ -71,13 +71,11 @@ object Protocol {
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
 
-  case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+  case class DeadPage(id: String, kill: Short, area: Short, playTime: Short) extends GameMessage
 
   case class UserLeft(userId: String) extends GameMessage
 
   case class InitReplayError(info: String) extends GameMessage
-
-  case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
   case class SnakeAction(id: String, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
 
@@ -85,21 +83,19 @@ object Protocol {
 
   case class ReplayFinish(id: String) extends GameMessage
 
-  //  case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
-  case class Ranks(currentRank: List[Score], personalScore: Score, personalRank: Int) extends GameMessage
-//  case class Rank4Self(score: Score, rank: Int) extends GameMessage
+  case class Ranks(currentRank: List[Score], personalScore: Score, personalRank: Byte) extends GameMessage
 
   case object ReStartGame extends GameMessage
 
   case class SomeOneWin(winnerName: String) extends GameMessage with GameEvent
 
-  case class WinData(winnerScore: Int,yourScore: Option[Int]) extends GameMessage with GameEvent
+  case class WinData(winnerScore: Short,yourScore: Option[Short]) extends GameMessage with GameEvent
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
 
-  case class WinnerBestScore(Score: Int) extends GameMessage
+  case class WinnerBestScore(Score: Short) extends GameMessage
 
   sealed trait WsSendMsg
   case object WsSendComplete extends WsSendMsg

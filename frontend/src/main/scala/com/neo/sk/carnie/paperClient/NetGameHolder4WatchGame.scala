@@ -434,10 +434,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         killInfo = Some(killedId, killedName, killerName)
         barrageDuration = 100
 
-      case x@Protocol.DeadPage(id, kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
         //        grid.cleanSnakeTurnPoint(id)
-        myScore = BaseScore(kill, area, start, end)
+        myScore = BaseScore(kill, area, playTime)
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
 
 

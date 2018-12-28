@@ -1,5 +1,7 @@
 package com.neo.sk.carnie
 
+import com.neo.sk.carnie.paperClient.Protocol.Point4Trans
+
 /**
   * User: Taoz
   * Date: 8/29/2016
@@ -17,7 +19,7 @@ package object paperClient {
 
   case object Blank extends Spot
 
-  case class Score(id: String, n: String, k: Int, area: Int = 0)
+  case class Score(id: String, n: String, k: Short, area: Short = 0)
 
   case class Bd(id: String, fid: Option[Long], x: Float, y: Float)
 
@@ -26,15 +28,15 @@ package object paperClient {
   case class Bord(x: Float, y: Float)
 
   case class KilledSkDt(
-                      id:String,
-                      nickname:String,
-                      killing:Int,
-                      score: Float,
-                      startTime:Long,
-                      endTime:Long
-                      )
+                         id: String,
+                         nickname: String,
+                         killing: Int,
+                         score: Float,
+                         startTime: Long,
+                         endTime: Long
+                       )
 
-  case class BaseScore(kill: Int, area: Int, startTime: Long, endTime: Long)
+  case class BaseScore(kill: Short, area: Short, playTime: Short)
 
 
   case class Point(x: Float, y: Float) {
@@ -52,6 +54,7 @@ package object paperClient {
 
   }
 
+
   case class SkDt(
                    id: String,
                    name: String,
@@ -59,15 +62,22 @@ package object paperClient {
                    startPoint: Point,
                    header: Point,
                    direction: Point = Point(0, 0),
-                   kill: Int = 0,
+                   kill: Short = 0,
                    startTime: Long,
                    endTime: Long,
-                   img: Int =0
+                   img: Int = 0
                  )
+
+  case class SkDt4Sync(
+                        id: String,
+                        startPoint: Point,
+                        header: Point,
+                        direction: Point
+                      )
 
   case class UpdateSnakeInfo(
                               data: SkDt,
-                              bodyInField : Option[String] = None
+                              bodyInField: Option[String] = None
                             )
 
 
