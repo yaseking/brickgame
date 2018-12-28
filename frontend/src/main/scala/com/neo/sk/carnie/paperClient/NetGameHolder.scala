@@ -1,5 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
+import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.carnie.common.Constant
@@ -33,6 +34,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var isSynced = false
   //  var justSynced = false
   var isWin = false
+  var isPlay = false
   //  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
@@ -48,6 +50,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private var myScore = BaseScore(0, 0, 0l, 0l)
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
+
+  private var recallFrame: scala.Option[Long] = None
 
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
@@ -98,6 +102,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
+//    BGM = bgmList(getRandom(bgmAmount))
+//    BGM.play()
+//    isPlay = true
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(myId, System.currentTimeMillis()).asInstanceOf[UserAction])
@@ -133,6 +140,24 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     }
 
     if (webSocketClient.getWsState) {
+      recallFrame match {
+        case Some(-1) =>
+          println("!!!!!!!!:NeedToSync2")
+          webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+          recallFrame = None
+
+        case Some(frame) =>
+          val time1 = System.currentTimeMillis()
+          println(s"recall ...before frame:${grid.frameCount}")
+          val oldGrid = grid
+          oldGrid.recallGrid(frame, grid.frameCount)
+          grid = oldGrid
+          println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
+          recallFrame = None
+
+        case None =>
+      }
+
       if (newSnakeInfo.nonEmpty) {
 //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
         if (newSnakeInfo.get.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
@@ -146,10 +171,24 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
+        val frame = grid.frameCount
+        println("front Frame" + frame)
+        getMyField()
+        val a = myGroupField
+        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         grid.initSyncGridData(syncGridData.get)
+        getMyField()
+        val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
+        val b = myGroupField
+        if (a != b){
+          println(s"=======myField1:$a,myBody1:$myBody1")
+          println(s"=======myField2:$b,myBody2:$myBody2")
+          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
+        }
         syncGridData = None
       } else {
         grid.update("f")
+//        println(s"update: ${grid.getGridData.snakes.map(_.id)}")
       }
 
       if (newFieldInfo.nonEmpty) {
@@ -157,7 +196,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         (minFrame to grid.frameCount).foreach { frame =>
           if (newFieldInfo.get(frame).nonEmpty) {
             val newFieldData = newFieldInfo(frame)
-            if (newFieldData.fieldDetails.map(_.uid).contains(myId))
+//            if (newFieldData.fieldDetails.map(_.uid).contains(myId))
 //              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
             grid.addNewFieldInfo(newFieldData)
             newFieldInfo -= frame
@@ -171,10 +210,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           case Some(_) =>
 //            println(s"draw base game")
             if (firstCome) firstCome = false
-            if (BGM.paused) {
+            if (!isPlay) {
+//              println("you can't play")
               BGM = bgmList(getRandom(bgmAmount))
               BGM.play()
+              isPlay = true
             }
+//            if (BGM.paused) {
+//              isPlay = false
+//            }
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
@@ -198,16 +242,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case FrontProtocol.DrawGameOff =>
 //        println(s"drawFunction::: drawGameOff")
-        if(!BGM.paused){
+        if(isPlay){
           BGM.pause()
           BGM.currentTime = 0
+          isPlay = false
         }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-        if(!BGM.paused){
+        if(isPlay){
           BGM.pause()
           BGM.currentTime = 0
+          isPlay = false
         }
         drawGame.drawGameWin(myId, winner, winData,winningData)
         audio1.play()
@@ -226,9 +272,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case FrontProtocol.DrawGameDie(killerName) =>
 //        println(s"drawFunction::: drawGameDie")
-        if(!BGM.paused){
+        if(isPlay){
           BGM.pause()
           BGM.currentTime = 0
+          isPlay = false
         }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
@@ -252,28 +299,39 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           val frame = grid.frameCount + delay
           e.keyCode match {
             case KeyCode.Space =>
-              val msg: Protocol.UserAction = PressSpace
-              webSocketClient.sendMessage(msg)
+              drawFunction match {
+                case FrontProtocol.DrawBaseGame(_) =>
+                case _ =>
+                  grid.cleanData()
+                  val msg: Protocol.UserAction = PressSpace
+                  webSocketClient.sendMessage(msg)
+              }
+
 
             case _ =>
-              val actionFrame = grid.getUserMaxActionFrame(myId, frame)
-              if(actionFrame < frame + maxContainableAction) {
-                val actionId = idGenerator.getAndIncrement()
-                val newKeyCode =
-                  if (mode == 1)
-                    e.keyCode match {
-                      case KeyCode.Left => KeyCode.Right
-                      case KeyCode.Right => KeyCode.Left
-                      case KeyCode.Down => KeyCode.Up
-                      case KeyCode.Up => KeyCode.Down
-                      case _ => KeyCode.Space
-                    } else e.keyCode
-                println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
-                grid.addActionWithFrame(myId, newKeyCode, actionFrame)
-                myActionHistory += actionId -> (newKeyCode, actionFrame)
-                val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
-                webSocketClient.sendMessage(msg)
+              drawFunction match {
+                case FrontProtocol.DrawBaseGame(_) =>
+                  val actionFrame = grid.getUserMaxActionFrame(myId, frame)
+                  if(actionFrame < frame + maxContainableAction) {
+                    val actionId = idGenerator.getAndIncrement()
+                    val newKeyCode =
+                      if (mode == 1)
+                        e.keyCode match {
+                          case KeyCode.Left => KeyCode.Right
+                          case KeyCode.Right => KeyCode.Left
+                          case KeyCode.Down => KeyCode.Up
+                          case KeyCode.Up => KeyCode.Down
+                          case _ => KeyCode.Space
+                        } else e.keyCode
+//                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
+                    grid.addActionWithFrame(myId, newKeyCode, actionFrame)
+                    myActionHistory += actionId -> (newKeyCode, actionFrame)
+                    val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
+                    webSocketClient.sendMessage(msg)
+                  }
+                case _ =>
               }
+
 
           }
           e.preventDefault()
@@ -288,13 +346,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
 //        newField = myField.map { f =>
          val myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
-            (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+            (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
           }.toList.groupBy(_._2).map { case (r, target) =>
             ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
           }.toList)
 
 
-//        println(s"=======myField:$myGroupField, myBody:$myBody")
+        println(s"=======myField:$myGroupField, myBody:$myBody")
 
           //              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
           //                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
@@ -341,30 +399,40 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
                 if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                  recallFrame = recallFrame match {
+                    case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                    case None => Some(frame)
+                  }
 //                  println("recall for empty...")
-                  val oldGrid = grid
-                  oldGrid.recallGrid(frame, grid.frameCount)
-                  grid = oldGrid
+//                  val oldGrid = grid
+//                  oldGrid.recallGrid(frame, grid.frameCount)
+//                  grid = oldGrid
                 } else {
-                  println("!!!!!!!!:NeedToSync1")
-                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                  recallFrame = Some(-1)
+//                  println("!!!!!!!!:NeedToSync1")
+//                  webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                 }
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-//                println(s"history:${myActionHistory(actionId)._2}...backend:$frame")
+//                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
                 if (miniFrame < grid.frameCount) {
                   if (grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                    println("recall for my differ...")
-                    val oldGrid = grid
-                    oldGrid.recallGrid(miniFrame, grid.frameCount)
-                    grid = oldGrid
+                    recallFrame = recallFrame match {
+                      case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                      case None => Some(frame)
+                    }
+//                    println("recall for my differ...")
+//                    val oldGrid = grid
+//                    oldGrid.recallGrid(miniFrame, grid.frameCount)
+//                    grid = oldGrid
                   } else {
-                    println("!!!!!!!!:NeedToSync2")
-                    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+                    recallFrame = Some(-1)
+//                    println("!!!!!!!!:NeedToSync2")
+//                    webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
                   }
                 }
               }
@@ -374,15 +442,20 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             grid.addActionWithFrame(id, keyCode, frame)
             if (frame < grid.frameCount) {
               if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                val time1 = System.currentTimeMillis()
-                println(s"recall for other differ...")
-                val oldGrid = grid
-                oldGrid.recallGrid(frame, grid.frameCount)
-                grid = oldGrid
+                recallFrame = recallFrame match {
+                  case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                  case None => Some(frame)
+                }
+//                val time1 = System.currentTimeMillis()
+//                println(s"recall for other differ...")
+//                val oldGrid = grid
+//                oldGrid.recallGrid(frame, grid.frameCount)
+//                grid = oldGrid
 //                println(s"after recall time: ${System.currentTimeMillis() - time1}")
               } else {
+                recallFrame = Some(-1)
 //                println(s"!!!!!!!!:NeedToSync3:backend:$frame...frontend:${grid.frameCount}")
-                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+//                webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
               }
             }
           }
@@ -431,15 +504,17 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case x@Protocol.DeadPage(id, kill, area, start, end) =>
         println(s"recv userDead $x")
-        //        grid.cleanSnakeTurnPoint(id)
         myScore = BaseScore(kill, area, start, end)
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+        grid.cleanDiedSnake(id)
+        FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
       case data: Protocol.NewFieldInfo =>
-        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
+//        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         newFieldInfo += data.frameCount -> data
+        grid.historyFieldInfo += data.frameCount -> data
 
       case x@Protocol.ReceivePingPacket(_) =>
         PerformanceTool.receivePingPackage(x)
@@ -447,7 +522,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case x@Protocol.WinData(_,_) =>
         println(s"receive winningData msg:$x")
         winningData = x
-
 
       case x@_ =>
         println(s"receive unknown msg:$x")
@@ -470,6 +544,22 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)
     dom.window.requestAnimationFrame(gameRender())
+  }
+  private var myGroupField:FieldByColumn = FieldByColumn(myId,Nil)
+  private def getMyField():Unit = {
+    val myField = grid.grid.filter(_._2 == Field(myId))
+    val myBody = grid.snakeTurnPoints.getOrElse(myId, Nil)
+
+
+    //        newField = myField.map { f =>
+     myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
+      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
+    }.toList.groupBy(_._2).map { case (r, target) =>
+      ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+    }.toList)
+
+
+//    println(s"=======myField:$myGroupField, myBody:$myBody")
   }
 
   override def render: Elem = {

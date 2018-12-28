@@ -102,9 +102,11 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
   def imageFromBase64(base64Str:String): ByteArrayInputStream  = {
     if(base64Str == null) null
 
-    import sun.misc.BASE64Decoder
-    val decoder = new BASE64Decoder
-    val bytes:Array[Byte]= decoder.decodeBuffer(base64Str)
+    import java.util.Base64
+    import java.util.Base64.Decoder
+//    import sun.misc.BASE64Decoder
+    val decoder = Base64.getDecoder
+    val bytes:Array[Byte]= decoder.decode(base64Str)
     bytes.indices.foreach{ i =>
       if(bytes(i) < 0) bytes(i)=(bytes(i)+256).toByte
     }

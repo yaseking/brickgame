@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.core.RoomActor.{UserActionOnServer, dispatch}
 import com.neo.sk.carnie.paperClient.Protocol.{Key, PressSpace}
-import com.neo.sk.carnie.paperClient.{GridOnServer, Protocol}
+import com.neo.sk.carnie.paperClient.{Body,Border, Field, GridOnServer, Point, Protocol}
 import org.slf4j.LoggerFactory
 
 import concurrent.duration._
@@ -21,7 +21,10 @@ object BotActor {
   sealed trait Command
 
   case class InitInfo(botName: String, mode: Int, grid: GridOnServer, roomActor: ActorRef[RoomActor.Command]) extends Command
-  case object MakeAction extends Command
+
+  case class MakeAction(a: Int) extends Command
+
+  case class MakeMiniAction(point: Point) extends Command
 
   case object KillBot extends Command
 
@@ -32,6 +35,8 @@ object BotActor {
   case object BackToGame extends Command
 
   private final case object MakeActionKey
+
+  private final case object MakeMiniActionKey
 
   private final case object SpaceKey
 
@@ -50,7 +55,9 @@ object BotActor {
               case _ => Protocol.frameRate1
             }
             roomActor ! RoomActor.JoinRoom4Bot(botId, botName, ctx.self, new Random().nextInt(6))
-            timer.startSingleTimer(MakeActionKey, MakeAction, (1 + scala.util.Random.nextInt(20)) * frameRate.millis)
+            val randomTime = 1 + scala.util.Random.nextInt(20)
+            timer.startSingleTimer(MakeActionKey, MakeAction(0), randomTime * frameRate.millis)
+//            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
             gaming(botId, grid, roomActor, frameRate)
 
           case unknownMsg@_ =>
@@ -66,19 +73,49 @@ object BotActor {
             (implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case MakeAction =>
-          timer.startSingleTimer(MakeActionKey, MakeAction, (1 + scala.util.Random.nextInt(20)) * frameRate.millis)
-          val actionCode = actionNum % 4 + 37
+        case MakeAction(a) =>
+          val rTime = 1 + scala.util.Random.nextInt(15)
+          timer.startSingleTimer(MakeActionKey, MakeAction(rTime), (rTime + Random.nextInt(a+1)) * frameRate.millis)
+          var actionCode = actionNum % 4 + 37
+          if(grid.snakes.exists(_._1 == botId)) {
+//            val header = grid.snakes.find(_._1 == botId).get._2.header
+            val direction = grid.snakes.find(_._1 == botId).get._2.direction
+            actionCode = pointsToAction(directionToRight(direction))
+          }
+          if (actionNum == 0) actionCode = Random.nextInt(4) + 37
           roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
           actionNum match {
-            case 3 => gaming(botId, grid, roomActor, frameRate)
+            case 0 => gaming(botId, grid, roomActor, frameRate,actionNum + 1)
             case _ => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
           }
+
+        case MakeMiniAction(a@Point(x,y)) =>
+
+//          log.info("miniAction")
+          var actionCode = 32
+          if(grid.snakes.exists(_._1 == botId)){
+            val header = grid.snakes.find(_._1 == botId).get._2.header
+            val direction = grid.snakes.find(_._1 == botId).get._2.direction
+            val newHeader = (2 to 2).map(header + direction * _)
+            newHeader.foreach{ h =>
+              grid.grid.get(h) match {
+                case Some(Border) => actionCode = pointsToAvoid(direction)
+                case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
+                case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
+//                case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
+                case _  => actionCode = pointsToAction(direction)
+              }
+            }
+          }
+//          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
+          roomActor ! UserActionOnServer(botId, Key(botId, actionCode, grid.frameCount, -1))
+          gaming(botId, grid, roomActor, frameRate, actionNum)
 
         case BotDead =>
 //          log.info(s"bot dead:$botId")
           timer.startSingleTimer(SpaceKey, Space, (2 + scala.util.Random.nextInt(8)) * frameRate.millis)
           timer.cancel(MakeActionKey)
+//          timer.cancel(MakeMiniActionKey)
           dead(botId, grid, roomActor, frameRate)
 
         case KillBot =>
@@ -86,7 +123,7 @@ object BotActor {
           Behaviors.stopped
 
         case unknownMsg@_ =>
-          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
+          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg,be 111")
           stashBuffer.stash(unknownMsg)
           Behaviors.unhandled
       }
@@ -105,7 +142,9 @@ object BotActor {
 
         case BackToGame =>
 //          log.info(s"back to game: botId:$botId")
-          timer.startSingleTimer(MakeActionKey, MakeAction, (1 + scala.util.Random.nextInt(20)) * frameRate.millis)
+          val randomTime = 2 + scala.util.Random.nextInt(20)
+          timer.startSingleTimer(MakeActionKey, MakeAction(0), randomTime * frameRate.millis)
+//          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
           gaming(botId, grid, roomActor, frameRate)
 
         case KillBot =>
@@ -113,10 +152,57 @@ object BotActor {
           Behaviors.stopped
 
         case unknownMsg@_ =>
-          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg")
+          log.warn(s"${ctx.self.path} unknown msg: $unknownMsg,be 222")
           stashBuffer.stash(unknownMsg)
           Behaviors.unhandled
       }
+    }
+  }
+
+  def directionToLeft(p: Point): Point ={
+    Point(0,0) - directionToRight(p)
+  }
+
+  def directionToRight(p: Point): Point ={
+    p match {
+      case Point(1,0) => Point(0,1)
+      case Point(-1,0) => Point(0,-1)
+      case Point(0,1) => Point(-1,0)
+      case Point(0,-1) => Point(1,0)
+      case _ => Point(0,0)
+    }
+  }
+
+  def pointsToAction(p: Point):Int  ={
+    p match {
+      case Point(1,0) => 39
+      case Point(-1,0) => 37
+      case Point(0,1) => 40
+      case Point(0,-1) => 38
+      case _ => 32
+    }
+  }
+
+  def actionToPoints(a: Int):Point  ={
+    a match {
+      case 39 => Point(1,0)
+      case 37 => Point(-1,0)
+      case 40 => Point(0,1)
+      case 38 => Point(0,-1)
+      case _ => Point(0,0)
+    }
+  }
+
+  def pointsToAvoid(p: Point):Int  ={
+    val a = List(38,40)
+    val b = List(37,39)
+    val r = Random.nextInt(2)
+    p match {
+      case Point(1,0) => 38
+      case Point(-1,0) => 40
+      case Point(0,1) => 39
+      case Point(0,-1) => 37
+      case _ => 32
     }
   }
 }

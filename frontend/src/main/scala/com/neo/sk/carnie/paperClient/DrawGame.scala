@@ -220,7 +220,7 @@ class DrawGame(
 //    ctx.restore()
   }
 
-  def drawBarrage(killedName: String, killerName: String):Unit = {
+  def drawBarrage(killedName: String, killerName: String) = {
     ctx.save()
     ctx.globalAlpha = 0.6
     ctx.restore()
@@ -255,11 +255,6 @@ class DrawGame(
       if (field.uid == myId || field.uid == winnerId) {
         val color = snakes.find(_.id == field.uid).map(_.color).get
         ctx.fillStyle = color
-//        field.scanField.foreach { point =>
-//          point.x.foreach { x =>
-//            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-//          }
-//        }
         field.scanField.foreach { fids =>
           fids.y.foreach{y =>
             fids.x.foreach{x =>
@@ -383,7 +378,7 @@ class DrawGame(
       field.scanField.foreach { fids =>
         fids.y.foreach{y =>
           fids.x.foreach{x =>
-            ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * ((y._2 - y._1) + 1.03))
+            ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.04))
           }
         }
       }

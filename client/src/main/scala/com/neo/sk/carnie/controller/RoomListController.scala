@@ -169,7 +169,7 @@ class RoomListController(playerInfoInClient: PlayerInfoInClient, selectScene: Se
           val playGameScreen = new GameScene(img, frameRate)
           Boot.addToPlatform{
             context.switchScene(playGameScreen.getScene, fullScreen = true)
-            new GameController(playerInfoInClient.copy(accessCode=r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
+            new GameController(playerInfoInClient.copy(accessCode=r.accessCode), context, playGameScreen, mode, frameRate).joinByRoomId(r.gsPrimaryInfo.domain, roomId, img)
           }
 
         case Left(e) =>

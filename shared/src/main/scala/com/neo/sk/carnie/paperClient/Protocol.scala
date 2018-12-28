@@ -9,16 +9,6 @@ object Protocol {
 
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
-
-//  case class GridDataSync(
-//                           frameCount: Long,
-//                           snakes: List[SkDt],
-//                           bodyDetails: List[Bd],
-//                           fieldDetails: List[Fd],
-//                           borderDetails: List[Bord],
-//                           killHistory: List[Kill]
-//                         ) extends GameMessage
-
   case class NewFieldInfo(
                            frameCount: Long,
                            fieldDetails: List[FieldByColumn]
@@ -29,15 +19,7 @@ object Protocol {
                              snakes: List[SkDt],
                              bodyDetails: List[BodyBaseInfo],
                              fieldDetails: List[FieldByColumn]
-//                             killHistory: List[Kill]
                            ) extends GameMessage
-
-//  case class Data4TotalSyncNoField(
-//                             frameCount: Long,
-//                             snakes: List[SkDt],
-//                             bodyDetails: List[BodyBaseInfo]
-////                             fieldDetails: List[FieldByColumn]
-//                           ) extends GameMessage
 
   case class NewSnakeInfo(
                          frameCount: Long,
@@ -49,7 +31,7 @@ object Protocol {
                          killedSkInfo: List[KilledSkDt]
                          )
 
-  case class Point4Trans(x: Int, y: Int)
+  case class Point4Trans(x: Short, y: Short)
 
   case class BodyBaseInfo(
                            uid: String,
@@ -67,8 +49,8 @@ object Protocol {
                           )
 
   case class ScanByColumn(
-                           y: List[(Int, Int)],
-                           x: List[(Int, Int)]
+                           y: List[(Short, Short)],
+                           x: List[(Short, Short)]
                          )
 
   case class TextMsg(

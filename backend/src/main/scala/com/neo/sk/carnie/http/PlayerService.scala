@@ -157,7 +157,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
                     if(roomId.nonEmpty)
-                      handleWebSocketMessages(webSocketChatFlow2(id, playerName, img, roomId.get))
+                      handleWebSocketMessages(webSocketChatFlow4JoinRoom(id, playerName, img, roomId.get))
                     else
                       handleWebSocketMessages(webSocketChatFlow(id, playerName, mode.get, img))
                   case Left(e) =>
@@ -180,7 +180,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         ) { (id, name, mode, img, roomId) =>
 //          dealFutureResult{
             if(roomId.nonEmpty)
-              handleWebSocketMessages(webSocketChatFlow2(id, name, img, roomId.get))
+              handleWebSocketMessages(webSocketChatFlow4JoinRoom(id, name, img, roomId.get))
             else
               handleWebSocketMessages(webSocketChatFlow(id, name, mode.get, img))
 //            val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
@@ -272,6 +272,17 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
   }
 
+  var snakeAction : Double = 0
+  var ping : Double = 0
+  var newField : Double = 0
+  var data4TotalSync : Double = 0
+  var rank : Double = 0
+  var newSnakeInfo : Double = 0
+  var someoneKill : Double = 0
+  var dead :Double = 0
+  var win :Double = 0
+  var other :Double = 0
+  var updateTime = 0l
 
   def webSocketChatFlow(playedId: String, sender: String, mode: Int, img: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
@@ -305,11 +316,57 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
-          BinaryMessage.Strict(ByteString(
+          val a = ByteString(
             //encoded process
             msg.fillMiddleBuffer(sendBuffer).result()
+          )
 
-          ))
+          msg match {
+            case ReceivePingPacket(_) =>
+              ping = ping + a.length
+
+            case SnakeAction(_, _, _, _) =>
+              snakeAction = snakeAction + a.length
+
+            case NewFieldInfo(_, _) =>
+              newField = newField + a.length
+
+            case Data4TotalSync(_, _, _, _) =>
+              data4TotalSync = data4TotalSync + a.length
+
+            case Ranks(_, _, _) =>
+              rank = rank + a.length
+
+            case NewSnakeInfo(_, _, _) =>
+              newSnakeInfo = newSnakeInfo + a.length
+
+            case SomeOneKilled(_, _, _) =>
+              someoneKill = someoneKill + a.length
+
+            case DeadPage(_, _, _, _, _) =>
+              dead = dead + a.length
+
+            case WinData(_, _) =>
+              win = win + a.length
+
+            case _ =>
+              other = other + a.length
+          }
+          if(System.currentTimeMillis() - updateTime > 30*1000){
+            updateTime = System.currentTimeMillis()
+            log.debug(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo,someoneKill:$someoneKill, dead$dead, win:$win,other:$other")
+            snakeAction = 0
+            ping = 0
+            newField = 0
+            data4TotalSync = 0
+            rank = 0
+            newSnakeInfo = 0
+            someoneKill = 0
+            dead = 0
+            win = 0
+            other = 0
+          }
+          BinaryMessage.Strict(a)
 
         case x =>
           TextMessage.apply("")
@@ -317,7 +374,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
   }
 
-  def webSocketChatFlow2(playedId: String, sender: String, img: Int, roomId: Int): Flow[Message, Message, Any] = {
+  def webSocketChatFlow4JoinRoom(playedId: String, sender: String, img: Int, roomId: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
     import org.seekloud.byteobject.MiddleBufferInJvm
@@ -345,7 +402,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(RoomManager.joinGame2(roomManager, playedId, sender, img, roomId))
+      .via(RoomManager.joinGameByRoomId(roomManager, playedId, sender, img, roomId))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)

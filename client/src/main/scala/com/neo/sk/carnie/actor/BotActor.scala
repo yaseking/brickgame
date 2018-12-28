@@ -277,7 +277,7 @@ object BotActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Reincarnation(replyTo) =>
-          actor ! Key(playerInfo.id, 32, botController.grid.frameCount, -1)
+          actor ! PressSpace
           replyTo ! SimpleRsp(state = State.in_game, msg = "ok")
 //          botController.startGameLoop()
           botController.grid.cleanSnakeTurnPoint(playerInfo.id)
@@ -328,23 +328,23 @@ object BotActor {
       case BinaryMessage.Strict(bMsg) =>
         //decode process.
         val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
-        bytesDecode[GameMessage](buffer) match {
+        bytesDecode[Protocol.GameMessage](buffer) match {
           case Right(v) => botController.gameMessageReceiver(v)
           case Left(e) =>
-            println(s"decode error: ${e.message}")
+            println(s"${System.currentTimeMillis()} decode error1: ${e.message}")
         }
 
-      case msg:BinaryMessage.Streamed =>
+      case msg:BinaryMessage.Streamed => //分片
         val f = msg.dataStream.runFold(new ByteStringBuilder().result()){
           case (s, str) => s.++(str)
         }
 
         f.map { bMsg =>
           val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
-          bytesDecode[GameMessage](buffer) match {
+          bytesDecode[Protocol.GameMessage](buffer) match {
             case Right(v) => botController.gameMessageReceiver(v)
             case Left(e) =>
-              println(s"decode error: ${e.message}")
+              println(s"decode error2: ${e.message}")
           }
         }
 

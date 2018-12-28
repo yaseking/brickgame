@@ -16,7 +16,8 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.actor.PlayGameWebSocket
 import com.neo.sk.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
-import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
+import java.awt.event.KeyEvent
+//import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 
 /**
   * Created by dry on 2018/10/29.
@@ -63,6 +64,7 @@ class GameController(player: PlayerInfoInClient,
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
+  private var recallFrame: scala.Option[Long] = None
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
@@ -135,37 +137,81 @@ class GameController(player: PlayerInfoInClient,
     logicFrameTime = System.currentTimeMillis()
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
 
+    recallFrame match {
+      case Some(-1) =>
+        println("!!!!!!!!:NeedToSync2")
+        playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+        recallFrame = None
+
+      case Some(frame) =>
+        val time1 = System.currentTimeMillis()
+        println(s"recall ...before frame:${grid.frameCount}")
+        val oldGrid = grid
+        oldGrid.recallGrid(frame, grid.frameCount)
+        grid = oldGrid
+        println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
+        recallFrame = None
+
+      case None =>
+    }
+
     if (newSnakeInfo.nonEmpty) {
+      //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
+      if (newSnakeInfo.get.snake.map(_.id).contains(player.id) && !firstCome) spaceKey()
+      newSnakeInfo.get.snake.foreach { s =>
+        grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
+      }
       grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+
       newSnakeInfo = None
     }
 
-    if(syncGridData.nonEmpty) {
+    if (syncGridData.nonEmpty) { //逻辑帧更新数据
       grid.initSyncGridData(syncGridData.get)
       syncGridData = None
     } else {
       grid.update("f")
-      if (newFieldInfo.nonEmpty) {
-        val frame = newFieldInfo.keys.min
-        val newFieldData = newFieldInfo(frame)
-        if (frame == grid.frameCount) {
+//      println(s"update: ${grid.getGridData.snakes.map(_.id)}")
+    }
+
+    if (newFieldInfo.nonEmpty) {
+      val minFrame = newFieldInfo.keys.min
+      (minFrame to grid.frameCount).foreach { frame =>
+        if (newFieldInfo.get(frame).nonEmpty) {
+          val newFieldData = newFieldInfo(frame)
+          if (newFieldData.fieldDetails.map(_.uid).contains(player.id))
+            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(player.id))
           grid.addNewFieldInfo(newFieldData)
           newFieldInfo -= frame
-        } else if (frame < grid.frameCount) {
-          playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
         }
       }
+    }
 
-//      if (newFieldInfo.nonEmpty && newFieldInfo.get.frameCount <= grid.frameCount) { //圈地信息
-//        if (newFieldInfo.get.frameCount == grid.frameCount) {
-//          grid.addNewFieldInfo(newFieldInfo.get)
-//        } else { //主动要求同步数据
+//    if (newSnakeInfo.nonEmpty) {
+//      grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
+//      grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+//      newSnakeInfo = None
+//    }
+//
+//    if(syncGridData.nonEmpty) {
+//      grid.initSyncGridData(syncGridData.get)
+//      syncGridData = None
+//      println(s"sync: ${grid.getGridData.snakes.map(_.id)}")
+//    } else {
+//      grid.update("f")
+//      println(s"update: ${grid.getGridData.snakes.map(_.id)}")
+//      if (newFieldInfo.nonEmpty) {
+//        val frame = newFieldInfo.keys.min
+//        val newFieldData = newFieldInfo(frame)
+//        if (frame == grid.frameCount) {
+//          grid.addNewFieldInfo(newFieldData)
+//          newFieldInfo -= frame
+//        } else if (frame < grid.frameCount) {
 //          playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
 //        }
-//        newFieldInfo = None
 //      }
-    }
+//    }
 
     val gridData = grid.getGridData
 
@@ -181,12 +227,13 @@ class GameController(player: PlayerInfoInClient,
 //          BGM = bgmList(getRandom(bgmAmount))
 //          BGM.play(30)
 //        }
-        val offsetTime = System.currentTimeMillis() - logicFrameTime
-        val a = System.currentTimeMillis()
+//        val offsetTime = System.currentTimeMillis() - logicFrameTime
+//        val a = System.currentTimeMillis()
 //        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
 //        val x = getAllImage
 //        val b = System.currentTimeMillis()
 //        println("drawTime:" + (b-a) )
+//        println(s"${grid.getGridData.snakes.map(_.id)}")
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
 
@@ -198,6 +245,9 @@ class GameController(player: PlayerInfoInClient,
           gameScene.group.getChildren.add(gameScene.backBtn)
           btnFlag = false
         }
+//        println("111" + grid.killHistory)
+//        val a = System.currentTimeMillis()
+//        println(s"${grid.getGridData.snakes.map(_.id)},$a")
         drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
 
@@ -263,33 +313,80 @@ class GameController(player: PlayerInfoInClient,
             if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
               if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                 grid.addActionWithFrame(id, keyCode, frame)
-                if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                  val oldGrid = grid
-                  oldGrid.recallGrid(frame, grid.frameCount)
-                  grid = oldGrid
+                if (frame < grid.frameCount) {
+                  if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                    recallFrame = recallFrame match {
+                      case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                      case None => Some(frame)
+                    }
+                  } else {
+                    recallFrame = Some(-1)
+                  }
                 }
               } else {
                 if (grid.myActionHistory(actionId)._1 != keyCode || grid.myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
+                  println(s"now:${grid.frameCount}...history:${grid.myActionHistory(actionId)._2}...backend:$frame")
                   grid.deleteActionWithFrame(id, grid.myActionHistory(actionId)._2)
                   grid.addActionWithFrame(id, keyCode, frame)
                   val miniFrame = Math.min(frame, grid.myActionHistory(actionId)._2)
-                  if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                    val oldGrid = grid
-                    oldGrid.recallGrid(miniFrame, grid.frameCount)
-                    grid = oldGrid
+                  if (miniFrame < grid.frameCount) {
+                    if (grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
+                      recallFrame = recallFrame match {
+                        case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                        case None => Some(frame)
+                      }
+                    } else {
+                      recallFrame = Some(-1)
+                    }
                   }
                 }
                 grid.myActionHistory -= actionId
               }
             } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
               grid.addActionWithFrame(id, keyCode, frame)
-              if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                val oldGrid = grid
-                oldGrid.recallGrid(frame, grid.frameCount)
-                grid = oldGrid
+              if (frame < grid.frameCount) {
+                if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+                  recallFrame = recallFrame match {
+                    case Some(oldFrame) => Some(Math.min(frame, oldFrame))
+                    case None => Some(frame)
+                  }
+                } else {
+                  recallFrame = Some(-1)
+                }
               }
             }
           }
+//          if (grid.snakes.exists(_._1 == id)) {
+//            if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+//              if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
+//                grid.addActionWithFrame(id, keyCode, frame)
+//                if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+//                  val oldGrid = grid
+//                  oldGrid.recallGrid(frame, grid.frameCount)
+//                  grid = oldGrid
+//                }
+//              } else {
+//                if (grid.myActionHistory(actionId)._1 != keyCode || grid.myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
+//                  grid.deleteActionWithFrame(id, grid.myActionHistory(actionId)._2)
+//                  grid.addActionWithFrame(id, keyCode, frame)
+//                  val miniFrame = Math.min(frame, grid.myActionHistory(actionId)._2)
+//                  if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
+//                    val oldGrid = grid
+//                    oldGrid.recallGrid(miniFrame, grid.frameCount)
+//                    grid = oldGrid
+//                  }
+//                }
+//                grid.myActionHistory -= actionId
+//              }
+//            } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
+//              grid.addActionWithFrame(id, keyCode, frame)
+//              if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
+//                val oldGrid = grid
+//                oldGrid.recallGrid(frame, grid.frameCount)
+//                grid = oldGrid
+//              }
+//            }
+//          }
         }
 
       case Protocol.SomeOneWin(winner, finalData) =>
@@ -336,13 +433,15 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
+//        println(s"all data : ${data.snakes.map(_.id)}")
         Boot.addToPlatform{
           syncGridData = Some(data)
-          newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+          if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+//          newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
         }
 
       case data: Protocol.NewSnakeInfo =>
-        println(s"!!!!!!new snake join!!!")
+//        println(s"!!!!!!new snake join!!!")
         Boot.addToPlatform{
           newSnakeInfo = Some(data)
         }
@@ -358,6 +457,7 @@ class GameController(player: PlayerInfoInClient,
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
           newFieldInfo += data.frameCount -> data
+          grid.historyFieldInfo += data.frameCount -> data
         }
 
       case x@Protocol.ReceivePingPacket(_) =>
@@ -365,7 +465,7 @@ class GameController(player: PlayerInfoInClient,
           PerformanceTool.receivePingPackage(x)
         }
 
-      case x@Protocol.WinData(winnerScore,yourScore) =>
+      case x@Protocol.WinData(_,_) =>
         log.debug(s"receive winningData msg:$x")
         winningData = x
 
@@ -426,50 +526,93 @@ class GameController(player: PlayerInfoInClient,
       if (Constant.watchKeys.contains(key)) {
         val delay = if(mode==2) 4 else 2
         val frame = grid.frameCount + delay
-        val actionId = idGenerator.getAndIncrement()
+//        val actionId = idGenerator.getAndIncrement()
         val keyCode = Constant.keyCode2Int(key)
         grid.addActionWithFrame(player.id, keyCode, frame)
+        key match {
+          case KeyCode.SPACE =>
+            val msg: Protocol.UserAction = PressSpace
+            playActor ! PlayGameWebSocket.MsgToService(msg)
 
-        if (key != KeyCode.SPACE) {
-          grid.myActionHistory += actionId -> (keyCode, frame)
-        } else {
-          //数据重置
-          drawFunction match {
-            case FrontProtocol.DrawBaseGame(_) =>
-            case _ =>
-              grid.cleanData()
-              drawFunction = FrontProtocol.DrawGameWait
-              audioWin.stop()
-              audioDie.stop()
-              firstCome = true
-              if(isWin){
-                isWin = false
-                winnerName = "unknown"
-              }
-              animationTimer.start()
-              isContinue = true
-              gameScene.group.getChildren.remove(gameScene.backBtn)
-              btnFlag = true
-          }
-        }
-        val newKeyCode =
-          if(mode == 1)
-            key match {
-              case KeyCode.LEFT => KeyCode.RIGHT
-              case KeyCode.RIGHT => KeyCode.LEFT
-              case KeyCode.DOWN => KeyCode.UP
-              case KeyCode.UP => KeyCode.DOWN
-              case _ => KeyCode.SPACE
+          case _ =>
+            val actionFrame = grid.getUserMaxActionFrame(player.id, frame)
+            if(actionFrame < frame + maxContainableAction) {
+              val actionId = idGenerator.getAndIncrement()
+              val newKeyCode =
+                if (mode == 1)
+                  key match {
+                    case KeyCode.LEFT => KeyCode.RIGHT
+                    case KeyCode.RIGHT => KeyCode.LEFT
+                    case KeyCode.DOWN => KeyCode.UP
+                    case KeyCode.UP => KeyCode.DOWN
+                    case _ => KeyCode.SPACE
+                  } else key
+              println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), actionFrame, actionId)}")
+              grid.addActionWithFrame(player.id, Constant.keyCode2Int(newKeyCode), actionFrame)
+              grid.myActionHistory += actionId -> (Constant.keyCode2Int(newKeyCode), actionFrame)
+              val msg: Protocol.UserAction = Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId)
+              playActor ! PlayGameWebSocket.MsgToService(msg)
             }
-          else key
-        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
+
+        }
       }
+//      gameScene.viewCanvas.setOnKeyReleased { e =>
+//        val myField = grid.grid.filter(_._2 == Field(player.id))
+//        val myBody = grid.snakeTurnPoints.getOrElse(player.id, Nil)
+//
+//
+//        //        newField = myField.map { f =>
+//        val myGroupField =  FieldByColumn(player.id, myField.keys.groupBy(_.y).map { case (y, target) =>
+//          (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+//        }.toList.groupBy(_._2).map { case (r, target) =>
+//          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+//        }.toList)
+//        println(s"=======myField:$myGroupField, myBody:$myBody")
+        //        }
+//      }
+//        if (key != KeyCode.SPACE) {
+//          grid.myActionHistory += actionId -> (keyCode, frame)
+//        } else {
+//          //数据重置
+//          drawFunction match {
+//            case FrontProtocol.DrawBaseGame(_) =>
+//            case _ =>
+//              val msg: Protocol.UserAction = PressSpace
+//              playActor ! PlayGameWebSocket.MsgToService(msg)
+//              grid.cleanData()
+//              drawFunction = FrontProtocol.DrawGameWait
+//              audioWin.stop()
+//              audioDie.stop()
+//              firstCome = true
+//              if(isWin){
+//                isWin = false
+//                winnerName = "unknown"
+//              }
+//              animationTimer.start()
+//              isContinue = true
+//              gameScene.group.getChildren.remove(gameScene.backBtn)
+//              btnFlag = true
+//          }
+//        }
+//        val newKeyCode =
+//          if(mode == 1)
+//            key match {
+//              case KeyCode.LEFT => KeyCode.RIGHT
+//              case KeyCode.RIGHT => KeyCode.LEFT
+//              case KeyCode.DOWN => KeyCode.UP
+//              case KeyCode.UP => KeyCode.DOWN
+//              case _ => KeyCode.SPACE
+//            }
+//          else key
+//        println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId)}")
+//        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
+//      }
     }
 
     gameScene.backBtn.setOnAction(_ => switchToSelecting())
   }
 
-  def switchToSelecting() = {
+  def switchToSelecting():Unit = {
     //fixme 假设用户一次玩游戏时间不超过两小时，否则需要刷新token
     Boot.addToPlatform{
       println("come back to selectScene.")
@@ -480,6 +623,23 @@ class GameController(player: PlayerInfoInClient,
         new SelectController(player, selectScene, stageCtx).showScene
       }
     }
+  }
+
+  def spaceKey(): Unit = {
+    grid.cleanSnakeTurnPoint(player.id)
+    grid.actionMap = grid.actionMap.filterNot(_._2.contains(player.id))
+    drawFunction = FrontProtocol.DrawGameWait
+    firstCome = true
+    if (isWin) isWin = false
+    myScore = BaseScore(0, 0, 0l, 0l)
+    isContinue = true
+    Boot.addToPlatform{
+      gameScene.group.getChildren.remove(gameScene.backBtn)
+      btnFlag = true
+    }
+//    animationTimer.start()
+    //                  backBtn.style.display="none"
+    //                  rankCanvas.addEventListener("",null)
   }
 
 //  def getAllImage  = {

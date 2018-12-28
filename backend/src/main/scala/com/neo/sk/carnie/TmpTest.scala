@@ -1,13 +1,19 @@
 package com.neo.sk.carnie
 
-import com.neo.sk.carnie.paperClient.Point
+import com.neo.sk.carnie.paperClient._
 
 /**
   * User: Taoz
   * Date: 6/28/2018
   * Time: 7:26 PM
   */
-object TmpTest {
+object TmpTest extends Grid{
+
+  val boundary: Point = Point(BorderSize.w, BorderSize.h)
+
+  override def debug(msg: String): Unit = println(msg)
+
+  override def info(msg: String): Unit = println(msg)
 
   val baseDirection = Map("left" -> Point(-1, 0), "right" -> Point(1, 0), "up" -> Point(0, -1), "down" -> Point(0, 1))
 
@@ -93,9 +99,45 @@ object TmpTest {
     }
   }
 
+  def getVertex() ={
+    var fields: List[Fd] = Nil
+    grid.foreach {
+      case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
+      case _ => //doNothing
+    }
+
+    val a =  fields.groupBy(_.id).map{ case (uid,fieldPoints) =>
+      fieldPoints.filter{p => {
+        var counter = 0
+        val pointList = List(Point(-1,1),Point(-1,-1),Point(1,1),Point(1,-1),
+          Point(0,1),Point(-1,0),Point(0,-1),Point(1,0))
+        pointList.foreach{ i =>
+          if (getPointBelong(uid,Point(p.x,p.y) + i)) counter += 1
+        }
+        counter match {
+          case 4 => true
+          case 3 => true
+          case 7 => true
+          case _ => false
+        }
+      }
+      }.filter{p =>
+        var counter = 0
+        val pointList = List(Point(0,1),Point(-1,0),Point(0,-1),Point(1,0))
+        pointList.foreach{ i =>
+          if (getPointBelong(uid,Point(p.x,p.y) + i)) counter += 1
+        }
+        counter match {
+          case 3 => false
+          case _ => true
+        }
+      }
+    }
+    println("顶点：" + a)
+  }
 
 
   def main(args: Array[String]): Unit = {
-    println(123)
+//    getGridData
   }
 }

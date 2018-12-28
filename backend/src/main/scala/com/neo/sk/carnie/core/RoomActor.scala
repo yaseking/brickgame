@@ -266,13 +266,6 @@ object RoomActor {
             log.debug(s"got Terminated id = $id")
             //            if(userDeadList.contains(id)) userDeadList -= id
             val name = userMap.get(id).head.name
-//            userMap.filter(_._1 == id).foreach{ u =>
-//              userGroup.get(u._2.group) match {
-//                case Some(s) => userGroup.update(u._2.group,s - id)
-//                case None => userGroup.put(u._2.group, Set.empty)
-//              }
-//            }
-//            if (headImgList.contains(id)) headImgList.remove(id)
             subscribersMap.remove(id)
             userMap.remove(id)
             grid.cleanSnakeTurnPoint(id)
@@ -303,13 +296,7 @@ object RoomActor {
               if (userDeadList.contains(id)) {
                 val info = userMap.getOrElse(id, UserInfo("", -1L, -1L, 0))
                 userMap.put(id, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
-                //                log.debug(s"recv space from id ====$id")
-                //                if (headImgList.contains(id)) {
                 grid.addSnake(id, roomId, info.name, info.img)
-                //                } else {
-                //                  log.error(s"can not find headImg of $id")
-                //                  grid.addSnake(id, roomId, userMap.getOrElse(id, UserInfo("", -1L, -1L)).name, new Random().nextInt(6))
-                //                }
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2._1 == id).foreach { w =>
                   log.info(s"send reStart to ${w._1}")
@@ -326,30 +313,24 @@ object RoomActor {
         case Sync =>
           val frame = grid.frameCount //即将执行改帧的数据
           val shouldNewSnake = if (grid.waitingListState) true else false
-//          val shouldSync = if (tickCount % 20 == 1) true else false
-//          val waitingSnakesList = grid.waitingJoinList
           val finishFields = grid.updateInService(shouldNewSnake, roomId, mode) //frame帧的数据执行完毕
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
-//          val killedSkData = grid.getKilledSkData
-          grid.killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList.foreach {
-            i =>
-              if (i.frameCount + 1 == newData.frameCount) {
-                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
-                  Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName))
-                gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(i.killedId, userMap(i.killedId).name, i.killerName)))
-              }
+
+          grid.killHistory.filter(k => k._2._3 + 1 == newData.frameCount).foreach { k => //弹幕的推送
+            if (userMap.get(k._1).nonEmpty) {
+              dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+                Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2))
+              gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2)))
+            }
           }
 
-          if(grid.newInfo.nonEmpty) {
+          if(grid.newInfo.nonEmpty) { //有新的蛇
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
               dispatchTo(subscribersMap, f._1, newData) //同步全量数据
               if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
-//              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-//                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
-//              }.toList)
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+                (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
               }.toList.groupBy(_._2).map { case (r, target) =>
                 ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
               }.toList)
@@ -359,39 +340,21 @@ object RoomActor {
             grid.newInfo = Nil
           }
 
-//          firstComeList.foreach { id =>
-//            dispatchTo(subscribersMap, id, newData)
-//          }
-
           //错峰发送
           for((u, i) <- userMap) {
             val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, Nil)
             if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newDataNoField)
             if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u))
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head, grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1))
-//              dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5) ::: grid.currentRank.filter(_.id == u)))
           }
-
-//          if (shouldSync) {
-//            val chooseGroup = (tickCount % 100) / 20
-//            userGroup.get(chooseGroup).foreach {g =>
-//              if (g.nonEmpty) {
-//                dispatch(subscribersMap.filter(s => g.contains(s._1)), newData)
-//              }
-//            }
-//          }
 
           if (finishFields.nonEmpty) { //发送圈地数据
             newField = finishFields.map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+                (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
               }.toList.groupBy(_._2).map { case (r, target) =>
                 ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
               }.toList)
-
-//              FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-//                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
-//              }.toList)
             }
 
             userMap.filterNot(_._2.joinFrame == -1L).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
@@ -405,8 +368,7 @@ object RoomActor {
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
-            log.info(s"currentRank: ${grid.currentRank}")
-            log.debug("winwinwinwin!!")
+            log.info(s"win!! currentRank: ${grid.currentRank}")
             val finalData = grid.getGridData
             grid.cleanData()
             userMap.foreach{ u =>
@@ -414,7 +376,6 @@ object RoomActor {
                 dispatchTo(subscribersMap,u._1,Protocol.WinData(grid.currentRank.head.area,None))
               else
                 dispatchTo(subscribersMap,u._1,Protocol.WinData(grid.currentRank.head.area,grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
-
             }
             dispatch(subscribersMap,Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name, finalData))
             dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
@@ -431,16 +392,7 @@ object RoomActor {
             }
           }
 
-//          val count = tickCount % 10
-//           if(count % 2 == 0) {
-//             userGroup.get(count / 2).foreach { g =>
-//               if (g.nonEmpty) {
-//                 dispatch(subscribersMap.filter(s => g.contains(s._1)), Protocol.Ranks(grid.currentRank.take(5)))
-//               }
-//             }
-//           }
-//          if (tickCount % 10 == 3) dispatch(subscribersMap, Protocol.Ranks(grid.currentRank))
-          val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的跳转
+          val newWinStandard = if (grid.currentRank.nonEmpty) { //胜利条件的调整
             val maxSize = grid.currentRank.head.area
             if ((maxSize + fullSize * 0.1) < winStandard) fullSize * Math.max(upperLimit - userMap.size * decreaseRate, lowerLimit) else winStandard
           } else winStandard
