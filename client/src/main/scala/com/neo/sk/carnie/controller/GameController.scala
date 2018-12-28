@@ -68,7 +68,7 @@ class GameController(player: PlayerInfoInClient,
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
-  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
   private val timeline = new Timeline()
@@ -418,7 +418,7 @@ class GameController(player: PlayerInfoInClient,
       case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
-          myScore = BaseScore(kill, area, start, end)
+          myScore = BaseScore(kill, area, playTime)
           grid.cleanDiedSnake(id)
         }
 
@@ -634,7 +634,7 @@ class GameController(player: PlayerInfoInClient,
     drawFunction = FrontProtocol.DrawGameWait
     firstCome = true
     if (isWin) isWin = false
-    myScore = BaseScore(0, 0, 0l, 0l)
+    myScore = BaseScore(0, 0, 0)
     isContinue = true
     Boot.addToPlatform{
       gameScene.group.getChildren.remove(gameScene.backBtn)
