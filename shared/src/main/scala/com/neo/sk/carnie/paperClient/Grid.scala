@@ -404,34 +404,34 @@ trait Grid {
           ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
         }.toList)
       }.toList
-
-    val a = fields.groupBy(_.id).map { case (uid, fieldPoints) =>
-      fieldPoints.filter { p => {
-        var counter = 0
-        val pointList = List(Point(-1, 1), Point(-1, -1), Point(1, 1), Point(1, -1),
-          Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
-        pointList.foreach { i =>
-          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
-        }
-        counter match {
-          case 4 => true
-          case 3 => true
-          case 7 => true
-          case _ => false
-        }
-      }
-      }.filter { p =>
-        var counter = 0
-        val pointList = List(Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
-        pointList.foreach { i =>
-          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
-        }
-        counter match {
-          case 3 => false
-          case _ => true
-        }
-      }
-    }
+//find vertex
+//    val a = fields.groupBy(_.id).map { case (uid, fieldPoints) =>
+//      fieldPoints.filter { p => {
+//        var counter = 0
+//        val pointList = List(Point(-1, 1), Point(-1, -1), Point(1, 1), Point(1, -1),
+//          Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
+//        pointList.foreach { i =>
+//          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
+//        }
+//        counter match {
+//          case 4 => true
+//          case 3 => true
+//          case 7 => true
+//          case _ => false
+//        }
+//      }
+//      }.filter { p =>
+//        var counter = 0
+//        val pointList = List(Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
+//        pointList.foreach { i =>
+//          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
+//        }
+//        counter match {
+//          case 3 => false
+//          case _ => true
+//        }
+//      }
+//    }
     //    println("顶点：" + a)
     //    FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
     //      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))

@@ -124,7 +124,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     allCtx.fillRect(0, 0, w, h)
     allCtx.setFill(ColorsSetting.dieInfoFontColor)
     allCtx.setFont(Font.font(30))
-    allCtx.fillText("Please wait.", 150, 180)
+    allCtx.fillText("Waiting for bots to join ...", 150, 180)
     allCtx.restore()
   }
 

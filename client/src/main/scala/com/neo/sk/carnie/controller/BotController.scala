@@ -44,7 +44,7 @@ class BotController(player: PlayerInfoInClient,
   private var logicFrameTime = System.currentTimeMillis()
 
   def startGameLoop(): Unit = { //渲染帧
-    layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
+//    layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
     val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>
@@ -88,30 +88,6 @@ class BotController(player: PlayerInfoInClient,
       newSnakeInfo = None
     }
 
-    if (newFieldInfo.get(grid.frameCount + 1).nonEmpty && newFieldInfo(grid.frameCount + 1).fieldDetails.map(_.uid).contains(player.id)){
-      println(s"11111111111111111")
-      val snake = grid.snakes(player.id)
-      val acts = grid.actionMap.getOrElse(grid.frameCount + 1, Map.empty[String, Int])
-      val keyCode = acts.get(player.id)
-      val newDirection = {
-        val keyDirection = keyCode match {
-          case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
-          case Some(KeyEvent.VK_RIGHT) => Point(1, 0)
-          case Some(KeyEvent.VK_UP) => Point(0, -1)
-          case Some(KeyEvent.VK_DOWN) => Point(0, 1)
-          case _ => snake.direction
-        }
-        if (keyDirection + snake.direction != Point(0, 0)) {
-          keyDirection
-        } else {
-          snake.direction
-        }
-      }
-      val header = grid.grid.get(snake.header)
-      val newHeader = grid.grid.get(snake.header + newDirection)
-
-      println(s"old header:$header --new header:$newHeader ")
-    }
 
     if (syncGridData.nonEmpty) { //逻辑帧更新数据
       grid.initSyncGridData(syncGridData.get)
