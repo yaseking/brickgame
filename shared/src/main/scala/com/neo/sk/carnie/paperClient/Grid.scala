@@ -386,9 +386,11 @@ trait Grid {
     }
     Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(snake.id)))
   }
-
+var b = 0
   def getGridData: Protocol.Data4TotalSync = {
     var fields: List[Fd] = Nil
+    b += 1000
+    if (b == 0) println("grid" + grid)
 
     val bodyDetails = snakes.values.map { s => BodyBaseInfo(s.id, getSnakesTurn(s.id, s.header)) }.toList
 
@@ -412,6 +414,34 @@ trait Grid {
       }.toList)
     }.toList
 
+     val a =  fields.groupBy(_.id).map{ case (uid,fieldPoints) =>
+        fieldPoints.filter{p => {
+          var counter = 0
+          val pointList = List(Point(-1,1),Point(-1,-1),Point(1,1),Point(1,-1),
+            Point(0,1),Point(-1,0),Point(0,-1),Point(1,0))
+          pointList.foreach{ i =>
+            if (getPointBelong(uid,Point(p.x,p.y) + i)) counter += 1
+          }
+          counter match {
+            case 4 => true
+            case 3 => true
+            case 7 => true
+            case _ => false
+          }
+        }
+       }.filter{p =>
+          var counter = 0
+          val pointList = List(Point(0,1),Point(-1,0),Point(0,-1),Point(1,0))
+          pointList.foreach{ i =>
+            if (getPointBelong(uid,Point(p.x,p.y) + i)) counter += 1
+          }
+          counter match {
+            case 3 => false
+            case _ => true
+          }
+        }
+      }
+    println("顶点：" + a)
 //    FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
 //      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
 //    }.toList.groupBy(_._2).map { case (r, target) =>
@@ -431,6 +461,13 @@ trait Grid {
     killHistory.get(myId) match {
       case Some(info) if info._3 > frameCount - 3=> Some(info)
       case _ => None
+    }
+  }
+
+  def getPointBelong(id: String,point: Point):Boolean={
+    grid.get(point) match {
+      case Some(Field(fid)) if fid == id => true
+      case _ => false
     }
   }
 

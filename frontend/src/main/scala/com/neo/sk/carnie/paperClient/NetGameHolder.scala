@@ -171,7 +171,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (newFieldInfo.get(grid.frameCount + 1).nonEmpty && newFieldInfo(grid.frameCount + 1).fieldDetails.map(_.uid).contains(myId)){
-        println(s"11111111111111111")
+//        println(s"11111111111111111")
         val snake = grid.snakes(myId)
         val acts = grid.actionMap.getOrElse(grid.frameCount + 1, Map.empty[String, Int])
         val keyCode = acts.get(myId)
@@ -192,11 +192,22 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         val header = grid.grid.get(snake.header)
         val newHeader = grid.grid.get(snake.header + newDirection)
 
-        println(s"old header:$header --new header:$newHeader ")
+//        println(s"old header:$header --new header:$newHeader ")
       }
 
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
+        val frame = grid.frameCount + delay
+        println("front Frame" + frame)
+        getMyField()
+        val a = myGroupField
         grid.initSyncGridData(syncGridData.get)
+        getMyField()
+        val b = myGroupField
+        if (a != b){
+//          println(s"=======myField1:$a")
+//          println(s"=======myField2:$b")
+          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
+        }
         syncGridData = None
       } else {
         grid.update("f")
@@ -207,8 +218,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         (minFrame to grid.frameCount).foreach { frame =>
           if (newFieldInfo.get(frame).nonEmpty) {
             val newFieldData = newFieldInfo(frame)
-            if (newFieldData.fieldDetails.map(_.uid).contains(myId))
-              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
+//            if (newFieldData.fieldDetails.map(_.uid).contains(myId))
+//              println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(myId))
             grid.addNewFieldInfo(newFieldData)
             newFieldInfo -= frame
           }
@@ -334,7 +345,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                           case KeyCode.Up => KeyCode.Down
                           case _ => KeyCode.Space
                         } else e.keyCode
-                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
+//                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
                     grid.addActionWithFrame(myId, newKeyCode, actionFrame)
                     myActionHistory += actionId -> (newKeyCode, actionFrame)
                     val msg: Protocol.UserAction = Key(myId, newKeyCode, actionFrame, actionId)
@@ -405,7 +416,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case r@Protocol.SnakeAction(id, keyCode, frame, actionId) =>
         if (grid.snakes.exists(_._1 == id)) {
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-            println(s"recv:$r")
+//            println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
@@ -426,7 +437,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
+//                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
@@ -506,7 +517,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-        if(data.snake.map(_.id).contains(myId)) println(s"!!!!!!new snake---${data} join!!!isContinue$isContinue")
+//        if(data.snake.map(_.id).contains(myId)) println(s"!!!!!!new snake---${data} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
 
       case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
@@ -518,9 +529,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myScore = BaseScore(kill, area, start, end)
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         grid.cleanDiedSnake(id)
+        FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 
       case data: Protocol.NewFieldInfo =>
-        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
+//        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         newFieldInfo += data.frameCount -> data
@@ -555,6 +567,22 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)
     dom.window.requestAnimationFrame(gameRender())
+  }
+  private var myGroupField:FieldByColumn = FieldByColumn(myId,Nil)
+  private def getMyField():Unit = {
+    val myField = grid.grid.filter(_._2 == Field(myId))
+    val myBody = grid.snakeTurnPoints.getOrElse(myId, Nil)
+
+
+    //        newField = myField.map { f =>
+     myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
+      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+    }.toList.groupBy(_._2).map { case (r, target) =>
+      ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+    }.toList)
+
+
+//    println(s"=======myField:$myGroupField, myBody:$myBody")
   }
 
   override def render: Elem = {
