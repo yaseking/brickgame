@@ -22,6 +22,7 @@ class BotSceneController(modeScene: ModeScene,botScene: BotScene, context: Conte
               Boot.addToPlatform {
                 val layeredGameScreen = new LayeredGameScene(0, 150)
                 context.switchScene(layeredGameScreen.getScene, "layered", false)
+                layeredGameScreen.drawGameWait(context.getStage.getWidth.toInt, context.getStage.getHeight.toInt)
                 new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
               }
             case Left(e) =>
