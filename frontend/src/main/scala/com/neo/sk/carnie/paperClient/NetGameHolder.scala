@@ -210,7 +210,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
         syncGridData = None
       } else {
-        grid.update("f")
+        grid.update("b")
+//        println(s"update: ${grid.getGridData.snakes.map(_.id)}")
       }
 
       if (newFieldInfo.nonEmpty) {
