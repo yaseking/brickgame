@@ -489,7 +489,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, score , rank)
 
       case data: Protocol.Data4TotalSync =>
-        println(s"===========recv total data:$data")
+        println(s"===========recv total data")
         //        drawGame.drawField(data.fieldDetails, data.snakes)
         syncGridData = Some(data)
         if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
