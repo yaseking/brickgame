@@ -3,6 +3,8 @@ package com.neo.sk.carnie.paperClient
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
 
+import com.neo.sk.carnie.common.Constant
+
 //import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
@@ -409,12 +411,11 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         grid.cleanData()
 
       case Protocol.WinnerBestScore(score) =>
-        maxArea = Math.max(maxArea, score)
-
+        maxArea =Constant.shortMax(maxArea, score)
 
       case Protocol.Ranks(current, score, rank) =>
         currentRank = current
-        maxArea = Math.max(maxArea, score.area)
+        maxArea = Constant.shortMax(maxArea, score.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, score, rank)
 
@@ -438,7 +439,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         println(s"recv userDead $x")
         //        grid.cleanSnakeTurnPoint(id)
         myScore = BaseScore(kill, area, playTime)
-        maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+        maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
 
 
       case data: Protocol.NewFieldInfo =>

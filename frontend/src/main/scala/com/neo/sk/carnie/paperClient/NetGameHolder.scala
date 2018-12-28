@@ -480,11 +480,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.cleanData()
 
       case Protocol.WinnerBestScore(score) =>
-        maxArea = Math.max(maxArea, score)
+        maxArea = Constant.shortMax(maxArea, score)
 
       case Protocol.Ranks(current, score, rank) =>
         currentRank = current
-        maxArea = Math.max(maxArea, score.area)
+        maxArea = Constant.shortMax(maxArea, score.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, score , rank)
 
@@ -507,7 +507,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
         myScore = BaseScore(kill, area, playTime)
-        maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+        maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         grid.cleanDiedSnake(id)
         FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
 

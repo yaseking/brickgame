@@ -1,11 +1,13 @@
 package com.neo.sk.carnie.paperClient
 
+import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.html.{Canvas, Document => _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.util.Component
+
 import scala.xml.Elem
 
 /**
@@ -443,7 +445,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
       case RankEvent(current) =>
         currentRank = current
-        maxArea = Math.max(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
+        maxArea = Constant.shortMax(currentRank.find(_.id == myId).map(_.area).getOrElse(0), maxArea)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin) drawGame.drawRank4Replay(myId, grid.getGridData.snakes, currentRank)
 
 
