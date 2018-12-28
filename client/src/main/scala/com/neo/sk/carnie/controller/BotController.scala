@@ -132,28 +132,6 @@ class BotController(player: PlayerInfoInClient,
         }
       }
     }
-//    if (newSnakeInfo.nonEmpty) {
-//      grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
-//      grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
-//      newSnakeInfo = None
-//    }
-//
-//    if (syncGridData.nonEmpty) {
-//      grid.initSyncGridData(syncGridData.get)
-//      syncGridData = None
-//    } else {
-//      grid.update("f")
-//      if (newFieldInfo.nonEmpty) {
-//        val frame = newFieldInfo.keys.min
-//        val newFieldData = newFieldInfo(frame)
-//        if (frame == grid.frameCount) {
-//          grid.addNewFieldInfo(newFieldData)
-//          newFieldInfo -= frame
-//        } else if (frame < grid.frameCount) {
-//          botActor ! BotActor.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
-//        }
-//      }
-//    }
 
     val gridData = grid.getGridData
     gridData.snakes.find(_.id == player.id) match {
@@ -180,6 +158,7 @@ class BotController(player: PlayerInfoInClient,
         log.debug(s"i receive roomId:$roomId")
 
       case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
+        log.debug(s"i receive SnakeAction:$id")
         Boot.addToPlatform {
           if (grid.snakes.exists(_._1 == id)) {
             if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
@@ -264,6 +243,7 @@ class BotController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.Data4TotalSync =>
+        println("data!!!")
         Boot.addToPlatform{
           syncGridData = Some(data)
           if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)

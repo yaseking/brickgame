@@ -344,7 +344,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
 //        newField = myField.map { f =>
          val myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
-            (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+            (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
           }.toList.groupBy(_._2).map { case (r, target) =>
             ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
           }.toList)
@@ -552,7 +552,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
     //        newField = myField.map { f =>
      myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
-      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
     }.toList.groupBy(_._2).map { case (r, target) =>
       ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
     }.toList)

@@ -351,7 +351,7 @@ object RoomActor {
 //                ScanByColumn(y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
 //              }.toList)
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+                (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
               }.toList.groupBy(_._2).map { case (r, target) =>
                 ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
               }.toList)
@@ -386,7 +386,7 @@ object RoomActor {
           if (finishFields.nonEmpty) { //发送圈地数据
             newField = finishFields.map { f =>
               FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-                (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
+                (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
               }.toList.groupBy(_._2).map { case (r, target) =>
                 ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
               }.toList)
@@ -396,14 +396,14 @@ object RoomActor {
 //              }.toList)
             }
 
-//            userMap.filterNot(_._2.joinFrame == -1L).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
-//            watcherMap.filter(w =>
-//              userMap.get(w._2._1) match {
-//                case None => false
-//                case Some(userInfo) if userInfo.joinFrame == -1=> false
-//                case _ => true
-//              }
-//            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            userMap.filterNot(_._2.joinFrame == -1L).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            watcherMap.filter(w =>
+              userMap.get(w._2._1) match {
+                case None => false
+                case Some(userInfo) if userInfo.joinFrame == -1=> false
+                case _ => true
+              }
+            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利

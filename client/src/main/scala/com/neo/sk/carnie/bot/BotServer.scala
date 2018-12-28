@@ -97,7 +97,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   }
 
   override def action(request: ActionReq): Future[ActionRsp] = {
-    println(s"action Called by [$request")
+//    println(s"action Called by [$request")
     if (request.credit.nonEmpty & request.credit.get.apiToken == BotAppSetting.apiToken) {
       val rstF: Future[Long] = botActor ? (BotActor.Action(request.move, _))
       rstF.map {
@@ -115,7 +115,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   }
 
   override def observation(request: Credit): Future[ObservationRsp] = {
-    println(s"observation Called by [$request")
+//    println(s"observation Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
       if (state == State.in_game) {
         val rstF: Future[(Option[ImgData], Option[LayeredObservation], Long, Boolean)]  = botActor ? BotActor.ReturnObservation
