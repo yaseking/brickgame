@@ -91,7 +91,7 @@ object Protocol {
 
   case object ReStartGame extends GameMessage
 
-  case class SomeOneWin(winnerName: String, data: Data4TotalSync) extends GameMessage with GameEvent
+  case class SomeOneWin(winnerName: String) extends GameMessage with GameEvent
 
   case class WinData(winnerScore: Int,yourScore: Option[Int]) extends GameMessage with GameEvent
 

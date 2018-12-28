@@ -185,8 +185,9 @@ class BotController(player: PlayerInfoInClient,
           }
         }
 
-      case Protocol.SomeOneWin(winner, finalData) =>
+      case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
+          val finalData = grid.getGridData
           drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
           grid.cleanData()
         }

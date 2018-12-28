@@ -378,7 +378,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       //        } else {
       //          grid.snakes -= id
       //        }
-      case Protocol.SomeOneWin(winner, finalData) =>
+      case Protocol.SomeOneWin(winner) =>
+        val finalData = grid.getGridData
         println(s"recv someONeWin==============, winner:$winner")
         isWin = true
         winnerName = winner

@@ -389,8 +389,9 @@ class GameController(player: PlayerInfoInClient,
 //          }
         }
 
-      case Protocol.SomeOneWin(winner, finalData) =>
+      case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
+          val finalData = grid.getGridData
           drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
           winnerName = winner
           winnerData = Some(finalData)
@@ -418,6 +419,7 @@ class GameController(player: PlayerInfoInClient,
         println(s"recv userDead $x")
         Boot.addToPlatform {
           myScore = BaseScore(kill, area, start, end)
+          grid.cleanDiedSnake(id)
         }
 
 
@@ -547,7 +549,7 @@ class GameController(player: PlayerInfoInClient,
                     case KeyCode.UP => KeyCode.DOWN
                     case _ => KeyCode.SPACE
                   } else key
-              println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), actionFrame, actionId)}")
+//              println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), actionFrame, actionId)}")
               grid.addActionWithFrame(player.id, Constant.keyCode2Int(newKeyCode), actionFrame)
               grid.myActionHistory += actionId -> (Constant.keyCode2Int(newKeyCode), actionFrame)
               val msg: Protocol.UserAction = Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId)
