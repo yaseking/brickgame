@@ -396,14 +396,14 @@ object RoomActor {
 //              }.toList)
             }
 
-//            userMap.filterNot(_._2.joinFrame == -1L).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
-//            watcherMap.filter(w =>
-//              userMap.get(w._2._1) match {
-//                case None => false
-//                case Some(userInfo) if userInfo.joinFrame == -1=> false
-//                case _ => true
-//              }
-//            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            userMap.filterNot(_._2.joinFrame == -1L).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            watcherMap.filter(w =>
+              userMap.get(w._2._1) match {
+                case None => false
+                case Some(userInfo) if userInfo.joinFrame == -1=> false
+                case _ => true
+              }
+            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
