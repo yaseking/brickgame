@@ -277,7 +277,7 @@ object BotActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Reincarnation(replyTo) =>
-          actor ! Key(playerInfo.id, 32, botController.grid.frameCount, -1)
+          actor ! PressSpace
           replyTo ! SimpleRsp(state = State.in_game, msg = "ok")
 //          botController.startGameLoop()
           botController.grid.cleanSnakeTurnPoint(playerInfo.id)
