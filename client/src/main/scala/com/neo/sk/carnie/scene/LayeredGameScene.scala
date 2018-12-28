@@ -36,6 +36,10 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   val selfViewCanvas = new Canvas()
   val selfCanvas = new Canvas()
   val humanViewCanvas = new Canvas()
+  val allCanvas = new Canvas()
+
+  allCanvas.setHeight(viewHeight)
+  allCanvas.setWidth(viewWidth)
 
   positionCanvas.setHeight(viewHeight)
   positionCanvas.setWidth(viewWidth)
@@ -86,12 +90,15 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   group.getChildren.add(selfViewCanvas)
   group.getChildren.add(selfCanvas)
   group.getChildren.add(humanViewCanvas)
+  group.getChildren.add(allCanvas)
 
   val rank = new RankCanvas(rankCanvas)
   val layered = new LayeredCanvas(viewCanvas,rankCanvas,positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,humanViewCanvas,img)
 
 
   private val selfViewCtx = selfViewCanvas.getGraphicsContext2D
+
+  private val allCtx = selfViewCanvas.getGraphicsContext2D
 
   val getScene: Scene = new Scene(group)
 
@@ -108,14 +115,16 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   }
 
 
-  def drawGameWait(): Unit = {
-    selfViewCtx.save()
-    selfViewCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
-    selfViewCtx.fillRect(0, 0, viewWidth, viewHeight)
-    selfViewCtx.setFill(ColorsSetting.dieInfoFontColor)
-    selfViewCtx.setFont(Font.font(30))
-    selfViewCtx.fillText("Please wait.", 150, 180)
-    selfViewCtx.restore()
+  def drawGameWait(w:Int,h:Int): Unit = {
+    allCanvas.setHeight(h)
+    allCanvas.setWidth(w)
+    allCtx.save()
+    allCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
+    allCtx.fillRect(0, 0, viewWidth, viewHeight)
+    allCtx.setFill(ColorsSetting.dieInfoFontColor)
+    allCtx.setFont(Font.font(30))
+    allCtx.fillText("Please wait.", 150, 180)
+    allCtx.restore()
   }
 
   def drawGameOff(firstCome: Boolean): Unit = {

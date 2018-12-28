@@ -96,13 +96,13 @@ object BotActor {
           if(grid.snakes.exists(_._1 == botId)){
             val header = grid.snakes.find(_._1 == botId).get._2.header
             val direction = grid.snakes.find(_._1 == botId).get._2.direction
-            val newHeader = (1 to 3).map(header + direction * _)
+            val newHeader = (2 to 2).map(header + direction * _)
             newHeader.foreach{ h =>
               grid.grid.get(h) match {
                 case Some(Border) => actionCode = pointsToAvoid(direction)
                 case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
                 case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
-                case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
+//                case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
                 case _  => actionCode = pointsToAction(direction)
               }
             }
