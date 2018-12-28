@@ -315,9 +315,12 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       .via(RoomManager.joinGame(roomManager, playedId, sender, mode, img))
       .map {
         case msg:Protocol.GameMessage =>
-          println("????")
           val sendBuffer = new MiddleBufferInJvm(409600)
 
+          val a = BinaryMessage.Strict(ByteString(
+            //encoded process
+            msg.fillMiddleBuffer(sendBuffer).result()
+          ))
           msg match {
             case ReceivePingPacket(_) =>
               ping = ping + sendBuffer.getByte()
@@ -353,12 +356,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             updateTime = System.currentTimeMillis()
             log.debug(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo,someoneKill:$someoneKill, dead$dead, win:$win,other:$other")
           }
-
-          BinaryMessage.Strict(ByteString(
-            //encoded process
-            msg.fillMiddleBuffer(sendBuffer).result()
-
-          ))
+          a
 
         case x =>
           TextMessage.apply("")
