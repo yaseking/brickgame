@@ -43,12 +43,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
       snakeTurnPoints += ((uid, bodies.turn.turnPoint))
     }
 
-//    data.fieldDetails.foreach { baseInfo =>
-//      baseInfo.scanField.foreach { fids =>
-//        fids.x.foreach { l => (l._1 to l._2 by 1).foreach(x => gridMap += Point(x, fids.y) -> Field(baseInfo.uid)) }
-//      }
-//    }
-
     if(data.fieldDetails.nonEmpty) {
       gridMap = gridMap.filter(_._2 match { case Field(_) => false case _ => true })
       data.fieldDetails.foreach { baseInfo =>
@@ -64,7 +58,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid = gridMap
     actionMap = actionMap.filterKeys(_ >= (data.frameCount - maxDelayed))
     snakes = data.snakes.map(s => s.id -> s).toMap
-//    killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName,k.frameCount)).toMap
   }
 
   def addNewFieldInfo(data: Protocol.NewFieldInfo): Unit = {

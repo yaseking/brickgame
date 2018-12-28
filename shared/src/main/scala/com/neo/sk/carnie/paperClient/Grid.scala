@@ -514,9 +514,10 @@ trait Grid {
 
   def getSnakesTurn(sid: String, header: Point): TurnInfo = {
     val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
-    TurnInfo(if (turnPoint.nonEmpty) turnPoint ::: List(Point4Trans(header.x.toShort, header.y.toShort)) else turnPoint,
-      grid.filter(_._2 match { case Body(id, fid) if id == sid && fid.nonEmpty => true case _ => false }).map(g =>
+    if(turnPoint.nonEmpty){
+      TurnInfo(turnPoint ::: List(Point4Trans(header.x.toShort, header.y.toShort)), grid.filter(_._2 match { case Body(id, fid) if id == sid && fid.nonEmpty => true case _ => false }).map(g =>
         (Point4Trans(g._1.x.toShort, g._1.y.toShort), g._2.asInstanceOf[Body].fid.get)).toList)
+    } else TurnInfo(Nil, Nil)
   }
 
   def getMyFieldCount(uid: String, maxPoint: Point, minPoint: Point): Int = {
