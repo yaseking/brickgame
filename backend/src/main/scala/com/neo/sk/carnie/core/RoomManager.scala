@@ -363,7 +363,7 @@ object RoomManager {
     Flow.fromSinkAndSource(in, out)
   }
 
-  def joinGame2(actor: ActorRef[RoomManager.Command], userId: String, name: String, img: Int, roomId: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
+  def joinGameByRoomId(actor: ActorRef[RoomManager.Command], userId: String, name: String, img: Int, roomId: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
         case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)

@@ -157,7 +157,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(_) =>
                     if(roomId.nonEmpty)
-                      handleWebSocketMessages(webSocketChatFlow2(id, playerName, img, roomId.get))
+                      handleWebSocketMessages(webSocketChatFlow4JoinRoom(id, playerName, img, roomId.get))
                     else
                       handleWebSocketMessages(webSocketChatFlow(id, playerName, mode.get, img))
                   case Left(e) =>
@@ -180,7 +180,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         ) { (id, name, mode, img, roomId) =>
 //          dealFutureResult{
             if(roomId.nonEmpty)
-              handleWebSocketMessages(webSocketChatFlow2(id, name, img, roomId.get))
+              handleWebSocketMessages(webSocketChatFlow4JoinRoom(id, name, img, roomId.get))
             else
               handleWebSocketMessages(webSocketChatFlow(id, name, mode.get, img))
 //            val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
@@ -364,7 +364,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
   }
 
-  def webSocketChatFlow2(playedId: String, sender: String, img: Int, roomId: Int): Flow[Message, Message, Any] = {
+  def webSocketChatFlow4JoinRoom(playedId: String, sender: String, img: Int, roomId: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
     import org.seekloud.byteobject.MiddleBufferInJvm
@@ -392,7 +392,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(RoomManager.joinGame2(roomManager, playedId, sender, img, roomId))
+      .via(RoomManager.joinGameByRoomId(roomManager, playedId, sender, img, roomId))
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
