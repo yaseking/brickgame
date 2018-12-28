@@ -138,6 +138,6 @@ object TmpTest extends Grid{
 
 
   def main(args: Array[String]): Unit = {
-    getGridData
+//    getGridData
   }
 }

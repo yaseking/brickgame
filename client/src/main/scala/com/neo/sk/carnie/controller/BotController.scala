@@ -44,7 +44,7 @@ class BotController(player: PlayerInfoInClient,
   private var logicFrameTime = System.currentTimeMillis()
 
   def startGameLoop(): Unit = { //渲染帧
-//    layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
+    layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
     val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>

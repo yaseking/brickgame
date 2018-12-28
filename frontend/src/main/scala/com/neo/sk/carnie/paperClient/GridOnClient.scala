@@ -40,7 +40,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
         }
       }
       bodies.turn.pointOnField.foreach{p =>  gridMap += Point(p._1.x, p._1.y) -> Body(uid, Some(p._2))}
-      snakeTurnPoints += ((uid, bodies.turn.turnPoint))
+//      snakeTurnPoints += ((uid, bodies.turn.turnPoint))
     }
 
 //    data.fieldDetails.foreach { baseInfo =>
