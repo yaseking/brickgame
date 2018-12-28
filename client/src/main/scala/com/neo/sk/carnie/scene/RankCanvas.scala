@@ -111,16 +111,17 @@ class RankCanvas(canvas: Canvas)  {
     ctx.setGlobalAlpha(0.6)
     ctx.setFill(color)
     ctx.save()
-    ctx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight,
+    ctx.fillRect(windowBoundary.x - 20 - fillWidth - windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), (index + currentRankBaseLine) * textLineHeight + 10,
       fillWidth + windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), textLineHeight)
     ctx.restore()
 
     ctx.setGlobalAlpha(1)
     ctx.setFill(Color.rgb(0,0,0))
+
+    drawTextLineSelf(s"[$personalRank]: ${personalScore.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
+    drawTextLineSelf(s"area=" + f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
+    drawTextLineSelf(s"kill=${personalScore.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     index += 1
-    drawTextLine(s"[$personalRank]: ${personalScore.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
-    drawTextLine(s"area=" + f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
-    drawTextLine(s"kill=${personalScore.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
   }
 
   def drawClearRank(): Unit = {
@@ -135,6 +136,10 @@ class RankCanvas(canvas: Canvas)  {
 
   def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
     ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
+  }
+
+  def drawTextLineSelf(str: String, x: Int, lineNum: Int, lineBegin: Int = 0): Unit = {
+    ctx.fillText(str, x, (lineNum + lineBegin) * textLineHeight + 10)
   }
 
 

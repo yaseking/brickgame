@@ -389,8 +389,8 @@ trait Grid {
 var b = 0
   def getGridData: Protocol.Data4TotalSync = {
     var fields: List[Fd] = Nil
-    b += 1000
-    if (b == 0) println("grid" + grid)
+    b += 1
+//    if (b == 500) println("grid" + grid)
 
     val bodyDetails = snakes.values.map { s => BodyBaseInfo(s.id, getSnakesTurn(s.id, s.header)) }.toList
 
@@ -441,7 +441,7 @@ var b = 0
           }
         }
       }
-    println("顶点：" + a)
+//    println("顶点：" + a)
 //    FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
 //      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
 //    }.toList.groupBy(_._2).map { case (r, target) =>
