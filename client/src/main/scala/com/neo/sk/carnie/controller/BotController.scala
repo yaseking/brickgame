@@ -242,11 +242,11 @@ class BotController(player: PlayerInfoInClient,
           newSnakeInfo = Some(data)
         }
 
-      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-        Boot.addToPlatform {
-          grid.killInfo = Some(killedId, killedName, killerName)
-          grid.barrageDuration = 100
-        }
+//      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
+//        Boot.addToPlatform {
+//          grid.killInfo = Some(killedId, killedName, killerName)
+//          grid.barrageDuration = 100
+//        }
 
       case data: Protocol.NewFieldInfo =>
         println(s"====================new field")

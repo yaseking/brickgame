@@ -182,13 +182,13 @@ object RoomActor {
           val curTime = System.currentTimeMillis()
           users.foreach { u =>
             val id = u._1
-            grid.killHistory.filter(k => k._2._3 + 1 == grid.frameCount).foreach { k => //弹幕的推送
-              if (userMap.get(k._1).nonEmpty) {
-                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
-                  Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2))
-                gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2)))
-              }
-            }
+//            grid.killHistory.filter(k => k._2._3 + 1 == grid.frameCount).foreach { k => //弹幕的推送
+//              if (userMap.get(k._1).nonEmpty) {
+//                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+//                  Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2))
+//                gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2)))
+//              }
+//            }
             if(userMap.get(id).nonEmpty) {
               var killerId :Option[String] = None
               var killerName :Option[String] = None

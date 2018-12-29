@@ -51,13 +51,8 @@ class GameController(player: PlayerInfoInClient,
   val audioKill = new AudioClip(getClass.getResource("/mp3/kill.mp3").toString)
   val audioWin = new AudioClip(getClass.getResource("/mp3/win.mp3").toString)
   val audioDie = new AudioClip(getClass.getResource("/mp3/killed.mp3").toString)
-  val bgm1 = new AudioClip(getClass.getResource("/mp3/bgm1.mp3").toString)
-  val bgm3 = new AudioClip(getClass.getResource("/mp3/bgm3.mp3").toString)
   val bgm4 = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-  val bgm7 = new AudioClip(getClass.getResource("/mp3/bgm7.mp3").toString)
-  val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
-  val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
-
+  val bgmList = List(bgm4)
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   private val bgmAmount = bgmList.length
@@ -458,11 +453,11 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-        Boot.addToPlatform {
-          grid.killInfo = Some(killedId, killedName, killerName)
-          grid.barrageDuration = 100
-        }
+//      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
+//        Boot.addToPlatform {
+//          grid.killInfo = Some(killedId, killedName, killerName)
+//          grid.barrageDuration = 100
+//        }
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{

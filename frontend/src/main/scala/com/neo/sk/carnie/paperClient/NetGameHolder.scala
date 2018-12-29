@@ -62,13 +62,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm1 = dom.document.getElementById("bgm1").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm2 = dom.document.getElementById("bgm2").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm3 = dom.document.getElementById("bgm3").asInstanceOf[HTMLAudioElement]
   private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm5 = dom.document.getElementById("bgm5").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm7 = dom.document.getElementById("bgm7").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm8 = dom.document.getElementById("bgm8").asInstanceOf[HTMLAudioElement]
   private[this] val bgmList = List(bgm4)
   private val bgmAmount = bgmList.length
   private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
@@ -518,9 +512,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //        if(data.snake.map(_.id).contains(myId)) println(s"!!!!!!new snake---${data} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
 
-      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-        killInfo = Some(killedId, killedName, killerName)
-        barrageDuration = 100
+//      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
+//        killInfo = Some(killedId, killedName, killerName)
+//        barrageDuration = 100
 
       case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")

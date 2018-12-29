@@ -430,9 +430,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         println(s"receive winningData msg:$x")
         winningData = x
 
-      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-        killInfo = (killedId, killedName, killerName)
-        lastTime = 100
+//      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
+//        killInfo = (killedId, killedName, killerName)
+//        lastTime = 100
 
       case EncloseEvent(enclosure) =>
         //        println(s"got enclose event")

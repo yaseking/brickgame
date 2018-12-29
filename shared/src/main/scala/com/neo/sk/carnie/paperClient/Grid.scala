@@ -473,7 +473,7 @@ trait Grid {
   }
 
   def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地
-    println(s"returnBack : $snakeId")
+//    println(s"returnBack : $snakeId")
     snakeTurnPoints -= snakeId
     val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
     var newGrid = grid
