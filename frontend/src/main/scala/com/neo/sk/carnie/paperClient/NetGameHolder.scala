@@ -527,8 +527,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         grid.cleanDiedSnake(id)
 
-      case Protocol.UserDead(frame, id) =>
+      case Protocol.UserDead(frame, id, name, killerName) =>
         deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
+        if (killerName.nonEmpty) {
+          killInfo = Some(id, name, killerName.get)
+          barrageDuration = 100
+        }
 
       case data: Protocol.NewFieldInfo =>
 //        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
