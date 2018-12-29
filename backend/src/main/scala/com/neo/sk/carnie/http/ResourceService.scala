@@ -7,6 +7,7 @@ import akka.http.scaladsl.model.headers.`Cache-Control`
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
+import com.neo.sk.carnie.common.AppSettings
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -40,25 +41,33 @@ trait ResourceService {
         getFromResourceDirectory("css")
       }
     } ~
-    pathPrefix("js") {
-      extractUnmatchedPath { path =>
-        getFromResourceDirectory("js")
+      pathPrefix("js") {
+        extractUnmatchedPath { path =>
+          getFromResourceDirectory("js")
+        }
+      } ~
+      pathPrefix("sjsout") {
+        extractUnmatchedPath { path =>
+          getFromResourceDirectory("sjsout")
+        }
+      } ~
+      pathPrefix("img") {
+        getFromResourceDirectory("img")
+      } ~
+      pathPrefix("test") {
+        getFromDirectory("D:\\workstation\\sbt\\vigour\\logs\\test")
+      } ~
+      pathPrefix("mp3") {
+        getFromResourceDirectory("mp3")
+      } ~
+      path("jsFile" / Segment / AppSettings.projectVersion) { name =>
+        val jsFileName = name + ".js"
+        if (jsFileName == "frontend-fastopt.js") {
+          getFromResource(s"sjsout/$jsFileName")
+        } else {
+          getFromResource(s"js/$jsFileName")
+        }
       }
-    } ~
-    pathPrefix("sjsout") {
-      extractUnmatchedPath { path =>
-        getFromResourceDirectory("sjsout")
-      }
-    } ~
-    pathPrefix("img") {
-      getFromResourceDirectory("img")
-    } ~
-    pathPrefix("test") {
-      getFromDirectory("D:\\workstation\\sbt\\vigour\\logs\\test")
-    } ~
-    pathPrefix("mp3") {
-      getFromResourceDirectory("mp3")
-    }
   }
 
   //cache code copied from zhaorui.

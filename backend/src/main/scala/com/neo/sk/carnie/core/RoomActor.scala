@@ -53,7 +53,7 @@ object RoomActor {
 
   case class LeftRoom(id: String, name: String) extends Command
 
-  case class UserDead(roomId: Int, mode: Int, users: List[(String, Int, Int)]) extends Command with RoomManager.Command // (id, kill, area)
+  case class UserDead(roomId: Int, mode: Int, users: List[(String, Short, Short)]) extends Command with RoomManager.Command // (id, kill, area)
 
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -182,15 +182,15 @@ object RoomActor {
               val startTime = userMap(id).startTime
               grid.cleanSnakeTurnPoint(id)
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
-              gameEvent += ((grid.frameCount, Protocol.UserDead(id,grid.frameCount)))
+              gameEvent += ((grid.frameCount, Protocol.UserDead(id)))
 //              log.debug(s"user $id dead:::::")
               val endTime = System.currentTimeMillis()
-              dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
-              dispatch(subscribersMap, Protocol.UserDead(id,grid.frameCount))
+              dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, ((endTime - startTime) / 1000).toShort))
+              dispatch(subscribersMap, Protocol.UserDead(id))
               val info = userMap(id).copy(joinFrame = -1L) //死了之后不发消息
               userMap.update(id, info)
               watcherMap.filter(_._2._1==id).foreach { user =>
-                dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
+                dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, ((endTime - startTime) / 1000).toShort))
                 dispatchTo(subscribersMap,user._1, Protocol.UserDead(id))
                 val watcherInfo = watcherMap(user._1).copy(_2 = -1L)
                 watcherMap.update(user._1, watcherInfo)
@@ -281,7 +281,7 @@ object RoomActor {
 
         case UserActionOnServer(id, action) =>
           action match {
-            case Key(_, keyCode, frameCount, actionId) =>
+            case Key(keyCode, frameCount, actionId) =>
               val realFrame = grid.checkActionFrame(id, frameCount)
               //                if (frameCount >= grid.frameCount) frameCount else grid.frameCount
               //              else Math.max(grid.frameCount, grid.actionMap.keys.toList.sorted.headOption.getOrElse(-1l) + 1)
@@ -289,10 +289,10 @@ object RoomActor {
               dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
                 Protocol.SnakeAction(id, keyCode, realFrame, actionId))
 
-            case SendPingPacket(_, createTime) =>
+            case SendPingPacket(createTime) =>
               dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(createTime))
 
-            case NeedToSync(_) =>
+            case NeedToSync =>
               dispatchTo(subscribersMap, id, grid.getGridData)
 
             case PressSpace =>
@@ -346,9 +346,10 @@ object RoomActor {
           //错峰发送
           for((u, i) <- userMap) {
             val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, Nil)
-            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 99) dispatchTo(subscribersMap, u, newDataNoField)
-            if(i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u))
-              dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head, grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1))
+            if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 2) dispatchTo(subscribersMap, u, newDataNoField)
+            if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u))
+              dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
+                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte))
           }
 
           if (finishFields.nonEmpty) { //发送圈地数据

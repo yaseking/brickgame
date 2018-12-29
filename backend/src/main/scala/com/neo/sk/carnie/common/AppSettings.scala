@@ -94,8 +94,9 @@ object AppSettings {
       maxAge = sConf.getOptionalDurationSeconds("cookie.maxAge"),
       sessionEncryptData = sConf.getBoolean("encryptData")
     )
-
-
   }
+
+  val projectVersion = appConfig.getString("projectVersion")
+
 
 }

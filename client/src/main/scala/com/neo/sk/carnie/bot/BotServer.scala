@@ -118,7 +118,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
 //    println(s"observation Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
       if (state == State.in_game) {
-        val rstF: Future[(Option[ImgData], Option[LayeredObservation], Long, Boolean)]  = botActor ? BotActor.ReturnObservation
+        val rstF: Future[(Option[ImgData], Option[LayeredObservation], Int, Boolean)]  = botActor ? BotActor.ReturnObservation
         rstF.map {rst =>
           if (rst._4) {//in game
             state = State.in_game

@@ -30,14 +30,14 @@ class BotController(player: PlayerInfoInClient,
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
   private var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  private var recallFrame: scala.Option[Long] = None
+  private var recallFrame: scala.Option[Int] = None
 
 //  var allImageData:List[Array[Int]] = List.empty
   var currentRank = List.empty[Score]
   private val frameRate = 150
   var grid = new GridOnClient(Point(Boundary.w, Boundary.h))
   private val timeline = new Timeline()
-  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var myCurrentRank = Score(player.id, player.name, 0)
@@ -61,7 +61,7 @@ class BotController(player: PlayerInfoInClient,
     recallFrame match {
       case Some(-1) =>
         println("!!!!!!!!:NeedToSync2")
-        botActor ! BotActor.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+        botActor ! BotActor.MsgToService(NeedToSync.asInstanceOf[UserAction])
         recallFrame = None
 
       case Some(frame) =>
@@ -208,7 +208,7 @@ class BotController(player: PlayerInfoInClient,
           }
         }
 
-      case x@Protocol.DeadPage(id, kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
           botActor ! Dead

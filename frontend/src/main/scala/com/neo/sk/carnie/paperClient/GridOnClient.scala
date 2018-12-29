@@ -21,9 +21,9 @@ class GridOnClient(override val boundary: Point) extends Grid {
     println("back frame:"+ data.frameCount)
     val gridField = grid.filter(_._2 match { case Field(_) => true case _ => false })
     var gridMap = grid.filter(_._2 match { case Body(_, _) => false case _ => true })
-    data.bodyDetails.foreach{ bodies =>
+    data.bodyDetails.foreach { bodies =>
       val uid = bodies.uid
-      if(bodies.turn.turnPoint.nonEmpty) {
+      if (bodies.turn.turnPoint.nonEmpty) {
         var first = bodies.turn.turnPoint.head
         var remainder = bodies.turn.turnPoint.tail
         while (remainder.nonEmpty) {
@@ -40,7 +40,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
           remainder = remainder.tail
         }
       }
-      bodies.turn.pointOnField.foreach{p =>  gridMap += Point(p._1.x, p._1.y) -> Body(uid, Some(p._2))}
+      bodies.turn.pointOnField.foreach { p => gridMap += Point(p._1.x, p._1.y) -> Body(uid, Some(p._2)) }
       snakeTurnPoints += ((uid, bodies.turn.turnPoint))
     }
 
@@ -50,9 +50,11 @@ class GridOnClient(override val boundary: Point) extends Grid {
       gridMap = gridMap.filter(_._2 match { case Field(_) => false case _ => true })
       data.fieldDetails.foreach { baseInfo =>
         baseInfo.scanField.foreach { fids =>
-          fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
-            fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => gridMap += Point(x, y) -> Field(baseInfo.uid)) }
-          }}
+          fids.y.foreach { ly =>
+            (ly._1 to ly._2 by 1).foreach { y =>
+              fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => gridMap += Point(x, y) -> Field(baseInfo.uid)) }
+            }
+          }
         }
       }
     }

@@ -10,19 +10,19 @@ object Protocol {
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
   case class NewFieldInfo(
-                           frameCount: Long,
+                           frameCount: Int,
                            fieldDetails: List[FieldByColumn]
                          ) extends GameMessage
 
   case class Data4TotalSync(
-                             frameCount: Long,
+                             frameCount: Int,
                              snakes: List[SkDt],
                              bodyDetails: List[BodyBaseInfo],
                              fieldDetails: List[FieldByColumn]
                            ) extends GameMessage
 
   case class NewSnakeInfo(
-                         frameCount: Long,
+                         frameCount: Int,
                          snake: List[SkDt],
                          filedDetails: List[FieldByColumn]
                          ) extends GameMessage
@@ -71,7 +71,7 @@ object Protocol {
 
   case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
 
-  case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
+  case class DeadPage(id: String, kill: Short, area: Short, playTime: Short) extends GameMessage
 
   case class UserDead(id: String,frame:Long) extends GameMessage with GameEvent
 
@@ -79,31 +79,26 @@ object Protocol {
 
   case class InitReplayError(info: String) extends GameMessage
 
-  case class NewSnakeJoined(id: Long, name: String) extends GameMessage
-
-  case class SnakeAction(id: String, keyCode: Int, frame: Long, actionId: Int) extends GameMessage
+  case class SnakeAction(id: String, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
 
   case class SnakeLeft(id: String, name: String) extends GameMessage
 
   case class ReplayFinish(id: String) extends GameMessage
 
-  //  case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
-  case class Ranks(currentRank: List[Score], personalScore: Score, personalRank: Int) extends GameMessage
-//  case class Rank4Self(score: Score, rank: Int) extends GameMessage
+  case class Ranks(currentRank: List[Score], personalScore: Score, personalRank: Byte) extends GameMessage
 
   case object ReStartGame extends GameMessage
 
   case class SomeOneWin(winnerName: String) extends GameMessage with GameEvent
 
+  case class WinData(winnerScore: Short,yourScore: Option[Short]) extends GameMessage with GameEvent
 //  case class SomeWin(winnerName: String,finalData:Data4TotalSync) extends GameMessage with GameEvent
-
-  case class WinData(winnerScore: Int,yourScore: Option[Int]) extends GameMessage with GameEvent
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 
   case class ReceivePingPacket(createTime: Long) extends GameMessage
 
-  case class WinnerBestScore(Score: Int) extends GameMessage
+  case class WinnerBestScore(Score: Short) extends GameMessage
 
   sealed trait WsSendMsg
   case object WsSendComplete extends WsSendMsg
@@ -111,13 +106,13 @@ object Protocol {
 
   sealed trait UserAction extends WsSendMsg
 
-  case class Key(id: String, keyCode: Int, frameCount: Long, actionId: Int) extends UserAction
+  case class Key(keyCode: Byte, frameCount: Int, actionId: Int) extends UserAction
 
   case class TextInfo(msg: String) extends UserAction
 
-  case class SendPingPacket(id: String, createTime: Long) extends UserAction
+  case class SendPingPacket(createTime: Long) extends UserAction
 
-  case class NeedToSync(id: String) extends UserAction
+  case object NeedToSync extends UserAction
 
   case object PressSpace extends UserAction
 

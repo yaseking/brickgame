@@ -186,7 +186,7 @@ class DrawGame(
     val y = if (isReplay) (dom.window.innerHeight / 2).toInt - 80 else (dom.window.innerHeight / 2).toInt - 180
     //    val y = (dom.window.innerHeight / 2).toInt - 180
 
-    val gameTime = (myScore.endTime - myScore.startTime) / 1000
+    val gameTime = myScore.playTime
     val bestScore = maxArea / canvasSize * 100
     val time = {
       val tempM = gameTime / 60

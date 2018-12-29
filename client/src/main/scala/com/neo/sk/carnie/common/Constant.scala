@@ -33,8 +33,8 @@ object Constant {
     val dieInfoFontColor: Color = Color.rgb(224, 238, 253)
   }
 
-  def keyCode2Int(c: KeyCode): Int = {
-    c match {
+  def keyCode2Byte(c: KeyCode): Byte = {
+    val keyCode = c match {
       case KeyCode.SPACE => KeyEvent.VK_SPACE
       case KeyCode.LEFT => KeyEvent.VK_LEFT
       case KeyCode.UP => KeyEvent.VK_UP
@@ -43,6 +43,7 @@ object Constant {
       case KeyCode.F2 => KeyEvent.VK_F2
       case _ => KeyEvent.VK_F2
     }
+    keyCode.toByte
   }
 
   def hex2Rgb(hex: String):Color = {
@@ -63,14 +64,15 @@ object Constant {
     target
   }
 
-  def moveToKeyCode(move: Move): Int = {
-    move match {
+  def moveToKeyCode(move: Move): Byte = {
+    val keyCode = move match {
       case Move.left => KeyEvent.VK_LEFT
       case Move.up => KeyEvent.VK_UP
       case Move.right => KeyEvent.VK_RIGHT
       case Move.down => KeyEvent.VK_DOWN
       case _ => -1
     }
+    keyCode.toByte
   }
 
   val CanvasWidth = 800
