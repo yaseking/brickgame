@@ -6,6 +6,9 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.util.Timeout
 import scala.concurrent.ExecutionContextExecutor
+import akka.http.scaladsl.model.headers.{CacheDirective, `Cache-Control`}
+import akka.http.scaladsl.server.Directive0
+import akka.http.scaladsl.model.headers.CacheDirectives.{ `max-age`, `public` }
 
 /**
   * User: Taoz
@@ -16,7 +19,7 @@ trait HttpService extends PlayerService
   with ResourceService
   with EsheepService
   with RoomApiService
-  with AdminService{
+  with AdminService {
 
 
   implicit val system: ActorSystem
@@ -27,46 +30,25 @@ trait HttpService extends PlayerService
 
   implicit val timeout: Timeout
 
+  private val cacheSeconds = 24 * 60 * 60
 
   val routes =
     pathPrefix("carnie") {
-      netSnakeRoute ~
-      resourceRoutes ~
-      esheepRoute ~
-      roomApiRoutes ~
-      adminRoutes ~
-      getFromResource("html/netSnake.html")
+        netSnakeRoute ~
+        resourceRoutes ~
+        esheepRoute ~
+        roomApiRoutes ~
+        adminRoutes ~
+        addCacheControlHeadersWithFilter(`public`, `max-age`(cacheSeconds)) {
+          getFromResource("html/netSnake.html")
+        }
     }
 
-
-
-  def tmp = {
-    val out = Source.empty
-    val in = Sink.ignore
-    Flow.fromSinkAndSource(in, out)
-  }
-
-
-  def tmp2 = {
-
-    val sink = Sink.ignore
-    def chatFlow(sender: String): Flow[String, String, Any] = {
-      val in =
-        Flow[String]
-          .to(sink)
-
-      // The counter-part which is a source that will create a target ActorRef per
-      // materialization where the chatActor will send its messages to.
-      // This source will only buffer one element and will fail if the client doesn't read
-      // messages fast enough.
-      val chatActor: ActorRef = null
-      val out =
-        Source.actorRef[String](1, OverflowStrategy.fail)
-          .mapMaterializedValue(actor => chatActor ! "NewParticipant(sender, _)")
-
-      Flow.fromSinkAndSource(in, out)
+  //只使用强制缓存,去除协商缓存的字段
+  def addCacheControlHeadersWithFilter(first: CacheDirective, more: CacheDirective*): Directive0 = {
+    mapResponseHeaders { headers =>
+      `Cache-Control`(first, more: _*) +: headers.filterNot(h => h.name() == "Last-Modified" || h.name() == "ETag")
     }
   }
-
 
 }
