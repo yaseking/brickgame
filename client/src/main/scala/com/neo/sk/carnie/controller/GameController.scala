@@ -58,6 +58,10 @@ class GameController(player: PlayerInfoInClient,
   val bgm8 = new AudioClip(getClass.getResource("/mp3/bgm8.mp3").toString)
   val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
 
+  var pingMap = Map.empty[Short, Long] // id, 时间戳
+
+  var pingId: Short = 0
+
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
   var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   private val bgmAmount = bgmList.length
@@ -135,7 +139,10 @@ class GameController(player: PlayerInfoInClient,
       stageCtx.getStage.setHeight(stageHeight)
     }
     logicFrameTime = System.currentTimeMillis()
-    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(System.currentTimeMillis()))
+    if (pingId > 10000) pingId = 0  else pingId = (pingId + 1).toShort
+    val curTime = System.currentTimeMillis()
+    pingMap += (pingId -> curTime)
+    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(pingId))
 
     recallFrame match {
       case Some(-1) =>
@@ -473,9 +480,12 @@ class GameController(player: PlayerInfoInClient,
           grid.historyFieldInfo += data.frameCount -> data
         }
 
-      case x@Protocol.ReceivePingPacket(_) =>
+      case x@Protocol.ReceivePingPacket(actionId) =>
         Boot.addToPlatform{
-          PerformanceTool.receivePingPackage(x)
+          if (pingMap.get(actionId).nonEmpty) {
+            PerformanceTool.receivePingPackage(pingMap(actionId))
+            pingMap -= actionId
+          }
         }
 
       case x@Protocol.WinData(_,_) =>
