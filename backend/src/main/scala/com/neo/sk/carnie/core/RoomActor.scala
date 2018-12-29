@@ -85,7 +85,7 @@ object RoomActor {
       Behaviors.withTimers[Command] {
         implicit timer =>
           val grid = new GridOnServer(border)
-          val winStandard = fullSize * 0.1//upperLimit
+          val winStandard = fullSize * upperLimit
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           val frameRate = mode match {
             case 2 => Protocol.frameRate2
