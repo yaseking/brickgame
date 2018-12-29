@@ -158,7 +158,7 @@ object RoomActor {
 //          }
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
 //          headImgList.put(id, img)
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap)
 
         case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
@@ -357,6 +357,10 @@ object RoomActor {
                 (userDeadList.contains(s._1) &&  curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
               NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
             grid.newInfo = Nil
+          }
+
+          firstComeList.foreach { id =>
+            dispatchTo(subscribersMap, id, newData)
           }
 
           //错峰发送
