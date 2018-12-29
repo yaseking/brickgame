@@ -195,7 +195,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if(deadUser.get(grid.frameCount).nonEmpty) {
         deadUser(grid.frameCount).foreach { sid =>
           if (grid.snakes.keySet.contains(sid)) {
-            grid.cleanDiedSnake(sid)
+            println(s"snake dead in backend:$sid")
+            grid.cleanDiedSnakeInfo(sid)
           }
         }
       }
@@ -311,7 +312,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
-                  grid.cleanData()
+//                  grid.cleanData()
                   val msg: Protocol.UserAction = PressSpace
                   webSocketClient.sendMessage(msg)
               }
