@@ -311,7 +311,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
-                  grid.cleanData()
+//                  grid.cleanData()
                   val msg: Protocol.UserAction = PressSpace
                   webSocketClient.sendMessage(msg)
               }
