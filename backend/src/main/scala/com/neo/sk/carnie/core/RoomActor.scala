@@ -39,7 +39,10 @@ object RoomActor {
 
   private val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
 
-//  private val classify = 5
+  private val maxWaitingTime4Restart = 3000
+
+
+  //  private val classify = 5
 
   private final case object SyncKey
 
@@ -282,13 +285,15 @@ object RoomActor {
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
 
         case UserActionOnServer(id, action) =>
+          val curTime = System.currentTimeMillis()
           action match {
             case Key(keyCode, frameCount, actionId) =>
               val realFrame = grid.checkActionFrame(id, frameCount)
               //                if (frameCount >= grid.frameCount) frameCount else grid.frameCount
               //              else Math.max(grid.frameCount, grid.actionMap.keys.toList.sorted.headOption.getOrElse(-1l) + 1)
               grid.addActionWithFrame(id, keyCode, realFrame)
-              dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+              dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
+                (userDeadList.contains(s._1) &&  curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
                 Protocol.SnakeAction(id, keyCode, realFrame, actionId))
 
             case SendPingPacket(createTime) =>
@@ -317,7 +322,6 @@ object RoomActor {
 
         case Sync =>
           val curTime = System.currentTimeMillis()
-          val maxWaitingTime4Restart = 3000
           val frame = grid.frameCount //即将执行改帧的数据
           val shouldNewSnake = if (grid.waitingListState) true else false
           val finishFields = grid.updateInService(shouldNewSnake, roomId, mode) //frame帧的数据执行完毕
