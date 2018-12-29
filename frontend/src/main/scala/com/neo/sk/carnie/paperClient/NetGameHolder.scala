@@ -62,14 +62,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private var myActionHistory = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
+//  private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-  private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
-  private[this] val bgmList = List(bgm4)
-  private val bgmAmount = bgmList.length
-  private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
+//  private[this] val bgmList = List(bgm4)
+//  private val bgmAmount = bgmList.length
+//  private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
   private val x = (dom.window.innerWidth / 2).toInt - 145
   private val y = (dom.window.innerHeight / 2).toInt - 180
@@ -222,12 +222,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           case Some(_) =>
 //            println(s"draw base game")
             if (firstCome) firstCome = false
-            if (!isPlay) {
-//              println("you can't play")
-              BGM = bgmList(getRandom(bgmAmount))
-              BGM.play()
-              isPlay = true
-            }
+//            if (!isPlay) {
+////              println("you can't play")
+//              BGM = bgmList(getRandom(bgmAmount))
+//              BGM.play()
+//              isPlay = true
+//            }
 //            if (BGM.paused) {
 //              isPlay = false
 //            }
@@ -254,21 +254,21 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case FrontProtocol.DrawGameOff =>
 //        println(s"drawFunction::: drawGameOff")
-        if(isPlay){
-          BGM.pause()
-          BGM.currentTime = 0
-          isPlay = false
-        }
+//        if(isPlay){
+//          BGM.pause()
+//          BGM.currentTime = 0
+//          isPlay = false
+//        }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-        if(isPlay){
-          BGM.pause()
-          BGM.currentTime = 0
-          isPlay = false
-        }
+//        if(isPlay){
+//          BGM.pause()
+//          BGM.currentTime = 0
+//          isPlay = false
+//        }
         drawGame.drawGameWin(myId, winner, winData,winningData)
-        audio1.play()
+//        audio1.play()
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
@@ -284,11 +284,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case FrontProtocol.DrawGameDie(killerName) =>
 //        println(s"drawFunction::: drawGameDie")
-        if(isPlay){
-          BGM.pause()
-          BGM.currentTime = 0
-          isPlay = false
-        }
+//        if(isPlay){
+//          BGM.pause()
+//          BGM.currentTime = 0
+//          isPlay = false
+//        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
@@ -564,8 +564,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     killInfo = None
     grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
     drawFunction = FrontProtocol.DrawGameWait
-    audio1.pause()
-    audio1.currentTime = 0
+//    audio1.pause()
+//    audio1.currentTime = 0
     audioKilled.pause()
     audioKilled.currentTime = 0
     firstCome = true

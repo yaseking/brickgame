@@ -41,7 +41,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
 
 //  val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
 
-  private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.SnakeService")
+  private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.PlayerService")
 
 
   val netSnakeRoute = {
