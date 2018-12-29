@@ -192,10 +192,14 @@ class BotController(player: PlayerInfoInClient,
           grid.cleanData()
         }
 
-      case Protocol.UserDead(frame, id) =>
+      case Protocol.UserDead(frame, id, name, killerName) =>
+        println("I've clean it")
         Boot.addToPlatform {
-          grid.cleanDiedSnake(id)
-          grid.cleanSnakeTurnPoint(id)
+          //          deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
+          if (killerName.nonEmpty) {
+            grid.killInfo = Some(id, name, killerName.get)
+            grid.barrageDuration = 100
+          }
         }
 
       case Protocol.UserLeft(id) =>

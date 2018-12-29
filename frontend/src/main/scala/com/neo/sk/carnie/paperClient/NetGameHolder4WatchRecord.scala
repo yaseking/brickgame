@@ -388,9 +388,12 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         winData = finalData
         grid.cleanData()
 
-      case Protocol.UserDead(frame, id) =>
-        grid.cleanDiedSnake(id)
-        grid.cleanSnakeTurnPoint(id)
+      case Protocol.UserDead(frame, id, name, killerName) =>
+//        deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
+//        if (killerName.nonEmpty) {
+//          killInfo = Some(id, name, killerName.get)
+//          barrageDuration = 100
+//        }
 
 
       case DirectionEvent(id, keyCode) =>

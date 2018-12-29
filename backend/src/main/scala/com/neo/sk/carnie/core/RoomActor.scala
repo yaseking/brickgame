@@ -178,21 +178,35 @@ object RoomActor {
           val frame = grid.frameCount
           users.foreach { u =>
             val id = u._1
+            grid.killHistory.filter(k => k._2._3 + 1 == grid.frameCount).foreach { k => //弹幕的推送
+              if (userMap.get(k._1).nonEmpty) {
+                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+                  Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2))
+                gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2)))
+              }
+            }
             if(userMap.get(id).nonEmpty) {
+              var killerId :Option[String] = None
+              var killerName :Option[String] = None
               val name = userMap(id).name
               val startTime = userMap(id).startTime
               grid.cleanSnakeTurnPoint(id)
+              if(grid.killHistory.filter(k => k._2._3 + 1 == frame).get(id).isDefined){
+                killerId = Some(grid.killHistory.filter(k => k._2._3 + 1 == frame)(id)._1)
+                killerName = Some(grid.killHistory.filter(k => k._2._3 + 1 == frame)(id)._2)
+              }
+
               gameEvent += ((frame, LeftEvent(id, name)))
-              gameEvent += ((frame, Protocol.UserDead(frame, id)))
+              gameEvent += ((frame, Protocol.UserDead(frame, id, name, killerName)))
 //              log.debug(s"user $id dead:::::")
               val endTime = System.currentTimeMillis()
               dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, ((endTime - startTime) / 1000).toShort))
-              dispatch(subscribersMap, Protocol.UserDead(frame, id))
+              dispatch(subscribersMap, Protocol.UserDead(frame, id, name, killerName))
               val info = userMap(id).copy(joinFrame = -1L) //死了之后不发消息
               userMap.update(id, info)
               watcherMap.filter(_._2._1==id).foreach { user =>
                 dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, ((endTime - startTime) / 1000).toShort))
-                dispatchTo(subscribersMap,user._1, Protocol.UserDead(frame, id))
+                dispatchTo(subscribersMap,user._1, Protocol.UserDead(frame, id, name, killerName))
                 val watcherInfo = watcherMap(user._1).copy(_2 = -1L)
                 watcherMap.update(user._1, watcherInfo)
               }
@@ -321,13 +335,13 @@ object RoomActor {
           val newData = grid.getGridData
           var newField: List[FieldByColumn] = Nil
 
-          grid.killHistory.filter(k => k._2._3 + 1 == newData.frameCount).foreach { k => //弹幕的推送
-            if (userMap.get(k._1).nonEmpty) {
-              dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
-                Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2))
-              gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2)))
-            }
-          }
+//          grid.killHistory.filter(k => k._2._3 + 1 == newData.frameCount).foreach { k => //弹幕的推送
+//            if (userMap.get(k._1).nonEmpty) {
+//              dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L),
+//                Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2))
+//              gameEvent += ((grid.frameCount, Protocol.SomeOneKilled(k._1, userMap(k._1).name, k._2._2)))
+//            }
+//          }
 
           if(grid.newInfo.nonEmpty) { //有新的蛇
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
