@@ -448,7 +448,7 @@ class GameController(player: PlayerInfoInClient,
           newSnakeInfo = Some(data)
         }
 
-      case Protocol.UserDead(id) =>
+      case Protocol.UserDead(frame, id) =>
         println("I've clean it")
         Boot.addToPlatform {
           grid.cleanDiedSnake(id)

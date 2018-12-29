@@ -18,7 +18,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
 //  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {}
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
-    println("back frame:" + data.frameCount)
+    println("back frame:"+ data.frameCount)
+    val gridField = grid.filter(_._2 match { case Field(_) => true case _ => false })
     var gridMap = grid.filter(_._2 match { case Body(_, _) => false case _ => true })
     data.bodyDetails.foreach { bodies =>
       val uid = bodies.uid
@@ -43,7 +44,9 @@ class GridOnClient(override val boundary: Point) extends Grid {
       snakeTurnPoints += ((uid, bodies.turn.turnPoint))
     }
 
-    if (data.fieldDetails.nonEmpty) {
+    gridMap ++= gridField
+
+    if(data.fieldDetails.nonEmpty) {
       gridMap = gridMap.filter(_._2 match { case Field(_) => false case _ => true })
       data.fieldDetails.foreach { baseInfo =>
         baseInfo.scanField.foreach { fids =>

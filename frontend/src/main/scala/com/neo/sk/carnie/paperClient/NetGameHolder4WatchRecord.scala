@@ -388,7 +388,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         winData = finalData
         grid.cleanData()
 
-      case Protocol.UserDead(id) =>
+      case Protocol.UserDead(frame, id) =>
         grid.cleanDiedSnake(id)
         grid.cleanSnakeTurnPoint(id)
 
