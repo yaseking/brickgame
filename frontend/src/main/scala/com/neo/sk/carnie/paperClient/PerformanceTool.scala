@@ -58,7 +58,7 @@ object PerformanceTool {
 
   //drawTimeAverage
   private var drawTimeList: List[Long] = Nil
-  private val drawTimes = 10
+  private val drawTimes = 20
   private var drawTimeAvg: Long = 0l
 
   private def addDrawTime(startTime: Long): Unit = {
