@@ -72,7 +72,7 @@ object PerformanceTool {
 
   //PING
   private var receiveNetworkLatencyList: List[Long] = Nil
-  private val PingTimes = 10
+  private val PingTimes = 4
   private var latency: Long = 0L
 
   def receivePingPackage(p: ReceivePingPacket): Unit = {

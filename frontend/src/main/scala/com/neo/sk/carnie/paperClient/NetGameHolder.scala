@@ -108,7 +108,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
       webSocketClient.sendMessage(SendPingPacket(System.currentTimeMillis()).asInstanceOf[UserAction])
-    }, 100)
+    }, 250)
     dom.window.requestAnimationFrame(gameRender())
   }
 
