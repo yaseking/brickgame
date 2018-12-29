@@ -96,7 +96,7 @@ object Protocol {
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 
-  case class ReceivePingPacket(createTime: Long) extends GameMessage
+  case class ReceivePingPacket(pingId: Short) extends GameMessage
 
   case class WinnerBestScore(Score: Short) extends GameMessage
 
@@ -110,7 +110,7 @@ object Protocol {
 
   case class TextInfo(msg: String) extends UserAction
 
-  case class SendPingPacket(createTime: Long) extends UserAction
+  case class SendPingPacket(actionId: Short) extends UserAction
 
   case object NeedToSync extends UserAction
 

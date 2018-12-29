@@ -48,6 +48,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
   val delay:Int = if(mode == 2) 4 else 2
 
+  var pingMap = Map.empty[Short, Long] // id, 时间戳
+
+  var pingId: Short = 0
+
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
   private var winningData = WinData(0,Some(0))
@@ -69,6 +73,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
   private val x = (dom.window.innerWidth / 2).toInt - 145
   private val y = (dom.window.innerHeight / 2).toInt - 180
+
 
   dom.document.addEventListener("visibilitychange", { e: Event =>
     if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
@@ -102,7 +107,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //    isPlay = true
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket(System.currentTimeMillis()).asInstanceOf[UserAction])
+      if (pingId > 10000) pingId = 0  else pingId = (pingId + 1).toShort
+      val curTime = System.currentTimeMillis()
+      pingMap += (pingId -> curTime)
+      webSocketClient.sendMessage(SendPingPacket(pingId).asInstanceOf[UserAction])
     }, 250)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -494,11 +502,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case Protocol.WinnerBestScore(score) =>
         maxArea = Constant.shortMax(maxArea, score)
 
-      case Protocol.Ranks(current, score, rank) =>
-        currentRank = current
-        maxArea = Constant.shortMax(maxArea, score.area)
+      case Protocol.Ranks(ranks, personalScore, personalRank) =>
+        currentRank = ranks
+        maxArea = Constant.shortMax(maxArea, personalScore.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
-          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, score , rank)
+          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
@@ -536,8 +544,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         newFieldInfo += data.frameCount -> data
         grid.historyFieldInfo += data.frameCount -> data
 
-      case x@Protocol.ReceivePingPacket(_) =>
-        PerformanceTool.receivePingPackage(x)
+      case x@Protocol.ReceivePingPacket(actionId) =>
+        if (pingMap.get(actionId).nonEmpty) {
+          PerformanceTool.receivePingPackage(pingMap(actionId))
+          pingMap -= actionId
+        }
 
       case x@Protocol.WinData(_,_) =>
         println(s"receive winningData msg:$x")

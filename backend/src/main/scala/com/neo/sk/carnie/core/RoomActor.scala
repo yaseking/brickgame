@@ -310,8 +310,8 @@ object RoomActor {
                 (userDeadList.contains(s._1) &&  curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
                 Protocol.SnakeAction(id, keyCode, realFrame, actionId))
 
-            case SendPingPacket(createTime) =>
-              dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(createTime))
+            case SendPingPacket(pingId) =>
+              dispatchTo(subscribersMap, id, Protocol.ReceivePingPacket(pingId))
 
             case NeedToSync =>
               dispatchTo(subscribersMap, id, grid.getGridData)
@@ -410,7 +410,6 @@ object RoomActor {
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
             log.info(s"win!! currentRank: ${grid.currentRank}")
-            val finalData = grid.getGridData
             grid.cleanData()
             userMap.foreach { u =>
               if (u._1 == grid.currentRank.head.id)

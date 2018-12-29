@@ -54,6 +54,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private var maxArea: Short = 0
   private var winningData = WinData(0,Some(0))
 
+  var pingMap = Map.empty[Short, Long] // id, 时间戳
+
+  var pingId: Short = 0
+
   val idGenerator = new AtomicInteger(1)
   private var myActionHistory = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
@@ -98,7 +102,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket(System.currentTimeMillis()).asInstanceOf[UserAction])
+      if (pingId > 10000) pingId = 0  else pingId = (pingId + 1).toShort
+      val curTime = System.currentTimeMillis()
+      pingMap += (pingId -> curTime)
+      webSocketClient.sendMessage(SendPingPacket(pingId).asInstanceOf[UserAction])
     }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -407,11 +414,11 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case Protocol.WinnerBestScore(score) =>
         maxArea =Constant.shortMax(maxArea, score)
 
-      case Protocol.Ranks(current, score, rank) =>
-        currentRank = current
-        maxArea = Constant.shortMax(maxArea, score.area)
+      case Protocol.Ranks(ranks, personalScore, personalRank) =>
+        currentRank = ranks
+        maxArea = Constant.shortMax(maxArea, personalScore.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
-          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, score, rank)
+          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
@@ -449,9 +456,12 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           audioFinish.play()
         newFieldInfo += data.frameCount -> data
 
-      case x@Protocol.ReceivePingPacket(_) =>
+      case x@Protocol.ReceivePingPacket(actionId) =>
         println("got pingPacket.")
-        PerformanceTool.receivePingPackage(x)
+        if (pingMap.get(actionId).nonEmpty) {
+          PerformanceTool.receivePingPackage(pingMap(actionId))
+          pingMap -= actionId
+        }
 
       case x@Protocol.WinData(winnerScore,yourScore) =>
         winningData = x

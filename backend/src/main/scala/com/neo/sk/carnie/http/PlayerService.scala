@@ -316,11 +316,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
-          val a = ByteString(
-            //encoded process
-            msg.fillMiddleBuffer(sendBuffer).result()
-          )
-
+          val a = msg.fillMiddleBuffer(sendBuffer).result()
           msg match {
             case ReceivePingPacket(_) =>
               ping = ping + a.length
@@ -366,9 +362,10 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             win = 0
             other = 0
           }
-          BinaryMessage.Strict(a)
+          BinaryMessage.Strict(ByteString(a))
 
         case x =>
+          println("unknown")
           TextMessage.apply("")
 
       }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
