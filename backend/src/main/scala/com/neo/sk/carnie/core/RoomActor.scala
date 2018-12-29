@@ -410,7 +410,6 @@ object RoomActor {
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
             log.info(s"win!! currentRank: ${grid.currentRank}")
-            val finalData = grid.getGridData
             grid.cleanData()
             userMap.foreach { u =>
               if (u._1 == grid.currentRank.head.id)
