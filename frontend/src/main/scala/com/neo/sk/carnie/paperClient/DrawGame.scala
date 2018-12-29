@@ -333,7 +333,7 @@ class DrawGame(
 //    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.map{s => ScanByColumn(s.y.filter(r => r._1 < maxPoint.y && r._2 > minPoint.y), s.x.filter(r => r._1 < maxPoint.x && r._2 > minPoint.x))}) }
     val fieldInWindow = data.fieldDetails
 
-    scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00006, 0.85)
+    scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00002, 0.94)
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
@@ -455,19 +455,20 @@ class DrawGame(
 
 
     val myRankBaseLine = 4
-    currentRank.filter(_.id == uid).foreach { score =>
+    if(personalScore.id == uid) {
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.globalAlpha = 0.6
       rankCtx.fillStyle = color
       rankCtx.save()
-      rankCtx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
+      rankCtx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), textLineHeight + 10)
       rankCtx.restore()
 
       rankCtx.globalAlpha = 1
       rankCtx.font = "22px Helvetica"
       rankCtx.fillStyle = ColorsSetting.fontColor2
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
+      drawTextLine(f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
     }
+
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "14px Helvetica"
