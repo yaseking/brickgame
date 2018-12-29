@@ -195,7 +195,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if(deadUser.get(grid.frameCount).nonEmpty) {
         deadUser(grid.frameCount).foreach { sid =>
           if (grid.snakes.keySet.contains(sid)) {
-            grid.cleanDiedSnake(sid)
+            grid.cleanDiedSnakeInfo(sid)
           }
         }
       }
