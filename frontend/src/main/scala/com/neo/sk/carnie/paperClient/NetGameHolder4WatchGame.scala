@@ -3,6 +3,8 @@ package com.neo.sk.carnie.paperClient
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicInteger
 
+import com.neo.sk.carnie.common.Constant
+
 //import com.neo.sk.carnie.common.Constant
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
@@ -38,7 +40,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
   //  var winData: Protocol.Data4TotalSync = grid.getGridData
-  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
@@ -47,13 +49,13 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
-  private var recallFrame: scala.Option[Long] = None
-  private var myScore = BaseScore(0, 0, 0l, 0l)
-  private var maxArea: Int = 0
+  private var recallFrame: scala.Option[Int] = None
+  private var myScore = BaseScore(0, 0, 0)
+  private var maxArea: Short = 0
   private var winningData = WinData(0,Some(0))
 
   val idGenerator = new AtomicInteger(1)
-  private var myActionHistory = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
+  private var myActionHistory = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
@@ -88,7 +90,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   def updateListener(): Unit = {
-    webSocketClient.sendMessage(NeedToSync(watcherId).asInstanceOf[UserAction])
+    webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
   }
 
   def getRandom(s: Int):Int = {
@@ -102,7 +104,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      webSocketClient.sendMessage(SendPingPacket(watcherId, System.currentTimeMillis()).asInstanceOf[UserAction])
+      webSocketClient.sendMessage(SendPingPacket(System.currentTimeMillis()).asInstanceOf[UserAction])
     }, 100)
     dom.window.requestAnimationFrame(gameRender())
   }
@@ -137,7 +139,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       recallFrame match {
         case Some(-1) =>
           println("!!!!!!!!:NeedToSync2")
-          webSocketClient.sendMessage(NeedToSync(myId).asInstanceOf[UserAction])
+          webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
           recallFrame = None
 
         case Some(frame) =>
@@ -384,7 +386,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         audioKilled.pause()
         audioKilled.currentTime = 0
         firstCome = true
-        myScore = BaseScore(0, 0, 0l, 0l)
+        myScore = BaseScore(0, 0, 0)
         if (isWin) {
           isWin = false
         }
@@ -409,12 +411,11 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         grid.cleanData()
 
       case Protocol.WinnerBestScore(score) =>
-        maxArea = Math.max(maxArea, score)
-
+        maxArea =Constant.shortMax(maxArea, score)
 
       case Protocol.Ranks(current, score, rank) =>
         currentRank = current
-        maxArea = Math.max(maxArea, score.area)
+        maxArea = Constant.shortMax(maxArea, score.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, score, rank)
 
@@ -438,11 +439,11 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         killInfo = Some(killedId, killedName, killerName)
         barrageDuration = 100
 
-      case x@Protocol.DeadPage(id, kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
         //        grid.cleanSnakeTurnPoint(id)
-        myScore = BaseScore(kill, area, start, end)
-        maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+        myScore = BaseScore(kill, area, playTime)
+        maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
 
 
       case data: Protocol.NewFieldInfo =>
@@ -473,7 +474,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     audioKilled.currentTime = 0
     firstCome = true
     if (isWin) isWin = false
-    myScore = BaseScore(0, 0, 0l, 0l)
+    myScore = BaseScore(0, 0, 0)
     isContinue = true
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)

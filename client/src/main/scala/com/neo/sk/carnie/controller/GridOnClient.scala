@@ -13,7 +13,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = println(msg)
 
-  var myActionHistory : Map[Int, (Int, Long)] = Map[Int, (Int, Long)]() //(actionId, (keyCode, frameCount))
+  var myActionHistory : Map[Int, (Int, Int)] = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
 
   //击杀弹幕
   var killInfo: scala.Option[(String, String, String)] = None

@@ -221,12 +221,6 @@ object RoomManager {
           Behaviors.same
 
         case m@UserActionOnServer(id, action) =>
-          action match {
-            case SendPingPacket(_, createTime) => //
-
-            case _ =>
-//              log.debug(s"receive $m...roomMap:$roomMap")
-          }
           if (roomMap.exists(r => r._2._3.exists(u => u._1 == id))) {
             val roomId = roomMap.filter(r => r._2._3.exists(u => u._1 == id)).head._1
             val mode = roomMap(roomId)._1
@@ -341,9 +335,9 @@ object RoomManager {
   def joinGame(actor: ActorRef[RoomManager.Command], userId: String, name: String, mode: Int, img: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
-        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
-        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
-        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case action@Protocol.Key(_, _, _) => UserActionOnServer(userId, action)
+        case action@Protocol.SendPingPacket(_) => UserActionOnServer(userId, action)
+        case action@Protocol.NeedToSync => UserActionOnServer(userId, action)
         case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
@@ -367,9 +361,9 @@ object RoomManager {
   def joinGameByRoomId(actor: ActorRef[RoomManager.Command], userId: String, name: String, img: Int, roomId: Int): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
-        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
-        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
-        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case action@Protocol.Key(_, _, _) => UserActionOnServer(userId, action)
+        case action@Protocol.SendPingPacket(_) => UserActionOnServer(userId, action)
+        case action@Protocol.NeedToSync => UserActionOnServer(userId, action)
         case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
@@ -393,9 +387,9 @@ object RoomManager {
   def createRoom(actor: ActorRef[RoomManager.Command], userId: String, name: String, mode: Int, img: Int, pwd: Option[String]): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
-        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
-        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
-        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case action@Protocol.Key(_, _, _) => UserActionOnServer(userId, action)
+        case action@Protocol.SendPingPacket(_) => UserActionOnServer(userId, action)
+        case action@Protocol.NeedToSync => UserActionOnServer(userId, action)
         case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
@@ -419,9 +413,8 @@ object RoomManager {
   def watchGame(actor: ActorRef[RoomManager.Command], roomId: Int, playerId: String, userId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
       .map {
-        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
-        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
-        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
+        case action@Protocol.SendPingPacket(_) => UserActionOnServer(userId, action)
+        case action@Protocol.NeedToSync => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
       .to(sink4WatchGame(actor, roomId, userId))
@@ -443,12 +436,7 @@ object RoomManager {
 
   def replayGame(actor: ActorRef[RoomManager.Command], recordId: Long, playedId: String, frame: Int, playerId: String): Flow[Protocol.UserAction, WsSourceProtocol.WsMsgSource, Any] = {
     val in = Flow[Protocol.UserAction]
-      .map {
-        case action@Protocol.Key(id, _, _, _) => UserActionOnServer(id, action)
-        case action@Protocol.SendPingPacket(id, _) => UserActionOnServer(id, action)
-        case action@Protocol.NeedToSync(id) => UserActionOnServer(id, action)
-        case _ => UnKnowAction
-      }
+      .map { _ => UnKnowAction}
       .to(sink4Replay(actor, recordId, playerId))
 
     val out =

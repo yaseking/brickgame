@@ -343,7 +343,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             case SomeOneKilled(_, _, _) =>
               someoneKill = someoneKill + a.length
 
-            case DeadPage(_, _, _, _, _) =>
+            case DeadPage(_, _, _, _) =>
               dead = dead + a.length
 
             case WinData(_, _) =>

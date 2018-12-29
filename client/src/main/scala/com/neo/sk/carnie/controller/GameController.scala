@@ -59,16 +59,16 @@ class GameController(player: PlayerInfoInClient,
   val bgmList = List(bgm1,bgm3,bgm4,bgm7,bgm8)
 
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-  var newFieldInfo = Map.empty[Long, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   private val bgmAmount = bgmList.length
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  private var recallFrame: scala.Option[Long] = None
+  private var recallFrame: scala.Option[Int] = None
   private var stageWidth = stageCtx.getStage.getWidth.toInt
   private var stageHeight = stageCtx.getStage.getHeight.toInt
   private var isContinue = true
-  private var myScore = BaseScore(0, 0, 0l, 0l)
+  private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Int = 0
   private var winningData = WinData(0,Some(0))
   private val timeline = new Timeline()
@@ -135,12 +135,12 @@ class GameController(player: PlayerInfoInClient,
       stageCtx.getStage.setHeight(stageHeight)
     }
     logicFrameTime = System.currentTimeMillis()
-    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(player.id, System.currentTimeMillis()))
+    playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(System.currentTimeMillis()))
 
     recallFrame match {
       case Some(-1) =>
         println("!!!!!!!!:NeedToSync2")
-        playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
+        playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
         recallFrame = None
 
       case Some(frame) =>
@@ -415,10 +415,10 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case x@Protocol.DeadPage(id, kill, area, start, end) =>
+      case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
-          myScore = BaseScore(kill, area, start, end)
+          myScore = BaseScore(kill, area, playTime)
           grid.cleanDiedSnake(id)
         }
 
@@ -466,6 +466,7 @@ class GameController(player: PlayerInfoInClient,
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
           newFieldInfo += data.frameCount -> data
+
           grid.historyFieldInfo += data.frameCount -> data
         }
 
@@ -536,7 +537,7 @@ class GameController(player: PlayerInfoInClient,
         val delay = if(mode==2) 4 else 2
         val frame = grid.frameCount + delay
 //        val actionId = idGenerator.getAndIncrement()
-        val keyCode = Constant.keyCode2Int(key)
+        val keyCode = Constant.keyCode2Byte(key)
         grid.addActionWithFrame(player.id, keyCode, frame)
         key match {
           case KeyCode.SPACE =>
@@ -557,9 +558,9 @@ class GameController(player: PlayerInfoInClient,
                     case _ => KeyCode.SPACE
                   } else key
 //              println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), actionFrame, actionId)}")
-              grid.addActionWithFrame(player.id, Constant.keyCode2Int(newKeyCode), actionFrame)
-              grid.myActionHistory += actionId -> (Constant.keyCode2Int(newKeyCode), actionFrame)
-              val msg: Protocol.UserAction = Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId)
+              grid.addActionWithFrame(player.id, Constant.keyCode2Byte(newKeyCode), actionFrame)
+              grid.myActionHistory += actionId -> (Constant.keyCode2Byte(newKeyCode), actionFrame)
+              val msg: Protocol.UserAction = Protocol.Key(Constant.keyCode2Byte(newKeyCode), frame, actionId)
               playActor ! PlayGameWebSocket.MsgToService(msg)
             }
 
@@ -640,7 +641,7 @@ class GameController(player: PlayerInfoInClient,
     drawFunction = FrontProtocol.DrawGameWait
     firstCome = true
     if (isWin) isWin = false
-    myScore = BaseScore(0, 0, 0l, 0l)
+    myScore = BaseScore(0, 0, 0)
     isContinue = true
     Boot.addToPlatform{
       gameScene.group.getChildren.remove(gameScene.backBtn)

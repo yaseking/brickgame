@@ -31,6 +31,10 @@ object Constant {
     val backgroundColor2 = "#333333"
   }
 
+  def shortMax(a: Short, b: Short): Short ={
+    if(a > b) a else b
+  }
+
 
 
 }
