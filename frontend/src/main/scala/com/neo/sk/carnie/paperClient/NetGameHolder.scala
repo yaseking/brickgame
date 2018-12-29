@@ -39,6 +39,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
   //  var winData: Protocol.Data4TotalSync = grid.getGridData
+  var deadUser = Map.empty[Int, List[String]] //frame, userId
   var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
@@ -189,6 +190,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       } else {
         grid.update("f")
 //        println(s"update: ${grid.getGridData.snakes.map(_.id)}")
+      }
+
+      if(deadUser.get(grid.frameCount).nonEmpty) {
+        deadUser(grid.frameCount).foreach { sid =>
+          if (grid.snakes.keySet.contains(sid)) {
+            grid.cleanDiedSnake(sid)
+          }
+        }
       }
 
       if (newFieldInfo.nonEmpty) {
@@ -518,9 +527,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         grid.cleanDiedSnake(id)
 
-      case Protocol.UserDead(id,frame) =>
-        grid.cleanDiedSnake(id)
-        grid.cleanSnakeTurnPoint(id)
+      case Protocol.UserDead(frame, id) =>
+        deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
 
       case data: Protocol.NewFieldInfo =>
 //        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")

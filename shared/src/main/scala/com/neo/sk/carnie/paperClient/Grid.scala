@@ -545,5 +545,10 @@ trait Grid {
       snakes -= id
     }
   }
+
+  def cleanDiedSnakeInfo(sid: String): Unit = {
+    returnBackField(sid)
+    snakes -= sid
+  }
 }
 

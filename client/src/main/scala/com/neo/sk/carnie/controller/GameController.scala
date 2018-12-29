@@ -448,7 +448,7 @@ class GameController(player: PlayerInfoInClient,
           newSnakeInfo = Some(data)
         }
 
-      case Protocol.UserDead(id,frame) =>
+      case Protocol.UserDead(frame, id) =>
         println("I've clean it")
         Boot.addToPlatform {
           grid.cleanDiedSnake(id)
@@ -476,7 +476,7 @@ class GameController(player: PlayerInfoInClient,
         }
 
       case x@Protocol.WinData(_,_) =>
-        log.debug(s"receive winningData m:$x")
+        log.debug(s"receive winningData msg:$x")
         winningData = x
 
       case unknown@_ =>
