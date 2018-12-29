@@ -15,7 +15,7 @@ object Protocol {
                          ) extends GameMessage
 
   case class Data4TotalSync(
-                             frameCount: Long,
+                             frameCount: Int,
                              snakes: List[SkDt],
                              bodyDetails: List[BodyBaseInfo],
                              fieldDetails: List[FieldByColumn]
