@@ -517,7 +517,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Math.max(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
         grid.cleanDiedSnake(id)
 
-      case Protocol.UserDead(id) =>
+      case Protocol.UserDead(id,frame) =>
         grid.cleanDiedSnake(id)
         grid.cleanSnakeTurnPoint(id)
 

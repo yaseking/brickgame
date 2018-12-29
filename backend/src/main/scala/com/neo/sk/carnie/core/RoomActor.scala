@@ -182,11 +182,11 @@ object RoomActor {
               val startTime = userMap(id).startTime
               grid.cleanSnakeTurnPoint(id)
               gameEvent += ((grid.frameCount, LeftEvent(id, name)))
-              gameEvent += ((grid.frameCount, Protocol.UserDead(id)))
+              gameEvent += ((grid.frameCount, Protocol.UserDead(id,grid.frameCount)))
 //              log.debug(s"user $id dead:::::")
               val endTime = System.currentTimeMillis()
               dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, startTime, endTime))
-              dispatch(subscribersMap, Protocol.UserDead(id))
+              dispatch(subscribersMap, Protocol.UserDead(id,grid.frameCount))
               val info = userMap(id).copy(joinFrame = -1L) //死了之后不发消息
               userMap.update(id, info)
               watcherMap.filter(_._2._1==id).foreach { user =>

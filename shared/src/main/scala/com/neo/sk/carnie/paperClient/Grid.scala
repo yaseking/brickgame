@@ -280,6 +280,7 @@ trait Grid {
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList ::: bodyInNewFieldSnake
 
     finalDie.foreach { sid =>
+      println(s"sid:$sid")
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
@@ -472,6 +473,7 @@ trait Grid {
   }
 
   def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地
+    println(s"returnBack : $snakeId")
     snakeTurnPoints -= snakeId
     val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
     var newGrid = grid
@@ -532,7 +534,7 @@ trait Grid {
 
   def cleanSnakeTurnPoint(sid: String) = {
     if (snakeTurnPoints.contains(sid)) {
-      println(s"cleanTurnPoint-id: ${sid}")
+//      println(s"cleanTurnPoint-id: ${sid}")
       snakeTurnPoints -= sid
     }
   }

@@ -430,7 +430,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
 
-      case Protocol.UserDead(id) =>
+      case Protocol.UserDead(id,frame) =>
         grid.cleanDiedSnake(id)
         grid.cleanSnakeTurnPoint(id)
 

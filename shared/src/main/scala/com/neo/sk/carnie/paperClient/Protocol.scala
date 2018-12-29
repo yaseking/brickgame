@@ -73,7 +73,7 @@ object Protocol {
 
   case class DeadPage(id: String, kill: Int, area: Int, startTime: Long, endTime: Long) extends GameMessage
 
-  case class UserDead(id: String) extends GameMessage with GameEvent
+  case class UserDead(id: String,frame:Long) extends GameMessage with GameEvent
 
   case class UserLeft(userId: String) extends GameMessage
 

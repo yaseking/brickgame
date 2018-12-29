@@ -19,6 +19,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     println("back frame:"+ data.frameCount)
+    val gridField = grid.filter(_._2 match { case Field(_) => true case _ => false })
     var gridMap = grid.filter(_._2 match { case Body(_, _) => false case _ => true })
     data.bodyDetails.foreach{ bodies =>
       val uid = bodies.uid
@@ -42,6 +43,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
       bodies.turn.pointOnField.foreach{p =>  gridMap += Point(p._1.x, p._1.y) -> Body(uid, Some(p._2))}
       snakeTurnPoints += ((uid, bodies.turn.turnPoint))
     }
+
+    gridMap ++= gridField
 
     if(data.fieldDetails.nonEmpty) {
       gridMap = gridMap.filter(_._2 match { case Field(_) => false case _ => true })
