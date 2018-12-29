@@ -30,25 +30,14 @@ trait HttpService extends PlayerService
 
   implicit val timeout: Timeout
 
-  private val cacheSeconds = 24 * 60 * 60
-
   val routes =
     pathPrefix("carnie") {
-        netSnakeRoute ~
+      netSnakeRoute ~
         resourceRoutes ~
         esheepRoute ~
         roomApiRoutes ~
-        adminRoutes ~
-        addCacheControlHeadersWithFilter(`public`, `max-age`(cacheSeconds)) {
-          getFromResource("html/netSnake.html")
-        }
+        adminRoutes
     }
 
-  //只使用强制缓存,去除协商缓存的字段
-  def addCacheControlHeadersWithFilter(first: CacheDirective, more: CacheDirective*): Directive0 = {
-    mapResponseHeaders { headers =>
-      `Cache-Control`(first, more: _*) +: headers.filterNot(h => h.name() == "Last-Modified" || h.name() == "ETag")
-    }
-  }
 
 }

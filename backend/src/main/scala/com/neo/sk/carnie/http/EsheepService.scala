@@ -2,7 +2,7 @@ package com.neo.sk.carnie.http
 
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Directive0, Route}
 import com.neo.sk.carnie.common._
 import com.neo.sk.carnie.ptcl._
 import io.circe.generic.auto._
@@ -10,15 +10,17 @@ import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
 import com.neo.sk.carnie.core.TokenActor
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.http.scaladsl.model.headers.{CacheDirective, `Cache-Control`}
 import io.circe.Error
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
 import com.neo.sk.utils.{CirceSupport, EsheepClient}
-
+import akka.http.scaladsl.model.headers.CacheDirectives.{ `max-age`, `public` }
 import scala.concurrent.Future
-
 trait EsheepService extends ServiceUtils with CirceSupport {
 
   private val log = LoggerFactory.getLogger(this.getClass)
+
+  private val cacheSeconds = 24 * 60 * 60
 
   val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
 
@@ -38,7 +40,9 @@ trait EsheepService extends ServiceUtils with CirceSupport {
                 EsheepClient.verifyAccessCode(gameId, accessCode, token).map {
                   case Right(rsp) =>
                     if(rsp.playerId == playerId){
-                      getFromResource("html/index.html")
+                      addCacheControlHeadersWithFilter(`public`, `max-age`(cacheSeconds)) {
+                        getFromResource("html/index.html")
+                      }
                     } else {
                       complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
                     }
@@ -102,6 +106,13 @@ trait EsheepService extends ServiceUtils with CirceSupport {
       case Left(e) =>
         log.debug(s"getBotList errs: $e")
         complete(ErrorRsp(120004, s"getBotList errs: $e"))
+    }
+  }
+
+  //只使用强制缓存,去除协商缓存的字段
+  def addCacheControlHeadersWithFilter(first: CacheDirective, more: CacheDirective*): Directive0 = {
+    mapResponseHeaders { headers =>
+      `Cache-Control`(first, more: _*) +: headers.filterNot(h => h.name() == "Last-Modified" || h.name() == "ETag")
     }
   }
 
