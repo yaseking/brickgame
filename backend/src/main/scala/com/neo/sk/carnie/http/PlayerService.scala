@@ -316,10 +316,9 @@ trait PlayerService extends ServiceUtils with CirceSupport {
       .map {
         case msg:Protocol.GameMessage =>
           val sendBuffer = new MiddleBufferInJvm(409600)
-          val a = ByteString(
-            //encoded process
-            msg.fillMiddleBuffer(sendBuffer).result()
-          )
+          val a = msg.fillMiddleBuffer(sendBuffer).result()
+          val b = ByteString(a)
+          println(s"a:${a.length},b:${b.length}")
 
           msg match {
             case ReceivePingPacket(_) =>
@@ -366,7 +365,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             win = 0
             other = 0
           }
-          BinaryMessage.Strict(a)
+          BinaryMessage.Strict(b)
 
         case x =>
           TextMessage.apply("")
