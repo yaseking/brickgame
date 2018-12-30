@@ -39,8 +39,6 @@ trait PlayerService extends ServiceUtils with CirceSupport {
 
   implicit val timeout: Timeout
 
-//  val tokenActor: akka.actor.typed.ActorRef[TokenActor.Command]
-
   private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.PlayerService")
 
 

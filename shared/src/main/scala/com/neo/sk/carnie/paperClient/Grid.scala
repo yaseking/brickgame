@@ -33,6 +33,9 @@ trait Grid {
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
   var historyStateMap = Map.empty[Int, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
   var historyFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //回溯
+  var historyNewSnake = Map.empty[Int, NewSnakeInfo] //回溯
+  var historyDieSnake = Map.empty[Int, List[String]] //回溯
+
 
   List(0, BorderSize.w).foreach(x => (0 until BorderSize.h).foreach(y => grid += Point(x, y) -> Border))
   List(0, BorderSize.h).foreach(y => (0 until BorderSize.w).foreach(x => grid += Point(x, y) -> Border))
@@ -99,6 +102,8 @@ trait Grid {
     actionMap -= (frameCount - maxDelayed)
     historyFieldInfo = historyFieldInfo.filter(_._1 > (frameCount - (maxDelayed + 1)))
     historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    historyNewSnake = historyNewSnake.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    historyDieSnake = historyDieSnake.filter(_._1 > (frameCount - (maxDelayed + 1)))
     frameCount += 1
     isFinish
   }
@@ -280,7 +285,6 @@ trait Grid {
     val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList ::: bodyInNewFieldSnake
 
     finalDie.foreach { sid =>
-      println(s"sid:$sid")
       returnBackField(sid)
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
@@ -476,41 +480,9 @@ trait Grid {
 //    println(s"returnBack : $snakeId")
     snakeTurnPoints -= snakeId
     val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
-    var newGrid = grid
     bodyGrid.foreach {
-      case (p, Body(_, fid)) if fid.nonEmpty => newGrid += p -> Field(fid.get)
-      case (p, _) => newGrid -= p
-    }
-    grid = newGrid
-  }
-
-  def recallGrid(startFrame: Int, endFrame: Int): Unit = {
-    historyStateMap.get(startFrame) match {
-      case Some(state) =>
-        println(s"recallGrid-start$startFrame-end-$endFrame")
-        snakes = state._1
-        grid = state._2
-        (startFrame until endFrame).foreach { frame =>
-          frameCount = frame
-          updateSnakes("f")
-          updateSpots()
-          historyFieldInfo.get(frame).foreach { data =>
-            data.fieldDetails.foreach { baseInfo =>
-              baseInfo.scanField.foreach { fids =>
-                fids.y.foreach { ly =>
-                  (ly._1 to ly._2 by 1).foreach { y =>
-                    fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => grid += Point(x, y) -> Field(baseInfo.uid)) }
-                  }
-
-                }
-              }
-            }
-          }
-        }
-        frameCount += 1
-
-      case None =>
-        println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")
+      case (p, Body(_, fid)) if fid.nonEmpty => grid += p -> Field(fid.get)
+      case (p, _) => grid -= p
     }
   }
 
@@ -548,7 +520,12 @@ trait Grid {
 
   def cleanDiedSnakeInfo(sid: String): Unit = {
     returnBackField(sid)
+    grid.foreach {
+      case (p, Field(fid)) if fid == sid => grid -= p
+      case _ =>
+    }
     snakes -= sid
   }
+
 }
 

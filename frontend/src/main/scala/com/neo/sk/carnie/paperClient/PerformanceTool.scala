@@ -80,10 +80,10 @@ object PerformanceTool {
     receiveNetworkLatencyList = (currentTime - p) :: receiveNetworkLatencyList
     if(currentTime - p < 0) {
       println(s"!!!!error:::::current time:$currentTime")
-      println(s"p.createTime:${p}")
+      println(s"p.createTime:$p")
     }
 
-    if (receiveNetworkLatencyList.size >= PingTimes) {
+    if (receiveNetworkLatencyList.lengthCompare(PingTimes) >= 0) {
       latency = receiveNetworkLatencyList.sum / receiveNetworkLatencyList.size
       receiveNetworkLatencyList = Nil
     }

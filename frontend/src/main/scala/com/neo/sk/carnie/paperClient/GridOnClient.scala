@@ -2,6 +2,8 @@ package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
+import com.neo.sk.carnie.paperClient.Protocol.NewFieldInfo
+
 //import com.neo.sk.carnie.paperClient.NetGameHolder.grid
 
 /**
@@ -66,11 +68,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def addNewFieldInfo(data: Protocol.NewFieldInfo): Unit = {
-//    data.fieldDetails.foreach { baseInfo =>
-//      baseInfo.scanField.foreach { fids =>
-//        fids.x.foreach { l => (l._1 to l._2 by 1).foreach(x => grid += Point(x, fids.y) -> Field(baseInfo.uid)) }
-//      }
-//    }
     data.fieldDetails.foreach { baseInfo =>
       baseInfo.scanField.foreach { fids =>
         fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
@@ -80,8 +77,37 @@ class GridOnClient(override val boundary: Point) extends Grid {
     }
   }
 
+  def recallGrid(startFrame: Int, endFrame: Int): Unit = {
+    historyStateMap.get(startFrame) match {
+      case Some(state) =>
+        println(s"recallGrid-start$startFrame-end-$endFrame")
+        snakes = state._1
+        grid = state._2
+        (startFrame until endFrame).foreach { frame =>
+          frameCount = frame
+          updateSnakes("f")
+          updateSpots()
+          val newFrame = frame + 1
 
+          historyFieldInfo.get(newFrame).foreach { data =>
+            addNewFieldInfo(data)
+          }
 
+          historyNewSnake.get(newFrame).foreach { newSnakes =>
+            newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
+            snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
+            addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+          }
+
+          historyDieSnake.get(newFrame).foreach { dieSnakes =>
+            dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
+          }
+        }
+
+      case None =>
+        println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")
+    }
+  }
 
 
 }

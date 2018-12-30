@@ -81,7 +81,7 @@ object Protocol {
 
   case class SnakeAction(id: String, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
 
-  case class SnakeLeft(id: String, name: String) extends GameMessage
+//  case class SnakeLeft(id: String, name: String) extends GameMessage
 
   case class ReplayFinish(id: String) extends GameMessage
 
