@@ -103,6 +103,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
             dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
           }
         }
+        frameCount += 1
 
       case None =>
         println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")

@@ -190,8 +190,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               println(s"snake dead in backend:$sid")
               grid.cleanDiedSnakeInfo(sid)
             }
-            deadUser -= frame
             grid.historyDieSnake += frame -> deadUser(frame)
+            deadUser -= frame
           }
 
           if (newFieldInfo.get(frame).nonEmpty) {
