@@ -20,6 +20,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
 
+  var carnieMap = Map.empty[Byte, String]
 
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
@@ -70,7 +71,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid = gridMap
     actionMap = actionMap.filterKeys(_ >= (data.frameCount - maxDelayed))
     snakes = data.snakes.map(s => s.id -> s).toMap
-//    killHistory = data.killHistory.map(k => k.killedId -> (k.killerId, k.killerName,k.frameCount)).toMap
+    carnieMap = data.snakes.map(s => s.carnieId -> s.id).toMap
   }
 
   def addNewFieldInfo(data: Protocol.NewFieldInfo): Unit = {
@@ -99,19 +100,32 @@ class GridOnClient(override val boundary: Point) extends Grid {
             addNewFieldInfo(data)
           }
 
+          historyDieSnake.get(newFrame).foreach { dieSnakes =>
+            dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
+          }
+
           historyNewSnake.get(newFrame).foreach { newSnakes =>
             newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
             snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
             addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
           }
 
-          historyDieSnake.get(newFrame).foreach { dieSnakes =>
-            dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
-          }
         }
+        frameCount += 1
 
       case None =>
         println(s"???can't find-$startFrame-end is $endFrame!!!!tartget-${historyStateMap.keySet}")
+    }
+  }
+
+  def findRecallFrame(receiverFame: Int, oldRecallFrame: Option[Int]): Option[Int] = {
+    if (frameCount - receiverFame <= (maxDelayed - 1)) { //回溯
+      oldRecallFrame match {
+        case Some(oldFrame) => Some(Math.min(receiverFame, oldFrame))
+        case None => Some(receiverFame)
+      }
+    } else {
+      Some(-1)
     }
   }
 

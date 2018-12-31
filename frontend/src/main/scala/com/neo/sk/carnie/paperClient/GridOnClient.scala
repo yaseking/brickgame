@@ -2,7 +2,9 @@ package com.neo.sk.carnie.paperClient
 
 import java.awt.event.KeyEvent
 
-import com.neo.sk.carnie.paperClient.Protocol.NewFieldInfo
+import com.neo.sk.carnie.paperClient.Protocol.{NewFieldInfo, NewSnakeInfo}
+
+import scala.collection.mutable
 
 //import com.neo.sk.carnie.paperClient.NetGameHolder.grid
 
@@ -18,6 +20,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
   override def info(msg: String): Unit = println(msg)
 
 //  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {}
+
+  var carnieMap = Map.empty[Byte, String]
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     println("back frame:"+ data.frameCount)
@@ -65,14 +69,23 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid = gridMap
     actionMap = actionMap.filterKeys(_ >= (data.frameCount - maxDelayed))
     snakes = data.snakes.map(s => s.id -> s).toMap
+    carnieMap = data.snakes.map(s => s.carnieId -> s.id).toMap
   }
 
   def addNewFieldInfo(data: Protocol.NewFieldInfo): Unit = {
     data.fieldDetails.foreach { baseInfo =>
       baseInfo.scanField.foreach { fids =>
-        fids.y.foreach { ly => (ly._1 to ly._2 by 1).foreach{y =>
-          fids.x.foreach { lx => (lx._1 to lx._2 by 1).foreach(x => grid += Point(x, y) -> Field(baseInfo.uid)) }
-        }}
+        fids.y.foreach { ly =>
+          (ly._1 to ly._2 by 1).foreach { y => fids.x.foreach { lx =>
+              (lx._1 to lx._2 by 1).foreach { x =>
+                grid.get(Point(x, y)) match {
+                  case Some(Body(bid, _)) => grid += Point(x, y) -> Body(bid, Some(baseInfo.uid))
+                  case _ => grid += Point(x, y) -> Field(baseInfo.uid)
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -93,15 +106,16 @@ class GridOnClient(override val boundary: Point) extends Grid {
             addNewFieldInfo(data)
           }
 
+          historyDieSnake.get(newFrame).foreach { dieSnakes =>
+            dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
+          }
+
           historyNewSnake.get(newFrame).foreach { newSnakes =>
             newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
             snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
             addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
           }
 
-          historyDieSnake.get(newFrame).foreach { dieSnakes =>
-            dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
-          }
         }
         frameCount += 1
 
@@ -110,5 +124,48 @@ class GridOnClient(override val boundary: Point) extends Grid {
     }
   }
 
+  def setGridInGivenFrame(frame: Int): Unit = {
+    frameCount = frame - 1
+    historyStateMap.get(frameCount) match {
+      case Some(state) =>
+        println(s"setGridInGivenFrame:$frame")
+        snakes = state._1
+        grid = state._2
+
+        updateSnakes("f")
+        updateSpots()
+        frameCount += 1
+
+        historyFieldInfo.get(frameCount).foreach { data =>
+          addNewFieldInfo(data)
+        }
+
+        historyDieSnake.get(frameCount).foreach { dieSnakes =>
+          dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
+        }
+
+        historyNewSnake.get(frameCount).foreach { newSnakes =>
+          newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
+          snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
+          addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+        }
+
+
+      case None =>
+        println(s"setGridInGivenFrame...but can't find-${frame-1}!tartget-${historyStateMap.keySet}")
+
+    }
+  }
+
+  def findRecallFrame(receiveFame: Int, oldRecallFrame: Option[Int]): Option[Int] = {
+    if (frameCount - receiveFame <= (maxDelayed - 1)) { //回溯
+      oldRecallFrame match {
+        case Some(oldFrame) => Some(Math.min(receiveFame, oldFrame))
+        case None => Some(receiveFame)
+      }
+    } else {
+      Some(-1)
+    }
+  }
 
 }

@@ -309,9 +309,10 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.Id(id) =>
         log.debug(s"i receive my id:$id")
 
-      case Protocol.SnakeAction(id, keyCode, frame, actionId) =>
+      case Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
         Boot.addToPlatform {
-          if (grid.snakes.exists(_._1 == id)) {
+          if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
+            val id = grid.carnieMap(carnieId)
             if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
               if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                 grid.addActionWithFrame(id, keyCode, frame)
@@ -448,6 +449,7 @@ class GameController(player: PlayerInfoInClient,
 //        println(s"!!!!!!new snake join!!!")
         Boot.addToPlatform{
           newSnakeInfo = Some(data)
+          data.snake.foreach{s => grid.carnieMap += s.carnieId -> s.id}
         }
 
       case Protocol.UserDead(frame, id, name, killerName) =>

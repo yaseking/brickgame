@@ -236,7 +236,7 @@ trait Grid {
       intersection.foreach { snakeId => // 在即将完成圈地的时候身体被撞击则不死但此次圈地作废
         mayBeSuccess(snakeId).foreach { i =>
           i._2 match {
-            case Body(_, fid) if fid.nonEmpty => grid += i._1 -> Field(fid.get)
+            case body: Body => grid += i._1 -> body
             case Field(fid) => grid += i._1 -> Field(fid)
             case _ => grid -= i._1
           }
@@ -269,7 +269,7 @@ trait Grid {
 
     val finishPoints = finishFields.flatMap(_._2)
 
-    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l, img = 0))).data.header)).keySet
+    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l, carnieId = -1))).data.header)).keySet
     val bodyInNewFieldSnake = finishPoints.map { fp =>
       grid.get(fp) match {
         case Some(Body(bid, _)) => Some(bid)
@@ -373,8 +373,12 @@ trait Grid {
             var newGrid = grid
             for (p <- fillPool) {
               grid.get(p) match {
-                case Some(Body(bodyId, _)) => newGrid += p -> Body(bodyId, Some(snake.id))
+                case Some(Body(bodyId, originFid)) =>
+                  newGrid += p -> Body(bodyId, Some(snake.id))
+                  finalFillPoll += p -> Body(bodyId, originFid)
+
                 case Some(Border) => //doNothing
+
                 case x => newGrid += p -> Field(snake.id)
                   x match {
                     case Some(Field(fid)) => finalFillPoll += p -> Field(fid)

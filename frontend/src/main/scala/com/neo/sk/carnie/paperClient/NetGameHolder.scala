@@ -127,7 +127,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
 
   def gameLoop(): Unit = {
-//    println(s"snakes:::::::::::::${grid.snakes.keys}")
+    //    println(s"snakes:::::::::::::${grid.snakes.keys}")
     logicFrameTime = System.currentTimeMillis()
     if ((oldWindowBoundary.x != dom.window.innerWidth.toFloat) || (oldWindowBoundary.y != dom.window.innerHeight.toFloat)) {
       drawGame.resetScreen()
@@ -135,7 +135,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if (!isContinue) {
         if (isWin) {
           val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
-          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData,winningData)
+          drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData, winningData)
         } else {
           drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
         }
@@ -161,70 +161,58 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         case None =>
       }
 
+      addBackendInfo(grid.frameCount)
       if (syncGridData.nonEmpty) { //逻辑帧更新数据
         val frame = grid.frameCount
         println("front Frame" + frame)
         getMyField()
-        val a = myGroupField
+        //        val a = myGroupField
         val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
+        if(syncGridData.get.frameCount - frame > 1) {
+          val advancedFrame = (syncGridData.get.frameCount - 1) - frame
+          println(s"backend advanced frontend:$advancedFrame")
+          if(advancedFrame > grid.maxDelayed){
+            webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
+          } else {
+            (1 to advancedFrame).foreach{ _ =>
+              grid.update("f")
+              addBackendInfo(grid.frameCount)
+            }
+          }
+        } else if(frame > syncGridData.get.frameCount){
+          println(s"frontend advanced backend:${frame - syncGridData.get.frameCount}")
+          grid.setGridInGivenFrame(syncGridData.get.frameCount - 1)
+        }
         grid.initSyncGridData(syncGridData.get)
         getMyField()
         val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
-        val b = myGroupField
-        if (a != b){
-          println(s"=======myField1:$a,myBody1:$myBody1")
-          println(s"=======myField2:$b,myBody2:$myBody2")
-          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
-        }
+        //        val b = myGroupField
+        //        if (a != b){
+        println(s"=======myBody1:$myBody1")
+        println(s"=======myBody2:$myBody2")
+        //          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
+        //        }
         syncGridData = None
       } else {
         grid.update("f")
       }
-
-      val frameSet = deadUser.keySet.++(newFieldInfo.keySet).++(newSnakeInfo.keySet)
-      if(frameSet.nonEmpty) {
-        val miniFrame = frameSet.min
-        (miniFrame to grid.frameCount).foreach { frame =>
-          if (deadUser.get(frame).nonEmpty) {
-            deadUser(frame).foreach { sid =>
-              println(s"snake dead in backend:$sid")
-              grid.cleanDiedSnakeInfo(sid)
-            }
-            grid.historyDieSnake += frame -> deadUser(frame)
-            deadUser -= frame
-          }
-
-          if (newFieldInfo.get(frame).nonEmpty) {
-            grid.addNewFieldInfo(newFieldInfo(frame))
-            newFieldInfo -= frame
-          }
-
-          if (newSnakeInfo.get(frame).nonEmpty) {
-            val newSnakes = newSnakeInfo(frame)
-            if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
-            newSnakes.snake.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
-            grid.snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
-            grid.addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
-            newSnakeInfo -= frame
-          }
-        }
-      }
+      addBackendInfo(grid.frameCount)
 
       if (!isWin) {
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
-//            println(s"draw base game")
+            //            println(s"draw base game")
             if (firstCome) firstCome = false
-//            if (!isPlay) {
-////              println("you can't play")
-//              BGM = bgmList(getRandom(bgmAmount))
-//              BGM.play()
-//              isPlay = true
-//            }
-//            if (BGM.paused) {
-//              isPlay = false
-//            }
+            //            if (!isPlay) {
+            ////              println("you can't play")
+            //              BGM = bgmList(getRandom(bgmAmount))
+            //              BGM.play()
+            //              isPlay = true
+            //            }
+            //            if (BGM.paused) {
+            //              isPlay = false
+            //            }
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
@@ -398,37 +386,24 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case Protocol.Id(id) =>
         myId = id
 
-      case r@Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        if (grid.snakes.exists(_._1 == id)) {
+      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
+        if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
+          val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-//            println(s"recv:$r")
+            //            println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
-                if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                  recallFrame = recallFrame match {
-                    case Some(oldFrame) => Some(Math.min(frame, oldFrame))
-                    case None => Some(frame)
-                  }
-                } else {
-                  recallFrame = Some(-1)
-                }
+                recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-//                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
+                //                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
                 if (miniFrame < grid.frameCount) {
-                  if (grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                    recallFrame = recallFrame match {
-                      case Some(oldFrame) => Some(Math.min(frame, oldFrame))
-                      case None => Some(frame)
-                    }
-                  } else {
-                    recallFrame = Some(-1)
-                  }
+                  recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
                 }
               }
               myActionHistory -= actionId
@@ -436,14 +411,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
             if (frame < grid.frameCount) {
-              if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                recallFrame = recallFrame match {
-                  case Some(oldFrame) => Some(Math.min(frame, oldFrame))
-                  case None => Some(frame)
-                }
-              } else {
-                recallFrame = Some(-1)
-              }
+              recallFrame = grid.findRecallFrame(frame, recallFrame)
             }
           }
         }
@@ -464,14 +432,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //        winData = finalData
         grid.cleanData()
 
-//      case Protocol.SomeWin(winner,finalData) =>
-////        val finalData = grid.getGridData
-//        drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
-//        isWin = true
-//        //        winnerName = winner
-//        //        winData = finalData
-//        grid.cleanData()
-
       case Protocol.WinnerBestScore(score) =>
         maxArea = Constant.shortMax(maxArea, score)
 
@@ -490,34 +450,43 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-//        if(data.snake.map(_.id).contains(myId)) println(s"!!!!!!new snake---${data} join!!!isContinue$isContinue")
-        newSnakeInfo += data.frameCount -> data
         grid.historyNewSnake += data.frameCount -> data
-
-
-      //      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-//        killInfo = Some(killedId, killedName, killerName)
-//        barrageDuration = 100
+        data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
+        if (data.frameCount < grid.frameCount) {
+          recallFrame = grid.findRecallFrame(data.frameCount, recallFrame)
+        } else {
+          newSnakeInfo += data.frameCount -> data
+        }
 
       case x@Protocol.DeadPage(id, kill, area, playTime) =>
         println(s"recv userDead $x")
         myScore = BaseScore(kill, area, playTime)
         maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
-        grid.cleanDiedSnake(id)
+      //        grid.cleanDiedSnake(id)
 
-      case Protocol.UserDead(frame, id, name, killerName) =>
-        deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
-        if (killerName.nonEmpty) {
-          killInfo = Some(id, name, killerName.get)
+      case Protocol.UserDeadMsg(frame, deadInfo) =>
+        grid.historyDieSnake += frame -> deadInfo.map(_.id)
+        deadInfo.filter(_.killerName.nonEmpty).foreach { i =>
+          killInfo = Some(i.id, i.name, i.killerName.get)
           barrageDuration = 100
+        }
+        if (frame < grid.frameCount) {
+          recallFrame = grid.findRecallFrame(frame, recallFrame)
+        } else {
+          deadUser += frame -> deadInfo.map(_.id)
         }
 
       case data: Protocol.NewFieldInfo =>
-//        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
+        //        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
-        newFieldInfo += data.frameCount -> data
         grid.historyFieldInfo += data.frameCount -> data
+        if (data.frameCount < grid.frameCount) {
+          recallFrame = grid.findRecallFrame(data.frameCount, recallFrame)
+        } else {
+          newFieldInfo += data.frameCount -> data
+        }
+
 
       case x@Protocol.ReceivePingPacket(actionId) =>
         if (pingMap.get(actionId).nonEmpty) {
@@ -525,7 +494,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           pingMap -= actionId
         }
 
-      case x@Protocol.WinData(_,_) =>
+      case x@Protocol.WinData(_, _) =>
         println(s"receive winningData msg:$x")
         winningData = x
 
@@ -551,11 +520,36 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     //                  rankCanvas.addEventListener("",null)
     dom.window.requestAnimationFrame(gameRender())
   }
+
+  def addBackendInfo(frame: Int) = {
+    newFieldInfo.get(frame).foreach { data =>
+      grid.addNewFieldInfo(data)
+      newFieldInfo -= frame
+    }
+
+    deadUser.get(frame).foreach { deadSnake =>
+      deadSnake.foreach { sid =>
+        if (grid.snakes.contains(sid)) {
+          println(s"snake dead in backend:$sid")
+          grid.cleanDiedSnakeInfo(sid)
+        }
+      }
+      deadUser -= frame
+    }
+
+    newSnakeInfo.get(frame).foreach { newSnakes =>
+      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
+      newSnakes.snake.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
+      grid.snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
+      grid.addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+      newSnakeInfo -= frame
+    }
+  }
+
   private var myGroupField:FieldByColumn = FieldByColumn(myId,Nil)
   private def getMyField():Unit = {
     val myField = grid.grid.filter(_._2 == Field(myId))
     val myBody = grid.snakeTurnPoints.getOrElse(myId, Nil)
-
 
     //        newField = myField.map { f =>
      myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>

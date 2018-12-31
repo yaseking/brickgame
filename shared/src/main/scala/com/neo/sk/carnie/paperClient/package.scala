@@ -65,7 +65,8 @@ package object paperClient {
                    kill: Short = 0,
                    startTime: Long,
                    endTime: Long,
-                   img: Int = 0
+                   img: Int = 0,
+                   carnieId: Byte
                  )
 
   case class SkDt4Sync(

@@ -329,8 +329,9 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         frameRate = if(mode==2) frameRate2 else frameRate1
         startGame()
 
-      case r@Protocol.SnakeAction(id, keyCode, frame, actionId) =>
-        if (grid.snakes.exists(_._1 == id)) {
+      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
+        if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
+          val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
@@ -431,6 +432,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case data: Protocol.NewSnakeInfo =>
         println(s"!!!!!!new snake---${data.snake} join!!!isContinue$isContinue")
         newSnakeInfo = Some(data)
+        data.snake.foreach{s => grid.carnieMap += s.carnieId -> s.id}
 
       case Protocol.UserDead(frame, id, name, killerName) =>
 //        deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))

@@ -1,10 +1,9 @@
 package com.neo.sk.carnie.paperClient
 
+import java.util.concurrent.atomic.AtomicInteger
 import org.slf4j.LoggerFactory
-import com.neo.sk.carnie.paperClient.Protocol._
-import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.carnie.Boot.roomManager
-import com.neo.sk.carnie.core.RoomActor.UserDead
+import com.neo.sk.carnie.core.RoomActor
 
 
 /**
@@ -21,21 +20,21 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-  private[this] var waitingJoin = Map.empty[String, (String, String, Int)]
+  private[this] var waitingJoin = Map.empty[String, (String, String, Int, Byte)]
 
   var currentRank = List.empty[Score]
 
   var newInfo = List.empty[(String, SkDt, List[Point])]
 
-  def addSnake(id: String, roomId: Int, name: String, img: Int) = {
+  def addSnake(id: String, roomId: Int, name: String, img: Int, carnieId: Byte) = {
     val bodyColor = randomColor()
-    waitingJoin += (id -> (name, bodyColor, img))
+    waitingJoin += (id -> (name, bodyColor, img, carnieId))
   }
 
   def waitingListState: Boolean = waitingJoin.nonEmpty
 
   private[this] def genWaitingSnake() = {
-    val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor, img)) =>
+    val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor, img, carnieId)) =>
       val startTime = System.currentTimeMillis()
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
@@ -47,12 +46,12 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }.toList
       }.toList
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime, img = img) //img: Int
+      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime, img = img, carnieId = carnieId) //img: Int
       snakes += id -> snakeInfo
       killHistory -= id
       (id, snakeInfo, newFiled)
     }.toList
-    waitingJoin = Map.empty[String, (String, String, Int)]
+    waitingJoin = Map.empty[String, (String, String, Int, Byte)]
     newInfo
   }
 
@@ -128,15 +127,32 @@ class GridOnServer(override val boundary: Point) extends Grid {
           (id, info.k, info.area)
         } else (id, -1.toShort, -1.toShort)
       }
-      roomManager ! UserDead(roomId, mode, deadSnakesInfo)
-//      log.debug(s"!!!!!!!dead snakes: ${deadSnakesInfo.map(_._1)}")
+      roomManager ! RoomActor.UserDead(roomId, mode, deadSnakesInfo)
+      //      log.debug(s"!!!!!!!dead snakes: ${deadSnakesInfo.map(_._1)}")
     }
     updateRanks()
     isFinish
   }
 
   def getDirectionEvent(frameCount: Int): List[Protocol.DirectionEvent] = {
-    actionMap.getOrElse(frameCount, Map.empty).toList.map(a => DirectionEvent(a._1, a._2))
+    actionMap.getOrElse(frameCount, Map.empty).toList.map(a => Protocol.DirectionEvent(a._1, a._2))
   }
+
+  def generateCarnieId(carnieIdGenerator: AtomicInteger, existsId: Iterable[Byte]): Byte = {
+    var newId = (carnieIdGenerator.getAndIncrement() % Byte.MaxValue).toByte
+    while (existsId.exists(_ == newId)) {
+      newId = (carnieIdGenerator.getAndIncrement() % Byte.MaxValue).toByte
+    }
+    newId
+  }
+
+  def zipField(f: (String, scala.List[Point])): Protocol.FieldByColumn = {
+    Protocol.FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted)) //read
+    }.toList.groupBy(_._2).map { case (r, target) =>
+      Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+    }.toList)
+  }
+
 
 }
