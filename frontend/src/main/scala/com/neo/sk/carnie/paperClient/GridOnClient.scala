@@ -19,12 +19,12 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = println(msg)
 
-//  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {}
+  //  override def checkEvents(enclosure: List[(String, List[Point])]): Unit = {}
 
   var carnieMap = Map.empty[Byte, String]
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
-    println("back frame:"+ data.frameCount)
+    println("back frame:" + data.frameCount)
     val gridField = grid.filter(_._2 match { case Field(_) => true case _ => false })
     var gridMap = grid.filter(_._2 match { case Body(_, _) => false case _ => true })
 
@@ -53,7 +53,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
     gridMap ++= gridField
 
-    if(data.fieldDetails.nonEmpty) {
+    if (data.fieldDetails.nonEmpty) {
       gridMap = gridMap.filter(_._2 match { case Field(_) => false case _ => true })
       data.fieldDetails.foreach { baseInfo =>
         baseInfo.scanField.foreach { fids =>
@@ -77,7 +77,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
     data.fieldDetails.foreach { baseInfo =>
       baseInfo.scanField.foreach { fids =>
         fids.y.foreach { ly =>
-          (ly._1 to ly._2 by 1).foreach { y => fids.x.foreach { lx =>
+          (ly._1 to ly._2 by 1).foreach { y =>
+            fids.x.foreach { lx =>
               (lx._1 to lx._2 by 1).foreach { x =>
                 grid.get(Point(x, y)) match {
                   case Some(Body(bid, _)) => grid += Point(x, y) -> Body(bid, Some(baseInfo.uid))
@@ -263,6 +264,17 @@ class GridOnClient(override val boundary: Point) extends Grid {
     }
 
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
+  }
+
+  def updateInFront(): Unit = {
+    updateSnakesInFront()
+    updateSpots()
+    actionMap -= (frameCount - maxDelayed)
+    historyFieldInfo = historyFieldInfo.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    historyNewSnake = historyNewSnake.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    historyDieSnake = historyDieSnake.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    frameCount += 1
   }
 
 
