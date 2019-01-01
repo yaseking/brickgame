@@ -293,7 +293,9 @@ object RoomActor {
               dispatchTo(subscribersMap, id, grid.getGridData)
 
             case PressSpace =>
+              log.debug(s"PressSpace:$id")
               if (userDeadList.contains(id)) {
+                log.debug(s"new snake:$id")
                 val info = userMap.getOrElse(id, UserInfo("", -1L, -1L, 0))
                 grid.addSnake(id, roomId, info.name, info.img,
                   carnieMap.get(id) match {
@@ -328,7 +330,7 @@ object RoomActor {
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
               if (userDeadList.contains(f._1) && curTime - userDeadList(f._1) > maxWaitingTime4Restart)
                 dispatchTo(subscribersMap, f._1, newData) //同步全量数据
-            val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
+              val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
               userMap.put(f._1, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
               userDeadList -= f._1
               if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame

@@ -450,6 +450,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
+        if(data.snake.map(_.id).contains(myId))
+          println("recv my NewSnakeInfo!!")
         grid.historyNewSnake += data.frameCount -> data
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
         if (data.frameCount < grid.frameCount + 1) {
