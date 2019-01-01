@@ -165,16 +165,17 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       if (syncGridData.nonEmpty) { //全量数据
         val frame = grid.frameCount
         println("front Frame" + frame)
-        getMyField()
+//        getMyField()
         //        val a = myGroupField
-        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
+//        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         grid.initSyncGridData(syncGridData.get)
-        getMyField()
-        val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
+        addBackendInfo4Sync(grid.frameCount)
+//        getMyField()
+//        val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         //        val b = myGroupField
         //        if (a != b){
-        println(s"=======myBody1:$myBody1")
-        println(s"=======myBody2:$myBody2")
+//        println(s"=======myBody1:$myBody1")
+//        println(s"=======myBody2:$myBody2")
         //          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
         //        }
         syncGridData = None
@@ -450,8 +451,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-        if(data.snake.map(_.id).contains(myId))
-          println("recv my NewSnakeInfo!!")
         grid.historyNewSnake += data.frameCount -> data
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
         if (data.frameCount < grid.frameCount + 1) {
@@ -504,7 +503,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def spaceKey(): Unit = {
-    println("spaceKey")
     grid.cleanSnakeTurnPoint(myId)
     killInfo = None
     grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
@@ -543,6 +541,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       newSnakes.snake.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
       grid.snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+      newSnakeInfo -= frame
+    }
+  }
+
+  def addBackendInfo4Sync(frame: Int): Unit ={
+    newFieldInfo -= frame
+    deadUser -= frame
+    newSnakeInfo.get(frame).foreach { newSnakes =>
+      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
       newSnakeInfo -= frame
     }
   }
