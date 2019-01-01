@@ -28,10 +28,10 @@ trait Grid {
   var actionMap = Map.empty[Int, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[String, (String, String, Int)] //killedId, (killerId, killerName,frameCount)
   //  var killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]//killedId, (killedId, killedName, killing, startTime, endTime)
-  var snakeTurnPoints = new mutable.HashMap[String, List[Point4Trans]] //保留拐点
+  var snakeTurnPoints = Map.empty[String, List[Point4Trans]] //保留拐点
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
-  var historyStateMap = Map.empty[Int, (Map[String, SkDt], Map[Point, Spot])] //保留近期的状态以方便回溯 (frame, (snake, pointd))
+  var historyStateMap = Map.empty[Int, (Map[String, SkDt], Map[Point, Spot], Map[String, List[Point4Trans]])] //保留近期的状态以方便回溯 (frame, (snake, pointd, turnPoints))
   var historyFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //回溯
   var historyNewSnake = Map.empty[Int, NewSnakeInfo] //回溯
   var historyDieSnake = Map.empty[Int, List[String]] //回溯
@@ -219,7 +219,7 @@ trait Grid {
     var updatedSnakes = List.empty[UpdateSnakeInfo]
     var killedSnaked = List.empty[String]
 
-    historyStateMap += frameCount -> (snakes, grid)
+    historyStateMap += frameCount -> (snakes, grid, snakeTurnPoints)
 
     val acts = actionMap.getOrElse(frameCount, Map.empty[String, Int])
 

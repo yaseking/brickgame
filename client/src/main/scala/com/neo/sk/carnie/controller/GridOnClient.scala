@@ -90,6 +90,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
         println(s"recallGrid-start$startFrame-end-$endFrame")
         snakes = state._1
         grid = state._2
+        snakeTurnPoints = state._3
         (startFrame until endFrame).foreach { frame =>
           frameCount = frame
           updateSnakes("f")
