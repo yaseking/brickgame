@@ -162,27 +162,27 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         case None =>
       }
 
-      if (syncGridData.nonEmpty) { //逻辑帧更新数据
+      if (syncGridData.nonEmpty) { //全量数据
         val frame = grid.frameCount
         println("front Frame" + frame)
         getMyField()
         //        val a = myGroupField
         val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
-        if(syncGridData.get.frameCount - frame > 1) {
-          val advancedFrame = (syncGridData.get.frameCount - 1) - frame
-          println(s"backend advanced frontend:$advancedFrame")
-          if(advancedFrame > grid.maxDelayed){
-            webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
-          } else {
-            (1 to advancedFrame).foreach{ _ =>
-              grid.update("f")
-              addBackendInfo(grid.frameCount)
-            }
-          }
-        } else if(frame > syncGridData.get.frameCount){
-          println(s"frontend advanced backend:${frame - syncGridData.get.frameCount}")
-          grid.setGridInGivenFrame(syncGridData.get.frameCount - 1)
-        }
+        //        if(syncGridData.get.frameCount - frame > 1) {
+        //          val advancedFrame = (syncGridData.get.frameCount - 1) - frame
+        //          println(s"backend advanced frontend:$advancedFrame")
+        //          if(advancedFrame > grid.maxDelayed){
+        //            webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
+        //          } else {
+        //            (1 to advancedFrame).foreach{ _ =>
+        //              grid.update("f")
+        //              addBackendInfo(grid.frameCount)
+        //            }
+        //          }
+        //        } else if(frame > syncGridData.get.frameCount){
+        //          println(s"frontend advanced backend:${frame - syncGridData.get.frameCount}")
+        //          grid.setGridInGivenFrame(syncGridData.get.frameCount - 1)
+        //        }
         grid.initSyncGridData(syncGridData.get)
         getMyField()
         val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
@@ -193,30 +193,27 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
         //        }
         syncGridData = None
-      } else if(syncFrame.nonEmpty){
+      } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
         val frontend = grid.frameCount
-        println("front Frame" + frontend)
         val backend = syncFrame.get.frameCount
-        if(frontend > backend){
-          println(s"frontend advanced backend:${frontend - backend}")
+        val advancedFrame = Math.abs(backend - frontend)
+        if (frontend > backend && grid.historyStateMap.get(backend).nonEmpty) {
+          println(s"frontend advanced backend,frontend$frontend,backend:$backend")
           grid.setGridInGivenFrame(backend)
-        } else {
-          val advancedFrame = backend - frontend
-          println(s"backend advanced frontend:$advancedFrame")
-          if (advancedFrame > grid.maxDelayed) {
-            webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
-          } else if (advancedFrame > 0) {
-            (1 to advancedFrame).foreach { _ =>
-              grid.update("f")
-              addBackendInfo(grid.frameCount)
-            }
+        } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
+          println(s"backend advanced frontend,frontend$frontend,backend:$backend")
+          (1 to advancedFrame).foreach { _ =>
+            grid.update("f")
+            addBackendInfo(grid.frameCount)
           }
+        } else {
+          webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
         syncFrame = None
       } else {
         grid.update("f")
+        addBackendInfo(grid.frameCount)
       }
-      addBackendInfo(grid.frameCount)
 
       if (!isWin) {
         val gridData = grid.getGridData
