@@ -188,8 +188,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           (1 to advancedFrame).foreach { _ =>
-//            grid.update("f")
-            grid.updateInFront()
+            grid.update("f")
             addBackendInfo(grid.frameCount)
           }
         } else {
@@ -197,8 +196,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
         syncFrame = None
       } else {
-//        grid.update("f")
-        grid.updateInFront()
+        grid.update("f")
         addBackendInfo(grid.frameCount)
       }
 
