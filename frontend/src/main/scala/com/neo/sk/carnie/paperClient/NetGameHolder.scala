@@ -41,14 +41,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   //  var winData: Protocol.Data4TotalSync = grid.getGridData
   var deadUser = Map.empty[Int, List[String]] //frame, userId
   var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
-  var newSnakeInfo  = Map.empty[Int, NewSnakeInfo]
+  var newSnakeInfo = Map.empty[Int, NewSnakeInfo]
 
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
-  val delay:Int = if(mode == 2) 2 else 1
+  val delay: Int = if (mode == 2) 2 else 1
 
   var pingMap = Map.empty[Short, Long] // id, 时间戳
 
@@ -56,7 +56,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
-  private var winningData = WinData(0,Some(0))
+  private var winningData = WinData(0, Some(0))
 
   private var recallFrame: scala.Option[Int] = None
 
@@ -64,14 +64,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private var myActionHistory = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-//  private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
+  //  private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
-//  private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
-//  private[this] val bgmList = List(bgm4)
-//  private val bgmAmount = bgmList.length
-//  private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
+  //  private[this] val bgm4 = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
+  //  private[this] val bgmList = List(bgm4)
+  //  private val bgmAmount = bgmList.length
+  //  private var BGM = dom.document.getElementById("bgm4").asInstanceOf[HTMLAudioElement]
   private[this] val rankCanvas = dom.document.getElementById("RankView").asInstanceOf[Canvas] //把排行榜的canvas置于最上层，所以监听最上层的canvas
   private val x = (dom.window.innerWidth / 2).toInt - 145
   private val y = (dom.window.innerHeight / 2).toInt - 180
@@ -97,19 +97,19 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
   }
 
-  def getRandom(s: Int):Int = {
+  def getRandom(s: Int): Int = {
     val rnd = new scala.util.Random
     rnd.nextInt(s)
   }
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
-//    BGM = bgmList(getRandom(bgmAmount))
-//    BGM.play()
-//    isPlay = true
+    //    BGM = bgmList(getRandom(bgmAmount))
+    //    BGM.play()
+    //    isPlay = true
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      if (pingId > 10000) pingId = 0  else pingId = (pingId + 1).toShort
+      if (pingId > 10000) pingId = 0 else pingId = (pingId + 1).toShort
       pingMap += (pingId -> System.currentTimeMillis())
       webSocketClient.sendMessage(SendPingPacket(pingId).asInstanceOf[UserAction])
     }, 250)
@@ -163,19 +163,17 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (syncGridData.nonEmpty) { //全量数据
-        val frame = grid.frameCount
-        println("front Frame" + frame)
-//        getMyField()
+        //        getMyField()
         //        val a = myGroupField
-//        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
+        //        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         grid.initSyncGridData(syncGridData.get)
         addBackendInfo4Sync(grid.frameCount)
-//        getMyField()
-//        val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
+        //        getMyField()
+        //        val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         //        val b = myGroupField
         //        if (a != b){
-//        println(s"=======myBody1:$myBody1")
-//        println(s"=======myBody2:$myBody2")
+        //        println(s"=======myBody1:$myBody1")
+        //        println(s"=======myBody2:$myBody2")
         //          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
         //        }
         syncGridData = None
@@ -231,33 +229,33 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def draw(offsetTime: Long): Unit = {
-//    println(s"drawFunction:::$drawFunction")
+    //    println(s"drawFunction:::$drawFunction")
     drawFunction match {
       case FrontProtocol.DrawGameWait =>
-//        println(s"drawFunction::: drawGameWait")
+        //        println(s"drawFunction::: drawGameWait")
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-//        println(s"drawFunction::: drawGameOff")
-//        if(isPlay){
-//          BGM.pause()
-//          BGM.currentTime = 0
-//          isPlay = false
-//        }
+        //        println(s"drawFunction::: drawGameOff")
+        //        if(isPlay){
+        //          BGM.pause()
+        //          BGM.currentTime = 0
+        //          isPlay = false
+        //        }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-//        if(isPlay){
-//          BGM.pause()
-//          BGM.currentTime = 0
-//          isPlay = false
-//        }
-        drawGame.drawGameWin(myId, winner, winData,winningData)
-//        audio1.play()
+        //        if(isPlay){
+        //          BGM.pause()
+        //          BGM.currentTime = 0
+        //          isPlay = false
+        //        }
+        drawGame.drawGameWin(myId, winner, winData, winningData)
+        //        audio1.play()
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
-//        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
+        //        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
@@ -268,12 +266,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case FrontProtocol.DrawGameDie(killerName) =>
-//        println(s"drawFunction::: drawGameDie")
-//        if(isPlay){
-//          BGM.pause()
-//          BGM.currentTime = 0
-//          isPlay = false
-//        }
+        //        println(s"drawFunction::: drawGameDie")
+        //        if(isPlay){
+        //          BGM.pause()
+        //          BGM.currentTime = 0
+        //          isPlay = false
+        //        }
         if (isContinue) audioKilled.play()
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
@@ -309,10 +307,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
                   val actionFrame = grid.getUserMaxActionFrame(myId, frame)
-                  if(actionFrame < frame + maxContainableAction) {
+                  if (actionFrame < frame + maxContainableAction) {
                     val actionId = idGenerator.getAndIncrement()
                     val newKeyCode =
-                      if (mode == 1){
+                      if (mode == 1) {
                         val code = e.keyCode match {
                           case KeyCode.Left => KeyCode.Right
                           case KeyCode.Right => KeyCode.Left
@@ -322,7 +320,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                         }
                         code.toByte
                       } else e.keyCode.toByte
-//                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
+                    //                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
                     grid.addActionWithFrame(myId, newKeyCode, actionFrame)
                     myActionHistory += actionId -> (newKeyCode, actionFrame)
                     val msg: Protocol.UserAction = Key(newKeyCode, actionFrame, actionId)
@@ -507,8 +505,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     killInfo = None
     grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
     drawFunction = FrontProtocol.DrawGameWait
-//    audio1.pause()
-//    audio1.currentTime = 0
+    //    audio1.pause()
+    //    audio1.currentTime = 0
     audioKilled.pause()
     audioKilled.currentTime = 0
     firstCome = true
@@ -545,7 +543,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     }
   }
 
-  def addBackendInfo4Sync(frame: Int): Unit ={
+  def addBackendInfo4Sync(frame: Int): Unit = {
     newFieldInfo -= frame
     deadUser -= frame
     newSnakeInfo.get(frame).foreach { newSnakes =>
@@ -554,20 +552,21 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     }
   }
 
-  private var myGroupField:FieldByColumn = FieldByColumn(myId,Nil)
-  private def getMyField():Unit = {
+  private var myGroupField: FieldByColumn = FieldByColumn(myId, Nil)
+
+  private def getMyField(): Unit = {
     val myField = grid.grid.filter(_._2 == Field(myId))
     val myBody = grid.snakeTurnPoints.getOrElse(myId, Nil)
 
     //        newField = myField.map { f =>
-     myGroupField =  FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
-      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))//read
+    myGroupField = FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
+      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted)) //read
     }.toList.groupBy(_._2).map { case (r, target) =>
       ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
     }.toList)
 
 
-//    println(s"=======myField:$myGroupField, myBody:$myBody")
+    //    println(s"=======myField:$myGroupField, myBody:$myBody")
   }
 
   override def render: Elem = {

@@ -1,7 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
-import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, ScanByColumn, WinData}
+import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Button, Canvas, Image}
@@ -41,15 +41,15 @@ class DrawGame(
       4 -> "smileImg",
       5 -> "pigImg"
     )
-//  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
+  //  private val myHeaderImg = dom.document.getElementById("myHeaderImg").asInstanceOf[Image]
   private val myHeaderImg = dom.document.getElementById(imgMap(img)).asInstanceOf[Image]
-//  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
+  //  private val otherHeaderImg = dom.document.getElementById("otherHeaderImg").asInstanceOf[Image]
   private val goldImg = dom.document.getElementById("goldImg").asInstanceOf[Image]
   private val silverImg = dom.document.getElementById("silverImg").asInstanceOf[Image]
   private val bronzeImg = dom.document.getElementById("bronzeImg").asInstanceOf[Image]
   private val killImg = dom.document.getElementById("killImg").asInstanceOf[Image]
   private val crownImg = dom.document.getElementById("crownImg").asInstanceOf[Image]
-//  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
+  //  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
   private var scale = 1.0
 
   def resetScreen(): Unit = {
@@ -111,7 +111,7 @@ class DrawGame(
       canvas.height = 400
       ctx.fillRect(0, 0, 800.0, 400.0)
       ctx.fillStyle = ColorsSetting.fontColor
-//      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+      //      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
       ctx.font = "36px Helvetica"
       ctx.fillText("文件不存在或文件已损坏...", 150, 180)
     } else if (replayFinish.nonEmpty && replayFinish.get) {
@@ -156,19 +156,19 @@ class DrawGame(
     ctx.fillText("Please wait.", 150, 180)
   }
 
-//  def drawRecordError(): Unit = {
-//    ctx.fillStyle = ColorsSetting.backgroundColor2
-//    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-//    ctx.fillStyle = ColorsSetting.fontColor
-//    ctx.font = "36px Helvetica"
-//    ctx.fillText("文件不存在或已损坏...", 150, 180)
-//  }
+  //  def drawRecordError(): Unit = {
+  //    ctx.fillStyle = ColorsSetting.backgroundColor2
+  //    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+  //    ctx.fillStyle = ColorsSetting.fontColor
+  //    ctx.font = "36px Helvetica"
+  //    ctx.fillText("文件不存在或已损坏...", 150, 180)
+  //  }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
-//    backBtn.style.display="block"
+    //    backBtn.style.display="block"
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     ctx.fillStyle = ColorsSetting.backgroundColor2
-//    ctx.fillStyle = ColorsSetting.backgroundColor
+    //    ctx.fillStyle = ColorsSetting.backgroundColor
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.gameNameColor
 
@@ -195,7 +195,7 @@ class DrawGame(
       val m = if (tempM < 0) "00" else if (tempM < 10) "0" + tempM else tempM.toString
       m + ":" + s
     }
-    ctx.fillText(text, dom.window.innerWidth / 2 - offx , y) //(500,180)
+    ctx.fillText(text, dom.window.innerWidth / 2 - offx, y) //(500,180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = ColorsSetting.fontColor
@@ -205,19 +205,19 @@ class DrawGame(
     ctx.fillText(f"$bestScore%.2f" + "%", x + 230, y + 110)
     ctx.fillText(s"PLAYERS KILLED:", x, y + 150)
     ctx.fillText(s"${myScore.kill}", x + 230, y + 150)
-    if(!isReplay) {
+    if (!isReplay) {
       ctx.fillText(s"TIME PLAYED:", x, y + 190)
       ctx.fillText(s"$time", x + 230, y + 190)
     }
     ctx.restore()
     //绘制退出房间
-//    ctx.save()
-//    ctx.fillStyle = ColorsSetting.darkYellowColor
-//    ctx.fillRect(x, y + 250, 175, 60)
-//    ctx.font = "bold 24px Helvetica"
-//    ctx.fillStyle = ColorsSetting.fontColor2
-//    ctx.fillText("退出房间", x+40, y + 285)
-//    ctx.restore()
+    //    ctx.save()
+    //    ctx.fillStyle = ColorsSetting.darkYellowColor
+    //    ctx.fillRect(x, y + 250, 175, 60)
+    //    ctx.font = "bold 24px Helvetica"
+    //    ctx.fillStyle = ColorsSetting.fontColor2
+    //    ctx.fillText("退出房间", x+40, y + 285)
+    //    ctx.restore()
   }
 
   def drawBarrage(killedName: String, killerName: String) = {
@@ -225,18 +225,18 @@ class DrawGame(
     ctx.globalAlpha = 0.6
     ctx.restore()
     ctx.save()
-    if(dom.window.innerWidth > 1200) ctx.font = "bold 30px Microsoft YaHei"
+    if (dom.window.innerWidth > 1200) ctx.font = "bold 30px Microsoft YaHei"
     else ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillStyle = "#FF5809"
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
     val offx = length / 2
     //    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
-    ctx.fillText(s"$killedName is killed by $killerName",   dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 5).toInt )
+    ctx.fillText(s"$killedName is killed by $killerName", dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 5).toInt)
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData):Unit = {
+  def drawGameWin(myId: String, winner: String, data: Data4TotalSync, winningData: WinData): Unit = {
     ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
@@ -256,8 +256,8 @@ class DrawGame(
         val color = snakes.find(_.id == field.uid).map(_.color).get
         ctx.fillStyle = color
         field.scanField.foreach { fids =>
-          fids.y.foreach{y =>
-            fids.x.foreach{x =>
+          fids.y.foreach { y =>
+            fids.x.foreach { x =>
               ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, y._1 * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.05))
             }
           }
@@ -273,18 +273,18 @@ class DrawGame(
     val txt1 = s"The Winner is $winner"
     val txt2 = s"Press space to reStart"
 
-//    println(ctx.measureText(txt2).width.toString)
+    //    println(ctx.measureText(txt2).width.toString)
     val length = ctx.measureText(txt1).width
     ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
     ctx.font = "bold 24px Helvetica"
     ctx.fillStyle = "#000000"
     val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
     val length1 = ctx.measureText(txt4).width
-    if(winningData.yourScore.isDefined){
+    if (winningData.yourScore.isDefined) {
       val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
-      ctx.fillText(txt3,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2)
+      ctx.fillText(txt3, (windowBoundary.x - length1) / 2, windowBoundary.y / 2)
     }
-    ctx.fillText(txt4,(windowBoundary.x - length1) / 2 , windowBoundary.y / 2 + 40)
+    ctx.fillText(txt4, (windowBoundary.x - length1) / 2, windowBoundary.y / 2 + 40)
     ctx.font = "bold 20px Microsoft YaHei"
     ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
     ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2, 75, 50, 50)
@@ -305,10 +305,10 @@ class DrawGame(
   //  }
 
   def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150): Unit = { //头所在的点是屏幕的正中心
-//    println(s"drawGrid-frameRate: $frameRate")
+    //    println(s"drawGrid-frameRate: $frameRate")
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
-//    val trueFrame = if(mode ==1) Protocol.frameRate2 else Protocol.frameRate1
+    //    val trueFrame = if(mode ==1) Protocol.frameRate2 else Protocol.frameRate1
 
     val lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
@@ -329,24 +329,22 @@ class DrawGame(
     ctx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+
     val fieldInWindow = data.fieldDetails.map { user =>
       FieldByColumn(user.uid, user.scanField.map { field =>
         ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
-            field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))})}
+          field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))
+      })
+    }
 
-
-//      map { f => FieldByColumn(f.uid, f.scanField.map{s =>
-//      ScanByColumn(s.y.filter(r => r._1 < maxPoint.y && r._2 > minPoint.y),
-//        s.x.filter(r => r._1 < maxPoint.x && r._2 > minPoint.x))}) }
-//    val fieldInWindow = data.fieldDetails
+    val bodyInWindow = data.bodyDetails.filter{b => b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint))}
 
     scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00002, 0.94)
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
     ctx.globalAlpha = 0.6
-    data.bodyDetails.foreach { bds =>
+    bodyInWindow.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
       val turnPoints = bds.turn.turnPoint
@@ -378,14 +376,14 @@ class DrawGame(
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-//      field.scanField.foreach { point =>
-//        point.x.foreach { x =>
-//          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-//        }
-//      }
+      //      field.scanField.foreach { point =>
+      //        point.x.foreach { x =>
+      //          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+      //        }
+      //      }
       field.scanField.foreach { fids =>
-        fids.y.foreach{y =>
-          fids.x.foreach{x =>
+        fids.y.foreach { y =>
+          fids.x.foreach { x =>
             ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.04))
           }
         }
@@ -403,13 +401,13 @@ class DrawGame(
       val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
       val img = if (s.id == uid) myHeaderImg else otherHeaderImg
 
-      if(s.id == championId)
-        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)//头部图片绘制在名字上方
+      if (s.id == championId)
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
-      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y - 1) * canvasUnit - 3)//-10
+      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y - 1) * canvasUnit - 3) //-10
     }
 
     //边界
@@ -417,8 +415,8 @@ class DrawGame(
     ctx.restore()
 
     //    //排行榜
-    if(!isReplay) {
-      rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width/4, textLineHeight * 2)//* 5, * 2
+    if (!isReplay) {
+      rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width / 4, textLineHeight * 2) //* 5, * 2
       PerformanceTool.renderFps(rankCtx, 20, textLineHeight, startTime)
     }
   }
@@ -463,7 +461,7 @@ class DrawGame(
 
 
     val myRankBaseLine = 4
-    if(personalScore.id == uid) {
+    if (personalScore.id == uid) {
       val color = snakes.find(_.id == uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       rankCtx.globalAlpha = 0.6
       rankCtx.fillStyle = color
@@ -605,9 +603,9 @@ class DrawGame(
     ctx.translate(-x, -y)
   }
 
-  //  def cleanMyScore: Unit = {
-  //    myScore = BaseScore(0, 0, System.currentTimeMillis(), 0l)
-  //  }
+  def isPointInWindow(p: Point4Trans, windowMax: Point, windowMin: Point): Boolean = {
+    p.y < windowMax.y && p.y > windowMin.y && p.x > windowMin.x && p.x < windowMax.x
+  }
 
 
 }
