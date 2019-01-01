@@ -212,6 +212,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             }
           }
         }
+        syncFrame = None
       } else {
         grid.update("f")
       }
