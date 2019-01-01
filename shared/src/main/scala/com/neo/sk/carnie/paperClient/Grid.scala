@@ -457,6 +457,67 @@ trait Grid {
     )
   }
 
+  def getGridDataWith: Protocol.Data4TotalSync = {
+    var fields: List[Fd] = Nil
+    val bodyDetails = snakes.values.map { s => BodyBaseInfo(s.id, getSnakesTurn(s.id, s.header)) }.toList
+
+    grid.foreach {
+      case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
+      case _ => //doNothing
+    }
+
+    val fieldDetails =
+      fields.groupBy(_.id).map { case (userId, fieldPoints) =>
+        FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
+          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))
+        }.toList.groupBy(_._2).map { case (r, target) =>
+          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+        }.toList)
+      }.toList
+    //find vertex
+    //    val a = fields.groupBy(_.id).map { case (uid, fieldPoints) =>
+    //      fieldPoints.filter { p => {
+    //        var counter = 0
+    //        val pointList = List(Point(-1, 1), Point(-1, -1), Point(1, 1), Point(1, -1),
+    //          Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
+    //        pointList.foreach { i =>
+    //          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
+    //        }
+    //        counter match {
+    //          case 4 => true
+    //          case 3 => true
+    //          case 7 => true
+    //          case _ => false
+    //        }
+    //      }
+    //      }.filter { p =>
+    //        var counter = 0
+    //        val pointList = List(Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
+    //        pointList.foreach { i =>
+    //          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
+    //        }
+    //        counter match {
+    //          case 3 => false
+    //          case _ => true
+    //        }
+    //      }
+    //    }
+    //    println("顶点：" + a)
+    //    FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+    //      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
+    //    }.toList.groupBy(_._2).map { case (r, target) =>
+    //      ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+    //    }.toList)
+
+    Protocol.Data4TotalSync(
+      frameCount,
+      snakes.values.toList,
+      bodyDetails,
+      fieldDetails
+      //      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
+    )
+  }
+
   def getKiller(myId: String): Option[(String, String, Int)] = {
     killHistory.get(myId) match {
       case Some(info) if info._3 > frameCount - 3 => Some(info)
