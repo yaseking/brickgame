@@ -135,6 +135,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
         updateSnakes("f")
         updateSpots()
+        frameCount += 1
 
         historyFieldInfo.get(frameCount).foreach { data =>
           addNewFieldInfo(data)
@@ -149,7 +150,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
           snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
           addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
         }
-        frameCount += 1
 
 
       case None =>

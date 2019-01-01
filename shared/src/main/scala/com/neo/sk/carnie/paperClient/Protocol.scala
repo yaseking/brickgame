@@ -9,6 +9,10 @@ object Protocol {
 
   sealed trait GameMessage extends WsSourceProtocol.WsMsgSource
 
+  case class SyncFrame(
+                        frameCount: Int
+                      ) extends GameMessage
+
   case class NewFieldInfo(
                            frameCount: Int,
                            fieldDetails: List[FieldByColumn]
@@ -22,13 +26,13 @@ object Protocol {
                            ) extends GameMessage
 
   case class NewSnakeInfo(
-                         frameCount: Int,
-                         snake: List[SkDt],
-                         filedDetails: List[FieldByColumn]
+                           frameCount: Int,
+                           snake: List[SkDt],
+                           filedDetails: List[FieldByColumn]
                          ) extends GameMessage
 
   case class KilledSkData(
-                         killedSkInfo: List[KilledSkDt]
+                           killedSkInfo: List[KilledSkDt]
                          )
 
   case class Point4Trans(x: Short, y: Short)
@@ -75,9 +79,9 @@ object Protocol {
 
   case class UserDeadMsg(frame: Int, deadInfo: List[BaseDeadInfo]) extends GameMessage
 
-  case class BaseDeadInfo(id: String,name:String,killerName:Option[String])
+  case class BaseDeadInfo(id: String, name: String, killerName: Option[String])
 
-  case class UserDead(frame: Int, id: String,name:String,killerName:Option[String]) extends GameMessage with GameEvent
+  case class UserDead(frame: Int, id: String, name: String, killerName: Option[String]) extends GameMessage with GameEvent
 
   case class UserLeft(userId: String) extends GameMessage
 
@@ -85,7 +89,7 @@ object Protocol {
 
   case class SnakeAction(id: Byte, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
 
-//  case class SnakeLeft(id: String, name: String) extends GameMessage
+  //  case class SnakeLeft(id: String, name: String) extends GameMessage
 
   case class ReplayFinish(id: String) extends GameMessage
 
@@ -95,8 +99,9 @@ object Protocol {
 
   case class SomeOneWin(winnerName: String) extends GameMessage with GameEvent
 
-  case class WinData(winnerScore: Short,yourScore: Option[Short]) extends GameMessage with GameEvent
-//  case class SomeWin(winnerName: String,finalData:Data4TotalSync) extends GameMessage with GameEvent
+  case class WinData(winnerScore: Short, yourScore: Option[Short]) extends GameMessage with GameEvent
+
+  //  case class SomeWin(winnerName: String,finalData:Data4TotalSync) extends GameMessage with GameEvent
 
   case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
 
@@ -105,7 +110,9 @@ object Protocol {
   case class WinnerBestScore(Score: Short) extends GameMessage
 
   sealed trait WsSendMsg
+
   case object WsSendComplete extends WsSendMsg
+
   case class WsSendFailed(ex: Throwable) extends WsSendMsg
 
   sealed trait UserAction extends WsSendMsg
@@ -145,16 +152,16 @@ object Protocol {
 
   case class UserJoinLeft(joinFrame: Long, leftFrame: Long)
 
-  case class UserBaseInfo(id:String, name: String)
+  case class UserBaseInfo(id: String, name: String)
 
-  case class EssfMapInfo(m:List[(UserBaseInfo, List[UserJoinLeft])])
+  case class EssfMapInfo(m: List[(UserBaseInfo, List[UserJoinLeft])])
 
   //for replay
-//  sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
+  //  sealed trait ReplayMessage extends WsSourceProtocol.WsMsgSource
 
   /**
     * replay-frame-msg*/
-//  case class ReplayFrameData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]]) extends GameMessage
+  //  case class ReplayFrameData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]]) extends GameMessage
   case class ReplayFrameData(frameIndex: Int, eventsData: GameEvent, stateData: Option[GameEvent]) extends GameMessage
 
   val frameRate1 = 150 //normal-mode

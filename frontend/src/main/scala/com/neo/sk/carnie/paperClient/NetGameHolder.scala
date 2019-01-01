@@ -43,6 +43,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var newSnakeInfo  = Map.empty[Int, NewSnakeInfo]
 
+  var syncFrame: scala.Option[Protocol.SyncFrame] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -192,6 +193,25 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
         //        }
         syncGridData = None
+      } else if(syncFrame.nonEmpty){
+        val frontend = grid.frameCount
+        println("front Frame" + frontend)
+        val backend = syncFrame.get.frameCount
+        if(frontend > backend){
+          println(s"frontend advanced backend:${frontend - backend}")
+          grid.setGridInGivenFrame(backend)
+        } else {
+          val advancedFrame = backend - frontend
+          println(s"backend advanced frontend:$advancedFrame")
+          if (advancedFrame > grid.maxDelayed) {
+            webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
+          } else if (advancedFrame > 0) {
+            (1 to advancedFrame).foreach { _ =>
+              grid.update("f")
+              addBackendInfo(grid.frameCount)
+            }
+          }
+        }
       } else {
         grid.update("f")
       }
@@ -442,6 +462,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         syncGridData = Some(data)
         if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
         //        justSynced = true
+        isSynced = true
+
+      case data: Protocol.SyncFrame =>
+        syncFrame = Some(data)
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>

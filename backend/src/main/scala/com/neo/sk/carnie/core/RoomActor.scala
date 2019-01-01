@@ -347,10 +347,11 @@ object RoomActor {
 
           //错峰发送
           for((u, i) <- userMap) {
-            val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, Nil)
+//            val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, Nil)
             if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 2 ||
               (userDeadList.contains(u) &&  curTime - userDeadList(u) <= maxWaitingTime4Restart) && (tickCount - i.joinFrame) % 100 == 2)
-              dispatchTo(subscribersMap, u, newDataNoField)
+              dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
+            //              dispatchTo(subscribersMap, u, newDataNoField)
             if ((i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 ||
               (userDeadList.contains(u) &&  curTime - userDeadList(u) <= maxWaitingTime4Restart)) && grid.currentRank.exists(_.id == u) && (tickCount - i.joinFrame) % 20 == 5)
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
