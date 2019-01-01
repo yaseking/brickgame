@@ -461,7 +461,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         println(s"recv userDead $x")
         myScore = BaseScore(kill, area, playTime)
         maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
-      //        grid.cleanDiedSnake(id)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
         grid.historyDieSnake += frame -> deadInfo.map(_.id)

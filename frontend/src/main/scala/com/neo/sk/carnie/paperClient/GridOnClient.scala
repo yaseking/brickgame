@@ -1,12 +1,6 @@
 package com.neo.sk.carnie.paperClient
 
-import java.awt.event.KeyEvent
-
-import com.neo.sk.carnie.paperClient.Protocol.{NewFieldInfo, NewSnakeInfo, Point4Trans}
-
-import scala.collection.mutable
-
-//import com.neo.sk.carnie.paperClient.NetGameHolder.grid
+import com.neo.sk.carnie.paperClient.Protocol.NewFieldInfo
 
 /**
   * User: Taoz

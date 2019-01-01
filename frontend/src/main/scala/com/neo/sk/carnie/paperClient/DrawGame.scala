@@ -330,14 +330,18 @@ class DrawGame(
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 
-    val fieldInWindow = data.fieldDetails.map { user =>
-      FieldByColumn(user.uid, user.scanField.map { field =>
-        ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
-          field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))
-      })
+    var fieldInWindow: List[FieldByColumn] = Nil
+    data.fieldDetails.foreach { user =>
+      if (snakes.exists(_.id == user.uid)) {
+        fieldInWindow = FieldByColumn(user.uid, user.scanField.map { field =>
+          ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
+            field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))
+        }) :: fieldInWindow
+      }
     }
 
-    val bodyInWindow = data.bodyDetails.filter{b => b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint))}
+    val bodyInWindow = data.bodyDetails.filter{b =>
+      b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
 
     scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00002, 0.94)
     ctx.save()

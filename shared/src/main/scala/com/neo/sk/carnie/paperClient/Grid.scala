@@ -289,7 +289,6 @@ trait Grid {
       grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
         Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
-      snakeTurnPoints -= sid
     }
 
     val newSnakes = updatedSnakes.filterNot(s => finalDie.contains(s.data.id)).map { s =>
@@ -585,12 +584,10 @@ trait Grid {
 
   def cleanDiedSnakeInfo(sid: String): Unit = {
     returnBackField(sid)
-    grid = grid.filter { case (_, spot) =>
-      spot match {
-        case Field(id) if id == sid => false
-        case _ => true
-      }
+    grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
+      Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
     }
+    grid = grid.filter {_._2 match {case Field(id) if id == sid => false case _ => true}}
     snakes -= sid
   }
 
