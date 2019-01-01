@@ -83,13 +83,13 @@ package object paperClient {
 
 
   object Boundary {
-    val w = 250
-    val h = 125
+    val w = 200
+    val h = 100
   }
 
   object BorderSize {
-    val w = 220
-    val h = 110
+    val w = 170
+    val h = 85
   }
 
   object Window {
