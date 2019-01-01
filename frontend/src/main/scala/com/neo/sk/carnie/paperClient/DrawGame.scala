@@ -451,7 +451,7 @@ class DrawGame(
     rankCtx.fillStyle = ColorsSetting.fontColor2
     drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
     rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
-    drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
+    drawTextLine(s" x ${personalScore.k}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
 
 
     val myRankBaseLine = 4
@@ -536,7 +536,7 @@ class DrawGame(
     rankCtx.fillStyle = ColorsSetting.fontColor2
     drawTextLine(s"KILL: ", leftBegin, 0, baseLine)
     rankCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
-    drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
+//    drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine) //todo
 
 
     val myRankBaseLine = 4

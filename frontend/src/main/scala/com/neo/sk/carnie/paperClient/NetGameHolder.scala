@@ -168,21 +168,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         getMyField()
         //        val a = myGroupField
         val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
-        //        if(syncGridData.get.frameCount - frame > 1) {
-        //          val advancedFrame = (syncGridData.get.frameCount - 1) - frame
-        //          println(s"backend advanced frontend:$advancedFrame")
-        //          if(advancedFrame > grid.maxDelayed){
-        //            webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
-        //          } else {
-        //            (1 to advancedFrame).foreach{ _ =>
-        //              grid.update("f")
-        //              addBackendInfo(grid.frameCount)
-        //            }
-        //          }
-        //        } else if(frame > syncGridData.get.frameCount){
-        //          println(s"frontend advanced backend:${frame - syncGridData.get.frameCount}")
-        //          grid.setGridInGivenFrame(syncGridData.get.frameCount - 1)
-        //        }
         grid.initSyncGridData(syncGridData.get)
         getMyField()
         val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
@@ -203,7 +188,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           (1 to advancedFrame).foreach { _ =>
-            grid.update("f")
+//            grid.update("f")
+            grid.updateSnakesInFront()
             addBackendInfo(grid.frameCount)
           }
         } else {
@@ -211,7 +197,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
         syncFrame = None
       } else {
-        grid.update("f")
+//        grid.update("f")
+        grid.updateSnakesInFront()
         addBackendInfo(grid.frameCount)
       }
 
@@ -494,7 +481,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case data: Protocol.NewFieldInfo =>
-        //        println(s"((((((((((((recv new field info, frame: ${data.frameCount}--${data.fieldDetails.map(_.uid)}")
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         grid.historyFieldInfo += data.frameCount -> data
@@ -503,7 +489,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         } else {
           newFieldInfo += data.frameCount -> data
         }
-
 
       case x@Protocol.ReceivePingPacket(actionId) =>
         if (pingMap.get(actionId).nonEmpty) {

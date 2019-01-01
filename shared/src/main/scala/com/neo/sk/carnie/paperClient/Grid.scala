@@ -413,34 +413,34 @@ trait Grid {
           ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
         }.toList)
       }.toList
-//find vertex
-//    val a = fields.groupBy(_.id).map { case (uid, fieldPoints) =>
-//      fieldPoints.filter { p => {
-//        var counter = 0
-//        val pointList = List(Point(-1, 1), Point(-1, -1), Point(1, 1), Point(1, -1),
-//          Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
-//        pointList.foreach { i =>
-//          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
-//        }
-//        counter match {
-//          case 4 => true
-//          case 3 => true
-//          case 7 => true
-//          case _ => false
-//        }
-//      }
-//      }.filter { p =>
-//        var counter = 0
-//        val pointList = List(Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
-//        pointList.foreach { i =>
-//          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
-//        }
-//        counter match {
-//          case 3 => false
-//          case _ => true
-//        }
-//      }
-//    }
+    //find vertex
+    //    val a = fields.groupBy(_.id).map { case (uid, fieldPoints) =>
+    //      fieldPoints.filter { p => {
+    //        var counter = 0
+    //        val pointList = List(Point(-1, 1), Point(-1, -1), Point(1, 1), Point(1, -1),
+    //          Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
+    //        pointList.foreach { i =>
+    //          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
+    //        }
+    //        counter match {
+    //          case 4 => true
+    //          case 3 => true
+    //          case 7 => true
+    //          case _ => false
+    //        }
+    //      }
+    //      }.filter { p =>
+    //        var counter = 0
+    //        val pointList = List(Point(0, 1), Point(-1, 0), Point(0, -1), Point(1, 0))
+    //        pointList.foreach { i =>
+    //          if (getPointBelong(uid, Point(p.x, p.y) + i)) counter += 1
+    //        }
+    //        counter match {
+    //          case 3 => false
+    //          case _ => true
+    //        }
+    //      }
+    //    }
     //    println("顶点：" + a)
     //    FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
     //      (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))
@@ -481,7 +481,7 @@ trait Grid {
   }
 
   def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地
-//    println(s"returnBack : $snakeId")
+    //    println(s"returnBack : $snakeId")
     snakeTurnPoints -= snakeId
     val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
     bodyGrid.foreach {
@@ -492,7 +492,7 @@ trait Grid {
 
   def getSnakesTurn(sid: String, header: Point): TurnInfo = {
     val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
-    if(turnPoint.nonEmpty){
+    if (turnPoint.nonEmpty) {
       TurnInfo(turnPoint ::: List(Point4Trans(header.x.toShort, header.y.toShort)), grid.filter(_._2 match { case Body(id, fid) if id == sid && fid.nonEmpty => true case _ => false }).map(g =>
         (Point4Trans(g._1.x.toShort, g._1.y.toShort), g._2.asInstanceOf[Body].fid.get)).toList)
     } else TurnInfo(Nil, Nil)
@@ -510,7 +510,7 @@ trait Grid {
 
   def cleanSnakeTurnPoint(sid: String) = {
     if (snakeTurnPoints.contains(sid)) {
-//      println(s"cleanTurnPoint-id: ${sid}")
+      //      println(s"cleanTurnPoint-id: ${sid}")
       snakeTurnPoints -= sid
     }
   }
@@ -524,9 +524,11 @@ trait Grid {
 
   def cleanDiedSnakeInfo(sid: String): Unit = {
     returnBackField(sid)
-    grid.foreach {
-      case (p, Field(fid)) if fid == sid => grid -= p
-      case _ =>
+    grid = grid.filter { case (_, spot) =>
+      spot match {
+        case Field(id) if id == sid => false
+        case _ => true
+      }
     }
     snakes -= sid
   }
