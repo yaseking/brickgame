@@ -184,12 +184,12 @@ object RoomActor {
               gameEvent += ((frame, LeftEvent(id, name)))
               gameEvent += ((frame, Protocol.UserDead(frame, id, name, killerName)))
 //              log.debug(s"user $id dead:::::")
-              dispatchTo(subscribersMap, id, Protocol.DeadPage(id, u._2, u._3, ((endTime - startTime) / 1000).toShort))
+              dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
 //              dispatch(subscribersMap, Protocol.UserDead(frame, id, name, killerName))
               val info = userMap(id).copy(joinFrame = -1L) //死了之后不发消息
               userMap.update(id, info)
               watcherMap.filter(_._2._1==id).foreach { user =>
-                dispatchTo(subscribersMap, user._1, Protocol.DeadPage(id, u._2, u._3, ((endTime - startTime) / 1000).toShort))
+                dispatchTo(subscribersMap, user._1, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
                 val watcherInfo = watcherMap(user._1).copy(_2 = -1L)
                 watcherMap.update(user._1, watcherInfo)
               }

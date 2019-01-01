@@ -27,6 +27,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     println("back frame:"+ data.frameCount)
     val gridField = grid.filter(_._2 match { case Field(_) => true case _ => false })
     var gridMap = grid.filter(_._2 match { case Body(_, _) => false case _ => true })
+
     data.bodyDetails.foreach { bodies =>
       val uid = bodies.uid
       if (bodies.turn.turnPoint.nonEmpty) {
@@ -134,7 +135,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
         updateSnakes("f")
         updateSpots()
-        frameCount += 1
 
         historyFieldInfo.get(frameCount).foreach { data =>
           addNewFieldInfo(data)
@@ -149,6 +149,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
           snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
           addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
         }
+        frameCount += 1
 
 
       case None =>

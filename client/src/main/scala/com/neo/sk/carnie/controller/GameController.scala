@@ -418,11 +418,10 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case x@Protocol.DeadPage(id, kill, area, playTime) =>
+      case x@Protocol.DeadPage(kill, area, playTime) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
           myScore = BaseScore(kill, area, playTime)
-          grid.cleanDiedSnake(id)
         }
 
 
@@ -460,6 +459,13 @@ class GameController(player: PlayerInfoInClient,
             grid.killInfo = Some(id, name, killerName.get)
             grid.barrageDuration = 100
           }
+        }
+
+      case Protocol.UserDeadMsg(frame, deadInfo) =>
+        grid.historyDieSnake += frame -> deadInfo.map(_.id)
+        deadInfo.filter(_.killerName.nonEmpty).foreach { i =>
+          grid.killInfo = Some(i.id, i.name, i.killerName.get)
+          grid.barrageDuration = 100
         }
 
 //      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>

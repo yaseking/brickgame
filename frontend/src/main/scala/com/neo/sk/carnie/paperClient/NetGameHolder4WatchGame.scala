@@ -445,7 +445,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 //        killInfo = Some(killedId, killedName, killerName)
 //        barrageDuration = 100
 
-      case x@Protocol.DeadPage(id, kill, area, playTime) =>
+      case x@Protocol.DeadPage(kill, area, playTime) =>
         println(s"recv userDead $x")
         //        grid.cleanSnakeTurnPoint(id)
         myScore = BaseScore(kill, area, playTime)

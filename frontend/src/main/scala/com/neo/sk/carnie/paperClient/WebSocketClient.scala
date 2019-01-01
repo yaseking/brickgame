@@ -90,30 +90,30 @@ class WebSocketClient (
                 case Right(data) =>
                   data match {
                     case ReceivePingPacket(_) =>
-                      ping =  ping + blobMsg.size
+                      ping = ping + blobMsg.size
 
                     case SnakeAction(_, _, _, _) =>
                       snakeAction = snakeAction + blobMsg.size
 
-                    case NewFieldInfo(_,_) =>
+                    case NewFieldInfo(_, _) =>
                       newField = newField + blobMsg.size
 
-                    case Data4TotalSync(_,_,_,_) =>
+                    case Data4TotalSync(_, _, _, _) =>
                       data4TotalSync = data4TotalSync + blobMsg.size
 
-                    case Ranks(_,_,_) =>
+                    case Ranks(_, _, _) =>
                       rank = rank + blobMsg.size
 
-                    case NewSnakeInfo(_,_,_) =>
+                    case NewSnakeInfo(_, _, _) =>
                       newSnakeInfo = newSnakeInfo + blobMsg.size
 
                     case SomeOneKilled(_, _, _) =>
                       someoneKill = someoneKill + blobMsg.size
 
-                    case DeadPage(_,_,_,_) =>
+                    case DeadPage(_, _, _) =>
                       dead = dead + blobMsg.size
 
-                    case WinData(_,_) =>
+                    case WinData(_, _) =>
                       win = win + blobMsg.size
 
                     case _ =>

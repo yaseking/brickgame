@@ -213,7 +213,7 @@ class BotController(player: PlayerInfoInClient,
           }
         }
 
-      case x@Protocol.DeadPage(id, kill, area, playTime) =>
+      case x@Protocol.DeadPage(kill, area, playTime) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
           botActor ! Dead
