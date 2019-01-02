@@ -152,9 +152,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
         case Some(frame) =>
           val time1 = System.currentTimeMillis()
-          println(s"recall ...before frame:${grid.frameCount}")
           val oldGrid = grid
+          println(s"before recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
           oldGrid.recallGrid(frame, grid.frameCount)
+          println(s"after recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
           grid = oldGrid
           println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
           recallFrame = None
@@ -432,7 +433,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.Ranks(ranks, personalScore, personalRank) =>
         currentRank = ranks
-        maxArea = Constant.shortMax(maxArea, personalScore.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank)
 
