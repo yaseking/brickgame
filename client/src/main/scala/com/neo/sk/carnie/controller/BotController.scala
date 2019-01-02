@@ -41,6 +41,7 @@ class BotController(player: PlayerInfoInClient,
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
   var myCurrentRank = Score(player.id, player.name, 0)
+  private var myActions = Map.empty[Int,Int]
   private var logicFrameTime = System.currentTimeMillis()
 
   def startGameLoop(): Unit = { //渲染帧
@@ -113,7 +114,7 @@ class BotController(player: PlayerInfoInClient,
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
+        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id),myActions)
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
       case None =>
@@ -139,6 +140,7 @@ class BotController(player: PlayerInfoInClient,
             val id = grid.carnieMap(carnieId)
             log.debug(s"i receive SnakeAction:$id")
             if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+              myActions += frame -> keyCode
               if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                 grid.addActionWithFrame(id, keyCode, frame)
                 if (frame < grid.frameCount) {
@@ -213,7 +215,7 @@ class BotController(player: PlayerInfoInClient,
           }
         }
 
-      case x@Protocol.DeadPage(kill, area, playTime) =>
+      case x@Protocol.DeadPage(_, _, _) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
           botActor ! Dead

@@ -41,6 +41,7 @@ class GameController(player: PlayerInfoInClient,
   var firstCome = true
   val idGenerator = new AtomicInteger(1)
   var playBgm = true
+  var isSynced = false
   var isWin = false
   var exitFullScreen = false
   var winnerName = "unknown"
@@ -58,10 +59,12 @@ class GameController(player: PlayerInfoInClient,
 
   val bgmList = List(bgm4)
   var BGM = new AudioClip(getClass.getResource("/mp3/bgm4.mp3").toString)
-  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   private val bgmAmount = bgmList.length
+  var deadUser = Map.empty[Int, List[String]] //frame, userId
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+  var syncFrame: scala.Option[Protocol.SyncFrame] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
-  var newSnakeInfo: scala.Option[Protocol.NewSnakeInfo] = None
+  var newSnakeInfo = Map.empty[Int, NewSnakeInfo]
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
   private var recallFrame: scala.Option[Int] = None
   private var stageWidth = stageCtx.getStage.getWidth.toInt
@@ -157,63 +160,69 @@ class GameController(player: PlayerInfoInClient,
       case None =>
     }
 
-    if (newSnakeInfo.nonEmpty) {
-      //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
-      if (newSnakeInfo.get.snake.map(_.id).contains(player.id) && !firstCome) spaceKey()
-      newSnakeInfo.get.snake.foreach { s =>
-        grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
+    if (syncGridData.nonEmpty) { //全量数据
+      if(grid.snakes.nonEmpty){
+        println("total syncGridData")
+        grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
       }
-      grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
-      grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
-
-      newSnakeInfo = None
-    }
-
-    if (syncGridData.nonEmpty) { //逻辑帧更新数据
       grid.initSyncGridData(syncGridData.get)
+      addBackendInfo4Sync(grid.frameCount)
       syncGridData = None
+    } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
+      val frontend = grid.frameCount
+      val backend = syncFrame.get.frameCount
+      val advancedFrame = Math.abs(backend - frontend)
+      if (frontend > backend && grid.historyStateMap.get(backend).nonEmpty) {
+        println(s"frontend advanced backend,frontend$frontend,backend:$backend")
+        grid.setGridInGivenFrame(backend)
+      } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
+        println(s"backend advanced frontend,frontend$frontend,backend:$backend")
+        (1 to advancedFrame).foreach { _ =>
+          grid.update("f")
+          addBackendInfo(grid.frameCount)
+        }
+      } else {
+        playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
+      }
+      syncFrame = None
     } else {
       grid.update("f")
-//      println(s"update: ${grid.getGridData.snakes.map(_.id)}")
-    }
-
-    if (newFieldInfo.nonEmpty) {
-      val minFrame = newFieldInfo.keys.min
-      (minFrame to grid.frameCount).foreach { frame =>
-        if (newFieldInfo.get(frame).nonEmpty) {
-          val newFieldData = newFieldInfo(frame)
-          if (newFieldData.fieldDetails.map(_.uid).contains(player.id))
-            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(player.id))
-          grid.addNewFieldInfo(newFieldData)
-          newFieldInfo -= frame
-        }
-      }
+      addBackendInfo(grid.frameCount)
     }
 
 //    if (newSnakeInfo.nonEmpty) {
+//      //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
+//      if (newSnakeInfo.get.snake.map(_.id).contains(player.id) && !firstCome) spaceKey()
+//      newSnakeInfo.get.snake.foreach { s =>
+//        grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
+//      }
 //      grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
 //      grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
+//
 //      newSnakeInfo = None
 //    }
 //
-//    if(syncGridData.nonEmpty) {
+//    if (syncGridData.nonEmpty) { //逻辑帧更新数据
 //      grid.initSyncGridData(syncGridData.get)
 //      syncGridData = None
-//      println(s"sync: ${grid.getGridData.snakes.map(_.id)}")
 //    } else {
 //      grid.update("f")
-//      println(s"update: ${grid.getGridData.snakes.map(_.id)}")
-//      if (newFieldInfo.nonEmpty) {
-//        val frame = newFieldInfo.keys.min
-//        val newFieldData = newFieldInfo(frame)
-//        if (frame == grid.frameCount) {
+////      println(s"update: ${grid.getGridData.snakes.map(_.id)}")
+//    }
+//
+//    if (newFieldInfo.nonEmpty) {
+//      val minFrame = newFieldInfo.keys.min
+//      (minFrame to grid.frameCount).foreach { frame =>
+//        if (newFieldInfo.get(frame).nonEmpty) {
+//          val newFieldData = newFieldInfo(frame)
+//          if (newFieldData.fieldDetails.map(_.uid).contains(player.id))
+//            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(player.id))
 //          grid.addNewFieldInfo(newFieldData)
 //          newFieldInfo -= frame
-//        } else if (frame < grid.frameCount) {
-//          playActor ! PlayGameWebSocket.MsgToService(NeedToSync(player.id).asInstanceOf[UserAction])
 //        }
 //      }
 //    }
+
 
     val gridData = grid.getGridData
 
@@ -314,33 +323,20 @@ class GameController(player: PlayerInfoInClient,
           if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
             val id = grid.carnieMap(carnieId)
             if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+              //            println(s"recv:$r")
               if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                 grid.addActionWithFrame(id, keyCode, frame)
                 if (frame < grid.frameCount) {
-                  if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                    recallFrame = recallFrame match {
-                      case Some(oldFrame) => Some(Math.min(frame, oldFrame))
-                      case None => Some(frame)
-                    }
-                  } else {
-                    recallFrame = Some(-1)
-                  }
+                  recallFrame = grid.findRecallFrame(frame, recallFrame)
                 }
               } else {
                 if (grid.myActionHistory(actionId)._1 != keyCode || grid.myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-                  println(s"now:${grid.frameCount}...history:${grid.myActionHistory(actionId)._2}...backend:$frame")
+                  //                println(s"now:${grid.frameCount}...history:${grid.myActionHistory(actionId)._2}...backend:$frame")
                   grid.deleteActionWithFrame(id, grid.myActionHistory(actionId)._2)
                   grid.addActionWithFrame(id, keyCode, frame)
                   val miniFrame = Math.min(frame, grid.myActionHistory(actionId)._2)
                   if (miniFrame < grid.frameCount) {
-                    if (grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-                      recallFrame = recallFrame match {
-                        case Some(oldFrame) => Some(Math.min(frame, oldFrame))
-                        case None => Some(frame)
-                      }
-                    } else {
-                      recallFrame = Some(-1)
-                    }
+                    recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
                   }
                 }
                 grid.myActionHistory -= actionId
@@ -348,14 +344,7 @@ class GameController(player: PlayerInfoInClient,
             } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
-                if (grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-                  recallFrame = recallFrame match {
-                    case Some(oldFrame) => Some(Math.min(frame, oldFrame))
-                    case None => Some(frame)
-                  }
-                } else {
-                  recallFrame = Some(-1)
-                }
+                recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             }
           }
@@ -396,8 +385,8 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           val finalData = grid.getGridData
           drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
-          winnerName = winner
-          winnerData = Some(finalData)
+//          winnerName = winner
+//          winnerData = Some(finalData)
           isWin = true
 //          audioWin.play()
           //        gameScene.drawGameWin(player.id, winner, finalData)
@@ -411,11 +400,13 @@ class GameController(player: PlayerInfoInClient,
       case UserLeft(id) =>
         Boot.addToPlatform {
           println(s"user $id left:::")
-          if (grid.snakes.contains(id)) grid.snakes -= id
-          grid.returnBackField(id)
-          grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
-            Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
-          }
+          grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
+          grid.cleanDiedSnakeInfo(id)
+//          if (grid.snakes.contains(id)) grid.snakes -= id
+//          grid.returnBackField(id)
+//          grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
+//            Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+//          }
         }
 
       case x@Protocol.DeadPage(kill, area, playTime) =>
@@ -429,7 +420,7 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           currentRank = current
           maxArea = Math.max(maxArea, score.area)
-          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin){
+          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin && isSynced){
             gameScene.drawRank(player.id, grid.getGridData.snakes, current, score, rank)
 //            layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
 //            layeredGameScene.drawHumanRank(player.id, grid.getGridData.snakes, currentRank)
@@ -442,30 +433,44 @@ class GameController(player: PlayerInfoInClient,
           syncGridData = Some(data)
           if (data.fieldDetails.nonEmpty) newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
 //          newFieldInfo = newFieldInfo.filterKeys(_ > data.frameCount)
+          isSynced = true
         }
+
+      case data: Protocol.SyncFrame =>
+        syncFrame = Some(data)
+        isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
 //        println(s"!!!!!!new snake join!!!")
         Boot.addToPlatform{
-          newSnakeInfo = Some(data)
-          data.snake.foreach{s => grid.carnieMap += s.carnieId -> s.id}
-        }
-
-      case Protocol.UserDead(frame, id, name, killerName) =>
-        println("I've clean it")
-        Boot.addToPlatform {
-//          deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
-          if (killerName.nonEmpty) {
-            grid.killInfo = Some(id, name, killerName.get)
-            grid.barrageDuration = 100
+          grid.historyNewSnake += data.frameCount -> data
+          data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
+          if (data.frameCount < grid.frameCount + 1) {
+            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+          } else {
+            newSnakeInfo += data.frameCount -> data
           }
         }
+
+//      case Protocol.UserDead(frame, id, name, killerName) =>
+//        Boot.addToPlatform {
+////          deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
+//          if (killerName.nonEmpty) {
+//            grid.killInfo = Some(id, name, killerName.get)
+//            grid.barrageDuration = 100
+//          }
+//        }
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
         grid.historyDieSnake += frame -> deadInfo.map(_.id)
         deadInfo.filter(_.killerName.nonEmpty).foreach { i =>
           grid.killInfo = Some(i.id, i.name, i.killerName.get)
           grid.barrageDuration = 100
+        }
+        if (frame < grid.frameCount + 1) {
+          recallFrame = grid.findRecallFrame(frame - 1, recallFrame)
+        } else {
+          deadUser += frame -> deadInfo.map(_.id)
         }
 
 //      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
@@ -478,9 +483,13 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform{
           if(data.fieldDetails.exists(_.uid == player.id))
             audioFinish.play()
-          newFieldInfo += data.frameCount -> data
-
           grid.historyFieldInfo += data.frameCount -> data
+
+          if (data.frameCount < grid.frameCount + 1) {
+            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+          } else {
+            newFieldInfo += data.frameCount -> data
+          }
         }
 
       case x@Protocol.ReceivePingPacket(actionId) =>
@@ -501,50 +510,6 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def addUserActionListen():Unit = {
-//    layeredGameScene.positionCanvas.requestFocus()
-
-//    layeredGameScene.positionCanvas.setOnKeyPressed{ event =>
-//      val key = event.getCode
-//      if (Constant.watchKeys.contains(key)) {
-//        val delay = if(mode==2) 4 else 2
-//        val frame = grid.frameCount + delay
-//        val actionId = idGenerator.getAndIncrement()
-//        val keyCode = Constant.keyCode2Int(key)
-//        grid.addActionWithFrame(player.id, keyCode, frame)
-//
-//        if (key != KeyCode.SPACE) {
-//          grid.myActionHistory += actionId -> (keyCode, frame)
-//        } else {
-//          //数据重置
-//          drawFunction match {
-//            case FrontProtocol.DrawBaseGame(_) =>
-//            case _ =>
-//              grid.cleanData()
-//              drawFunction = FrontProtocol.DrawGameWait
-//              audioWin.stop()
-//              audioDie.stop()
-//              firstCome = true
-//              if(isWin){
-//                isWin = false
-//                winnerName = "unknown"
-//              }
-//              animationTimer.start()
-//              isContinue = true
-//          }
-//        }
-//        val newKeyCode =
-//          if(mode == 1)
-//            key match {
-//              case KeyCode.LEFT => KeyCode.RIGHT
-//              case KeyCode.RIGHT => KeyCode.LEFT
-//              case KeyCode.DOWN => KeyCode.UP
-//              case KeyCode.UP => KeyCode.DOWN
-//              case _ => KeyCode.SPACE
-//            }
-//          else key
-//        playActor ! PlayGameWebSocket.MsgToService(Protocol.Key(player.id, Constant.keyCode2Int(newKeyCode), frame, actionId))
-//      }
-//    }
     gameScene.viewCanvas.requestFocus()
 
     gameScene.viewCanvas.setOnKeyPressed{ event =>
@@ -666,6 +631,39 @@ class GameController(player: PlayerInfoInClient,
 //    animationTimer.start()
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)
+  }
+  def addBackendInfo(frame: Int) = {
+    newFieldInfo.get(frame).foreach { data =>
+      grid.addNewFieldInfo(data)
+      newFieldInfo -= frame
+    }
+
+    deadUser.get(frame).foreach { deadSnake =>
+      deadSnake.foreach { sid =>
+        if (grid.snakes.contains(sid)) {
+          println(s"snake dead in backend:$sid")
+          grid.cleanDiedSnakeInfo(sid)
+        }
+      }
+      deadUser -= frame
+    }
+
+    newSnakeInfo.get(frame).foreach { newSnakes =>
+      if (newSnakes.snake.map(_.id).contains(player.id) && !firstCome) spaceKey()
+      newSnakes.snake.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
+      grid.snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
+      grid.addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+      newSnakeInfo -= frame
+    }
+  }
+
+  def addBackendInfo4Sync(frame: Int): Unit = {
+    newFieldInfo -= frame
+    deadUser -= frame
+    newSnakeInfo.get(frame).foreach { newSnakes =>
+      if (newSnakes.snake.map(_.id).contains(player.id) && !firstCome) spaceKey()
+      newSnakeInfo -= frame
+    }
   }
 
 //  def getAllImage  = {

@@ -13,6 +13,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.media.AudioClip
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import javafx.stage.Screen
+import javafx.scene.paint.Color
 
 
 class LayeredGameScene (img: Int, frameRate: Int) {
@@ -103,14 +104,14 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   val getScene: Scene = new Scene(group)
 
 
-  def draw(currentRank:List[Score],uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
+  def draw(currentRank:List[Score],uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, myActions: Map[Int,Int]): Unit = {
     layered.drawPosition(data.snakes.filter(_.id == uid).map(_.header).head,data.snakes.find(_.id == championId).map(_.header),uid == championId)
     layered.drawBorder(uid, data, offsetTime, grid, frameRate)
     layered.drawSelfView(uid, data, offsetTime, grid,  frameRate)
     layered.drawSelf(uid, data, offsetTime, grid, frameRate)
     layered.drawRank(uid, data.snakes, currentRank)
     layered.drawBody(uid, data, offsetTime, grid, frameRate)
-    layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate)
+    layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate,myActions)
     layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
@@ -129,15 +130,18 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   }
 
   def cleanGameWait(w:Int,h:Int): Unit = {
-    println(w,h)
-    allCanvas.setHeight(h)
-    allCanvas.setWidth(w)
+    allCanvas.setHeight(1080)
+    allCanvas.setWidth(1920)
+    allCtx.clearRect(0, 0, 1920, 1080)
+    allCtx.setFill(Color.BLACK)
     allCtx.save()
-//    allCtx.setFill(ColorsSetting.dieInfoBackgroundColor)
-    allCtx.clearRect(0, 0, w, h)
+//    allCtx.clearRect(0, 0, w, h)
 //    allCtx.setFill(ColorsSetting.dieInfoFontColor)
 //    allCtx.setFont(Font.font(30))
-//    allCtx.fillText("Please wait.", 150, 180)
+    allCtx.fillRect(0,0,1920,190)
+    allCtx.fillRect(0,190,195,620)
+    allCtx.fillRect(1805,190,300,620)
+    allCtx.fillRect(0,800,1920,300)
     allCtx.restore()
   }
 

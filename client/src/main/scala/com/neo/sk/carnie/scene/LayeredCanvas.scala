@@ -133,8 +133,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
     positionCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.x, positionCanvasUnit)
     positionCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.y)
-    positionCtx.fillRect(positionCanvasUnit, border.y * positionCanvasUnit, positionCanvasUnit * (border.x + 1), positionCanvasUnit)
-    positionCtx.fillRect(border.x  * positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * (border.y + 1))
+    positionCtx.fillRect(positionCanvasUnit, border.y * positionCanvasUnit, positionCanvasUnit * border.x , positionCanvasUnit)
+    positionCtx.fillRect(border.x  * positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.y )
 
     positionCtx.restore()
     positionCtx.fillRect( offx - window.x / 2 * positionCanvasUnit , offy  - window.y / 2 * positionCanvasUnit, window.x * positionCanvasUnit, window.y * positionCanvasUnit)
@@ -362,7 +362,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
 
 
-  def drawHumanView(currentRank: List[Score],uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawHumanView(currentRank: List[Score],uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int]): Unit = { //头所在的点是屏幕的正中心
     
     val snakes = data.snakes
     humanViewCtx.clearRect(0, 0, humanWindowBoundary.x, humanWindowBoundary.y)
@@ -535,6 +535,26 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     humanViewCtx.save()
     humanViewCtx.fillRect(0, 400, 800 , 210 )
     humanViewCtx.restore()
+
+    val baseLine4A = 2
+    var index4A = 0
+    if(myActions.size >= 12){
+      myActions.toList.sortBy(_._1).takeRight(12).foreach{ a =>
+        humanViewCtx.setFill(Color.WHITE)
+        humanViewCtx.save()
+        humanViewCtx.fillText(s"frame:${a._1},action:${a._2}",20,400 + (index4A + baseLine4A) * textLineHeight)
+        index4A += 1
+      }
+    }
+    else {
+      myActions.toList.sortBy(_._1).foreach{ a =>
+        humanViewCtx.setFill(Color.WHITE)
+        humanViewCtx.save()
+        humanViewCtx.fillText(s"frame:${a._1},action:${a._2}",20,400 + (index4A + baseLine4A) * textLineHeight)
+        index4A += 1
+      }
+    }
+
   }
   
   def drawSelfView(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心

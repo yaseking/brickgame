@@ -164,23 +164,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (syncGridData.nonEmpty) { //全量数据
-        //        getMyField()
-        //        val a = myGroupField
-        //        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
         if(grid.snakes.nonEmpty){
           println("total syncGridData")
           grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
         }
         grid.initSyncGridData(syncGridData.get)
         addBackendInfo4Sync(grid.frameCount)
-        //        getMyField()
-        //        val myBody2 = grid.snakeTurnPoints.getOrElse(myId, Nil)
-        //        val b = myGroupField
-        //        if (a != b){
-        //        println(s"=======myBody1:$myBody1")
-        //        println(s"=======myBody2:$myBody2")
-        //          println(s"=======all data:${syncGridData.get.bodyDetails.filter(_.uid == myId)}")
-        //        }
         syncGridData = None
       } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
         val frontend = grid.frameCount
