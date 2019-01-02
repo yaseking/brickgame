@@ -154,7 +154,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           val time1 = System.currentTimeMillis()
           val oldGrid = grid
           println(s"before recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
-          oldGrid.recallGrid(frame, grid.frameCount)
+          grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
+            case Some(dieFrame) =>
+              if (dieFrame - 1 == frame) grid.setGridInGivenFrame(frame)
+              else oldGrid.recallGrid(frame, dieFrame - 1)
+
+            case None =>
+              oldGrid.recallGrid(frame, grid.frameCount)
+          }
           println(s"after recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
           grid = oldGrid
           println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
@@ -381,7 +388,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId, sendTime) =>
         println(s"recv time:${System.currentTimeMillis() - sendTime}")
-        if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
+        if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             //            println(s"recv:$r")
