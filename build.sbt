@@ -9,7 +9,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "carnie"
-val projectVersion = "2019.01.01"
+val projectVersion = "2019.01.02"
 
 val projectMainClass = "com.neo.sk.carnie.Boot"
 

@@ -293,9 +293,7 @@ object RoomActor {
               dispatchTo(subscribersMap, id, grid.getGridData)
 
             case PressSpace =>
-              log.debug(s"PressSpace:$id")
               if (userDeadList.contains(id)) {
-                log.debug(s"new snake:$id")
                 val info = userMap.getOrElse(id, UserInfo("", -1L, -1L, 0))
                 grid.addSnake(id, roomId, info.name, info.img,
                   carnieMap.get(id) match {
