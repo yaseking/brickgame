@@ -31,7 +31,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private val window = Point(Window.w, Window.h)
   private val border = Point(BorderSize.w, BorderSize.h)
   private val windowBoundary = Point(viewCanvas.getWidth.toFloat, viewCanvas.getHeight.toFloat)
-  private val humanWindowBoundary = Point(humanViewCanvas.getWidth.toFloat, humanViewCanvas.getHeight.toFloat)
+  private val humanWindowBoundary = Point(humanViewCanvas.getWidth.toFloat, humanViewCanvas.getHeight.toFloat - 210 )
   private val positionWindowBoundary = Point(positionCanvas.getWidth.toFloat, positionCanvas.getHeight.toFloat)
   
   private val positionCanvasUnit = positionWindowBoundary.x / (border.x + 10)
@@ -379,6 +379,9 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val offX = window.x / 2 - lastHeader.x //新的框的x偏移量
     val offY = window.y / 2 - lastHeader.y //新的框的y偏移量
 
+
+
+
     val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
     val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
@@ -437,7 +440,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       field.scanField.foreach { fids =>
         fids.y.foreach{y =>
           fids.x.foreach{x =>
-            humanViewCtx.fillRect((x._1 + offX) * humanCanvasUnit, (y._1 + offY) * humanCanvasUnit, humanCanvasUnit * (x._2 - x._1 + 1), humanCanvasUnit * (y._2 - y._1 + 1))
+            humanViewCtx.fillRect((x._1 + offX) * humanCanvasUnit, (y._1 + offY) * humanCanvasUnit, humanCanvasUnit * (x._2 - x._1 + 1), humanCanvasUnit * (y._2 - y._1 + 1.05))
           }
         }
       }
@@ -526,6 +529,12 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
     humanViewCtx.restore()
+
+    humanViewCtx.clearRect(0, 400, 800 , 210)
+    humanViewCtx.setFill(Color.BLACK)
+    humanViewCtx.save()
+    humanViewCtx.fillRect(0, 400, 800 , 210 )
+    humanViewCtx.restore()
   }
   
   def drawSelfView(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
@@ -607,7 +616,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       field.scanField.foreach { fids =>
         fids.y.foreach{y =>
           fids.x.foreach{x =>
-            selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1))
+            selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.05))
           }
         }
       }
@@ -726,7 +735,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       field.scanField.foreach { fids =>
         fids.y.foreach{y =>
           fids.x.foreach{x =>
-            selfCtx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1))
+            selfCtx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.05))
           }
         }
       }
