@@ -189,8 +189,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
         syncFrame = None
       } else {
-        addBackendInfo(grid.frameCount)
         grid.update("f")
+        addBackendInfo(grid.frameCount)
       }
 
       if (!isWin) {
