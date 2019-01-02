@@ -318,7 +318,7 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.Id(id) =>
         log.debug(s"i receive my id:$id")
 
-      case Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
+      case Protocol.SnakeAction(carnieId, keyCode, frame, actionId, _) =>
         Boot.addToPlatform {
           if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
             val id = grid.carnieMap(carnieId)

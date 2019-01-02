@@ -319,7 +319,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             case ReceivePingPacket(_) =>
               ping = ping + a.length
 
-            case SnakeAction(_, _, _, _) =>
+            case SnakeAction(_, _, _, _, _) =>
               snakeAction = snakeAction + a.length
 
             case NewFieldInfo(_, _) =>

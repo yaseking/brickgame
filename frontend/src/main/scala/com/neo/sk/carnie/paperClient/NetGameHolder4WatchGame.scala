@@ -329,7 +329,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         frameRate = if(mode==2) frameRate2 else frameRate1
         startGame()
 
-      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
+      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId, _) =>
         if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
