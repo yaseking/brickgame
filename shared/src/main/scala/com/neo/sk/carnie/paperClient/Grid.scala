@@ -99,11 +99,12 @@ trait Grid {
   def update(origin: String): (List[(String, List[Point])], List[String]) = {
     val isFinish = updateSnakes(origin)
     updateSpots()
-    actionMap -= (frameCount - maxDelayed)
-    historyFieldInfo = historyFieldInfo.filter(_._1 > (frameCount - (maxDelayed + 1)))
-    historyStateMap = historyStateMap.filter(_._1 > (frameCount - (maxDelayed + 1)))
-    historyNewSnake = historyNewSnake.filter(_._1 > (frameCount - (maxDelayed + 1)))
-    historyDieSnake = historyDieSnake.filter(_._1 > (frameCount - (maxDelayed + 1)))
+    val limitFrameCount = frameCount - (maxDelayed + 1)
+    actionMap = actionMap.filter(_._1 > limitFrameCount)
+    historyFieldInfo = historyFieldInfo.filter(_._1 > limitFrameCount)
+    historyStateMap = historyStateMap.filter(_._1 > limitFrameCount)
+    historyNewSnake = historyNewSnake.filter(_._1 > limitFrameCount)
+    historyDieSnake = historyDieSnake.filter(_._1 > limitFrameCount)
     frameCount += 1
     isFinish
   }

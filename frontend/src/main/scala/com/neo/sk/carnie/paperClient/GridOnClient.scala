@@ -159,7 +159,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def findRecallFrame(receiveFame: Int, oldRecallFrame: Option[Int]): Option[Int] = {
-    if (frameCount - receiveFame <= (maxDelayed - 1)) { //回溯
+    if (historyStateMap.get(frameCount).nonEmpty) { //回溯
       oldRecallFrame match {
         case Some(oldFrame) => Some(Math.min(receiveFame, oldFrame))
         case None => Some(receiveFame)

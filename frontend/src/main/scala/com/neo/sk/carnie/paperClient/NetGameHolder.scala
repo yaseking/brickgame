@@ -167,6 +167,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //        getMyField()
         //        val a = myGroupField
         //        val myBody1 = grid.snakeTurnPoints.getOrElse(myId, Nil)
+        if(grid.snakes.nonEmpty){
+          println("total syncGridData")
+          grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
+        }
         grid.initSyncGridData(syncGridData.get)
         addBackendInfo4Sync(grid.frameCount)
         //        getMyField()
