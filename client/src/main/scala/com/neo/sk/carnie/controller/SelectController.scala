@@ -29,7 +29,7 @@ class SelectController(playerInfoInClient: PlayerInfoInClient, selectScene: Sele
         linkGameAgent(gameId, playerInfoInClient.id, playerInfoInClient.token).map {
           case Right(r) =>
             Boot.addToPlatform {
-              context.switchScene(playGameScreen.getScene, fullScreen = true)
+              context.switchScene(playGameScreen.getScene, fullScreen = true, resizable = true)
               new GameController(playerInfoInClient.copy(accessCode = r.accessCode), context, playGameScreen, mode, frameRate).start(r.gsPrimaryInfo.domain, mode, img)
             }
 

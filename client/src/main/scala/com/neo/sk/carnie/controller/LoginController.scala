@@ -103,7 +103,6 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
     if(base64Str == null) null
 
     import java.util.Base64
-    import java.util.Base64.Decoder
 //    import sun.misc.BASE64Decoder
     val decoder = Base64.getDecoder
     val bytes:Array[Byte]= decoder.decode(base64Str)

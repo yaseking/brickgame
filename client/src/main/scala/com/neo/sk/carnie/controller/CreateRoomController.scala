@@ -23,7 +23,7 @@ class CreateRoomController(playerInfoInClient: PlayerInfoInClient, createRoomSce
           case Right(r) =>
             val playGameScreen = new GameScene(img, frameRate)
             Boot.addToPlatform{
-              context.switchScene(playGameScreen.getScene, fullScreen = true)
+              context.switchScene(playGameScreen.getScene, fullScreen = true, resizable = true)
               new GameController(playerInfoInClient.copy(accessCode=r.accessCode), context, playGameScreen, mode, frameRate).createRoom(r.gsPrimaryInfo.domain, mode, img, pwd)
             }
 

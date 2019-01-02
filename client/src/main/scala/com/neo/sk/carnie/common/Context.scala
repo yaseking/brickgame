@@ -9,10 +9,10 @@ import javafx.stage.Stage
 class Context(stage: Stage) {
 
   def getStage: Stage = stage
-  def switchScene(scene: Scene, title:String = "carnie", fullScreen: Boolean) = {
+  def switchScene(scene: Scene, title:String = "carnie", fullScreen: Boolean,resizable: Boolean = false) = {
     stage.setScene(scene)
     stage.sizeToScene()
-    stage.setResizable(true)
+    stage.setResizable(resizable)
     stage.setTitle(title)
 //    stage.setWidth(1920)
 //    stage.setHeight(1080)
