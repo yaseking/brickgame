@@ -177,8 +177,8 @@ trait Grid {
 
           case Some(Field(id)) =>
             if (id == snake.id) {
-              grid(snake.header) match {
-                case Body(bid, _) if bid == snake.id => //回到了自己的领域
+              grid.get(snake.header) match {
+                case Some(Body(bid, _)) if bid == snake.id => //回到了自己的领域
                   enclosure(snake, origin, newHeader, newDirection)
 
                 case _ =>
