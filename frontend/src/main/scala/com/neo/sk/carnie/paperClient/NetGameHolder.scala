@@ -379,7 +379,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case Protocol.Id(id) =>
         myId = id
 
-      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
+      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId, sendTime) =>
+        println(s"recv time:${System.currentTimeMillis() - sendTime}")
         if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
@@ -405,6 +406,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             }
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
+            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
             if (frame < grid.frameCount) {
               println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
               recallFrame = grid.findRecallFrame(frame, recallFrame)

@@ -87,7 +87,7 @@ object Protocol {
 
   case class InitReplayError(info: String) extends GameMessage
 
-  case class SnakeAction(id: Byte, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
+  case class SnakeAction(id: Byte, keyCode: Byte, frame: Int, actionId: Int, sendTime: Long) extends GameMessage
 
   //  case class SnakeLeft(id: String, name: String) extends GameMessage
 
