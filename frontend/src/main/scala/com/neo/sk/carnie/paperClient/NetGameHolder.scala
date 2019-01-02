@@ -460,7 +460,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case x@Protocol.DeadPage(kill, area, playTime) =>
         println(s"recv userDead $x")
         myScore = BaseScore(kill, area, playTime)
-        maxArea = Constant.shortMax(maxArea, historyRank.find(_.id == myId).map(_.area).getOrElse(0))
+        maxArea = Constant.shortMax(maxArea, area)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
         grid.historyDieSnake += frame -> deadInfo.map(_.id)
