@@ -415,6 +415,7 @@ object RoomManager {
       .map {
         case action@Protocol.SendPingPacket(_) => UserActionOnServer(userId, action)
         case action@Protocol.NeedToSync => UserActionOnServer(userId, action)
+        case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
       .to(sink4WatchGame(actor, roomId, userId))
