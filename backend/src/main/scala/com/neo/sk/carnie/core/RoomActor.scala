@@ -283,7 +283,7 @@ object RoomActor {
                 grid.addActionWithFrame(id, keyCode, realFrame)
                 dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
                   (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
-                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId, System.currentTimeMillis()))
+                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
               }
 
             case SendPingPacket(pingId) =>
