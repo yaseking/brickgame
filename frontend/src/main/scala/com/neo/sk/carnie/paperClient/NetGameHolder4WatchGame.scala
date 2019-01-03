@@ -41,9 +41,9 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var barrageDuration = 0
   //  var winData: Protocol.Data4TotalSync = grid.getGridData
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
-  var deadUser = Map.empty[Int, List[String]] //frame, userId
-  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
-  var newSnakeInfo = Map.empty[Int, NewSnakeInfo]
+//  var deadUser = Map.empty[Int, List[String]] //frame, userId
+//  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
+//  var newSnakeInfo = Map.empty[Int, NewSnakeInfo]
 
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
   //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
@@ -177,14 +177,21 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         val frontend = grid.frameCount
         val backend = syncFrame.get.frameCount
         val advancedFrame = Math.abs(backend - frontend)
-        if (frontend > backend && grid.historyStateMap.get(backend).nonEmpty) {
+        if (backend > frontend && advancedFrame == 1) {
+          println(s"backend advanced frontend,frontend$frontend,backend:$backend")
+          addBackendInfo(grid.frameCount)
+          grid.updateOnClient()
+          addBackendInfo(grid.frameCount)
+        } else if(frontend > backend && grid.historyStateMap.get(backend).nonEmpty){
           println(s"frontend advanced backend,frontend$frontend,backend:$backend")
           grid.setGridInGivenFrame(backend)
         } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-          (1 to advancedFrame).foreach { _ =>
-            addBackendInfo(grid.frameCount)
-            grid.updateOnClient()
+          (frontend until backend).foreach { frame =>
+            if (!grid.historyDieSnake.getOrElse(frame + 1, Nil).contains(myId)) {
+              addBackendInfo(frame)
+              grid.updateOnClient()
+            }
           }
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
@@ -266,7 +273,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), frameRate = frameRate, newFieldInfo = newFieldInfo.get(grid.frameCount + 1 ))
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),
+      frameRate = frameRate, newFieldInfo = grid.historyFieldInfo.get(grid.frameCount + 1))
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
@@ -383,8 +391,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         if (data.frameCount < grid.frameCount + 1) {
           println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
-        } else {
-          newSnakeInfo += data.frameCount -> data
         }
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
@@ -396,8 +402,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         if (frame < grid.frameCount + 1) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(frame - 1, recallFrame)
-        } else {
-          deadUser += frame -> deadInfo.map(_.id)
         }
 
 
@@ -416,8 +420,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         if (data.frameCount < grid.frameCount + 1) {
           println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
-        } else {
-          newFieldInfo += data.frameCount -> data
         }
 
       case x@Protocol.ReceivePingPacket(actionId) =>
@@ -453,33 +455,27 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
   def addBackendInfo(frame: Int) = {
-    newFieldInfo.get(frame).foreach { data =>
+    grid.historyFieldInfo.get(frame).foreach { data =>
       grid.addNewFieldInfo(data)
-      newFieldInfo -= frame
     }
 
-    deadUser.get(frame).foreach { deadSnake =>
+    grid.historyDieSnake.get(frame).foreach { deadSnake =>
       deadSnake.foreach { sid =>
         grid.cleanDiedSnakeInfo(sid)
       }
-      deadUser -= frame
     }
 
-    newSnakeInfo.get(frame).foreach { newSnakes =>
+    grid.historyNewSnake.get(frame).foreach { newSnakes =>
       if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
       newSnakes.snake.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
       grid.snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
-      newSnakeInfo -= frame
     }
   }
 
   def addBackendInfo4Sync(frame: Int): Unit = {
-    newFieldInfo -= frame
-    deadUser -= frame
-    newSnakeInfo.get(frame).foreach { newSnakes =>
+    grid.historyNewSnake.get(frame).foreach { newSnakes =>
       if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
-      newSnakeInfo -= frame
     }
   }
 
