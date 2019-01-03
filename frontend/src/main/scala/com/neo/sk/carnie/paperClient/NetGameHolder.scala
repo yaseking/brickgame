@@ -545,7 +545,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def addBackendInfo4Sync(frame: Int): Unit = {
-    println(s"addBackendInfo4Sync:$firstCome...$isContinue")
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
       if (newSnakes.snake.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
     }
