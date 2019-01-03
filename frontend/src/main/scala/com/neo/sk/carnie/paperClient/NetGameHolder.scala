@@ -456,9 +456,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case data: Protocol.NewSnakeInfo =>
         grid.historyNewSnake += data.frameCount -> data
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
-        if (data.frameCount < grid.frameCount + 1) {
+        if (data.frameCount < grid.frameCount) {
           println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+          recallFrame = grid.findRecallFrame(data.frameCount - 2, recallFrame)
         } else {
           newSnakeInfo += data.frameCount -> data
         }
@@ -474,9 +474,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           killInfo = Some(i.id, i.name, i.killerName.get)
           barrageDuration = 100
         }
-        if (frame < grid.frameCount + 1) {
+        if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(frame - 1, recallFrame)
+          recallFrame = grid.findRecallFrame(frame - 2, recallFrame)
         } else {
           deadUser += frame -> deadInfo.map(_.id)
         }
@@ -487,7 +487,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.historyFieldInfo += data.frameCount -> data
         if (data.frameCount < grid.frameCount) {
           println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+          recallFrame = grid.findRecallFrame(data.frameCount - 2, recallFrame)
         } else {
           newFieldInfo += data.frameCount -> data
         }
