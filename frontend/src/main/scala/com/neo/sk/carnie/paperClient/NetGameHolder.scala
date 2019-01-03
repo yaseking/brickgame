@@ -112,13 +112,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  var lastTime1 = 0l
+//  var lastTime1 = 0l
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
-    println(s"requestAnimationTime: ${curTime - lastTime1}")
+//    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
-    lastTime1 = curTime
+//    lastTime1 = curTime
     if (isContinue)
       dom.window.requestAnimationFrame(gameRender())
   }
@@ -545,6 +545,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def addBackendInfo4Sync(frame: Int): Unit = {
+    println(s"addBackendInfo4Sync:$firstCome...$isContinue")
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
       if (newSnakes.snake.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
     }
