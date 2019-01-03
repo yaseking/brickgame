@@ -12,13 +12,13 @@ object PerformanceTool {
   private var lastRenderTime = System.currentTimeMillis()
   private var lastRenderTimes = 0
   private var renderTimes = 0
-  private var tempTime = System.currentTimeMillis()
+//  private var tempTime = System.currentTimeMillis()
 
   private def addFps() = {
     val time = System.currentTimeMillis()
     renderTimes += 1
-    println(s"addFps time:${time - tempTime}")
-    tempTime = time
+//    println(s"addFps time:${time - tempTime}")
+//    tempTime = time
     if (time - lastRenderTime > 1000) {
       lastRenderTime = time
       lastRenderTimes = renderTimes
