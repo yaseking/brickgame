@@ -416,7 +416,7 @@ class DrawGame(
       field.scanField.foreach { fids =>
         fids.y.foreach { y =>
           fids.x.foreach { x =>
-            ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.04))
+            ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.05))
           }
         }
       }
