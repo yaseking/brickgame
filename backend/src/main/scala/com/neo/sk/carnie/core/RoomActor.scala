@@ -214,8 +214,6 @@ object RoomActor {
           }
           if(finalDieInfo.nonEmpty) {
             dispatch(subscribersMap, UserDeadMsg(frame, finalDieInfo))
-            dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
-              UserDeadMsg(frame, finalDieInfo))
           }
           Behaviors.same
 
@@ -297,9 +295,6 @@ object RoomActor {
 
             case NeedToSync =>
               dispatchTo(subscribersMap, id, grid.getGridData)
-              watcherMap.filter(_._2._1 == id).foreach { w =>
-                dispatchTo(subscribersMap, w._1, grid.getGridData)
-              }
 
 
 
@@ -425,9 +420,6 @@ object RoomActor {
 
             }
             dispatch(subscribersMap,Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
-            watcherMap.foreach { w =>
-              dispatchTo(subscribersMap, w._1, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
-            }
             dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
             watcherMap.filter(_._2._1 ==  grid.currentRank.head.id).foreach { w =>
               dispatchTo(subscribersMap, w._1, Protocol.WinnerBestScore(grid.currentRank.head.area))

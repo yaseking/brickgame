@@ -327,7 +327,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case ReStartGame =>
-        println("I'm reStarting")
         grid.cleanData()
         drawFunction = FrontProtocol.DrawGameWait
 //        FrontProtocol.DrawBaseGame(grid.getGridData)
@@ -367,7 +366,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank)
 
       case data: Protocol.SyncFrame =>
-        println(s"===recv SyncFrame")
         syncFrame = Some(data)
 
       case data: Protocol.Data4TotalSync =>
