@@ -184,8 +184,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           (1 to advancedFrame).foreach { _ =>
-            grid.update("f")
             addBackendInfo(grid.frameCount)
+            grid.update("f")
           }
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
@@ -194,6 +194,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       } else {
         addBackendInfo(grid.frameCount)
         grid.update("f")
+        addBackendInfo(grid.frameCount)
       }
 
       if (!isWin) {
@@ -287,7 +288,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
       case Protocol.StartWatching(mode, img) =>
         drawGame = new DrawGame(ctx, canvas, img)
-        frameRate = if(mode==2) frameRate2 else frameRate1
+        frameRate = if(mode==2) frameRate1 else frameRate1
         startGame()
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId, _) =>
