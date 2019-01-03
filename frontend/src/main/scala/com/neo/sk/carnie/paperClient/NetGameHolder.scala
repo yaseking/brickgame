@@ -387,7 +387,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myId = id
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId, sendTime) =>
-        println(s"recv time:${System.currentTimeMillis() - sendTime}")
+        println(s"recv time:$sendTime..now:${System.currentTimeMillis()}")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
