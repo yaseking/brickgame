@@ -347,6 +347,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           isWin = false
         }
         isContinue = true
+        isSynced = false
 //        updateListener()
         dom.window.requestAnimationFrame(gameRender())
 
