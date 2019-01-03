@@ -237,7 +237,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 //          BGM.currentTime = 0
 //        }
         drawGame.drawGameWin(myId, winner, winData,winningData)
-        audio1.play()
+//        audio1.play()
         isContinue = false
 
       case FrontProtocol.DrawBaseGame(data) =>
@@ -326,8 +326,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case ReStartGame =>
         grid.cleanData()
         drawFunction = FrontProtocol.DrawGameWait
-        audio1.pause()
-        audio1.currentTime = 0
+//        audio1.pause()
+//        audio1.currentTime = 0
         audioKilled.pause()
         audioKilled.currentTime = 0
         firstCome = true
