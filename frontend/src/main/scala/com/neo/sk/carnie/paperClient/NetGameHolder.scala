@@ -388,14 +388,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
 //        println(s"recv time:$sendTime..now:${System.currentTimeMillis()}")
+        val frontendFrame = grid.frameCount
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             //            println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
-              if (frame < grid.frameCount) {
-                println(s"recall for my Action,backend:$frame,frontend:${grid.frameCount}")
+              if (frame < frontendFrame) {
+                println(s"recall for my Action,backend:$frame,frontend:$frontendFrame")
                 recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             } else {
@@ -404,8 +405,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                if (miniFrame < grid.frameCount) {
-                  println(s"recall for my Action,backend:$frame,frontend:${grid.frameCount}")
+                if (miniFrame < frontendFrame) {
+                  println(s"recall for my Action,backend:$frame,frontend:$frontendFrame")
                   recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
                 }
               }
@@ -413,9 +414,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             }
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
-//            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
-            if (frame < grid.frameCount) {
-              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+            //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
+            if (frame < frontendFrame) {
+              println(s"recall for other Action,backend:$frame,frontend:$frontendFrame")
               recallFrame = grid.findRecallFrame(frame, recallFrame)
             }
           }
