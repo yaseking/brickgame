@@ -376,7 +376,7 @@ class DrawGame(
     //    ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
     //    ctx.restore()
 
-    ctx.globalAlpha = 0.6
+    ctx.globalAlpha = offsetTime.toFloat / frameRate * 1
     if(newFieldInfo.nonEmpty){
       newFieldInfo.get.fieldDetails.foreach { field => //按行渲染
         val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
