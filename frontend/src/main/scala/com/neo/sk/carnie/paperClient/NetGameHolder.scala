@@ -388,26 +388,25 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
 //        println(s"recv time:$sendTime..now:${System.currentTimeMillis()}")
-        val frontendFrame = grid.frameCount
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
             //            println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
-              if (frame < frontendFrame) {
-                println(s"recall for my Action1,backend:$frame,frontend:$frontendFrame")
+              if (frame < grid.frameCount) {
+                if(frame == grid.frameCount) println("!!!!!!!!!!!!!!frame == frontendFrame")
+                println(s"recall for my Action1,backend:$frame,frontend:${grid.frameCount}")
                 recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             } else {
-              if(frame == frontendFrame) println("!!!!!!!!!!!!!!frame == frontendFrame")
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
                 //                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
-                if (miniFrame < frontendFrame) {
-                  println(s"recall for my Action2,backend:$frame,frontend:$frontendFrame")
+                if (miniFrame < grid.frameCount) {
+                  println(s"recall for my Action2,backend:$miniFrame,frontend:${grid.frameCount}")
                   recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
                 }
               }
@@ -416,8 +415,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
             //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
-            if (frame < frontendFrame) {
-              println(s"recall for other Action,backend:$frame,frontend:$frontendFrame")
+            if (frame < grid.frameCount) {
+              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
               recallFrame = grid.findRecallFrame(frame, recallFrame)
             }
           }
