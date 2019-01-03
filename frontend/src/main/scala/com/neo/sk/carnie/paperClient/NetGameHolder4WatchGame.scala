@@ -367,6 +367,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         maxArea =Constant.shortMax(maxArea, score)
 
       case Protocol.Ranks(ranks, personalScore, personalRank) =>
+        println("get ranks")
         currentRank = ranks
 //        maxArea = Constant.shortMax(maxArea, personalScore.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
