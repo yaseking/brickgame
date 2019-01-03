@@ -330,7 +330,12 @@ object RoomActor {
           if(grid.newInfo.nonEmpty) { //有新的蛇
             newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
               if (userDeadList.contains(f._1) && curTime - userDeadList(f._1) > maxWaitingTime4Restart)
-                dispatchTo(subscribersMap, f._1, newData) //同步全量数据
+                {
+                  dispatchTo(subscribersMap, f._1, newData)
+                  watcherMap.filter(_._2._1 ==  f._1).foreach { w =>
+                    dispatchTo(subscribersMap, w._1, newData)
+                  }
+                } //同步全量数据
               val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
               userMap.put(f._1, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
               userDeadList -= f._1
@@ -353,12 +358,23 @@ object RoomActor {
 //            val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, Nil)
             if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 2 ||
               (userDeadList.contains(u) &&  curTime - userDeadList(u) <= maxWaitingTime4Restart) && (tickCount - i.joinFrame) % 100 == 2)
-              dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
+              {
+                dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
+                watcherMap.filter(_._2._1 ==  u).foreach { w =>
+                  dispatchTo(subscribersMap, w._1, SyncFrame(newData.frameCount))
+                }
+              }
             //              dispatchTo(subscribersMap, u, newDataNoField)
             if ((i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 ||
               (userDeadList.contains(u) &&  curTime - userDeadList(u) <= maxWaitingTime4Restart)) && grid.currentRank.exists(_.id == u) && (tickCount - i.joinFrame) % 20 == 5)
-              dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte))
+              {
+                dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
+                  (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte))
+                watcherMap.filter(_._2._1 ==  u).foreach { w =>
+                  dispatchTo(subscribersMap, w._1, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
+                    (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte))
+                }
+              }
           }
 
           if (finishFields.nonEmpty) { //发送圈地数据
@@ -381,12 +397,29 @@ object RoomActor {
             grid.cleanData()
             userMap.foreach { u =>
               if (u._1 == grid.currentRank.head.id)
-                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
+                {
+                  dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
+                  watcherMap.filter(_._2._1 ==  u._1).foreach { w =>
+                    dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, None))
+                  }
+                }
               else
-                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
+                {
+                  dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
+                  watcherMap.filter(_._2._1 ==  u._1).foreach { w =>
+                    dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
+                  }
+                }
+
             }
             dispatch(subscribersMap,Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
+            watcherMap.foreach { w =>
+              dispatchTo(subscribersMap, w._1, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
+            }
             dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
+            watcherMap.filter(_._2._1 ==  grid.currentRank.head.id).foreach { w =>
+              dispatchTo(subscribersMap, w._1, Protocol.WinnerBestScore(grid.currentRank.head.area))
+            }
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name)))
             userMap.foreach { u =>
               if (!userDeadList.contains(u._1)) {
