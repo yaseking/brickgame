@@ -48,7 +48,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
   //  var totalData: scala.Option[Protocol.Data4TotalSync] = None
   var isContinue = true
-  var frameRate: Int = 150
+  var frameRate: Int = frameRate1
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
 
@@ -105,11 +105,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 //    BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
-      if (pingId > 10000) pingId = 0  else pingId = (pingId + 1).toShort
-      val curTime = System.currentTimeMillis()
-      pingMap += (pingId -> curTime)
+      if (pingId > 10000) pingId = 0 else pingId = (pingId + 1).toShort
+      pingMap += (pingId -> System.currentTimeMillis())
       webSocketClient.sendMessage(SendPingPacket(pingId).asInstanceOf[UserAction])
-    }, 100)
+    }, 250)
     dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -294,6 +293,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         startGame()
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
+        println(s"got $r")
         if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
