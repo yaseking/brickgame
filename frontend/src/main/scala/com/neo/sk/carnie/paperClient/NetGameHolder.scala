@@ -400,6 +400,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             } else {
+              if(frame == frontendFrame) println("!!!!!!!!!!!!!!frame == frontendFrame")
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
                 //                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
