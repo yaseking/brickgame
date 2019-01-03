@@ -368,12 +368,13 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
       case Protocol.Ranks(ranks, personalScore, personalRank) =>
         currentRank = ranks
-        maxArea = Constant.shortMax(maxArea, personalScore.area)
+//        maxArea = Constant.shortMax(maxArea, personalScore.area)
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank)
 
       case data: Protocol.SyncFrame =>
         syncFrame = Some(data)
+        isSynced = true
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
@@ -392,14 +393,16 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
-        grid.historyDieSnake += frame -> deadInfo.map(_.id)
+        val deadList =  deadInfo.map(_.id)
+        grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerName.nonEmpty).foreach { i =>
           killInfo = Some(i.id, i.name, i.killerName.get)
           barrageDuration = 100
         }
-        if (frame < grid.frameCount + 1) {
+        if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(frame - 1, recallFrame)
+          val deadRecallFrame = if(deadList.contains(myId)) frame - 2 else frame - 1
+          recallFrame = grid.findRecallFrame(deadRecallFrame, recallFrame)
         }
 
 
