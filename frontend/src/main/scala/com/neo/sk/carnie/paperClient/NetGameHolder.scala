@@ -109,7 +109,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       pingMap += (pingId -> System.currentTimeMillis())
       webSocketClient.sendMessage(SendPingPacket(pingId).asInstanceOf[UserAction])
     }, 250)
-    dom.window.requestAnimationFrame(gameRender())
+//    dom.window.requestAnimationFrame(gameRender())
   }
 
   var lastTime1 = 0l
