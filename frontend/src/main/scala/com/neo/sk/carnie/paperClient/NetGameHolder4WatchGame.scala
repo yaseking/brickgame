@@ -196,7 +196,6 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         addBackendInfo(grid.frameCount)
       }
 
-      println(s"player is alive or not,${grid.getGridData.snakes.exists(_.id == myId)},grid snakes:${grid.snakes.keys.toList}")
 
       if (!isWin) {
         val gridData = grid.getGridData
