@@ -376,6 +376,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
+        println(s"got new snake,${data.snake.map(_.id)}")
         grid.historyNewSnake += data.frameCount -> data
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
         if (data.frameCount < grid.frameCount + 1) {
@@ -418,7 +419,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case x@Protocol.ReceivePingPacket(actionId) =>
-        println("got pingPacket.")
+//        println("got pingPacket.")
         if (pingMap.get(actionId).nonEmpty) {
           PerformanceTool.receivePingPackage(pingMap(actionId))
           pingMap -= actionId
