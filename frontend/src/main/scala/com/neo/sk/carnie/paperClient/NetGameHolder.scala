@@ -537,7 +537,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     }
 
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
-      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
+      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) {
+        println("spaceKey1!!")
+        spaceKey()
+      }
       newSnakes.snake.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
       grid.snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
@@ -547,7 +550,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   def addBackendInfo4Sync(frame: Int): Unit = {
     println(s"addBackendInfo4Sync:$firstCome...$isContinue")
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
-      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
+      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome && !isContinue) {
+        println("spacekey2!!")
+        spaceKey()
+      }
     }
   }
 
