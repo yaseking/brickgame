@@ -144,15 +144,23 @@ class GameController(player: PlayerInfoInClient,
 
     recallFrame match {
       case Some(-1) =>
-        println("!!!!!!!!:NeedToSync2")
+        println("!!!!!!!!:NeedToSync")
         playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
         recallFrame = None
 
       case Some(frame) =>
         val time1 = System.currentTimeMillis()
-        println(s"recall ...before frame:${grid.frameCount}")
         val oldGrid = grid
-        oldGrid.recallGrid(frame, grid.frameCount)
+        println(s"before recall...myTurnPoints:${grid.snakeTurnPoints.get(player.id)}")
+        grid.historyDieSnake.filter{d => d._2.contains(player.id) && d._1 > frame}.keys.headOption match {
+          case Some(dieFrame) =>
+            if (dieFrame - 1 == frame) grid.setGridInGivenFrame(frame)
+            else oldGrid.recallGrid(frame, dieFrame - 1)
+
+          case None =>
+            oldGrid.recallGrid(frame, grid.frameCount)
+        }
+        println(s"after recall...myTurnPoints:${grid.snakeTurnPoints.get(player.id)}")
         grid = oldGrid
         println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
         recallFrame = None

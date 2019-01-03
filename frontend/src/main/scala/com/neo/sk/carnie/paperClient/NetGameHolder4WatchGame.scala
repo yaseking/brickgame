@@ -101,8 +101,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
-    BGM = bgmList(getRandom(bgmAmount))
-    BGM.play()
+//    BGM = bgmList(getRandom(bgmAmount))
+//    BGM.play()
     dom.window.setInterval(() => gameLoop(), frameRate)
     dom.window.setInterval(() => {
       if (pingId > 10000) pingId = 0  else pingId = (pingId + 1).toShort
@@ -142,15 +142,23 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     if (webSocketClient.getWsState) {
       recallFrame match {
         case Some(-1) =>
-          println("!!!!!!!!:NeedToSync2")
+          println("!!!!!!!!:NeedToSync")
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
           recallFrame = None
 
         case Some(frame) =>
           val time1 = System.currentTimeMillis()
-          println(s"recall ...before frame:${grid.frameCount}")
           val oldGrid = grid
-          oldGrid.recallGrid(frame, grid.frameCount)
+          println(s"before recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
+          grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
+            case Some(dieFrame) =>
+              if (dieFrame - 1 == frame) grid.setGridInGivenFrame(frame)
+              else oldGrid.recallGrid(frame, dieFrame - 1)
+
+            case None =>
+              oldGrid.recallGrid(frame, grid.frameCount)
+          }
+          println(s"after recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
           grid = oldGrid
           println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
           recallFrame = None
@@ -193,10 +201,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             if (firstCome) firstCome = false
-            if (BGM.paused) {
-              BGM = bgmList(getRandom(bgmAmount))
-              BGM.play()
-            }
+//            if (BGM.paused) {
+//              BGM = bgmList(getRandom(bgmAmount))
+//              BGM.play()
+//            }
             FrontProtocol.DrawBaseGame(gridData)
 
           case None if !firstCome =>
@@ -217,17 +225,17 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-        if(!BGM.paused){
-          BGM.pause()
-          BGM.currentTime = 0
-        }
+//        if(!BGM.paused){
+//          BGM.pause()
+//          BGM.currentTime = 0
+//        }
         drawGame.drawGameOff(firstCome, None, false, false)
 
       case FrontProtocol.DrawGameWin(winner, winData) =>
-        if(!BGM.paused){
-          BGM.pause()
-          BGM.currentTime = 0
-        }
+//        if(!BGM.paused){
+//          BGM.pause()
+//          BGM.currentTime = 0
+//        }
         drawGame.drawGameWin(myId, winner, winData,winningData)
         audio1.play()
         isContinue = false
