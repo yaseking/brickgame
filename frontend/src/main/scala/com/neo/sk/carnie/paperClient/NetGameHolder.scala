@@ -156,8 +156,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           println(s"before recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
           grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
             case Some(dieFrame) =>
-              if (dieFrame - 1 == frame) grid.setGridInGivenFrame(frame)
-              else oldGrid.recallGrid(frame, dieFrame - 1)
+              if (dieFrame - 2 > frame) oldGrid.recallGrid(frame, dieFrame - 2)
+              else oldGrid.setGridInGivenFrame(frame)
 
             case None =>
               oldGrid.recallGrid(frame, grid.frameCount)
@@ -471,14 +471,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, area)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
-        grid.historyDieSnake += frame -> deadInfo.map(_.id)
+        val deadList =  deadInfo.map(_.id)
+        grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerName.nonEmpty).foreach { i =>
           killInfo = Some(i.id, i.name, i.killerName.get)
           barrageDuration = 100
         }
         if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(frame - 1, recallFrame)
+          val deadRecallFrame = if(deadList.contains(myId)) frame - 2 else frame - 1
+          recallFrame = grid.findRecallFrame(deadRecallFrame, recallFrame)
         } else {
           deadUser += frame -> deadInfo.map(_.id)
         }
