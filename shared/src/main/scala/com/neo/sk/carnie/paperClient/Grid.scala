@@ -283,14 +283,12 @@ trait Grid {
 
     val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
-    val finalDie = if(origin=="b") snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList ::: bodyInNewFieldSnake else List[String]()
+    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList ::: bodyInNewFieldSnake
 
-    if(origin=="b") {
-      finalDie.foreach { sid =>
-        returnBackField(sid)
-        grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
-          Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
-        }
+    finalDie.foreach { sid =>
+      returnBackField(sid)
+      grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
+        Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
       }
     }
 

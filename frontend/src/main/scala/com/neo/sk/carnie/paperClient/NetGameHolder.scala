@@ -189,7 +189,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           (1 to advancedFrame).foreach { _ =>
             addBackendInfo(grid.frameCount)
-            grid.update("f")
+            grid.updateOnClient()
           }
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
@@ -197,7 +197,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         syncFrame = None
       } else {
         addBackendInfo(grid.frameCount)
-        grid.update("f")
+        grid.updateOnClient()
         addBackendInfo(grid.frameCount)
       }
 
