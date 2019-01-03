@@ -95,23 +95,27 @@ class GridOnClient(override val boundary: Point) extends Grid {
         snakeTurnPoints = state._3
         (startFrame until endFrame).foreach { frame =>
           frameCount = frame
-          if(frame != startFrame) {
-            historyFieldInfo.get(frameCount).foreach { data =>
-              addNewFieldInfo(data)
-            }
-
-            historyDieSnake.get(frameCount).foreach { dieSnakes =>
-              dieSnakes.foreach(sid => if (snakes.keySet.contains(sid)) cleanDiedSnakeInfo(sid))
-            }
-
-            historyNewSnake.get(frameCount).foreach { newSnakes =>
-              newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
-              snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
-              addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
-            }
-          }
+//          if(frame != startFrame) {
+//
+//          }
           updateSnakes("f")
           updateSpots()
+
+          val newFrame = frameCount + 1
+
+          historyFieldInfo.get(newFrame).foreach { data =>
+            addNewFieldInfo(data)
+          }
+
+          historyDieSnake.get(newFrame).foreach { dieSnakes =>
+            dieSnakes.foreach(sid => if (snakes.keySet.contains(sid)) cleanDiedSnakeInfo(sid))
+          }
+
+          historyNewSnake.get(newFrame).foreach { newSnakes =>
+            newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
+            snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
+            addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+          }
         }
         frameCount += 1
 
