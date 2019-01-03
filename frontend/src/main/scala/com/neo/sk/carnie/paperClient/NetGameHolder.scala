@@ -162,7 +162,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             case None =>
               oldGrid.recallGrid(frame, grid.frameCount)
           }
-          println(s"after recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
           grid = oldGrid
           println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
           recallFrame = None
@@ -387,7 +386,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case Protocol.Id(id) =>
         myId = id
 
-      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId, sendTime) =>
+      case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
 //        println(s"recv time:$sendTime..now:${System.currentTimeMillis()}")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
@@ -459,7 +458,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
         if (data.frameCount < grid.frameCount) {
           println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 2, recallFrame)
+          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
         } else {
           newSnakeInfo += data.frameCount -> data
         }
@@ -477,7 +476,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
         if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(frame - 2, recallFrame)
+          recallFrame = grid.findRecallFrame(frame - 1, recallFrame)
         } else {
           deadUser += frame -> deadInfo.map(_.id)
         }
@@ -488,7 +487,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.historyFieldInfo += data.frameCount -> data
         if (data.frameCount < grid.frameCount) {
           println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 2, recallFrame)
+          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
         } else {
           newFieldInfo += data.frameCount -> data
         }
