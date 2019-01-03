@@ -190,6 +190,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             addBackendInfo(grid.frameCount)
             grid.updateOnClient()
           }
+          addBackendInfo(grid.frameCount)
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
@@ -395,7 +396,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
-                println(s"recall for my Action,backend:$frame,frontend:${grid.frameCount}")
+                if(frame == grid.frameCount) println("!!!!!!!!!!!!!!frame == frontendFrame")
+                println(s"recall for my Action1,backend:$frame,frontend:${grid.frameCount}")
                 recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             } else {
@@ -405,7 +407,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
                 if (miniFrame < grid.frameCount) {
-                  println(s"recall for my Action,backend:$frame,frontend:${grid.frameCount}")
+                  println(s"recall for my Action2,backend:$miniFrame,frontend:${grid.frameCount}")
                   recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
                 }
               }
@@ -413,7 +415,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             }
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
-//            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
+            //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
             if (frame < grid.frameCount) {
               println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
               recallFrame = grid.findRecallFrame(frame, recallFrame)

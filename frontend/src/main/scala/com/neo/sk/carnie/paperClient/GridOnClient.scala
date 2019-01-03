@@ -97,23 +97,24 @@ class GridOnClient(override val boundary: Point) extends Grid {
         snakeTurnPoints = state._3
         (startFrame until endFrame).foreach { frame =>
           frameCount = frame
-          if(frame != startFrame) {
-            historyFieldInfo.get(frameCount).foreach { data =>
-              addNewFieldInfo(data)
-            }
 
-            historyDieSnake.get(frameCount).foreach { dieSnakes =>
-              dieSnakes.foreach(sid => if (snakes.keySet.contains(sid)) cleanDiedSnakeInfo(sid))
-            }
-
-            historyNewSnake.get(frameCount).foreach { newSnakes =>
-              newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
-              snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
-              addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
-            }
-          }
-          updateSnakes("f")
+          updateSnakesOnClient()
           updateSpots()
+
+          val newFrame = frameCount + 1
+          historyFieldInfo.get(newFrame).foreach { data =>
+            addNewFieldInfo(data)
+          }
+
+          historyDieSnake.get(newFrame).foreach { dieSnakes =>
+            dieSnakes.foreach(sid => if (snakes.keySet.contains(sid)) cleanDiedSnakeInfo(sid))
+          }
+
+          historyNewSnake.get(newFrame).foreach { newSnakes =>
+            newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
+            snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
+            addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+          }
         }
         frameCount += 1
 
@@ -128,35 +129,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
     snakes = state._1
     grid = state._2
     snakeTurnPoints = state._3
-    //    historyStateMap.get(frameCount) match {
-    //      case Some(state) =>
-    //        snakes = state._1
-    //        grid = state._2
-    //        snakeTurnPoints = state._3
-    //
-    //        updateSnakes("f")
-    //        updateSpots()
-    //        frameCount += 1
-    //
-    //        historyFieldInfo.get(frameCount).foreach { data =>
-    //          addNewFieldInfo(data)
-    //        }
-    //
-    //        historyDieSnake.get(frameCount).foreach { dieSnakes =>
-    //          dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
-    //        }
-    //
-    //        historyNewSnake.get(frameCount).foreach { newSnakes =>
-    //          newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
-    //          snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
-    //          addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
-    //        }
-    //
-    //
-    //      case None =>
-    //        println(s"setGridInGivenFrame...but can't find-${frame-1}!tartget-${historyStateMap.keySet}")
-    //
-    //    }
   }
 
   def findRecallFrame(receiveFame: Int, oldRecallFrame: Option[Int]): Option[Int] = {

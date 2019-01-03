@@ -196,6 +196,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         addBackendInfo(grid.frameCount)
       }
 
+      println(s"player is alive or not,${grid.getGridData.snakes.exists(_.id == myId)},grid snakes:${grid.snakes.keys.toList}")
+
       if (!isWin) {
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
@@ -327,6 +329,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case ReStartGame =>
         grid.cleanData()
         drawFunction = FrontProtocol.DrawGameWait
+//        FrontProtocol.DrawBaseGame(grid.getGridData)
 //        audio1.pause()
 //        audio1.currentTime = 0
         audioKilled.pause()
