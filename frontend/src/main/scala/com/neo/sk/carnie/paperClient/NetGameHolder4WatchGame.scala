@@ -453,10 +453,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
     deadUser.get(frame).foreach { deadSnake =>
       deadSnake.foreach { sid =>
-        if (grid.snakes.contains(sid)) {
-          println(s"snake dead in backend:$sid")
-          grid.cleanDiedSnakeInfo(sid)
-        }
+        grid.cleanDiedSnakeInfo(sid)
       }
       deadUser -= frame
     }
