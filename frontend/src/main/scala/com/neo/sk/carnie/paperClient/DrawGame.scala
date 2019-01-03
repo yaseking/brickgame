@@ -304,7 +304,7 @@ class DrawGame(
   //    }
   //  }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[Protocol.NewFieldInfo]): Unit = { //头所在的点是屏幕的正中心
     //    println(s"drawGrid-frameRate: $frameRate")
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
@@ -375,6 +375,22 @@ class DrawGame(
     //    ctx.save()
     //    ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
     //    ctx.restore()
+
+    ctx.globalAlpha = 0.6
+    if(newFieldInfo.nonEmpty){
+      newFieldInfo.get.fieldDetails.foreach { field => //按行渲染
+        val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+        ctx.fillStyle = color
+        field.scanField.foreach { fids =>
+          fids.y.foreach { y =>
+            fids.x.foreach { x =>
+              ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.04))
+            }
+          }
+        }
+      }
+    }
+
 
     ctx.globalAlpha = 1.0
     fieldInWindow.foreach { field => //按行渲染

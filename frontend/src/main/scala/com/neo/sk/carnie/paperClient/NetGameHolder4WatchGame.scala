@@ -65,7 +65,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private var myActionHistory = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
+//  private[this] val audio1 = dom.document.getElementById("audio").asInstanceOf[HTMLAudioElement]
   private[this] val audioFinish = dom.document.getElementById("audioFinish").asInstanceOf[HTMLAudioElement]
   private[this] val audioKill = dom.document.getElementById("audioKill").asInstanceOf[HTMLAudioElement]
   private[this] val audioKilled = dom.document.getElementById("audioKilled").asInstanceOf[HTMLAudioElement]
@@ -265,7 +265,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), frameRate = frameRate)
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), frameRate = frameRate, newFieldInfo = newFieldInfo.get(grid.frameCount + 1 ))
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
@@ -432,8 +432,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     grid.cleanSnakeTurnPoint(myId)
     grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
     drawFunction = FrontProtocol.DrawGameWait
-    audio1.pause()
-    audio1.currentTime = 0
+//    audio1.pause()
+//    audio1.currentTime = 0
     audioKilled.pause()
     audioKilled.currentTime = 0
     firstCome = true

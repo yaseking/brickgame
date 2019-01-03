@@ -36,6 +36,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   var winData: Protocol.Data4TotalSync = grid.getGridData
   var fieldNum = 1
   var snakeNum = 1
+  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
   var snapshotMap = Map.empty[Int, Snapshot]
   var encloseMap = Map.empty[Int, NewFieldInfo]
@@ -221,7 +222,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   }
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, frameRate: Int): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate)
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate,newFieldInfo = newFieldInfo.get(grid.frameCount))
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
