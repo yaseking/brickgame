@@ -212,7 +212,11 @@ object RoomActor {
               case _ =>
             }
           }
-          if(finalDieInfo.nonEmpty) dispatch(subscribersMap, UserDeadMsg(frame, finalDieInfo))
+          if(finalDieInfo.nonEmpty) {
+            dispatch(subscribersMap, UserDeadMsg(frame, finalDieInfo))
+            dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
+              UserDeadMsg(frame, finalDieInfo))
+          }
           Behaviors.same
 
         case LeftRoom(id, name) =>
