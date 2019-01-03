@@ -300,7 +300,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         startGame()
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
-        println(s"got $r")
+//        println(s"got $r")
         if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
@@ -337,9 +337,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case ReStartGame =>
         grid.cleanData()
         drawFunction = FrontProtocol.DrawGameWait
-//        FrontProtocol.DrawBaseGame(grid.getGridData)
-//        audio1.pause()
-//        audio1.currentTime = 0
+        //        audio1.pause()
+        //        audio1.currentTime = 0
         audioKilled.pause()
         audioKilled.currentTime = 0
         firstCome = true
@@ -348,7 +347,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           isWin = false
         }
         isContinue = true
-        updateListener()
+//        updateListener()
         dom.window.requestAnimationFrame(gameRender())
 
       case UserLeft(id) =>
@@ -384,7 +383,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-        println(s"got new snake,${data.snake.map(_.id)}")
+//        println(s"got new snake,${data.snake.map(_.id)}")
         grid.historyNewSnake += data.frameCount -> data
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
         if (data.frameCount < grid.frameCount + 1) {
@@ -412,7 +411,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
 
       case data: Protocol.NewFieldInfo =>
-        println("got newFieldInfo")
+//        println("got newFieldInfo")
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         grid.historyFieldInfo += data.frameCount -> data
