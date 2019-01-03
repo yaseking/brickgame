@@ -388,7 +388,7 @@ class DrawGame(
         }
       }
 
-      println(s"newField: ${newFieldInfo.get}")
+//      println(s"newField: ${newFieldInfo.get}")
       newFieldInWindow.foreach { field => //按行渲染
         val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
         ctx.fillStyle = color
