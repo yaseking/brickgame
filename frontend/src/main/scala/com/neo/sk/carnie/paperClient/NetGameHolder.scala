@@ -109,7 +109,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       pingMap += (pingId -> System.currentTimeMillis())
       webSocketClient.sendMessage(SendPingPacket(pingId).asInstanceOf[UserAction])
     }, 250)
-//    dom.window.requestAnimationFrame(gameRender())
+    dom.window.requestAnimationFrame(gameRender())
   }
 
   var lastTime1 = 0l
@@ -546,7 +546,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   def addBackendInfo4Sync(frame: Int): Unit = {
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
-      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome) spaceKey()
+      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
     }
   }
 
