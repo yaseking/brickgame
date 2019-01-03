@@ -155,7 +155,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def updateSnakesOnClient() = {
-    def updateASnake(snake: SkDt, actMap: Map[String, Int]): Either[String, UpdateSnakeInfo] = {
+    def updateASnake(snake: SkDt, actMap: Map[String, Int]): UpdateSnakeInfo = {
       val keyCode = actMap.get(snake.id)
       val newDirection = {
         val keyDirection = keyCode match {
@@ -180,72 +180,63 @@ class GridOnClient(override val boundary: Point) extends Grid {
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
               case Some(Field(fid)) if fid == snake.id =>
                 snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid))
+                UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid)
 
               case Some(Body(bid, _)) if bid == snake.id && x.fid.getOrElse(-1L) == snake.id =>
-                enclosure(snake, "f", newHeader, newDirection)
+                enclosure(snake, "f", newHeader, newDirection).value
 
               case _ =>
                 if (snake.direction != newDirection)
                   snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toShort, snake.header.y.toShort))))
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), x.fid))
+                UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), x.fid)
             }
 
           case Some(Field(id)) =>
             if (id == snake.id) {
               grid.get(snake.header) match {
                 case Some(Body(bid, _)) if bid == snake.id => //回到了自己的领域
-                  enclosure(snake, "f", newHeader, newDirection)
+                  enclosure(snake, "f", newHeader, newDirection).value
 
                 case _ =>
-                  Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
+                  UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id))
               }
             } else { //进入到别人的领域
               grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
                 case Some(Field(fid)) if fid == snake.id =>
                   snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
-                  Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), Some(id)))
+                  UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), Some(id))
                 case _ =>
                   if (snake.direction != newDirection)
                     snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toShort, snake.header.y.toShort))))
-                  Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
+                  UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id))
               }
             }
 
           case Some(Border) =>
-            Right(UpdateSnakeInfo(snake.copy(header = snake.header, direction = snake.direction), None))
+            UpdateSnakeInfo(snake.copy(header = snake.header, direction = snake.direction), None)
 
           case _ =>
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
               case Some(Field(fid)) if fid == snake.id =>
                 snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+                UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header))
 
               case _ =>
                 if (snake.direction != newDirection)
                   snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toShort, snake.header.y.toShort))))
-                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection)))
+                UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection))
             }
         }
       }
-      else Right(UpdateSnakeInfo(snake, Some(snake.id)))
+      else UpdateSnakeInfo(snake, Some(snake.id))
 
     }
-
-    var updatedSnakes = List.empty[UpdateSnakeInfo]
-    var killedSnaked = List.empty[String]
 
     historyStateMap += frameCount -> (snakes, grid, snakeTurnPoints)
 
     val acts = actionMap.getOrElse(frameCount, Map.empty[String, Int])
 
-    snakes.values.map(updateASnake(_, acts)).foreach {
-      case Right(s) =>
-        updatedSnakes ::= s
-
-      case Left(sid) =>
-        killedSnaked ::= sid
-    }
+    val updatedSnakes = snakes.values.map(updateASnake(_, acts)).toList
 
     updatedSnakes.foreach { s =>
       if (s.bodyInField.nonEmpty && s.bodyInField.get == s.data.id) grid += s.data.header -> Field(s.data.id)
