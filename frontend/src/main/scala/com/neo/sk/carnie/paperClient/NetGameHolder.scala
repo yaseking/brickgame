@@ -396,7 +396,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < frontendFrame) {
-                println(s"recall for my Action,backend:$frame,frontend:$frontendFrame")
+                println(s"recall for my Action1,backend:$frame,frontend:$frontendFrame")
                 recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             } else {
@@ -406,7 +406,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
                 if (miniFrame < frontendFrame) {
-                  println(s"recall for my Action,backend:$frame,frontend:$frontendFrame")
+                  println(s"recall for my Action2,backend:$frame,frontend:$frontendFrame")
                   recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
                 }
               }
