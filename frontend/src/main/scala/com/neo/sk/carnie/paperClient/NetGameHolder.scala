@@ -38,10 +38,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   //  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
-  //  var winData: Protocol.Data4TotalSync = grid.getGridData
-//  var deadUser = Map.empty[Int, List[String]] //frame, userId
-//  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
-//  var newSnakeInfo = Map.empty[Int, NewSnakeInfo]
 
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
@@ -116,12 +112,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     dom.window.requestAnimationFrame(gameRender())
   }
 
+  var lastTime1 = 0l
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
-    //    println(s"requestAnimationTime: ${curTime - lastTime1}")
+    println(s"requestAnimationTime: ${curTime - lastTime1}")
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
-    //    lastTime1 = curTime
+    lastTime1 = curTime
     if (isContinue)
       dom.window.requestAnimationFrame(gameRender())
   }
