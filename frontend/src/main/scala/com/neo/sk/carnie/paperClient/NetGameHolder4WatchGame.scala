@@ -292,7 +292,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         startGame()
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
-        println(s"got $r")
+//        println(s"got $r")
         if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
