@@ -328,7 +328,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             case Data4TotalSync(_, _, _, _) =>
               data4TotalSync = data4TotalSync + a.length
 
-            case Ranks(_, _, _) =>
+            case Ranks(_, _, _, _) =>
               rank = rank + a.length
 
             case NewSnakeInfo(_, _, _) =>

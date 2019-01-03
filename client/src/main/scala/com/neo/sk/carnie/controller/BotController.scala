@@ -222,7 +222,7 @@ class BotController(player: PlayerInfoInClient,
         }
 
 
-      case Protocol.Ranks(current, score, _) =>
+      case Protocol.Ranks(current, score, _, _) =>
         Boot.addToPlatform {
           currentRank = current
 //          val myCurrent = current.find(_.id == player.id)

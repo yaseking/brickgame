@@ -472,7 +472,7 @@ class DrawGame(
     }
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int): Unit = {
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int, currentNum: Byte): Unit = {
 
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
@@ -483,7 +483,6 @@ class DrawGame(
     rankCtx.textAlign = "left"
     rankCtx.textBaseline = "top"
 
-    val mySnake = snakes.filter(_.id == uid).head
     val baseLine = 2
     rankCtx.font = "22px Helvetica"
     rankCtx.fillStyle = ColorsSetting.fontColor2
@@ -510,7 +509,7 @@ class DrawGame(
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "14px Helvetica"
-    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+    drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {
       rankCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
       rankCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)

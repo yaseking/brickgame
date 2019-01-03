@@ -440,10 +440,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case Protocol.WinnerBestScore(score) =>
         maxArea = Constant.shortMax(maxArea, score)
 
-      case Protocol.Ranks(ranks, personalScore, personalRank) =>
+      case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
-          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank)
+          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")

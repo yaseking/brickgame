@@ -39,7 +39,7 @@ class RankCanvas(canvas: Canvas)  {
     windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int): Unit = {
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int, currentNum: Byte): Unit = {
 
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
@@ -77,7 +77,7 @@ class RankCanvas(canvas: Canvas)  {
     var index = 0
     ctx.setFont(Font.font(14))
 
-    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+    drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {
       ctx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
       ctx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)

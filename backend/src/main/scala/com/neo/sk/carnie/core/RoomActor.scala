@@ -368,10 +368,10 @@ object RoomActor {
             if ((i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 ||
               (userDeadList.contains(u) && curTime - userDeadList(u) <= maxWaitingTime4Restart)) && grid.currentRank.exists(_.id == u) && (tickCount - i.joinFrame) % 20 == 5) {
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte))
+                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
               watcherMap.filter(_._2._1 == u).foreach { w =>
                 dispatchTo(subscribersMap, w._1, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-                  (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte))
+                  (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
               }
             }
           }

@@ -101,7 +101,7 @@ class WebSocketClient (
                     case Data4TotalSync(_, _, _, _) =>
                       data4TotalSync = data4TotalSync + blobMsg.size
 
-                    case Ranks(_, _, _) =>
+                    case Ranks(_, _, _, _) =>
                       rank = rank + blobMsg.size
 
                     case NewSnakeInfo(_, _, _) =>
