@@ -339,6 +339,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           isWin = false
         }
         isContinue = true
+        updateListener()
         dom.window.requestAnimationFrame(gameRender())
 
       case UserLeft(id) =>

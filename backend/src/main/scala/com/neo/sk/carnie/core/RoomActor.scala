@@ -293,7 +293,6 @@ object RoomActor {
 
             case NeedToSync =>
               dispatchTo(subscribersMap, id, grid.getGridData)
-              dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), grid.getGridData)
 
 
             case PressSpace =>
