@@ -32,11 +32,7 @@ trait ResourceService {
 
 
   private val resources = {
-    pathPrefix("html") {
-      extractUnmatchedPath { path =>
-        getFromResourceDirectory("html")
-      }
-    } ~ pathPrefix("css") {
+    pathPrefix("css") {
       extractUnmatchedPath { path =>
         getFromResourceDirectory("css")
       }
@@ -76,7 +72,12 @@ trait ResourceService {
   def resourceRoutes: Route = (pathPrefix("static") & get) {
     mapResponseHeaders { headers => `Cache-Control`(`public`, `max-age`(cacheSeconds)) +: headers } {
       encodeResponse(resources)
-    }
+    } ~
+      pathPrefix("html") {
+        extractUnmatchedPath { path =>
+          getFromResourceDirectory("html")
+        }
+      }
   }
 
 
