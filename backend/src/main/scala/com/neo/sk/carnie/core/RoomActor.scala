@@ -351,6 +351,7 @@ object RoomActor {
 
           firstComeList.foreach { id =>
             dispatchTo(subscribersMap, id, newData)
+            watcherMap.filter(_._2._1 == id).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
           }
 
           //错峰发送
