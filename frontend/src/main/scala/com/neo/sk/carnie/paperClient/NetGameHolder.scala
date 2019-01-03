@@ -188,16 +188,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           (1 to advancedFrame).foreach { _ =>
-            grid.update("f")
             addBackendInfo(grid.frameCount)
+            grid.update("f")
           }
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
         syncFrame = None
       } else {
-        grid.update("f")
         addBackendInfo(grid.frameCount)
+        grid.update("f")
       }
 
       if (!isWin) {
