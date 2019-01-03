@@ -153,8 +153,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         case Some(frame) =>
           val time1 = System.currentTimeMillis()
           val oldGrid = grid
-          println(s"before recall...myTurnPoints:${grid.snakeTurnPoints.get(myId)}")
-          grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
+          println(s"before recall...frame:${grid.frameCount}")
+          oldGrid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
             case Some(dieFrame) =>
               if (dieFrame - 2 > frame) oldGrid.recallGrid(frame, dieFrame - 2)
               else oldGrid.setGridInGivenFrame(frame)
@@ -205,7 +205,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         val gridData = grid.getGridData
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
-            //            println(s"draw base game")
             if (firstCome) firstCome = false
             //            if (!isPlay) {
             ////              println("you can't play")
