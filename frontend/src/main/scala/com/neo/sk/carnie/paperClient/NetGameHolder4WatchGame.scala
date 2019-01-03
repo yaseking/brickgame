@@ -325,6 +325,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case ReStartGame =>
+        println("I'm restarting")
         grid.cleanData()
         drawFunction = FrontProtocol.DrawGameWait
 //        audio1.pause()
