@@ -314,6 +314,7 @@ object RoomActor {
                       carnieMap.put(id, newCarnieId)
                       newCarnieId
                   })
+                log.debug(s"after space, userMap:${userMap.keySet},watcherMap:${watcherMap.keySet}")
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2._1 == id).foreach { w =>
                   log.info(s"send reStart to ${w._1}")
