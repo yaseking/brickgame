@@ -109,7 +109,7 @@ object RoomActor {
             grid: GridOnServer,
             userMap: mutable.HashMap[String, UserInfo] = mutable.HashMap[String, UserInfo](),
             userDeadList: mutable.HashMap[String, Long] = mutable.HashMap.empty[String, Long],
-            watcherMap: mutable.HashMap[String, (String, Long)] = mutable.HashMap[String, (String, Long)](), //(watchId, (playerId, GroupId))
+            watcherMap: mutable.HashMap[String, (String, Long)] = mutable.HashMap[String, (String, Long)](), //(watcherId, (playerId, GroupId))
             subscribersMap: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]] = mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]](),
             tickCount: Long,
             gameEvent: mutable.ArrayBuffer[(Long, GameEvent)] = mutable.ArrayBuffer[(Long, GameEvent)](),
@@ -283,6 +283,8 @@ object RoomActor {
                 grid.addActionWithFrame(id, keyCode, realFrame)
                 dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
                   (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
+                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
+                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
                   Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
               }
 
