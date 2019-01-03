@@ -198,6 +198,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       } else {
         addBackendInfo(grid.frameCount)
         grid.update("f")
+        addBackendInfo(grid.frameCount)
       }
 
       if (!isWin) {
