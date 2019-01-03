@@ -481,7 +481,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           val deadRecallFrame = if(deadList.contains(myId)) frame - 2 else frame - 1
           recallFrame = grid.findRecallFrame(deadRecallFrame, recallFrame)
         } else {
-          deadUser += frame -> deadInfo.map(_.id)
+          deadUser += frame -> deadList
         }
 
       case data: Protocol.NewFieldInfo =>
