@@ -198,6 +198,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       } else {
         addBackendInfo(grid.frameCount)
         grid.update("f")
+        addBackendInfo(grid.frameCount)
       }
 
       if (!isWin) {
@@ -282,7 +283,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), frameRate = frameRate)
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), frameRate = frameRate, newFieldInfo = newFieldInfo.get(grid.frameCount + 1))
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
@@ -387,7 +388,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myId = id
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId, sendTime) =>
-        println(s"recv time:$sendTime..now:${System.currentTimeMillis()}")
+//        println(s"recv time:$sendTime..now:${System.currentTimeMillis()}")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
@@ -413,7 +414,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             }
           } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
             grid.addActionWithFrame(id, keyCode, frame)
-            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
+//            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
             if (frame < grid.frameCount) {
               println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
               recallFrame = grid.findRecallFrame(frame, recallFrame)
@@ -533,10 +534,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
     deadUser.get(frame).foreach { deadSnake =>
       deadSnake.foreach { sid =>
-        if (grid.snakes.contains(sid)) {
-          println(s"snake dead in backend:$sid")
-          grid.cleanDiedSnakeInfo(sid)
-        }
+        grid.cleanDiedSnakeInfo(sid)
       }
       deadUser -= frame
     }

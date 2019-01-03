@@ -304,7 +304,7 @@ class DrawGame(
   //    }
   //  }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[Protocol.NewFieldInfo]): Unit = { //头所在的点是屏幕的正中心
     //    println(s"drawGrid-frameRate: $frameRate")
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
@@ -376,10 +376,38 @@ class DrawGame(
     //    ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
     //    ctx.restore()
 
+    ctx.globalAlpha = offsetTime.toFloat / frameRate * 1
+    if(newFieldInfo.nonEmpty){
+      var newFieldInWindow: List[FieldByColumn] = Nil
+      newFieldInfo.get.fieldDetails.foreach { user =>
+        if (snakes.exists(_.id == user.uid)) {
+          newFieldInWindow = FieldByColumn(user.uid, user.scanField.map { field =>
+            ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
+              field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))
+          }) :: newFieldInWindow
+        }
+      }
+
+      println(s"newField: ${newFieldInfo.get}")
+      newFieldInWindow.foreach { field => //按行渲染
+        val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+        ctx.fillStyle = color
+        field.scanField.foreach { fids =>
+          fids.y.foreach { y =>
+            fids.x.foreach { x =>
+              ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.04))
+            }
+          }
+        }
+      }
+    }
+
+
     ctx.globalAlpha = 1.0
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
+
       //      field.scanField.foreach { point =>
       //        point.x.foreach { x =>
       //          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
