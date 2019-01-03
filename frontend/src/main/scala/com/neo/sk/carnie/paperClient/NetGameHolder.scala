@@ -176,7 +176,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
         }
         grid.initSyncGridData(syncGridData.get)
-//        addBackendInfo4Sync(grid.frameCount)
+        addBackendInfo4Sync(grid.frameCount)
         syncGridData = None
       } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
         val frontend = grid.frameCount
@@ -188,16 +188,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           (1 to advancedFrame).foreach { _ =>
-            addBackendInfo(grid.frameCount)
             grid.update("f")
+            addBackendInfo(grid.frameCount)
           }
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
         syncFrame = None
       } else {
-        addBackendInfo(grid.frameCount)
         grid.update("f")
+        addBackendInfo(grid.frameCount)
       }
 
       if (!isWin) {
@@ -485,7 +485,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         if (data.fieldDetails.exists(_.uid == myId))
           audioFinish.play()
         grid.historyFieldInfo += data.frameCount -> data
-        if (data.frameCount < grid.frameCount + 1) {
+        if (data.frameCount < grid.frameCount) {
           println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
         } else {
