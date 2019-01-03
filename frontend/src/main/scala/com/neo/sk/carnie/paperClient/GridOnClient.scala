@@ -183,7 +183,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid))
 
               case Some(Body(bid, _)) if bid == snake.id && x.fid.getOrElse(-1L) == snake.id =>
-                enclosure(snake, "f", newHeader, newDirection)
+                snakeTurnPoints -= snake.id
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(snake.id)))
 
               case _ =>
                 if (snake.direction != newDirection)
@@ -195,7 +196,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
             if (id == snake.id) {
               grid.get(snake.header) match {
                 case Some(Body(bid, _)) if bid == snake.id => //回到了自己的领域
-                  enclosure(snake, "f", newHeader, newDirection)
+                  snakeTurnPoints -= snake.id
+                  Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(snake.id)))
 
                 case _ =>
                   Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
