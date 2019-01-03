@@ -190,6 +190,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             addBackendInfo(grid.frameCount)
             grid.updateOnClient()
           }
+          addBackendInfo(grid.frameCount)
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
