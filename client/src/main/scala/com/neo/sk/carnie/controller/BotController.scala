@@ -134,7 +134,7 @@ class BotController(player: PlayerInfoInClient,
         botActor ! BotActor.RoomId(roomId)
         log.debug(s"i receive roomId:$roomId")
 
-      case Protocol.SnakeAction(carnieId, keyCode, frame, actionId, _) =>
+      case Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
         Boot.addToPlatform {
           if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
             val id = grid.carnieMap(carnieId)
