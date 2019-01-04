@@ -298,7 +298,7 @@ object RoomActor {
                   Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
 
                 dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
-                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
+                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))// todo
               }
 
             case SendPingPacket(pingId) =>

@@ -430,6 +430,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case OtherAction(carnieId, keyCode, frame) =>
+        println(s"recv action from other")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           grid.addActionWithFrame(id, keyCode, frame)
