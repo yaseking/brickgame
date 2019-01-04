@@ -213,7 +213,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
             }
 
           case Some(Border) =>
-            UpdateSnakeInfo(snake.copy(header = snake.header, direction = snake.direction), None)
+            UpdateSnakeInfo(snake.copy(header = snake.header, direction = Point(0,0)), None)
 
           case _ =>
             grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
