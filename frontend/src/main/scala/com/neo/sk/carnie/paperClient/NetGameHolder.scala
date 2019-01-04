@@ -193,6 +193,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               grid.updateOnClient()
             }
           }
+          println(s"after speed,frame:${grid.frameCount}")
         } else {
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
