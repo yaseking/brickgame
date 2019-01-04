@@ -448,10 +448,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank, currentNum)
 
-      case data: Protocol.Data4TotalSync =>
+      case data: Protocol.Data4TotalSyncCondensed =>
         println(s"===========recv total data")
         //        drawGame.drawField(data.fieldDetails, data.snakes)
-        syncGridData = Some(data)
+
+        syncGridData = Some(transformData(data))
         //        justSynced = true
         isSynced = true
 
@@ -568,6 +569,21 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
 
     //    println(s"=======myField:$myGroupField, myBody:$myBody")
+  }
+
+  private def transformData(data: Data4TotalSyncCondensed): Data4TotalSync = {
+    val newBodyDt = data.bodyDetails.map {s=>
+      val carnieId = grid.carnieMap(s.uid)
+      BodyBaseInfo(carnieId, TurnInfo(s.turn.turnPoint, s.turn.pointOnField.map{p =>
+        val carnieId = grid.carnieMap(p._2)
+        (p._1, carnieId)
+      }))
+    }
+    val newFieldDt = data.fieldDetails.map {f =>
+      val id = grid.carnieMap(f.uid)
+      FieldByColumn(id, f.scanField)
+    }
+    Data4TotalSync(data.frameCount, data.snakes, newBodyDt, newFieldDt)
   }
 
   override def render: Elem = {
