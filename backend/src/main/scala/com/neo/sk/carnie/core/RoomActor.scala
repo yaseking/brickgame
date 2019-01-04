@@ -138,7 +138,7 @@ object RoomActor {
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
             ctx.self ! LeftRoom(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
           }
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap, carnieMap)
 
         case JoinRoom4Bot(id, name, botActor, img) =>
           carnieMap.put(id, grid.generateCarnieId(carnieIdGenerator, carnieMap.values))
@@ -147,7 +147,7 @@ object RoomActor {
           grid.addSnake(id, roomId, name, img, carnieMap(id))
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap, carnieMap)
 
         case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
@@ -161,7 +161,7 @@ object RoomActor {
           dispatchTo(subscribersMap, userId, Protocol.StartWatching(mode, img))
           val gridData = grid.getGridData
           dispatch(subscribersMap, gridData)
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap, carnieMap)
 
         case UserDead(_, _, users) =>
           val frame = grid.frameCount
@@ -455,7 +455,7 @@ object RoomActor {
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid, mode) ! recordData
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, botMap = botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, botMap = botMap, carnieMap = carnieMap)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
