@@ -467,11 +467,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank, currentNum)
 
-      case data: Protocol.Data4TotalSyncCondensed =>
+      case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
         //        drawGame.drawField(data.fieldDetails, data.snakes)
 
-        syncGridData = Some(transformData(data))
+        syncGridData = Some(data)
         //        justSynced = true
         isSynced = true
 

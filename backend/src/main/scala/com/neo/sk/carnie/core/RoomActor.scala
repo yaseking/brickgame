@@ -303,37 +303,37 @@ object RoomActor {
 
             case NeedToSync =>
               val data = grid.getGridData
-              val newBodyDt = data.bodyDetails.map {s=>
-                val carnieId = carnieMap.get(s.uid) match {
-                  case Some(cId) => cId
-                  case None =>
-                    val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
-                    carnieMap.put(id, newCarnieId)
-                    newCarnieId
-                }
-                BodyBaseInfoCondensed(carnieId, TurnInfoCondensed(s.turn.turnPoint, s.turn.pointOnField.map{p =>
-                  val carnieId = carnieMap.get(p._2) match {
-                    case Some(cId) => cId
-                    case None =>
-                      val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
-                      carnieMap.put(id, newCarnieId)
-                      newCarnieId
-                  }
-                  (p._1, carnieId)
-                }))
-              }
-              val newFieldDt = data.fieldDetails.map {f =>
-                val carnieId = carnieMap.get(f.uid) match {
-                  case Some(cId) => cId
-                  case None =>
-                    val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
-                    carnieMap.put(id, newCarnieId)
-                    newCarnieId
-                }
-                FieldByColumnCondensed(carnieId, f.scanField)
-              }
-              val newData = Data4TotalSyncCondensed(data.frameCount, data.snakes, newBodyDt, newFieldDt)
-              dispatchTo(subscribersMap, id, newData)
+//              val newBodyDt = data.bodyDetails.map {s=>
+//                val carnieId = carnieMap.get(s.uid) match {
+//                  case Some(cId) => cId
+//                  case None =>
+//                    val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
+//                    carnieMap.put(id, newCarnieId)
+//                    newCarnieId
+//                }
+//                BodyBaseInfoCondensed(carnieId, TurnInfoCondensed(s.turn.turnPoint, s.turn.pointOnField.map{p =>
+//                  val carnieId = carnieMap.get(p._2) match {
+//                    case Some(cId) => cId
+//                    case None =>
+//                      val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
+//                      carnieMap.put(id, newCarnieId)
+//                      newCarnieId
+//                  }
+//                  (p._1, carnieId)
+//                }))
+//              }
+//              val newFieldDt = data.fieldDetails.map {f =>
+//                val carnieId = carnieMap.get(f.uid) match {
+//                  case Some(cId) => cId
+//                  case None =>
+//                    val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
+//                    carnieMap.put(id, newCarnieId)
+//                    newCarnieId
+//                }
+//                FieldByColumnCondensed(carnieId, f.scanField)
+//              }
+//              val newData = Data4TotalSyncCondensed(data.frameCount, data.snakes, newBodyDt, newFieldDt)
+              dispatchTo(subscribersMap, id, data)
 
             case PressSpace =>
               if (userDeadList.contains(id)) {
