@@ -26,7 +26,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   var newInfo = List.empty[(String, SkDt, List[Point])]
 
-  def addSnake(id: String, roomId: Int, name: String, img: Int, carnieId: Byte) = {
+  def addSnake(id: String, roomId: Int, name: String, img: Int, carnieId: Byte): Unit = {
     val bodyColor = randomColor()
     waitingJoin += (id -> (name, bodyColor, img, carnieId))
   }
@@ -55,7 +55,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     newInfo
   }
 
-  private[this] def updateRanks() = {
+  private[this] def updateRanks(): Unit = {
     val areaMap = grid.filter { case (p, spot) =>
       spot match {
         case Field(id) if snakes.contains(id) => true
@@ -80,18 +80,18 @@ class GridOnServer(override val boundary: Point) extends Grid {
     "#" + color
   }
 
-  def randomHex() = {
+  def randomHex(): String = {
     val h = getRandom(94).toHexString + getRandom(94).toHexString + getRandom(94).toHexString
     String.format("%6s", h).replaceAll("\\s", "0").toUpperCase()
   }
 
-  def getRandom(start: Int) = {
+  def getRandom(start: Int): Int = {
     val end = 256
     val rnd = new scala.util.Random
     start + rnd.nextInt(end - start)
   }
 
-  def colorSimilarity(color1: String, color2: String) = {
+  def colorSimilarity(color1: String, color2: String): Int = {
     var target = 0.0
     var index = 0
     if (color1.length == 6 && color2.length == 6) {

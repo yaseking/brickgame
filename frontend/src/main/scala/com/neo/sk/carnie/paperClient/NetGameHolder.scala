@@ -477,7 +477,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case data: Protocol.SyncFrame =>
         syncFrame = Some(data)
-        isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
         grid.historyNewSnake += data.frameCount -> data
@@ -548,6 +547,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     audioKilled.pause()
     audioKilled.currentTime = 0
     firstCome = true
+    isSynced = false
     if (isWin) isWin = false
     myScore = BaseScore(0, 0, 0)
     isContinue = true
@@ -556,7 +556,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     dom.window.requestAnimationFrame(gameRender())
   }
 
-  def addBackendInfo(frame: Int) = {
+  def addBackendInfo(frame: Int): Unit = {
     grid.historyFieldInfo.get(frame).foreach { data =>
       grid.addNewFieldInfo(data)
     }

@@ -38,51 +38,60 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   val selfCanvas = new Canvas()
   val humanViewCanvas = new Canvas()
   val allCanvas = new Canvas()
+  val headerCanvas = new Canvas()
 
   allCanvas.setHeight(0)
   allCanvas.setWidth(0)
 
   positionCanvas.setHeight(viewHeight)
   positionCanvas.setWidth(viewWidth)
-  positionCanvas.setLayoutY(190)
+  positionCanvas.setLayoutY(140)
   positionCanvas.setLayoutX(1000)
   positionCanvas.setId("0")
 
   BorderCanvas.setHeight(viewHeight)
   BorderCanvas.setWidth(viewWidth)
-  BorderCanvas.setLayoutY(190)
+  BorderCanvas.setLayoutY(140)
   BorderCanvas.setLayoutX(1405)
   BorderCanvas.setId("1")
 
   viewCanvas.setHeight(viewHeight)
   viewCanvas.setWidth(viewWidth)
-  viewCanvas.setLayoutY(395)
+  viewCanvas.setLayoutY(345)
   viewCanvas.setLayoutX(1000)
   viewCanvas.setId("2")
 
   selfViewCanvas.setHeight(viewHeight)
   selfViewCanvas.setWidth(viewWidth)
-  selfViewCanvas.setLayoutY(395)
+  selfViewCanvas.setLayoutY(345)
   selfViewCanvas.setLayoutX(1405)
   selfViewCanvas.setId("3")
 
   selfCanvas.setHeight(viewHeight)
   selfCanvas.setWidth(viewWidth)
-  selfCanvas.setLayoutY(600)
+  selfCanvas.setLayoutY(550)
   selfCanvas.setLayoutX(1000)
   selfCanvas.setId("4")
 
   rankCanvas.setHeight(viewHeight)
   rankCanvas.setWidth(viewWidth)
-  rankCanvas.setLayoutY(600)
+  rankCanvas.setLayoutY(550)
   rankCanvas.setLayoutX(1405)
   rankCanvas.setId("5")
 
   humanViewCanvas.setHeight(humanViewHeight + 210)
   humanViewCanvas.setWidth(humanViewWidth)
-  humanViewCanvas.setLayoutY(190)
+  humanViewCanvas.setLayoutY(140)
   humanViewCanvas.setLayoutX(195)
   humanViewCanvas.setId("6")
+
+  headerCanvas.setHeight(viewHeight)
+  headerCanvas.setWidth(viewWidth)
+  headerCanvas.setLayoutY(545)
+  headerCanvas.setLayoutX(595)
+  headerCanvas.setId("7")
+  
+  
 
   group.getChildren.add(viewCanvas)
   group.getChildren.add(rankCanvas)
@@ -92,9 +101,10 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   group.getChildren.add(selfCanvas)
   group.getChildren.add(humanViewCanvas)
   group.getChildren.add(allCanvas)
+  group.getChildren.add(headerCanvas)
 
   val rank = new RankCanvas(rankCanvas)
-  val layered = new LayeredCanvas(viewCanvas,rankCanvas,positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,humanViewCanvas,img)
+  val layered = new LayeredCanvas(viewCanvas,rankCanvas,positionCanvas,BorderCanvas,selfViewCanvas,selfCanvas,humanViewCanvas,headerCanvas,img)
 
 
   private val selfViewCtx = selfViewCanvas.getGraphicsContext2D
@@ -112,6 +122,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     layered.drawRank(uid, data.snakes, currentRank)
     layered.drawBody(uid, data, offsetTime, grid, frameRate)
     layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate,myActions)
+    layered.drawHeader(uid, data, offsetTime, grid, frameRate)
     layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
@@ -135,13 +146,13 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     allCtx.clearRect(0, 0, 1920, 1080)
     allCtx.setFill(Color.BLACK)
     allCtx.save()
-//    allCtx.clearRect(0, 0, w, h)
+//    allCtx.clearRect(0, 0, 1920, 1080)
 //    allCtx.setFill(ColorsSetting.dieInfoFontColor)
 //    allCtx.setFont(Font.font(30))
-    allCtx.fillRect(0,0,1920,190)
-    allCtx.fillRect(0,190,195,620)
-    allCtx.fillRect(1805,190,300,620)
-    allCtx.fillRect(0,800,1920,300)
+    allCtx.fillRect(0,0,1920,140)
+    allCtx.fillRect(0,140,195,620)
+    allCtx.fillRect(1805,140,300,620)
+    allCtx.fillRect(0,750,1920,400)
     allCtx.restore()
   }
 
@@ -166,10 +177,10 @@ class LayeredGameScene (img: Int, frameRate: Int) {
 //    layered.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
 //  }
 
-  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
-    rank.drawClearRank()
-    layered.drawGameDie(killerOpt, myScore,maxArea)
-  }
+//  def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {
+//    rank.drawClearRank()
+//    layered.drawGameDie(killerOpt, myScore,maxArea)
+//  }
 
 
   def drawRank(myId: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {

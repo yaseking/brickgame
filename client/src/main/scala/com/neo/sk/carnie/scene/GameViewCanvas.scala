@@ -4,7 +4,7 @@ package com.neo.sk.carnie.scene
 //import java.io.File
 
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.paperClient.Protocol.{Data4TotalSync, FieldByColumn, WinData}
+import com.neo.sk.carnie.paperClient.Protocol._
 import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
@@ -264,15 +264,26 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 //    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-    val fieldInWindow = data.fieldDetails
+  var fieldInWindow: List[FieldByColumn] = Nil
+    data.fieldDetails.foreach { user =>
+      if (snakes.exists(_.id == user.uid)) {
+        fieldInWindow = FieldByColumn(user.uid, user.scanField.map { field =>
+          ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
+            field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))
+        }) :: fieldInWindow
+      }
+    }
 
-    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    val bodyInWindow = data.bodyDetails.filter{b =>
+      b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
+
+    scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00002, 0.94)
     ctx.save()
-
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
     drawCache(offx , offy)
     ctx.setGlobalAlpha(0.6)
-    data.bodyDetails.foreach { bds =>
+
+    bodyInWindow.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setFill(color)
       val turnPoints = bds.turn.turnPoint
@@ -298,6 +309,18 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
         ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
       }
     }
+
+//    ctx.setGlobalAlpha(offsetTime.toFloat / frameRate * 1)
+//    if(newFieldInfo.nonEmpty){
+//      var newFieldInWindow: List[FieldByColumn] = Nil
+//      newFieldInfo.get.fieldDetails.foreach { user =>
+//        if (snakes.exists(_.id == user.uid)) {
+//          newFieldInWindow = FieldByColumn(user.uid, user.scanField.map { field =>
+//            ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
+//              field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))
+//          }) :: newFieldInWindow
+//        }
+//      }
 
     ctx.setGlobalAlpha(1)
     fieldInWindow.foreach { field => //按行渲染
@@ -351,6 +374,9 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.translate(-x, -y)
   }
 
+  def isPointInWindow(p: Point4Trans, windowMax: Point, windowMin: Point): Boolean = {
+    p.y < windowMax.y && p.y > windowMin.y && p.x > windowMin.x && p.x < windowMax.x
+  }
 
 
 

@@ -150,18 +150,15 @@ class GameController(player: PlayerInfoInClient,
 
       case Some(frame) =>
         val time1 = System.currentTimeMillis()
-        val oldGrid = grid
-        println(s"before recall...myTurnPoints:${grid.snakeTurnPoints.get(player.id)}")
+        println(s"before recall...frame:${grid.frameCount}")
         grid.historyDieSnake.filter{d => d._2.contains(player.id) && d._1 > frame}.keys.headOption match {
           case Some(dieFrame) =>
-            if (dieFrame - 1 == frame) grid.setGridInGivenFrame(frame)
-            else oldGrid.recallGrid(frame, dieFrame - 1)
+            if (dieFrame - 2 > frame) grid.recallGrid(frame, dieFrame - 2)
+            else grid.setGridInGivenFrame(frame)
 
           case None =>
-            oldGrid.recallGrid(frame, grid.frameCount)
+            grid.recallGrid(frame, grid.frameCount)
         }
-        println(s"after recall...myTurnPoints:${grid.snakeTurnPoints.get(player.id)}")
-        grid = oldGrid
         println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
         recallFrame = None
 
@@ -180,21 +177,33 @@ class GameController(player: PlayerInfoInClient,
       val frontend = grid.frameCount
       val backend = syncFrame.get.frameCount
       val advancedFrame = Math.abs(backend - frontend)
-      if (frontend > backend && grid.historyStateMap.get(backend).nonEmpty) {
+      if (backend > frontend && advancedFrame == 1) {
+        println(s"backend advanced frontend,frontend$frontend,backend:$backend")
+        addBackendInfo(grid.frameCount)
+        grid.updateOnClient()
+        addBackendInfo(grid.frameCount)
+      } else if(frontend > backend && grid.historyStateMap.get(backend).nonEmpty){
         println(s"frontend advanced backend,frontend$frontend,backend:$backend")
         grid.setGridInGivenFrame(backend)
       } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
         println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-        (1 to advancedFrame).foreach { _ =>
-          grid.update("f")
-          addBackendInfo(grid.frameCount)
+        val endFrame = grid.historyDieSnake.filter{d => d._2.contains(player.id) && d._1 > frontend}.keys.headOption match {
+          case Some(dieFrame) => Math.min(dieFrame - 1, backend)
+          case None => backend
         }
+        (frontend until endFrame).foreach { frame =>
+          grid.frameCount = frame
+          addBackendInfo(frame)
+          grid.updateOnClient()
+        }
+        println(s"after speed,frame:${grid.frameCount}")
       } else {
         playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
       }
       syncFrame = None
     } else {
-      grid.update("f")
+      addBackendInfo(grid.frameCount)
+      grid.updateOnClient()
       addBackendInfo(grid.frameCount)
     }
 
@@ -328,13 +337,15 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
         Boot.addToPlatform {
-          if (grid.carnieMap.contains(carnieId) && grid.snakes.contains(grid.carnieMap(carnieId))) {
+          if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
             val id = grid.carnieMap(carnieId)
             if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
               //            println(s"recv:$r")
               if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                 grid.addActionWithFrame(id, keyCode, frame)
                 if (frame < grid.frameCount) {
+                  if(frame == grid.frameCount) println("!!!!!!!!!!!!!!frame == frontendFrame")
+                  println(s"recall for my Action1,backend:$frame,frontend:${grid.frameCount}")
                   recallFrame = grid.findRecallFrame(frame, recallFrame)
                 }
               } else {
@@ -344,6 +355,7 @@ class GameController(player: PlayerInfoInClient,
                   grid.addActionWithFrame(id, keyCode, frame)
                   val miniFrame = Math.min(frame, grid.myActionHistory(actionId)._2)
                   if (miniFrame < grid.frameCount) {
+                    println(s"recall for my Action2,backend:$miniFrame,frontend:${grid.frameCount}")
                     recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
                   }
                 }
@@ -351,42 +363,13 @@ class GameController(player: PlayerInfoInClient,
               }
             } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
               grid.addActionWithFrame(id, keyCode, frame)
+              //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
               if (frame < grid.frameCount) {
+                println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
                 recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             }
           }
-//          if (grid.snakes.exists(_._1 == id)) {
-//            if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-//              if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
-//                grid.addActionWithFrame(id, keyCode, frame)
-//                if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-//                  val oldGrid = grid
-//                  oldGrid.recallGrid(frame, grid.frameCount)
-//                  grid = oldGrid
-//                }
-//              } else {
-//                if (grid.myActionHistory(actionId)._1 != keyCode || grid.myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-//                  grid.deleteActionWithFrame(id, grid.myActionHistory(actionId)._2)
-//                  grid.addActionWithFrame(id, keyCode, frame)
-//                  val miniFrame = Math.min(frame, grid.myActionHistory(actionId)._2)
-//                  if (miniFrame < grid.frameCount && grid.frameCount - miniFrame <= (grid.maxDelayed - 1)) { //回溯
-//                    val oldGrid = grid
-//                    oldGrid.recallGrid(miniFrame, grid.frameCount)
-//                    grid = oldGrid
-//                  }
-//                }
-//                grid.myActionHistory -= actionId
-//              }
-//            } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-//              grid.addActionWithFrame(id, keyCode, frame)
-//              if (frame < grid.frameCount && grid.frameCount - frame <= (grid.maxDelayed - 1)) { //回溯
-//                val oldGrid = grid
-//                oldGrid.recallGrid(frame, grid.frameCount)
-//                grid = oldGrid
-//              }
-//            }
-//          }
         }
 
       case Protocol.SomeOneWin(winner) =>
@@ -445,7 +428,6 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.SyncFrame =>
         syncFrame = Some(data)
-        isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
 //        println(s"!!!!!!new snake join!!!")
@@ -501,11 +483,6 @@ class GameController(player: PlayerInfoInClient,
 //          deadUser += frame -> deadInfo.map(_.id)
 //        }
 
-//      case Protocol.SomeOneKilled(killedId, killedName, killerName) =>
-//        Boot.addToPlatform {
-//          grid.killInfo = Some(killedId, killedName, killerName)
-//          grid.barrageDuration = 100
-//        }
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
@@ -575,20 +552,6 @@ class GameController(player: PlayerInfoInClient,
 
         }
       }
-//      gameScene.viewCanvas.setOnKeyReleased { e =>
-//        val myField = grid.grid.filter(_._2 == Field(player.id))
-//        val myBody = grid.snakeTurnPoints.getOrElse(player.id, Nil)
-//
-//
-//        //        newField = myField.map { f =>
-//        val myGroupField =  FieldByColumn(player.id, myField.keys.groupBy(_.y).map { case (y, target) =>
-//          (y.toInt, Tool.findContinuous(target.map(_.x.toInt).toArray.sorted))//read
-//        }.toList.groupBy(_._2).map { case (r, target) =>
-//          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
-//        }.toList)
-//        println(s"=======myField:$myGroupField, myBody:$myBody")
-        //        }
-//      }
 //        if (key != KeyCode.SPACE) {
 //          grid.myActionHistory += actionId -> (keyCode, frame)
 //        } else {
@@ -652,6 +615,7 @@ class GameController(player: PlayerInfoInClient,
     if (isWin) isWin = false
     myScore = BaseScore(0, 0, 0)
     isContinue = true
+    isSynced = false
     Boot.addToPlatform{
       gameScene.group.getChildren.remove(gameScene.backBtn)
       btnFlag = true
@@ -660,7 +624,7 @@ class GameController(player: PlayerInfoInClient,
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)
   }
-  def addBackendInfo(frame: Int) = {
+  def addBackendInfo(frame: Int): Unit = {
     newFieldInfo.get(frame).foreach { data =>
       grid.addNewFieldInfo(data)
       newFieldInfo -= frame

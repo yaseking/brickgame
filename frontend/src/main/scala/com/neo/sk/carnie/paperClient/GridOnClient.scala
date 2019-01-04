@@ -142,7 +142,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     }
   }
 
-  def updateOnClient() = {
+  def updateOnClient(): Unit = {
     updateSnakesOnClient()
     super.updateSpots()
     val limitFrameCount = frameCount - (maxDelayed + 1)
@@ -154,7 +154,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     frameCount += 1
   }
 
-  def updateSnakesOnClient() = {
+  def updateSnakesOnClient(): Unit = {
     def updateASnake(snake: SkDt, actMap: Map[String, Int]): UpdateSnakeInfo = {
       val keyCode = actMap.get(snake.id)
       val newDirection = {
