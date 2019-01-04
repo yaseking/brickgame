@@ -428,10 +428,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
         }
 
-      case UserLeft(id) =>
-        println(s"user $id left:::")
-        grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-        grid.cleanDiedSnakeInfo(id)
+      case UserLeft(carnieId) =>
+        val idOp = grid.carnieMap.get(carnieId)
+        if (idOp.nonEmpty) {
+          val id = idOp.get
+          println(s"user $id left:::")
+          grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
+          grid.cleanDiedSnakeInfo(id)
+        }
+
 
       case Protocol.SomeOneWin(winner) =>
         drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData)
@@ -473,11 +478,19 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, area)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
-        val deadList =  deadInfo.map(_.id)
+        val deadList =  deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
         grid.historyDieSnake += frame -> deadList
-        deadInfo.filter(_.killerName.nonEmpty).foreach { i =>
-          killInfo = Some(i.id, i.name, i.killerName.get)
-          barrageDuration = 100
+        deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
+          val idOp = grid.carnieMap.get(i.carnieId)
+          if (idOp.nonEmpty) {
+            val id = idOp.get
+            val nameOp = grid.snakes.get(id)
+            val name = if (nameOp.nonEmpty) nameOp.get.name else "unknown"
+            val killerNameOp = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, ""))
+            val killerName = if (killerNameOp.nonEmpty) killerNameOp.get.name else "unknown"
+            killInfo = Some(id, name, killerName)
+            barrageDuration = 100
+          }
         }
         if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")

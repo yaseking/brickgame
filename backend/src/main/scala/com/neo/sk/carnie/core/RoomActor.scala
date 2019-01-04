@@ -182,7 +182,15 @@ object RoomActor {
               }
 
               gameEvent += ((frame, LeftEvent(id, name)))
-              gameEvent += ((frame, Protocol.UserDead(frame, id, name, killerName)))
+              (grid.snakes.get(id), killerId) match {
+                case (Some(killedInfo), Some(killer)) =>
+                  if (grid.snakes.get(killer).nonEmpty)
+                    gameEvent += ((frame, Protocol.UserDead(frame, killedInfo.carnieId, Some(grid.snakes(killer).carnieId))))
+                case (Some(killedInfo), None) =>
+                  gameEvent += ((frame, Protocol.UserDead(frame, killedInfo.carnieId, None)))
+
+                case _ => log.error(s"can not find carnieID of $id")
+              }
               //              log.debug(s"user $id dead:::::")
               dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
               //              dispatch(subscribersMap, Protocol.UserDead(frame, id, name, killerName))
@@ -208,7 +216,8 @@ object RoomActor {
           var finalDieInfo = List.empty[BaseDeadInfo]
           gameEvent.filter(_._1 == frame).foreach { d =>
             d._2 match {
-              case Protocol.UserDead(_, id, name, killerName) => finalDieInfo = BaseDeadInfo(id, name, killerName) :: finalDieInfo
+              case Protocol.UserDead(_, id, killerId) =>
+                finalDieInfo = BaseDeadInfo(id, killerId) :: finalDieInfo
               case _ =>
             }
           }
@@ -224,7 +233,8 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
-          dispatch(subscribersMap, Protocol.UserLeft(id))
+          val snakeInfoOp = grid.snakes.get(id)
+          if (snakeInfoOp.nonEmpty) dispatch(subscribersMap, Protocol.UserLeft(snakeInfoOp.get.carnieId))
           watcherMap.filter(_._2._1 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
