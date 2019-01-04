@@ -494,8 +494,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case x@Protocol.ReceivePingPacket(actionId) =>
+        val currentTime = System.currentTimeMillis()
         if (pingMap.get(actionId).nonEmpty) {
-          PerformanceTool.receivePingPackage(pingMap(actionId))
+          PerformanceTool.receivePingPackage(pingMap(actionId), currentTime)
           pingMap -= actionId
         }
 
