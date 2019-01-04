@@ -430,7 +430,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case OtherAction(carnieId, keyCode, frame) =>
-        println(s"recv action from other")
+//        println(s"recv action from other")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           grid.addActionWithFrame(id, keyCode, frame)
@@ -442,6 +442,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case UserLeft(carnieId) =>
+        println(s"recv UserLeft:$carnieId")
         val idOp = grid.carnieMap.get(carnieId)
         if (idOp.nonEmpty) {
           val id = idOp.get
