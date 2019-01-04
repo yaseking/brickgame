@@ -117,14 +117,13 @@ class WebSocketClient (
                   }
                   if(System.currentTimeMillis() - updateTime > 30*1000) {
                     updateTime = System.currentTimeMillis()
-                    println(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo,someoneKill:$someoneKill, dead$dead, win:$win,other:$other")
+                    println(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo, dead$dead, win:$win,other:$other")
                     snakeAction = 0
                     ping = 0
                     newField = 0
                     data4TotalSync = 0
                     rank = 0
                     newSnakeInfo = 0
-                    someoneKill = 0
                     dead = 0
                     win = 0
                     other = 0
