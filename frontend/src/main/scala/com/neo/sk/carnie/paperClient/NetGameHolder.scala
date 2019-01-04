@@ -148,17 +148,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
         case Some(frame) =>
           val time1 = System.currentTimeMillis()
-          val oldGrid = grid
           println(s"before recall...frame:${grid.frameCount}")
-          oldGrid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
+          grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
             case Some(dieFrame) =>
-              if (dieFrame - 2 > frame) oldGrid.recallGrid(frame, dieFrame - 2)
-              else oldGrid.setGridInGivenFrame(frame)
+              if (dieFrame - 2 > frame) grid.recallGrid(frame, dieFrame - 2)
+              else grid.setGridInGivenFrame(frame)
 
             case None =>
-              oldGrid.recallGrid(frame, grid.frameCount)
+              grid.recallGrid(frame, grid.frameCount)
           }
-          grid = oldGrid
           println(s"after recall time: ${System.currentTimeMillis() - time1}...after frame:${grid.frameCount}")
           recallFrame = None
 
