@@ -187,11 +187,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           grid.setGridInGivenFrame(backend)
         } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-          (frontend until backend).foreach { frame =>
-            if (!grid.historyDieSnake.getOrElse(frame + 1, Nil).contains(myId)) {
-              addBackendInfo(frame)
-              grid.updateOnClient()
-            }
+          val endFrame = grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frontend}.keys.headOption match {
+            case Some(dieFrame) => Math.min(dieFrame - 1, backend)
+            case None => backend
+          }
+          (frontend until endFrame).foreach { frame =>
+            grid.frameCount = frame
+            addBackendInfo(frame)
+            grid.updateOnClient()
           }
           println(s"after speed,frame:${grid.frameCount}")
         } else {
