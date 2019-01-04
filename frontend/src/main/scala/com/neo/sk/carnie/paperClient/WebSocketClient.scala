@@ -72,7 +72,6 @@ class WebSocketClient (
       var data4TotalSync : Double = 0
       var rank : Double = 0
       var newSnakeInfo : Double = 0
-      var someoneKill : Double = 0
       var dead :Double = 0
       var win :Double = 0
       var other :Double = 0
@@ -106,9 +105,6 @@ class WebSocketClient (
 
                     case NewSnakeInfo(_, _, _) =>
                       newSnakeInfo = newSnakeInfo + blobMsg.size
-
-                    case SomeOneKilled(_, _, _) =>
-                      someoneKill = someoneKill + blobMsg.size
 
                     case DeadPage(_, _, _) =>
                       dead = dead + blobMsg.size

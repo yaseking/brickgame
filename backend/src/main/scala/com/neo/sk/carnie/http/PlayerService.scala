@@ -276,7 +276,6 @@ trait PlayerService extends ServiceUtils with CirceSupport {
   var data4TotalSync : Double = 0
   var rank : Double = 0
   var newSnakeInfo : Double = 0
-  var someoneKill : Double = 0
   var dead :Double = 0
   var win :Double = 0
   var other :Double = 0
@@ -333,9 +332,6 @@ trait PlayerService extends ServiceUtils with CirceSupport {
 
             case NewSnakeInfo(_, _, _) =>
               newSnakeInfo = newSnakeInfo + a.length
-
-            case SomeOneKilled(_, _, _) =>
-              someoneKill = someoneKill + a.length
 
             case DeadPage(_, _, _) =>
               dead = dead + a.length

@@ -103,8 +103,6 @@ object Protocol {
 
   //  case class SomeWin(winnerName: String,finalData:Data4TotalSync) extends GameMessage with GameEvent
 
-  case class SomeOneKilled(killedId: String, killedName: String, killerName: String) extends GameMessage with GameEvent
-
   case class ReceivePingPacket(pingId: Short) extends GameMessage
 
   case class WinnerBestScore(Score: Short) extends GameMessage

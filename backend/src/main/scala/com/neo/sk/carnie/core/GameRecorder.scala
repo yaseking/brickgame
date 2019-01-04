@@ -86,7 +86,6 @@ object GameRecorder {
               case Protocol.DirectionEvent(_,_) => false
               case Protocol.EncloseEvent(_) => false
               case Protocol.RankEvent(_) => false
-              case Protocol.SomeOneKilled(_,_,_) => false
               case _ => true
             } || tickCount % 50 == 0) {
 //              log.debug(s"save snapshot =======tickCount:$tickCount")
