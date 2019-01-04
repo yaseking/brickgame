@@ -418,13 +418,25 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               }
               myActionHistory -= actionId
             }
-          } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-            grid.addActionWithFrame(id, keyCode, frame)
-            //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
-            if (frame < grid.frameCount) {
-              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
-              recallFrame = grid.findRecallFrame(frame, recallFrame)
-            }
+          }
+//          else { //收到别人的动作则加入action，若帧号滞后则进行回溯
+//            grid.addActionWithFrame(id, keyCode, frame)
+//            //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
+//            if (frame < grid.frameCount) {
+//              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+//              recallFrame = grid.findRecallFrame(frame, recallFrame)
+//            }
+//          }
+        }
+
+      case OtherAction(carnieId, keyCode, frame) =>
+        if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
+          val id = grid.carnieMap(carnieId)
+          grid.addActionWithFrame(id, keyCode, frame)
+          //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
+          if (frame < grid.frameCount) {
+            println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+            recallFrame = grid.findRecallFrame(frame, recallFrame)
           }
         }
 

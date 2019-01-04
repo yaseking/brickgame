@@ -291,9 +291,12 @@ object RoomActor {
               if (grid.snakes.get(id).nonEmpty) {
                 val realFrame = grid.checkActionFrame(id, frameCount)
                 grid.addActionWithFrame(id, keyCode, realFrame)
-                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
+                dispatchTo(subscribersMap, id, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId)) //发送自己的action
+                dispatch(subscribersMap.filterNot(_._1 == id).
+                  filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
                   (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
-                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
+                  Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
+
                 dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
                   Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
               }
