@@ -195,25 +195,62 @@ class BotController(player: PlayerInfoInClient,
           grid.cleanData()
         }
 
-      case Protocol.UserDead(frame, id, name, killerName) =>
-        println("I've clean it")
-        Boot.addToPlatform {
-          //          deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
-          if (killerName.nonEmpty) {
-            grid.killInfo = Some(id, name, killerName.get)
-            grid.barrageDuration = 100
+//      case Protocol.UserDead(frame, id, name, killerName) =>
+//        println("I've clean it")
+//        Boot.addToPlatform {
+//          //          deadUser += frame -> (deadUser.getOrElse(frame, Nil) ::: List(id))
+//          if (killerName.nonEmpty) {
+//            grid.killInfo = Some(id, name, killerName.get)
+//            grid.barrageDuration = 100
+//          }
+//        }
+
+
+      case Protocol.UserDeadMsg(frame, deadInfo) =>
+        Boot.addToPlatform{
+          val deadList =  deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
+          grid.historyDieSnake += frame -> deadList
+          deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
+            val idOp = grid.carnieMap.get(i.carnieId)
+            if (idOp.nonEmpty) {
+              val id = idOp.get
+              val nameOp = grid.snakes.get(id)
+              val name = if (nameOp.nonEmpty) nameOp.get.name else "unknown"
+              val killerNameOp = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, ""))
+              val killerName = if (killerNameOp.nonEmpty) killerNameOp.get.name else "unknown"
+              grid.killInfo = Some(id, name, killerName)
+              grid.barrageDuration = 100
+            }
+          }
+          if (frame < grid.frameCount) {
+            println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
+            val deadRecallFrame = if(deadList.contains(player.id)) frame - 2 else frame - 1
+            recallFrame = grid.findRecallFrame(deadRecallFrame, recallFrame)
           }
         }
 
-      case Protocol.UserLeft(id) =>
+
+//      case Protocol.UserLeft(id) =>
+//        Boot.addToPlatform {
+//          println(s"user $id left:::")
+//          if (grid.snakes.contains(id)) grid.snakes -= id
+//          grid.returnBackField(id)
+//          grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
+//            Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+//          }
+//        }
+
+      case UserLeft(carnieId) =>
         Boot.addToPlatform {
-          println(s"user $id left:::")
-          if (grid.snakes.contains(id)) grid.snakes -= id
-          grid.returnBackField(id)
-          grid.grid ++= grid.grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == id => true case _ => false }).map { g =>
-            Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+          val idOp = grid.carnieMap.get(carnieId)
+          if (idOp.nonEmpty) {
+            val id = idOp.get
+            println(s"user $id left:::")
+            grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
+            grid.cleanDiedSnakeInfo(id)
           }
         }
+
 
       case x@Protocol.DeadPage(_, _, _) =>
         println(s"recv userDead $x")

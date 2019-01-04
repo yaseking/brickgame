@@ -101,15 +101,18 @@ object Protocol {
 
   case class UserDeadMsg(frame: Int, deadInfo: List[BaseDeadInfo]) extends GameMessage
 
-  case class BaseDeadInfo(id: String, name: String, killerName: Option[String])
+//  case class BaseDeadInfo(id: String, name: String, killerName: Option[String])
+  case class BaseDeadInfo(carnieId: Byte, killerId: Option[Byte])
 
-  case class UserDead(frame: Int, id: String, name: String, killerName: Option[String]) extends GameMessage with GameEvent
+  case class UserDead(frame: Int, carnieId: Byte, killerCarnieId: Option[Byte]) extends GameMessage with GameEvent
 
-  case class UserLeft(userId: String) extends GameMessage
+  case class UserLeft(carnieId: Byte) extends GameMessage
 
   case class InitReplayError(info: String) extends GameMessage
 
   case class SnakeAction(id: Byte, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
+
+  case class OtherAction(id: Byte, keyCode: Byte, frame: Int) extends GameMessage
 
   //  case class SnakeLeft(id: String, name: String) extends GameMessage
 

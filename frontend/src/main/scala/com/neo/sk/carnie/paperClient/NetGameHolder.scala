@@ -418,20 +418,38 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               }
               myActionHistory -= actionId
             }
-          } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-            grid.addActionWithFrame(id, keyCode, frame)
-            //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
-            if (frame < grid.frameCount) {
-              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
-              recallFrame = grid.findRecallFrame(frame, recallFrame)
-            }
+          }
+//          else { //收到别人的动作则加入action，若帧号滞后则进行回溯
+//            grid.addActionWithFrame(id, keyCode, frame)
+//            //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
+//            if (frame < grid.frameCount) {
+//              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+//              recallFrame = grid.findRecallFrame(frame, recallFrame)
+//            }
+//          }
+        }
+
+      case OtherAction(carnieId, keyCode, frame) =>
+        println(s"recv action from other")
+        if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
+          val id = grid.carnieMap(carnieId)
+          grid.addActionWithFrame(id, keyCode, frame)
+          //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
+          if (frame < grid.frameCount) {
+            println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+            recallFrame = grid.findRecallFrame(frame, recallFrame)
           }
         }
 
-      case UserLeft(id) =>
-        println(s"user $id left:::")
-        grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-        grid.cleanDiedSnakeInfo(id)
+      case UserLeft(carnieId) =>
+        val idOp = grid.carnieMap.get(carnieId)
+        if (idOp.nonEmpty) {
+          val id = idOp.get
+          println(s"user $id left:::")
+          grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
+          grid.cleanDiedSnakeInfo(id)
+        }
+
 
       case Protocol.SomeOneWin(winner) =>
         drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData)
@@ -474,11 +492,19 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, area)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
-        val deadList =  deadInfo.map(_.id)
+        val deadList =  deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
         grid.historyDieSnake += frame -> deadList
-        deadInfo.filter(_.killerName.nonEmpty).foreach { i =>
-          killInfo = Some(i.id, i.name, i.killerName.get)
-          barrageDuration = 100
+        deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
+          val idOp = grid.carnieMap.get(i.carnieId)
+          if (idOp.nonEmpty) {
+            val id = idOp.get
+            val nameOp = grid.snakes.get(id)
+            val name = if (nameOp.nonEmpty) nameOp.get.name else "unknown"
+            val killerNameOp = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, ""))
+            val killerName = if (killerNameOp.nonEmpty) killerNameOp.get.name else "unknown"
+            killInfo = Some(id, name, killerName)
+            barrageDuration = 100
+          }
         }
         if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")

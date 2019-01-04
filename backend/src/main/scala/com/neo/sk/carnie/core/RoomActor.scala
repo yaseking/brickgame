@@ -138,7 +138,7 @@ object RoomActor {
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
             ctx.self ! LeftRoom(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
           }
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap, carnieMap)
 
         case JoinRoom4Bot(id, name, botActor, img) =>
           carnieMap.put(id, grid.generateCarnieId(carnieIdGenerator, carnieMap.values))
@@ -147,7 +147,7 @@ object RoomActor {
           grid.addSnake(id, roomId, name, img, carnieMap(id))
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap, carnieMap)
 
         case m@WatchGame(playerId, userId, subscriber) =>
           log.info(s"got: $m")
@@ -182,7 +182,15 @@ object RoomActor {
               }
 
               gameEvent += ((frame, LeftEvent(id, name)))
-              gameEvent += ((frame, Protocol.UserDead(frame, id, name, killerName)))
+              (grid.snakes.get(id), killerId) match {
+                case (Some(killedInfo), Some(killer)) =>
+                  if (grid.snakes.get(killer).nonEmpty)
+                    gameEvent += ((frame, Protocol.UserDead(frame, killedInfo.carnieId, Some(grid.snakes(killer).carnieId))))
+                case (Some(killedInfo), None) =>
+                  gameEvent += ((frame, Protocol.UserDead(frame, killedInfo.carnieId, None)))
+
+                case _ => log.error(s"can not find carnieID of $id")
+              }
               //              log.debug(s"user $id dead:::::")
               dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
               //              dispatch(subscribersMap, Protocol.UserDead(frame, id, name, killerName))
@@ -208,7 +216,8 @@ object RoomActor {
           var finalDieInfo = List.empty[BaseDeadInfo]
           gameEvent.filter(_._1 == frame).foreach { d =>
             d._2 match {
-              case Protocol.UserDead(_, id, name, killerName) => finalDieInfo = BaseDeadInfo(id, name, killerName) :: finalDieInfo
+              case Protocol.UserDead(_, id, killerId) =>
+                finalDieInfo = BaseDeadInfo(id, killerId) :: finalDieInfo
               case _ =>
             }
           }
@@ -224,7 +233,8 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
-          dispatch(subscribersMap, Protocol.UserLeft(id))
+          val snakeInfoOp = grid.snakes.get(id)
+          if (snakeInfoOp.nonEmpty) dispatch(subscribersMap, Protocol.UserLeft(snakeInfoOp.get.carnieId))
           watcherMap.filter(_._2._1 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
@@ -281,11 +291,14 @@ object RoomActor {
               if (grid.snakes.get(id).nonEmpty) {
                 val realFrame = grid.checkActionFrame(id, frameCount)
                 grid.addActionWithFrame(id, keyCode, realFrame)
-                dispatch(subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
+                dispatchTo(subscribersMap, id, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId)) //发送自己的action
+                dispatch(subscribersMap.filterNot(_._1 == id).
+                  filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
                   (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
-                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
+                  Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
+
                 dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
-                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
+                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))// todo
               }
 
             case SendPingPacket(pingId) =>
@@ -473,7 +486,7 @@ object RoomActor {
           //          val snapshot = Snapshot(newData.snakes, newData.bodyDetails, newData.fieldDetails, newData.killHistory)
           val recordData = if (finishFields.nonEmpty) RecordData(frame, (EncloseEvent(newField) :: baseEvent, snapshot)) else RecordData(frame, (baseEvent, snapshot))
           if (grid.snakes.nonEmpty || ctx.child("gameRecorder").nonEmpty) getGameRecorder(ctx, roomId, grid, mode) ! recordData
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, botMap = botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount + 1, gameEvent, newWinStandard, botMap = botMap, carnieMap = carnieMap)
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
