@@ -231,7 +231,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
-    println(s"logicFrame deal time:${System.currentTimeMillis() - logicFrameTime}")
+//    println(s"logicFrame deal time:${System.currentTimeMillis() - logicFrameTime}")
   }
 
   def draw(offsetTime: Long): Unit = {
