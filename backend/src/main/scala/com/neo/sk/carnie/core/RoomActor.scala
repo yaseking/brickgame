@@ -293,8 +293,8 @@ object RoomActor {
                   (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
                   Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
 
-                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)),
-                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))// todo
+//                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)),
+//                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))// todo
               }
 
             case SendPingPacket(pingId) =>

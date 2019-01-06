@@ -416,12 +416,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
 
       case data: Protocol.NewFieldInfo =>
-        println("recv all the new field!!!")
         val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-        if (fields.exists(_.uid == myId)) {
-          println("recv  my field")
-          audioFinish.play()
-        }
+        if (fields.exists(_.uid == myId)) audioFinish.play()
         grid.historyFieldInfo += data.frameCount -> fields
         if (data.frameCount < grid.frameCount) {
           println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
