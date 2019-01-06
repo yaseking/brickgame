@@ -240,18 +240,18 @@ trait Grid {
     }
 
     val intersection = mayBeSuccess.keySet.filter(p => mayBeDieSnake.keys.exists(_ == p))
-    if (intersection.nonEmpty) {
-      intersection.foreach { snakeId => // 在即将完成圈地的时候身体被撞击则不死但此次圈地作废
-        mayBeSuccess(snakeId).foreach { i =>
-          i._2 match {
-            case body: Body => grid += i._1 -> body
-            case Field(fid) => grid += i._1 -> Field(fid)
-            case _ => grid -= i._1
-          }
+    intersection.foreach { snakeId => // 在即将完成圈地的时候身体被撞击则不死但此次圈地作废
+      mayBeDieSnake -= snakeId
+      killHistory -= snakeId
+      mayBeSuccess -= snakeId
+    }
+
+    mayBeSuccess.foreach { s =>
+      s._2.foreach { p =>
+        p._2 match {
+          case Body(bodyId, _) if bodyId != s._1 => grid += p._1 -> Body(bodyId, Some(s._1))
+          case _ => grid += p._1 -> Field(s._1)
         }
-        mayBeDieSnake -= snakeId
-        killHistory -= snakeId
-        mayBeSuccess -= snakeId
       }
     }
 
@@ -290,9 +290,9 @@ trait Grid {
     mayBeDieSnake = Map.empty[String, String]
     mayBeSuccess = Map.empty[String, Map[Point, Spot]]
 
-    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
+    //    val noFieldSnake = snakes.keySet &~ grid.map(_._2 match { case Field(uid) => uid case _ => "" }).toSet.filter(_ != "") //若领地全被其它玩家圈走则死亡
 
-    val finalDie = snakesInDanger ::: killedSnaked ::: noFieldSnake.toList ::: noHeaderSnake.toList ::: bodyInNewFieldSnake
+    val finalDie = snakesInDanger ::: killedSnaked ::: noHeaderSnake.toList ::: bodyInNewFieldSnake
 
     finalDie.foreach { sid =>
       returnBackField(sid)
@@ -333,9 +333,7 @@ trait Grid {
 
         var finalFillPoll = grid.filter(_._2 match { case Body(bodyId, _) if bodyId == snake.id => true case _ => false })
 
-        grid ++= finalFillPoll.keys.map(p => p -> Field(snake.id))
-
-        val myFieldPoint = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys
+        val myFieldPoint = grid.filter(_._2 match { case Field(fid) if fid == snake.id => true case _ => false }).keys.++(finalFillPoll.keys)
 
         val (xMin, xMax, yMin, yMax) = Short.findMyRectangle(myFieldPoint)
 
@@ -346,6 +344,7 @@ trait Grid {
             grid.get(Point(x, y)) match {
               case Some(x: Field) if x.id == snake.id => //donothing
               case Some(x: Body) if x.fid.nonEmpty && x.fid.get == snake.id =>
+              case Some(x: Body) if x.id == snake.id =>
               case _ => targets = targets + Point(x, y)
             }
           }
@@ -378,27 +377,22 @@ trait Grid {
             }
           }
           if (in_bound) { //如果 in_bound 为真则将 fill_pool中所有坐标填充为当前玩家id
-            var newGrid = grid
             for (p <- fillPool) {
               grid.get(p) match {
-                case Some(Body(bodyId, originFid)) =>
-                  newGrid += p -> Body(bodyId, Some(snake.id))
-                  finalFillPoll += p -> Body(bodyId, originFid)
+                case Some(Body(bodyId, originFid)) => finalFillPoll += p -> Body(bodyId, originFid)
 
                 case Some(Border) => //doNothing
 
-                case x => newGrid += p -> Field(snake.id)
-                  x match {
-                    case Some(Field(fid)) => finalFillPoll += p -> Field(fid)
-                    case _ => finalFillPoll += p -> Blank
-                  }
+                case x => finalFillPoll += p -> Blank
+//                  x match {
+//                    case Some(Field(fid)) => finalFillPoll += p -> Field(fid)
+//                    case _ => finalFillPoll += p -> Blank
+//                  }
               }
             }
-            grid = newGrid
           }
         }
         mayBeSuccess += (snake.id -> finalFillPoll)
-
       } else returnBackField(snake.id)
     }
     Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(snake.id)))
