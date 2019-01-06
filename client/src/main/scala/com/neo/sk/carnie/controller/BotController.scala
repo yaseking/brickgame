@@ -5,7 +5,7 @@ import java.awt.event.KeyEvent
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.actor.BotActor
 import com.neo.sk.carnie.paperClient._
-import com.neo.sk.carnie.paperClient.Protocol.{NeedToSync, NewFieldInfo, UserAction, UserLeft}
+import com.neo.sk.carnie.paperClient.Protocol._
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.util.Duration
 import org.slf4j.LoggerFactory
@@ -154,6 +154,7 @@ class BotController(player: PlayerInfoInClient,
             if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
               val id = grid.carnieMap(carnieId)
               if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+                myActions += frame -> keyCode
                 //            println(s"recv:$r")
                 if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                   grid.addActionWithFrame(id, keyCode, frame)
@@ -184,6 +185,16 @@ class BotController(player: PlayerInfoInClient,
                 }
               }
             }
+          }
+        }
+
+      case OtherAction(carnieId, keyCode, frame) =>
+        if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
+          val id = grid.carnieMap(carnieId)
+          grid.addActionWithFrame(id, keyCode, frame)
+          if (frame < grid.frameCount) {
+            println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+            recallFrame = grid.findRecallFrame(frame, recallFrame)
           }
         }
 
@@ -246,12 +257,14 @@ class BotController(player: PlayerInfoInClient,
 
       case Protocol.Ranks(current, score, _, _) =>
         Boot.addToPlatform {
+          println("rank!!!")
           currentRank = current
           myCurrentRank = score
+          layeredGameScene.drawRank(player.id,grid.getGridData.snakes,currentRank)
         }
 
       case data: Protocol.Data4TotalSync =>
-        println("data!!!")
+//        println("data!!!")
         Boot.addToPlatform{
           syncGridData = Some(data)
         }
@@ -269,7 +282,7 @@ class BotController(player: PlayerInfoInClient,
         }
 
       case data: Protocol.NewFieldInfo =>
-        println(s"====================new field")
+//        println(s"====================new field")
         Boot.addToPlatform {
           val fields = data.fieldDetails.map{f => Protocol.FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
           grid.historyFieldInfo += data.frameCount -> fields
