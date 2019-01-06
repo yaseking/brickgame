@@ -383,11 +383,7 @@ trait Grid {
 
                 case Some(Border) => //doNothing
 
-                case x => finalFillPoll += p -> Blank
-//                  x match {
-//                    case Some(Field(fid)) => finalFillPoll += p -> Field(fid)
-//                    case _ => finalFillPoll += p -> Blank
-//                  }
+                case _ => finalFillPoll += p -> Blank
               }
             }
           }
