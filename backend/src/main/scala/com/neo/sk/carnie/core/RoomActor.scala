@@ -161,7 +161,7 @@ object RoomActor {
           dispatchTo(subscribersMap, userId, Protocol.StartWatching(mode, img))
 //          val gridData = grid.getGridData
 //          dispatch(subscribersMap, gridData)
-          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap)
+          idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap, carnieMap)
 
         case UserDead(_, _, users) =>
           val frame = grid.frameCount
@@ -175,8 +175,8 @@ object RoomActor {
               val startTime = userMap(id).startTime
               grid.cleanSnakeTurnPoint(id)
 
-              if (killHistoryInFrame.get(id).isDefined) killerId = Some(grid.killHistory.filter(k => k._2._3 + 1 == frame)(id)._1)
-
+              if (killHistoryInFrame.get(id).isDefined)
+                killerId = Some(grid.killHistory.filter(k => k._2._3 + 1 == frame)(id)._1)
 
               gameEvent += ((frame, LeftEvent(id, name)))
               gameEvent += ((frame, Protocol.UserDead(frame, id, name, killerId)))
@@ -205,15 +205,14 @@ object RoomActor {
           var finalDieInfo = List.empty[BaseDeadInfo]
           gameEvent.filter(_._1 == frame).foreach { d =>
             d._2 match {
-              case Protocol.UserDead(_, id, name, killerId) =>
+              case Protocol.UserDead(_, id, _, killerId) =>
                 (carnieMap.get(id), killerId) match {
                   case (Some(killedInfo), Some(killer)) =>
-                    if (carnieMap.get(killer).nonEmpty)
-                      finalDieInfo = BaseDeadInfo(killedInfo, carnieMap.get(killer)) :: finalDieInfo
+                    finalDieInfo = BaseDeadInfo(killedInfo, carnieMap.get(killer)) :: finalDieInfo
                   case (Some(killedInfo), None) =>
                     finalDieInfo = BaseDeadInfo(killedInfo, None) :: finalDieInfo
 
-                  case _ => log.error(s"can not find carnieID of $id")
+                  case _ => log.error(s"when handle UserDead msg...can not find carnieID of $id")
                 }
               case _ =>
             }
@@ -223,6 +222,7 @@ object RoomActor {
 
         case LeftRoom(id, name) =>
           log.debug(s"LeftRoom:::$id")
+          dispatch(subscribersMap, Protocol.UserLeft(id))
           carnieMap.-=(id)
           if (userDeadList.contains(id)) userDeadList -= id
           grid.removeSnake(id)
@@ -230,19 +230,15 @@ object RoomActor {
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
-          val snakeInfoOp = grid.snakes.get(id)
-          if (snakeInfoOp.nonEmpty) dispatch(subscribersMap, Protocol.UserLeft(snakeInfoOp.get.carnieId))
           watcherMap.filter(_._2._1 == id).keySet.foreach { i =>
             subscribersMap.remove(i)
           }
           if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           if (userMap.size < AppSettings.minPlayerNum) {
-            //            println("1:" + userMap.size + "--" + "2:" + botMap.size)
             if (botMap.size == userMap.size) {
               botMap.foreach(b => getBotActor(ctx, b._1) ! KillBot)
               Behaviors.stopped
             } else {
-              //              log.debug(s"botMap:::$botMap")
               if (!AppSettings.botMap.forall(b => botMap.keys.toList.contains("bot_" + roomId + b._1))) {
                 val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
                 getBotActor(ctx, "bot_" + roomId + newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
@@ -274,7 +270,6 @@ object RoomActor {
             subscribersMap.remove(id)
             userMap.remove(id)
             grid.cleanSnakeTurnPoint(id)
-            //            grid.removeSnake(id).foreach { s => dispatch(subscribersMap, Protocol.SnakeLeft(id, s.name)) }
             roomManager ! RoomManager.UserLeft(id)
             gameEvent += ((grid.frameCount, LeftEvent(id, name)))
             if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
@@ -288,13 +283,14 @@ object RoomActor {
               if (grid.snakes.get(id).nonEmpty) {
                 val realFrame = grid.checkActionFrame(id, frameCount)
                 grid.addActionWithFrame(id, keyCode, realFrame)
+
                 dispatchTo(subscribersMap, id, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId)) //发送自己的action
                 dispatch(subscribersMap.filterNot(_._1 == id).
                   filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
                   (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
                   Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
 
-                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
+                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)),
                   Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))// todo
               }
 
@@ -303,36 +299,6 @@ object RoomActor {
 
             case NeedToSync =>
               val data = grid.getGridData
-//              val newBodyDt = data.bodyDetails.map {s=>
-//                val carnieId = carnieMap.get(s.uid) match {
-//                  case Some(cId) => cId
-//                  case None =>
-//                    val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
-//                    carnieMap.put(id, newCarnieId)
-//                    newCarnieId
-//                }
-//                BodyBaseInfoCondensed(carnieId, TurnInfoCondensed(s.turn.turnPoint, s.turn.pointOnField.map{p =>
-//                  val carnieId = carnieMap.get(p._2) match {
-//                    case Some(cId) => cId
-//                    case None =>
-//                      val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
-//                      carnieMap.put(id, newCarnieId)
-//                      newCarnieId
-//                  }
-//                  (p._1, carnieId)
-//                }))
-//              }
-//              val newFieldDt = data.fieldDetails.map {f =>
-//                val carnieId = carnieMap.get(f.uid) match {
-//                  case Some(cId) => cId
-//                  case None =>
-//                    val newCarnieId = grid.generateCarnieId(carnieIdGenerator, carnieMap.values)
-//                    carnieMap.put(id, newCarnieId)
-//                    newCarnieId
-//                }
-//                FieldByColumnCondensed(carnieId, f.scanField)
-//              }
-//              val newData = Data4TotalSyncCondensed(data.frameCount, data.snakes, newBodyDt, newFieldDt)
               dispatchTo(subscribersMap, id, data)
 
             case PressSpace =>
@@ -346,7 +312,6 @@ object RoomActor {
                       carnieMap.put(id, newCarnieId)
                       newCarnieId
                   })
-                //                log.debug(s"after space, userMap:${userMap.keySet},watcherMap:${watcherMap.keySet}")
                 gameEvent += ((grid.frameCount, JoinEvent(id, userMap(id).name)))
                 watcherMap.filter(_._2._1 == id).foreach { w =>
                   log.info(s"send reStart to ${w._1}")
@@ -366,27 +331,27 @@ object RoomActor {
           val shouldNewSnake = if (grid.waitingListState) true else false
           val finishFields = grid.updateInService(shouldNewSnake, roomId, mode) //frame帧的数据执行完毕
           val newData = grid.getGridData
-          var newField: List[FieldByColumn] = Nil
+          var newField: List[Protocol.FieldByColumn] = Nil
 
           if (grid.newInfo.nonEmpty) { //有新的蛇
-            newField = grid.newInfo.map(n => (n._1, n._3)).map { f =>
+            val newSnakeField = grid.newInfo.map(n => (n._1, n._2.carnieId, n._3)).map { f =>
               if (userDeadList.contains(f._1) && curTime - userDeadList(f._1) > maxWaitingTime4Restart) {
                 dispatchTo(subscribersMap, f._1, newData)
                 watcherMap.filter(_._2._1 == f._1).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
               } //同步全量数据
-            val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
+              val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
               userMap.put(f._1, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
               userDeadList -= f._1
               if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
-              grid.zipField(f)
+              grid.zipFieldWithCondensed((f._2, f._3))
             }
             dispatch(
               subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
                 (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
-              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
+              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             dispatch(
               subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
-              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newField))
+              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             grid.newInfo = Nil
           }
 
@@ -397,7 +362,6 @@ object RoomActor {
 
           //错峰发送
           for ((u, i) <- userMap) {
-            //            val newDataNoField = Protocol.Data4TotalSync(newData.frameCount, newData.snakes, newData.bodyDetails, Nil)
             if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 2 ||
               (userDeadList.contains(u) && curTime - userDeadList(u) <= maxWaitingTime4Restart) && (tickCount - i.joinFrame) % 100 == 2) {
               dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
@@ -405,7 +369,7 @@ object RoomActor {
                 dispatchTo(subscribersMap, w._1, SyncFrame(newData.frameCount))
               }
             }
-            //              dispatchTo(subscribersMap, u, newDataNoField)
+
             if ((i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 ||
               (userDeadList.contains(u) && curTime - userDeadList(u) <= maxWaitingTime4Restart)) && grid.currentRank.exists(_.id == u) && (tickCount - i.joinFrame) % 20 == 5) {
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
@@ -418,18 +382,19 @@ object RoomActor {
           }
 
           if (finishFields.nonEmpty) { //发送圈地数据
-            newField = finishFields.map(f => grid.zipField(f))
+            val zipFields = finishFields.filter(s => grid.snakes.get(s._1).nonEmpty).map(f => grid.zipField((f._1, grid.snakes(f._1).carnieId, f._2)))
+            newField = zipFields.map(_._1)
 
             userMap.filter(s => s._2.joinFrame != -1L ||
               (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)).foreach(u =>
-              dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+              dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
             watcherMap.filter(w =>
               userMap.get(w._2._1) match {
                 case None => false
                 case Some(_) if userDeadList.contains(w._2._1) && curTime - userDeadList(w._2._1) > maxWaitingTime4Restart => false
                 case _ => true
               }
-            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, newField)))
+            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利

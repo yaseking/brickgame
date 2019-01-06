@@ -35,7 +35,6 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   private[this] def genWaitingSnake() = {
     val newInfo = waitingJoin.filterNot(kv => snakes.contains(kv._1)).map { case (id, (name, bodyColor, img, carnieId)) =>
-      val startTime = System.currentTimeMillis()
       val indexSize = 5
       val basePoint = randomEmptyPoint(indexSize)
       val newFiled = (0 until indexSize).flatMap { x =>
@@ -46,7 +45,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
         }.toList
       }.toList
       val startPoint = Point(basePoint.x + indexSize / 2, basePoint.y + indexSize / 2)
-      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, startTime = startTime, endTime = startTime, img = img, carnieId = carnieId) //img: Int
+      val snakeInfo = SkDt(id, name, bodyColor, startPoint, startPoint, img = img, carnieId = carnieId) //img: Int
       snakes += id -> snakeInfo
       killHistory -= id
       (id, snakeInfo, newFiled)
@@ -128,7 +127,6 @@ class GridOnServer(override val boundary: Point) extends Grid {
         } else (id, -1.toShort, -1.toShort)
       }
       roomManager ! RoomActor.UserDead(roomId, mode, deadSnakesInfo)
-      //      log.debug(s"!!!!!!!dead snakes: ${deadSnakesInfo.map(_._1)}")
     }
     updateRanks()
     isFinish
@@ -146,12 +144,21 @@ class GridOnServer(override val boundary: Point) extends Grid {
     newId
   }
 
-  def zipField(f: (String, scala.List[Point])): Protocol.FieldByColumn = {
-    Protocol.FieldByColumn(f._1, f._2.groupBy(_.y).map { case (y, target) =>
+  def zipFieldWithCondensed(f: (Byte, scala.List[Point])): Protocol.FieldByColumnCondensed = {
+    Protocol.FieldByColumnCondensed(f._1, f._2.groupBy(_.y).map { case (y, target) =>
       (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted)) //read
     }.toList.groupBy(_._2).map { case (r, target) =>
       Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
     }.toList)
+  }
+
+  def zipField(f: (String, Byte, scala.List[Point])): (Protocol.FieldByColumn, Protocol.FieldByColumnCondensed) = {
+    val zipField = f._3.groupBy(_.y).map { case (y, target) =>
+      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted)) //read
+    }.toList.groupBy(_._2).map { case (r, target) =>
+      Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+    }.toList
+    (Protocol.FieldByColumn(f._1, zipField), Protocol.FieldByColumnCondensed(f._2, zipField))
   }
 
 

@@ -36,10 +36,9 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   var winData: Protocol.Data4TotalSync = grid.getGridData
   var fieldNum = 1
   var snakeNum = 1
-  var newFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //[frame, newFieldInfo)
   var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
   var snapshotMap = Map.empty[Int, Snapshot]
-  var encloseMap = Map.empty[Int, NewFieldInfo]
+  var encloseMap = Map.empty[Int, List[FieldByColumn]]
   var spaceEvent = Map.empty[Int, SpaceEvent]
   var rankEvent = Map.empty[Int, RankEvent]
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -136,7 +135,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       }
 
       if (encloseMap.contains(grid.frameCount)) {
-        encloseMap(grid.frameCount).fieldDetails.map(_.uid).foreach { id =>
+        encloseMap(grid.frameCount).map(_.uid).foreach { id =>
           grid.cleanSnakeTurnPoint(id)
         }
         //        grid.cleanTurnPoint4Reply(myId)
@@ -222,7 +221,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   }
 
   def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, frameRate: Int): Unit = {
-    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate,newFieldInfo = newFieldInfo.get(grid.frameCount))
+    drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
   }
@@ -261,7 +260,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         grid.frameCount = frame
         grid.initSyncGridData(Protocol.Data4TotalSync(grid.frameCount, List(), List(), List()))
         snapshotMap = Map.empty[Int, Snapshot]
-        encloseMap = Map.empty[Int, NewFieldInfo]
+        encloseMap = Map.empty[Int, List[FieldByColumn]]
 
 
       case Protocol.StartReplay(firstSnapshotFrame, firstReplayFrame) =>
@@ -286,7 +285,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
             }
 
             if (encloseMap.contains(grid.frameCount)) {
-              encloseMap(grid.frameCount).fieldDetails.map(_.uid).foreach { id =>
+              encloseMap(grid.frameCount).map(_.uid).foreach { id =>
                 grid.cleanSnakeTurnPoint(id)
               }
               grid.addNewFieldInfo(encloseMap(grid.frameCount))
@@ -440,7 +439,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
         //        println(s"当前帧号：${grid.frameCount}")
         //        println(s"传输帧号：$frameIndex")
         if (grid.frameCount < frameIndex) {
-          encloseMap += (frameIndex -> NewFieldInfo(frameIndex, enclosure))
+          encloseMap += (frameIndex -> enclosure)
         } else if (grid.frameCount == frameIndex) {
           //          println(s"圈地")
           //          println(s"enclosure:$enclosure")
@@ -448,7 +447,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
             grid.cleanSnakeTurnPoint(id)
           }
           //          grid.cleanTurnPoint4Reply(myId)
-          grid.addNewFieldInfo(NewFieldInfo(frameIndex, enclosure))
+          grid.addNewFieldInfo(enclosure)
         }
 
       case RankEvent(current) =>

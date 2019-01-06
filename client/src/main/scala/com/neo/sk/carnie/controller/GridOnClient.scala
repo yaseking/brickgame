@@ -75,8 +75,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
     carnieMap = data.snakes.map(s => s.carnieId -> s.id).toMap
   }
 
-  def addNewFieldInfo(data: Protocol.NewFieldInfo): Unit = {
-    data.fieldDetails.foreach { baseInfo =>
+  def addNewFieldInfo(data: List[Protocol.FieldByColumn]): Unit = {
+    data.foreach { baseInfo =>
       baseInfo.scanField.foreach { fids =>
         fids.y.foreach { ly =>
           (ly._1 to ly._2 by 1).foreach { y =>
@@ -117,9 +117,9 @@ class GridOnClient(override val boundary: Point) extends Grid {
           }
 
           historyNewSnake.get(newFrame).foreach { newSnakes =>
-            newSnakes.snake.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
-            snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
-            addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+            newSnakes._1.foreach { s => cleanSnakeTurnPoint(s.id) } //清理死前拐点
+            snakes ++= newSnakes._1.map(s => s.id -> s).toMap
+            addNewFieldInfo(newSnakes._2)
           }
         }
         frameCount += 1
@@ -189,7 +189,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
                 UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid)
 
               case Some(Body(bid, _)) if bid == snake.id && x.fid.getOrElse(-1L) == snake.id =>
-                enclosure(snake, "f", newHeader, newDirection).value
+                returnBackField(snake.id)
+                UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(snake.id))
 
               case _ =>
                 if (snake.direction != newDirection)
@@ -201,7 +202,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
             if (id == snake.id) {
               grid.get(snake.header) match {
                 case Some(Body(bid, _)) if bid == snake.id => //回到了自己的领域
-                  enclosure(snake, "f", newHeader, newDirection).value
+                  returnBackField(snake.id)
+                  UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(snake.id))
 
                 case _ =>
                   UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id))

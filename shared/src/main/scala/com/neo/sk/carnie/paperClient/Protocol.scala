@@ -15,7 +15,7 @@ object Protocol {
 
   case class NewFieldInfo(
                            frameCount: Int,
-                           fieldDetails: List[FieldByColumn]
+                           fieldDetails: List[FieldByColumnCondensed]
                          ) extends GameMessage
 
   case class Data4TotalSync(
@@ -35,7 +35,7 @@ object Protocol {
   case class NewSnakeInfo(
                            frameCount: Int,
                            snake: List[SkDt],
-                           filedDetails: List[FieldByColumn]
+                           filedDetails: List[FieldByColumnCondensed]
                          ) extends GameMessage
 
   case class KilledSkData(
@@ -106,15 +106,13 @@ object Protocol {
 
   case class UserDead(frame: Int, id: String, name: String, killerId: Option[String]) extends GameMessage with GameEvent
 
-  case class UserLeft(carnieId: Byte) extends GameMessage
+  case class UserLeft(id: String) extends GameMessage
 
   case class InitReplayError(info: String) extends GameMessage
 
   case class SnakeAction(id: Byte, keyCode: Byte, frame: Int, actionId: Int) extends GameMessage
 
   case class OtherAction(id: Byte, keyCode: Byte, frame: Int) extends GameMessage
-
-  //  case class SnakeLeft(id: String, name: String) extends GameMessage
 
   case class ReplayFinish(id: String) extends GameMessage
 

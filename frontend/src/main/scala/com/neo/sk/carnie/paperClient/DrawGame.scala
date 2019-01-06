@@ -304,7 +304,7 @@ class DrawGame(
   //    }
   //  }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[Protocol.NewFieldInfo]): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[List[FieldByColumn]] = None): Unit = { //头所在的点是屏幕的正中心
     //    println(s"drawGrid-frameRate: $frameRate")
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
@@ -371,15 +371,11 @@ class DrawGame(
       }
       if (turnPoints.nonEmpty) ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
     }
-    //绘制领地
-    //    ctx.save()
-    //    ctx.drawImage(fieldCanvas, offx * canvasUnit, offy * canvasUnit)
-    //    ctx.restore()
 
     ctx.globalAlpha = offsetTime.toFloat / frameRate * 1
     if(newFieldInfo.nonEmpty){
       var newFieldInWindow: List[FieldByColumn] = Nil
-      newFieldInfo.get.fieldDetails.foreach { user =>
+      newFieldInfo.get.foreach { user =>
         if (snakes.exists(_.id == user.uid)) {
           newFieldInWindow = FieldByColumn(user.uid, user.scanField.map { field =>
             ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
@@ -388,7 +384,6 @@ class DrawGame(
         }
       }
 
-//      println(s"newField: ${newFieldInfo.get}")
       newFieldInWindow.foreach { field => //按行渲染
         val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
         ctx.fillStyle = color
@@ -408,11 +403,6 @@ class DrawGame(
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
 
-      //      field.scanField.foreach { point =>
-      //        point.x.foreach { x =>
-      //          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-      //        }
-      //      }
       field.scanField.foreach { fids =>
         fids.y.foreach { y =>
           fids.x.foreach { x =>
@@ -509,7 +499,7 @@ class DrawGame(
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "10px Helvetica"
-    drawTextLine("Version:20190104", rightBegin.toInt+140, index, currentRankBaseLine-1)
+    drawTextLine("Version:20190106", rightBegin.toInt+140, index, currentRankBaseLine-1)
     rankCtx.font = "14px Helvetica"
     drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {

@@ -203,6 +203,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         addBackendInfo(grid.frameCount)
         grid.updateOnClient()
         addBackendInfo(grid.frameCount)
+//        grid.update("b")
       }
 
       if (!isWin) {
@@ -393,21 +394,17 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myId = id
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
-//        println(s"recv time:$sendTime..now:${System.currentTimeMillis()}")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-            //            println(s"recv:$r")
             if (myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
               grid.addActionWithFrame(id, keyCode, frame)
               if (frame < grid.frameCount) {
-                if(frame == grid.frameCount) println("!!!!!!!!!!!!!!frame == frontendFrame")
                 println(s"recall for my Action1,backend:$frame,frontend:${grid.frameCount}")
                 recallFrame = grid.findRecallFrame(frame, recallFrame)
               }
             } else {
               if (myActionHistory(actionId)._1 != keyCode || myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-                //                println(s"now:${grid.frameCount}...history:${myActionHistory(actionId)._2}...backend:$frame")
                 grid.deleteActionWithFrame(id, myActionHistory(actionId)._2)
                 grid.addActionWithFrame(id, keyCode, frame)
                 val miniFrame = Math.min(frame, myActionHistory(actionId)._2)
@@ -419,38 +416,22 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               myActionHistory -= actionId
             }
           }
-//          else { //收到别人的动作则加入action，若帧号滞后则进行回溯
-//            grid.addActionWithFrame(id, keyCode, frame)
-//            //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
-//            if (frame < grid.frameCount) {
-//              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
-//              recallFrame = grid.findRecallFrame(frame, recallFrame)
-//            }
-//          }
         }
 
       case OtherAction(carnieId, keyCode, frame) =>
-//        println(s"recv action from other")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           grid.addActionWithFrame(id, keyCode, frame)
-          //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
           if (frame < grid.frameCount) {
             println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(frame, recallFrame)
           }
         }
 
-      case UserLeft(carnieId) =>
-        println(s"recv UserLeft:$carnieId")
-        val idOp = grid.carnieMap.get(carnieId)
-        if (idOp.nonEmpty) {
-          val id = idOp.get
-          println(s"user $id left:::")
-          grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-          grid.cleanDiedSnakeInfo(id)
-        }
-
+      case UserLeft(id) =>
+        println(s"user $id left:::")
+        grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
+        grid.cleanDiedSnakeInfo(id)
 
       case Protocol.SomeOneWin(winner) =>
         drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData)
@@ -464,23 +445,23 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
+        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isContinue)
           drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
-        //        drawGame.drawField(data.fieldDetails, data.snakes)
-
         syncGridData = Some(data)
-        //        justSynced = true
         isSynced = true
 
       case data: Protocol.SyncFrame =>
         syncFrame = Some(data)
+        isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
-        grid.historyNewSnake += data.frameCount -> data
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
+        grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
+          FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
+        })
         if (data.frameCount < grid.frameCount) {
           println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
@@ -492,30 +473,28 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, area)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
-        val deadList =  deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
+        val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
         grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
           val idOp = grid.carnieMap.get(i.carnieId)
           if (idOp.nonEmpty) {
             val id = idOp.get
-            val nameOp = grid.snakes.get(id)
-            val name = if (nameOp.nonEmpty) nameOp.get.name else "unknown"
-            val killerNameOp = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, ""))
-            val killerName = if (killerNameOp.nonEmpty) killerNameOp.get.name else "unknown"
+            val name = grid.snakes.get(id).map(_.name).getOrElse("unknown")
+            val killerName = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, "")).map(_.name).getOrElse("unknown")
             killInfo = Some(id, name, killerName)
             barrageDuration = 100
           }
         }
         if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
-          val deadRecallFrame = if(deadList.contains(myId)) frame - 2 else frame - 1
+          val deadRecallFrame = if (deadList.contains(myId)) frame - 2 else frame - 1
           recallFrame = grid.findRecallFrame(deadRecallFrame, recallFrame)
         }
 
       case data: Protocol.NewFieldInfo =>
-        if (data.fieldDetails.exists(_.uid == myId))
-          audioFinish.play()
-        grid.historyFieldInfo += data.frameCount -> data
+        val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+        if (fields.exists(_.uid == myId)) audioFinish.play()
+        grid.historyFieldInfo += data.frameCount -> fields
         if (data.frameCount < grid.frameCount) {
           println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
@@ -568,16 +547,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     }
 
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
-      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
-      newSnakes.snake.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
-      grid.snakes ++= newSnakes.snake.map(s => s.id -> s).toMap
-      grid.addNewFieldInfo(NewFieldInfo(frame, newSnakes.filedDetails))
+      if (newSnakes._1.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
+      newSnakes._1.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
+      grid.snakes ++= newSnakes._1.map(s => s.id -> s).toMap
+      grid.addNewFieldInfo(newSnakes._2)
     }
   }
 
   def addBackendInfo4Sync(frame: Int): Unit = {
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
-      if (newSnakes.snake.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
+      if (newSnakes._1.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
     }
   }
 

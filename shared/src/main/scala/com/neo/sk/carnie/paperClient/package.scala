@@ -63,8 +63,6 @@ package object paperClient {
                    header: Point,
                    direction: Point = Point(0, 0),
                    kill: Short = 0,
-                   startTime: Long,
-                   endTime: Long,
                    img: Int = 0,
                    carnieId: Byte
                  )

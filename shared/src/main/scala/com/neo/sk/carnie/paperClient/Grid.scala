@@ -27,13 +27,12 @@ trait Grid {
   var snakes = Map.empty[String, SkDt]
   var actionMap = Map.empty[Int, Map[String, Int]] //Map[frameCount,Map[id, keyCode]]
   var killHistory = Map.empty[String, (String, String, Int)] //killedId, (killerId, killerName,frameCount)
-  //  var killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]//killedId, (killedId, killedName, killing, startTime, endTime)
   var snakeTurnPoints = Map.empty[String, List[Point4Trans]] //保留拐点
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
   var historyStateMap = Map.empty[Int, (Map[String, SkDt], Map[Point, Spot], Map[String, List[Point4Trans]])] //保留近期的状态以方便回溯 (frame, (snake, pointd, turnPoints))
-  var historyFieldInfo = Map.empty[Int, Protocol.NewFieldInfo] //回溯
-  var historyNewSnake = Map.empty[Int, NewSnakeInfo] //回溯
+  var historyFieldInfo = Map.empty[Int, List[FieldByColumn]] //回溯
+  var historyNewSnake = Map.empty[Int, (List[SkDt], List[FieldByColumn])] //回溯
   var historyDieSnake = Map.empty[Int, List[String]] //回溯
 
 
@@ -156,17 +155,16 @@ trait Grid {
         val newHeader = snake.header + newDirection
         grid.get(newHeader) match {
           case Some(x: Body) => //进行碰撞检测
-            //            debug(s"snake[${snake.id}] hit wall.")
             if (x.id != snake.id) { //撞到了别人的身体
               killHistory += x.id -> (snake.id, snake.name, frameCount)
             }
             mayBeDieSnake += x.id -> snake.id
-            grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
-              case Some(Field(fid)) if fid == snake.id =>
+            grid.get(snake.header) match { //当上一点是领地或被别人身体占用的领地时 记录出行的起点
+              case Some(Field(fid)) if fid == snake.id && x.fid.getOrElse("") != snake.id =>
                 snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), x.fid))
 
-              case Some(Body(bid, _)) if bid == snake.id && x.fid.getOrElse(-1L) == snake.id =>
+              case Some(Body(bid, _)) if bid == snake.id && x.fid.getOrElse("") == snake.id =>
                 enclosure(snake, origin, newHeader, newDirection)
 
               case _ =>
@@ -185,10 +183,15 @@ trait Grid {
                   Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection), Some(id)))
               }
             } else { //进入到别人的领域
-              grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
+              grid.get(snake.header) match { //当上一点是领地或被别人身体占用的领地时 记录出行的起点
                 case Some(Field(fid)) if fid == snake.id =>
                   snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
                   Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), Some(id)))
+
+                case Some(Body(_, fid)) if fid.getOrElse("") == snake.id =>
+                  snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
+                  Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header), Some(id)))
+
                 case _ =>
                   if (snake.direction != newDirection)
                     snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(snake.header.x.toShort, snake.header.y.toShort))))
@@ -200,8 +203,12 @@ trait Grid {
             Left(snake.id)
 
           case _ =>
-            grid.get(snake.header) match { //当上一点是领地时 记录出行的起点
+            grid.get(snake.header) match { //当上一点是领地或被别人身体占用的领地时 记录出行的起点
               case Some(Field(fid)) if fid == snake.id =>
+                snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
+                Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
+
+              case Some(Body(_, fid)) if fid.getOrElse("") == snake.id =>
                 snakeTurnPoints += ((snake.id, snakeTurnPoints.getOrElse(snake.id, Nil) ::: List(Point4Trans(newHeader.x.toShort, newHeader.y.toShort))))
                 Right(UpdateSnakeInfo(snake.copy(header = newHeader, direction = newDirection, startPoint = snake.header)))
 
@@ -244,6 +251,7 @@ trait Grid {
         }
         mayBeDieSnake -= snakeId
         killHistory -= snakeId
+        mayBeSuccess -= snakeId
       }
     }
 
@@ -254,9 +262,10 @@ trait Grid {
         case Some(Field(fid)) if sids.contains(fid) =>
           sids.filterNot(_ == fid).foreach { killedId =>
             mayBeDieSnake += killedId -> fid
-            killHistory += killedId -> (killedId, snakes.find(_._1 == fid).get._2.name, frameCount)
+            killHistory += killedId -> (killedId, snakes.get(fid).map(_.name).getOrElse(""), frameCount)
           }
           sids.filterNot(_ == fid)
+
         case _ => sids
       }
     }.toList
@@ -270,7 +279,7 @@ trait Grid {
 
     val finishPoints = finishFields.flatMap(_._2)
 
-    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), startTime = 0l, endTime = 0l, carnieId = -1))).data.header)).keySet
+    val noHeaderSnake = snakes.filter(s => finishPoints.contains(updatedSnakes.find(_.data.id == s._2.id).getOrElse(UpdateSnakeInfo(SkDt((-1).toString, "", "", Point(0, 0), Point(-1, -1), carnieId = -1))).data.header)).keySet
     val bodyInNewFieldSnake = finishPoints.map { fp =>
       grid.get(fp) match {
         case Some(Body(bid, _)) => Some(bid)
@@ -310,9 +319,6 @@ trait Grid {
   }
 
   def enclosure(snake: SkDt, origin: String, newHeader: Point, newDirection: Point) = {
-    //    println(s"enclosure!!!${snake.name} -- frame:$frameCount")
-    snakeTurnPoints -= snake.id
-
     if (mayBeDieSnake.keys.exists(_ == snake.id)) { //如果在即将完成圈地的时候身体被撞击则不死但此次圈地作废
       killHistory -= snake.id
       mayBeDieSnake -= snake.id
@@ -323,6 +329,8 @@ trait Grid {
         case _ => false
       }) true else false //起点是否被圈走
       if (stillStart && origin == "b") { //只在后台执行圈地算法
+        snakeTurnPoints -= snake.id
+
         var finalFillPoll = grid.filter(_._2 match { case Body(bodyId, _) if bodyId == snake.id => true case _ => false })
 
         grid ++= finalFillPoll.keys.map(p => p -> Field(snake.id))
@@ -503,12 +511,10 @@ trait Grid {
     actionMap = Map.empty[Int, Map[String, Int]]
     grid = grid.filter(_._2 match { case Border => true case _ => false })
     killHistory = Map.empty[String, (String, String, Int)]
-    //    killedSks = Map.empty[String, (String, String, Int, Float, Long, Long)]
     snakeTurnPoints = snakeTurnPoints.empty
   }
 
   def returnBackField(snakeId: String): Unit = { //归还身体部分所占有的领地
-    //    println(s"returnBack : $snakeId")
     snakeTurnPoints -= snakeId
     val bodyGrid = grid.filter(_._2 match { case Body(bid, _) if bid == snakeId => true case _ => false })
     bodyGrid.foreach {
@@ -537,15 +543,7 @@ trait Grid {
 
   def cleanSnakeTurnPoint(sid: String):Unit = {
     if (snakeTurnPoints.contains(sid)) {
-      //      println(s"cleanTurnPoint-id: ${sid}")
       snakeTurnPoints -= sid
-    }
-  }
-
-  def cleanDiedSnake(id: String): Unit = {
-    val r = snakes.get(id)
-    if (r.isDefined) {
-      snakes -= id
     }
   }
 
