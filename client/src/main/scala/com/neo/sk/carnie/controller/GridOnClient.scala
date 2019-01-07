@@ -113,7 +113,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
           }
 
           historyDieSnake.get(newFrame).foreach { dieSnakes =>
-            dieSnakes.foreach(sid => if (snakes.keySet.contains(sid)) cleanDiedSnakeInfo(sid))
+            cleanDiedSnakeInfo(dieSnakes)
           }
 
           historyNewSnake.get(newFrame).foreach { newSnakes =>

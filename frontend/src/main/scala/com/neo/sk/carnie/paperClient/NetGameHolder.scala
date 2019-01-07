@@ -431,7 +431,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case UserLeft(id) =>
         println(s"user $id left:::")
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-        grid.cleanDiedSnakeInfo(id)
+        grid.cleanDiedSnakeInfo(List(id))
 
       case Protocol.SomeOneWin(winner) =>
         drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData4Draw)
@@ -568,9 +568,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   def addDieSnake(frame: Int): Unit = {
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      deadSnake.foreach { sid =>
-        grid.cleanDiedSnakeInfo(sid)
-      }
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
   }
 

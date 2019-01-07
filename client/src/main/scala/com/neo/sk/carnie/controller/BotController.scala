@@ -244,7 +244,7 @@ class BotController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           println(s"user $id left:::")
           grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-          grid.cleanDiedSnakeInfo(id)
+          grid.cleanDiedSnakeInfo(List(id))
         }
 
 
@@ -307,9 +307,7 @@ class BotController(player: PlayerInfoInClient,
     }
 
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      deadSnake.foreach { sid =>
-        grid.cleanDiedSnakeInfo(sid)
-      }
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
 
     grid.historyNewSnake.get(frame).foreach { newSnakes =>

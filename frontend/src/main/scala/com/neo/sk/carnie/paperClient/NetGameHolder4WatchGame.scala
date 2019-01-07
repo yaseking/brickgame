@@ -355,7 +355,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case UserLeft(id) =>
         println(s"user $id left:::")
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-        grid.cleanDiedSnakeInfo(id)
+        grid.cleanDiedSnakeInfo(List(id))
 
       case Protocol.SomeOneWin(winner) =>
         val finalData = grid.getGridData4Draw
@@ -486,9 +486,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     }
 
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      deadSnake.foreach { sid =>
-        grid.cleanDiedSnakeInfo(sid)
-      }
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
 
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
