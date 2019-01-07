@@ -152,7 +152,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         case Some(frame) =>
           val time1 = System.currentTimeMillis()
           println(s"before recall...frame:${grid.frameCount}")
-          grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frame}.keys.headOption match {
+          grid.historyDieSnake.filter { d => d._2.contains(myId) && d._1 > frame }.keys.headOption match {
             case Some(dieFrame) =>
               if (dieFrame - 2 > frame) grid.recallGrid(frame, dieFrame - 2)
               else grid.setGridInGivenFrame(frame)
@@ -167,7 +167,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (syncGridData.nonEmpty) { //全量数据
-        if(grid.snakes.nonEmpty){
+        if (grid.snakes.nonEmpty) {
           println("total syncGridData")
           grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
         }
@@ -182,14 +182,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           grid.updateOnClient()
           addBackendInfo(grid.frameCount)
-        } else if(advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty){
+        } else if (advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty) {
           println(s"frontend advanced backend,frontend$frontend,backend:$backend")
           grid.setGridInGivenFrame(backend)
-        } else if(advancedFrame == 0){
+        } else if (advancedFrame == 0) {
           println(s"frontend equal to backend,frontend$frontend,backend:$backend")
         } else if (advancedFrame > 0 && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-          val endFrame = grid.historyDieSnake.filter{d => d._2.contains(myId) && d._1 > frontend}.keys.headOption match {
+          val endFrame = grid.historyDieSnake.filter { d => d._2.contains(myId) && d._1 > frontend }.keys.headOption match {
             case Some(dieFrame) => Math.min(dieFrame - 1, backend)
             case None => backend
           }
@@ -199,7 +199,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
           println(s"after speed,frame:${grid.frameCount}")
         } else {
-          if(!isAlreadySendSync) webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
+          if (!isAlreadySendSync) webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
         syncFrame = None
       } else {
@@ -233,7 +233,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
-    println(s"logicFrame deal time:${System.currentTimeMillis() - logicFrameTime}")
+    val dealTime = System.currentTimeMillis() - logicFrameTime
+    if (dealTime > 50)
+      println(s"logicFrame deal time:$dealTime")
   }
 
   def draw(offsetTime: Long): Unit = {
