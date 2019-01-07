@@ -143,6 +143,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     var secondPart = 0l
     var thirdPart = 0l
     var forthPart = 0l
+    var detailPart = 0l
 
     var isAlreadySendSync = false
 
@@ -217,7 +218,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       thirdPart = System.currentTimeMillis() - logicFrameTime - secondPart
 
       if (!isWin) {
+        val startTime = System.currentTimeMillis()
         val gridData = grid.getGridData4Draw
+        detailPart = System.currentTimeMillis() - startTime
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             if (firstCome) firstCome = false
@@ -245,7 +248,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     }
     val dealTime = System.currentTimeMillis() - logicFrameTime
     if (dealTime > 50)
-      println(s"logicFrame deal time:$dealTime;first:$firstPart;second:$secondPart;third:$thirdPart;forthpart:$forthPart")
+      println(s"logicFrame deal time:$dealTime;first:$firstPart;second:$secondPart;third:$thirdPart;forthpart:$forthPart;detailPart:$detailPart")
   }
 
   def draw(offsetTime: Long): Unit = {
