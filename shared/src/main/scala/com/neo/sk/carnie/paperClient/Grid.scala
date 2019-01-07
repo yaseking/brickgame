@@ -262,7 +262,7 @@ trait Grid {
         case Some(Field(fid)) if sids.contains(fid) =>
           sids.filterNot(_ == fid).foreach { killedId =>
             mayBeDieSnake += killedId -> fid
-            killHistory += killedId -> (killedId, snakes.get(fid).map(_.name).getOrElse(""), frameCount)
+            killHistory += killedId -> (fid, snakes.get(fid).map(_.name).getOrElse(""), frameCount)
           }
           sids.filterNot(_ == fid)
 
