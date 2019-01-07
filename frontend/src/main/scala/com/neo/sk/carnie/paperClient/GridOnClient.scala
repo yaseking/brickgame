@@ -97,7 +97,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
           frameCount = frame
 
           updateSnakesOnClient()
-          updateSpots()
+//          updateSpots()
 
           val newFrame = frameCount + 1
           historyFieldInfo.get(newFrame).foreach { data =>
@@ -105,7 +105,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
           }
 
           historyDieSnake.get(newFrame).foreach { dieSnakes =>
-            dieSnakes.foreach(sid => if (snakes.keySet.contains(sid)) cleanDiedSnakeInfo(sid))
+            dieSnakes.foreach(sid => cleanDiedSnakeInfo(sid))
           }
 
           historyNewSnake.get(newFrame).foreach { newSnakes =>
@@ -142,7 +142,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   def updateOnClient(): Unit = {
     updateSnakesOnClient()
-    super.updateSpots()
+//    super.updateSpots()
     val limitFrameCount = frameCount - (maxDelayed + 1)
     actionMap = actionMap.filter(_._1 > limitFrameCount)
     historyFieldInfo = historyFieldInfo.filter(_._1 > limitFrameCount)
