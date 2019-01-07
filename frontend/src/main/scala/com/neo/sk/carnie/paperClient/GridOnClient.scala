@@ -256,13 +256,18 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def getGridData4Draw: FrontProtocol.Data4Draw = {
+    val beginTime = System.currentTimeMillis()
     var fields: List[Fd] = Nil
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
+
+    val drawFirst = System.currentTimeMillis() - beginTime
 
     grid.foreach {
       case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
       case _ => //doNothing
     }
+
+    val drawsecond = System.currentTimeMillis() - beginTime - drawFirst
 
     val fieldDetails =
       fields.groupBy(_.id).map { case (userId, fieldPoints) =>
@@ -272,6 +277,10 @@ class GridOnClient(override val boundary: Point) extends Grid {
           Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
         }.toList)
       }.toList
+
+    val drawthird = System.currentTimeMillis() - beginTime - drawsecond
+
+    println(s"drawFirst:$drawFirst,drawsecond:$drawsecond,drawthird:$drawthird")
 
     FrontProtocol.Data4Draw(
       frameCount,
