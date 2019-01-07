@@ -194,11 +194,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             case Some(dieFrame) => Math.min(dieFrame - 1, backend)
             case None => backend
           }
-          (frontend until endFrame).foreach { frame =>
-            grid.frameCount = frame
-            addBackendInfo(frame)
+          (frontend until endFrame).foreach { _ =>
+            addBackendInfo(grid.frameCount)
             grid.updateOnClient()
           }
+          addBackendInfo(grid.frameCount)
           println(s"after speed,frame:${grid.frameCount}")
         } else {
           if(!isAlreadySendSync) webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])

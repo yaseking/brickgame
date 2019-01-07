@@ -2,6 +2,7 @@ package com.neo.sk.carnie.paperClient
 
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol._
+import com.neo.sk.carnie.util.TimeTool
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Button, Canvas, Image}
@@ -460,6 +461,7 @@ class DrawGame(
       ctx.fillStyle = i.color
       ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
     }
+    ctx.fillText(s"${TimeTool.dateFormatDefault(System.currentTimeMillis())}", w.toInt, h.toInt)
   }
 
   def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int, currentNum: Byte): Unit = {
