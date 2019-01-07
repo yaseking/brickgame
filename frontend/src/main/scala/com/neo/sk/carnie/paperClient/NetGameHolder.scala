@@ -503,11 +503,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
         }
 
-      case x@Protocol.ReceivePingPacket(actionId) =>
+      case x@Protocol.ReceivePingPacket(recvPingId) =>
         val currentTime = System.currentTimeMillis()
-        if (pingMap.get(actionId).nonEmpty) {
-          PerformanceTool.receivePingPackage(pingMap(actionId), currentTime)
-          pingMap -= actionId
+        if (pingMap.get(recvPingId).nonEmpty) {
+          PerformanceTool.receivePingPackage(pingMap(recvPingId), currentTime)
+          pingMap -= recvPingId
         }
 
       case x@Protocol.WinData(_, _) =>
