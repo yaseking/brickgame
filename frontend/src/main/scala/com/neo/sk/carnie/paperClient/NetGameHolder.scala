@@ -478,23 +478,34 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, area)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
-        deadInfo.foreach{d =>
-          if (grid.carnieMap.get(d.carnieId).isDefined){
-            if (grid.carnieMap(d.carnieId) == myId){
-              if (d.killerId.isDefined){
-                val killerId = grid.carnieMap(d.killerId.get)
-                isGetKiller = true
-                if (grid.snakes.get(killerId).isDefined){
-                  killerInfo = Some(grid.snakes(killerId).name)
-                }
-              }
-              else {
-                isGetKiller = true
-                killerInfo = None
-              }
-            }
-          }
+        deadInfo.find{d => grid.carnieMap.getOrElse(d.carnieId, "") == myId} match {
+          case Some(myKillInfo) if myKillInfo.killerId.nonEmpty =>
+            isGetKiller = true
+            killerInfo = grid.snakes.get(grid.carnieMap.getOrElse(myKillInfo.killerId.get, "")).map(_.name)
+
+          case None =>
+
+          case _ =>
+            isGetKiller = true
+            killerInfo = None
         }
+//        deadInfo.foreach{d =>
+//          if (grid.carnieMap.get(d.carnieId).isDefined){
+//            if (grid.carnieMap(d.carnieId) == myId){
+//              if (d.killerId.isDefined){
+//                val killerId = grid.carnieMap(d.killerId.get)
+//                isGetKiller = true
+//                if (grid.snakes.get(killerId).isDefined){
+//                  killerInfo = Some(grid.snakes(killerId).name)
+//                }
+//              }
+//              else {
+//                isGetKiller = true
+//                killerInfo = None
+//              }
+//            }
+//          }
+//        }
         val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
         grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
