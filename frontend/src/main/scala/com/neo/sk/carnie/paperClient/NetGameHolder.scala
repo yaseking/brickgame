@@ -139,6 +139,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
     }
 
+    val firstPart = System.currentTimeMillis() - logicFrameTime
+    var secondPart = 0l
+    var thirdPart = 0l
+    var forthPart = 0l
+
     var isAlreadySendSync = false
 
     if (webSocketClient.getWsState) {
@@ -165,6 +170,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
         case None =>
       }
+
+      secondPart = System.currentTimeMillis() - logicFrameTime - firstPart
 
       if (syncGridData.nonEmpty) { //全量数据
         if (grid.snakes.nonEmpty) {
@@ -207,6 +214,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         addBackendInfo(grid.frameCount)
       }
 
+      thirdPart = System.currentTimeMillis() - logicFrameTime - secondPart
+
       if (!isWin) {
         val gridData = grid.getGridData4Draw
         drawFunction = gridData.snakes.find(_.id == myId) match {
@@ -230,12 +239,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             FrontProtocol.DrawGameWait
         }
       }
+      forthPart = System.currentTimeMillis() - logicFrameTime - thirdPart
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
     val dealTime = System.currentTimeMillis() - logicFrameTime
     if (dealTime > 50)
-      println(s"logicFrame deal time:$dealTime")
+      println(s"logicFrame deal time:$dealTime;first:$firstPart;second:$secondPart;third:$thirdPart;forthpart:$forthPart")
   }
 
   def draw(offsetTime: Long): Unit = {
