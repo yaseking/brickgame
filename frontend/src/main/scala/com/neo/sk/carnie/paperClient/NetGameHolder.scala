@@ -311,6 +311,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 case _ =>
                   println("onkeydown:Space")
                   isGetKiller = false
+                  killerInfo = None
                   val msg: Protocol.UserAction = PressSpace
                   webSocketClient.sendMessage(msg)
               }
@@ -549,6 +550,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     firstCome = true
     isSynced = false
     isGetKiller = false
+    killerInfo = None
     if (isWin) isWin = false
     myScore = BaseScore(0, 0, 0)
     isContinue = true
