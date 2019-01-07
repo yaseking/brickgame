@@ -159,7 +159,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       } else if (loading) {
         drawGame.drawGameOff(firstCome, Some(false), true, false)
       } else {
-        val data = grid.getGridData
+        val data = grid.getGridData4Draw
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
           drawGame.drawGameWin(myId, winnerName, winData,winningData)
@@ -220,7 +220,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
     }
   }
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long, frameRate: Int): Unit = {
+  def drawGameImage(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, frameRate: Int): Unit = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId), true, frameRate = frameRate)
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     //    drawGame.drawRank(myId, grid.getGridData.snakes, currentRank)
