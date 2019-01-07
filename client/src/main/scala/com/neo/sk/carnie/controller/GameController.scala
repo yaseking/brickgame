@@ -431,17 +431,19 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.UserDeadMsg(frame, deadInfo) =>
         Boot.addToPlatform{
           deadInfo.foreach{d =>
-            if (grid.carnieMap(d.carnieId) == player.id){
-              if (d.killerId.isDefined){
-                val killerId = grid.carnieMap(d.killerId.get)
-                isGetKiller = true
-                if (grid.snakes.get(killerId).isDefined){
-                  killerInfo = Some(grid.snakes(killerId).name)
+            if (grid.carnieMap.get(d.carnieId).isDefined){
+              if (grid.carnieMap(d.carnieId) == player.id){
+                if (d.killerId.isDefined){
+                  val killerId = grid.carnieMap(d.killerId.get)
+                  isGetKiller = true
+                  if (grid.snakes.get(killerId).isDefined){
+                    killerInfo = Some(grid.snakes(killerId).name)
+                  }
                 }
-              }
-              else {
-                isGetKiller = true
-                killerInfo = None
+                else {
+                  isGetKiller = true
+                  killerInfo = None
+                }
               }
             }
           }

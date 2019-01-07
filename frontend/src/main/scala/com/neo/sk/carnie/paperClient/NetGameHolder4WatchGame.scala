@@ -32,6 +32,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
+  var isGetKiller = false
+  var killerInfo: scala.Option[String] = None
   var firstCome = true
   var isSynced = false
   //  var justSynced = false
@@ -212,8 +214,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
             //            }
             FrontProtocol.DrawBaseGame(gridData)
 
-          case None if !firstCome =>
-            FrontProtocol.DrawGameDie(grid.getKiller(myId).map(_._2))
+          case None if isGetKiller && !firstCome =>
+            FrontProtocol.DrawGameDie(killerInfo)
 
           case _ =>
             FrontProtocol.DrawGameWait
@@ -345,6 +347,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
         isContinue = true
         isSynced = false
+        isGetKiller = false
+        killerInfo = None
         updateListener()
         dom.window.requestAnimationFrame(gameRender())
 
@@ -389,6 +393,23 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         }
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
+        deadInfo.foreach{d =>
+          if (grid.carnieMap.get(d.carnieId).isDefined){
+            if (grid.carnieMap(d.carnieId) == myId){
+              if (d.killerId.isDefined){
+                val killerId = grid.carnieMap(d.killerId.get)
+                isGetKiller = true
+                if (grid.snakes.get(killerId).isDefined){
+                  killerInfo = Some(grid.snakes(killerId).name)
+                }
+              }
+              else {
+                isGetKiller = true
+                killerInfo = None
+              }
+            }
+          }
+        }
         val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
         grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
@@ -452,6 +473,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     if (isWin) isWin = false
     myScore = BaseScore(0, 0, 0)
     isContinue = true
+    isGetKiller = false
+    killerInfo = None
     //                  backBtn.style.display="none"
     //                  rankCanvas.addEventListener("",null)
     dom.window.requestAnimationFrame(gameRender())
