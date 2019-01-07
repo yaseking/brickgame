@@ -256,7 +256,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   def getGridData4Draw: FrontProtocol.Data4Draw = {
     var fields: List[Fd] = Nil
-    val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, snakeTurnPoints.getOrElse(s.id, Nil)) }.toList
+    val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
 
     grid.foreach {
       case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
@@ -280,5 +280,11 @@ class GridOnClient(override val boundary: Point) extends Grid {
     )
   }
 
+  def getMyTurnPoint(sid:String, header: Point): List[Protocol.Point4Trans] = {
+    val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
+    if (turnPoint.nonEmpty) {
+      turnPoint ::: List(Point4Trans(header.x.toShort, header.y.toShort))
+    } else Nil
+  }
 
 }
