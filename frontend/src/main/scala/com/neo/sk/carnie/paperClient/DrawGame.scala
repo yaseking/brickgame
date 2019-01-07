@@ -304,6 +304,26 @@ class DrawGame(
   //      }
   //    }
   //  }
+//  var x = 0
+//  def drawRect(): Unit = {
+//    x += 0
+//    val a = System.currentTimeMillis()
+//    ctx.fillStyle = ColorsSetting.defaultColor
+//    ctx.fillRect(0,0,100,100)
+//    val b = System.currentTimeMillis()
+//    if (x % 100 == 0)
+//      println("a big rect" + (b - a))
+//    val c = System.currentTimeMillis()
+//    ctx.fillStyle = ColorsSetting.borderColor
+//    for (i <- 0 to 99){
+//      for (j <- 0 to 99){
+//        ctx.fillRect(i + 200,j,1,1)
+//      }
+//    }
+//    val d = System.currentTimeMillis()
+//    if (x % 100 == 0)
+//      println("many small rect" + (d - c))
+//  }
 
   def drawGrid(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[List[FieldByColumn]] = None): Unit = { //头所在的点是屏幕的正中心
     //    println(s"drawGrid-frameRate: $frameRate")
