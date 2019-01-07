@@ -257,17 +257,28 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   def getGridData4Draw: FrontProtocol.Data4Draw = {
     val beginTime = System.currentTimeMillis()
+    var test = Map.empty[String, Map[Short, List[Short]]]
     var fields: List[Fd] = Nil
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
 
     val drawFirst = System.currentTimeMillis() - beginTime
 
     grid.foreach {
-      case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
+      case (p, Field(id)) =>
+        val map = test.getOrElse(id, Map.empty)
+        test += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+        fields ::= Fd(id, p.x.toInt, p.y.toInt)
       case _ => //doNothing
     }
 
     val drawsecond = System.currentTimeMillis() - beginTime - drawFirst
+
+    val test1 = test.foreach{ f =>
+     (f._1, f._2.foreach{ p =>
+       (p._1, Tool.findContinuous(p._2.toArray.sorted))
+     })}
+
+    val testTime = System.currentTimeMillis() - beginTime - drawsecond
 
     val fieldDetails =
       fields.groupBy(_.id).map { case (userId, fieldPoints) =>
@@ -278,9 +289,9 @@ class GridOnClient(override val boundary: Point) extends Grid {
         }.toList)
       }.toList
 
-    val drawthird = System.currentTimeMillis() - beginTime - drawsecond
+    val drawthird = System.currentTimeMillis() - beginTime - testTime
 
-    println(s"drawFirst:$drawFirst,drawsecond:$drawsecond,drawthird:$drawthird")
+    println(s"drawFirst:$drawFirst,drawsecond:$drawsecond,drawthird:$drawthird;test:$testTime")
 
     FrontProtocol.Data4Draw(
       frameCount,
