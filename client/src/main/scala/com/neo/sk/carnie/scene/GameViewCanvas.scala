@@ -277,7 +277,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     val bodyInWindow = data.bodyDetails.filter{b =>
       b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
 
-    scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00002, 0.94)
+    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
     drawCache(offx , offy)
