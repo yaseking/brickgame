@@ -266,7 +266,14 @@ trait Grid {
           }
           sids.filterNot(_ == fid)
 
-        case _ => sids
+        case _ =>
+          sids.foreach{s =>
+            sids.filterNot(_ == s).foreach{o =>
+              mayBeDieSnake += s -> o
+              killHistory += s -> (o, snakes.get(o).map(_.name).getOrElse(""), frameCount)
+            }
+          }
+          sids
       }
     }.toList
 

@@ -206,39 +206,6 @@ class GameController(player: PlayerInfoInClient,
       addBackendInfo(grid.frameCount)
     }
 
-//    if (newSnakeInfo.nonEmpty) {
-//      //        println(s"newSnakeInfo: ${newSnakeInfo.get.snake.map(_.id)}")
-//      if (newSnakeInfo.get.snake.map(_.id).contains(player.id) && !firstCome) spaceKey()
-//      newSnakeInfo.get.snake.foreach { s =>
-//        grid.cleanSnakeTurnPoint(s.id) //清理死前拐点
-//      }
-//      grid.snakes ++= newSnakeInfo.get.snake.map(s => s.id -> s).toMap
-//      grid.addNewFieldInfo(NewFieldInfo(newSnakeInfo.get.frameCount, newSnakeInfo.get.filedDetails))
-//
-//      newSnakeInfo = None
-//    }
-//
-//    if (syncGridData.nonEmpty) { //逻辑帧更新数据
-//      grid.initSyncGridData(syncGridData.get)
-//      syncGridData = None
-//    } else {
-//      grid.update("f")
-////      println(s"update: ${grid.getGridData.snakes.map(_.id)}")
-//    }
-//
-//    if (newFieldInfo.nonEmpty) {
-//      val minFrame = newFieldInfo.keys.min
-//      (minFrame to grid.frameCount).foreach { frame =>
-//        if (newFieldInfo.get(frame).nonEmpty) {
-//          val newFieldData = newFieldInfo(frame)
-//          if (newFieldData.fieldDetails.map(_.uid).contains(player.id))
-//            println("after newFieldInfo, my turnPoint:" + grid.snakeTurnPoints.get(player.id))
-//          grid.addNewFieldInfo(newFieldData)
-//          newFieldInfo -= frame
-//        }
-//      }
-//    }
-
 
     val gridData = grid.getGridData
 
@@ -393,6 +360,7 @@ class GameController(player: PlayerInfoInClient,
         println(s"recv userDead $x")
         Boot.addToPlatform {
           myScore = BaseScore(kill, area, playTime)
+          maxArea = Math.max(maxArea, area)
         }
 
 
@@ -469,6 +437,8 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
+          if (data.fieldDetails.exists(_.uid == player.id))
+            println("got new field")
           val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
           if (fields.exists(_.uid == player.id)) audioFinish.play()
           grid.historyFieldInfo += data.frameCount -> fields
