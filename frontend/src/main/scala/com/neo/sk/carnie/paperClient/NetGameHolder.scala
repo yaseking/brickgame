@@ -317,24 +317,24 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             case _ =>
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
-                  val actionFrame = grid.getUserMaxActionFrame(myId, frame)
-                  if (actionFrame < frame + maxContainableAction) {
+                  val newKeyCode =
+                    if (mode == 1) {
+                      val code = e.keyCode match {
+                        case KeyCode.Left => KeyCode.Right
+                        case KeyCode.Right => KeyCode.Left
+                        case KeyCode.Down => KeyCode.Up
+                        case KeyCode.Up => KeyCode.Down
+                        case _ => KeyCode.Space
+                      }
+                      code.toByte
+                    } else e.keyCode.toByte
+
+                  val actionInfo = grid.getUserMaxActionFrame(myId, frame)
+                  if (actionInfo._1 < frame + maxContainableAction && actionInfo._2 != newKeyCode) {
                     val actionId = idGenerator.getAndIncrement()
-                    val newKeyCode =
-                      if (mode == 1) {
-                        val code = e.keyCode match {
-                          case KeyCode.Left => KeyCode.Right
-                          case KeyCode.Right => KeyCode.Left
-                          case KeyCode.Down => KeyCode.Up
-                          case KeyCode.Up => KeyCode.Down
-                          case _ => KeyCode.Space
-                        }
-                        code.toByte
-                      } else e.keyCode.toByte
-                    //                    println(s"onkeydown：${Key(myId, newKeyCode, actionFrame, actionId)}")
-                    grid.addActionWithFrame(myId, newKeyCode, actionFrame)
-                    myActionHistory += actionId -> (newKeyCode, actionFrame)
-                    val msg: Protocol.UserAction = Key(newKeyCode, actionFrame, actionId)
+                    grid.addActionWithFrame(myId, newKeyCode, actionInfo._1)
+                    myActionHistory += actionId -> (newKeyCode, actionInfo._1)
+                    val msg: Protocol.UserAction = Key(newKeyCode, actionInfo._1, actionId)
                     webSocketClient.sendMessage(msg)
                   }
                 case _ =>

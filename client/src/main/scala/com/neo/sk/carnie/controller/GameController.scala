@@ -512,25 +512,24 @@ class GameController(player: PlayerInfoInClient,
             playActor ! PlayGameWebSocket.MsgToService(msg)
 
           case _ =>
-            val actionFrame = grid.getUserMaxActionFrame(player.id, frame)
-            if(actionFrame < frame + maxContainableAction) {
+            val newKeyCode = Constant.keyCode2Byte(
+              if (mode == 1)
+                key match {
+                  case KeyCode.LEFT => KeyCode.RIGHT
+                  case KeyCode.RIGHT => KeyCode.LEFT
+                  case KeyCode.DOWN => KeyCode.UP
+                  case KeyCode.UP => KeyCode.DOWN
+                  case _ => KeyCode.SPACE
+                } else key)
+
+            val actionInfo = grid.getUserMaxActionFrame(player.id, frame)
+            if(actionInfo._1 < frame + maxContainableAction && actionInfo._2 != newKeyCode) {
               val actionId = idGenerator.getAndIncrement()
-              val newKeyCode =
-                if (mode == 1)
-                  key match {
-                    case KeyCode.LEFT => KeyCode.RIGHT
-                    case KeyCode.RIGHT => KeyCode.LEFT
-                    case KeyCode.DOWN => KeyCode.UP
-                    case KeyCode.UP => KeyCode.DOWN
-                    case _ => KeyCode.SPACE
-                  } else key
-//              println(s"onkeydown：${Key(player.id, Constant.keyCode2Int(newKeyCode), actionFrame, actionId)}")
-              grid.addActionWithFrame(player.id, Constant.keyCode2Byte(newKeyCode), actionFrame)
-              grid.myActionHistory += actionId -> (Constant.keyCode2Byte(newKeyCode), actionFrame)
-              val msg: Protocol.UserAction = Protocol.Key(Constant.keyCode2Byte(newKeyCode), frame, actionId)
+              grid.addActionWithFrame(player.id, newKeyCode, actionInfo._1)
+              grid.myActionHistory += actionId -> (newKeyCode, actionInfo._1)
+              val msg: Protocol.UserAction = Protocol.Key(newKeyCode, frame, actionId)
               playActor ! PlayGameWebSocket.MsgToService(msg)
             }
-
         }
       }
 //        if (key != KeyCode.SPACE) {
