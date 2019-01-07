@@ -233,7 +233,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
-//    println(s"logicFrame deal time:${System.currentTimeMillis() - logicFrameTime}")
+    println(s"logicFrame deal time:${System.currentTimeMillis() - logicFrameTime}")
   }
 
   def draw(offsetTime: Long): Unit = {
@@ -484,23 +484,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             isGetKiller = true
             killerInfo = None
         }
-//        deadInfo.foreach{d =>
-//          if (grid.carnieMap.get(d.carnieId).isDefined){
-//            if (grid.carnieMap(d.carnieId) == myId){
-//              if (d.killerId.isDefined){
-//                val killerId = grid.carnieMap(d.killerId.get)
-//                isGetKiller = true
-//                if (grid.snakes.get(killerId).isDefined){
-//                  killerInfo = Some(grid.snakes(killerId).name)
-//                }
-//              }
-//              else {
-//                isGetKiller = true
-//                killerInfo = None
-//              }
-//            }
-//          }
-//        }
         val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
         grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
