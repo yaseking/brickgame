@@ -413,9 +413,9 @@ trait Grid {
     val fieldDetails =
       fields.groupBy(_.id).map { case (userId, fieldPoints) =>
         FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
-          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))
+          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).sorted))
         }.toList.groupBy(_._2).map { case (r, target) =>
-          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+          ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
         }.toList)
       }.toList
     //find vertex

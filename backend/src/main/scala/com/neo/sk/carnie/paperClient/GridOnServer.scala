@@ -146,17 +146,17 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   def zipFieldWithCondensed(f: (Byte, scala.List[Point])): Protocol.FieldByColumnCondensed = {
     Protocol.FieldByColumnCondensed(f._1, f._2.groupBy(_.y).map { case (y, target) =>
-      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted)) //read
+      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).sorted)) //read
     }.toList.groupBy(_._2).map { case (r, target) =>
-      Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+      Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
     }.toList)
   }
 
   def zipField(f: (String, Byte, scala.List[Point])): (Protocol.FieldByColumn, Protocol.FieldByColumnCondensed) = {
     val zipField = f._3.groupBy(_.y).map { case (y, target) =>
-      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted)) //read
+      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).sorted)) //read
     }.toList.groupBy(_._2).map { case (r, target) =>
-      Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+      Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
     }.toList
     (Protocol.FieldByColumn(f._1, zipField), Protocol.FieldByColumnCondensed(f._2, zipField))
   }

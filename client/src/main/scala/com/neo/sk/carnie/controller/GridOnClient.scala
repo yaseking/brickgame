@@ -266,9 +266,9 @@ class GridOnClient(override val boundary: Point) extends Grid {
     val fieldDetails =
       fields.groupBy(_.id).map { case (userId, fieldPoints) =>
         Protocol.FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
-          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))
+          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).sorted))
         }.toList.groupBy(_._2).map { case (r, target) =>
-          Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+          Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
         }.toList)
       }.toList
 

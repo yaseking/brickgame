@@ -28,4 +28,14 @@ object FrontProtocol {
                            uid: String,
                            turn: List[Protocol.Point4Trans]
                          )
+
+  case class Field4Draw(
+                            uid: String,
+                            scanField: List[Scan4Draw]
+                          )
+
+  case class Scan4Draw(
+                       y: Short,
+                       x: List[(Short, Short)]
+                       )
 }
