@@ -139,11 +139,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
     }
 
+    var isAlreadySendSync = false
+
     if (webSocketClient.getWsState) {
       recallFrame match {
         case Some(-1) =>
           println("!!!!!!!!:NeedToSync")
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
+          isAlreadySendSync = true
           recallFrame = None
 
         case Some(frame) =>
@@ -196,14 +199,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
           println(s"after speed,frame:${grid.frameCount}")
         } else {
-          webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
+          if(!isAlreadySendSync) webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
         }
         syncFrame = None
       } else {
         addBackendInfo(grid.frameCount)
         grid.updateOnClient()
         addBackendInfo(grid.frameCount)
-//        grid.update("b")
       }
 
       if (!isWin) {

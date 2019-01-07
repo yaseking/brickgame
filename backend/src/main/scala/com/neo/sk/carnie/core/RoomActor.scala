@@ -327,7 +327,6 @@ object RoomActor {
           }
           Behaviors.same
 
-
         case Sync =>
           val curTime = System.currentTimeMillis()
           val frame = grid.frameCount //即将执行改帧的数据
