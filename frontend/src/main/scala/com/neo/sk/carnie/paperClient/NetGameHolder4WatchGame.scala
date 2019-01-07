@@ -271,7 +271,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   }
 
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
+  def drawGameImage(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long): Unit = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),
       frameRate = frameRate, newFieldInfo = grid.historyFieldInfo.get(grid.frameCount + 1))
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
