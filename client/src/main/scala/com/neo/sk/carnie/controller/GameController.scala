@@ -35,6 +35,8 @@ class GameController(player: PlayerInfoInClient,
 
   private val playActor = Boot.system.spawn(PlayGameWebSocket.create(this), "playActor")
 
+  var isGetKiller = false
+  var killerInfo: scala.Option[String] = None
   var currentRank = List.empty[Score]
   val bounds = Point(Boundary.w, Boundary.h)
   var grid = new GridOnClient(bounds)
@@ -265,15 +267,12 @@ class GameController(player: PlayerInfoInClient,
 
       case None if isWin =>
 
-      case None if !firstCome =>
+      case None if isGetKiller && !firstCome =>
         if(btnFlag) {
           gameScene.group.getChildren.add(gameScene.backBtn)
           btnFlag = false
         }
-//        println("111" + grid.killHistory)
-//        val a = System.currentTimeMillis()
-//        println(s"${grid.getGridData.snakes.map(_.id)},$a")
-        drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
+        FrontProtocol.DrawGameDie(killerInfo)
 
 
       case _ =>
@@ -431,6 +430,21 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
         Boot.addToPlatform{
+          deadInfo.foreach{d =>
+            if (grid.carnieMap(d.carnieId) == player.id){
+              if (d.killerId.isDefined){
+                val killerId = grid.carnieMap(d.killerId.get)
+                isGetKiller = true
+                if (grid.snakes.get(killerId).isDefined){
+                  killerInfo = Some(grid.snakes(killerId).name)
+                }
+              }
+              else {
+                isGetKiller = true
+                killerInfo = None
+              }
+            }
+          }
           val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
           grid.historyDieSnake += frame -> deadList
           deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
