@@ -494,6 +494,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case data: Protocol.NewFieldInfo =>
+        println("NewFieldInfo")
         val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
         if (fields.exists(_.uid == myId)) audioFinish.play()
         grid.historyFieldInfo += data.frameCount -> fields
