@@ -394,7 +394,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
     val fieldInWindow = data.fieldDetails
 
-    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    scale = 1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00008
     humanViewCtx.save()
 
     humanViewCtx.setFill(Color.rgb(105,105,105))
@@ -604,7 +604,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
 
 
-    scale = 1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00008
+    scale = 1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00008
     selfViewCtx.save()
 
 //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
@@ -898,7 +898,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val bodyInWindow = data.bodyDetails.filter{b =>
       b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
   
-    scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00002, 0.94)
+    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     viewCtx.save()
 
     //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)

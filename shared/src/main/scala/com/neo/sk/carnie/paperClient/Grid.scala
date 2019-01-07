@@ -502,14 +502,16 @@ trait Grid {
     } else TurnInfo(Nil, Nil)
   }
 
-  def getMyFieldCount(uid: String, maxPoint: Point, minPoint: Point): Int = {
-    grid.count { g =>
-      (g._2 match {
-        case Field(fid) if fid == uid => true
-        case _ => false
-      }) &&
-        (g._1.x < maxPoint.x && g._1.y < maxPoint.y && g._1.y > minPoint.y && g._1.x > minPoint.x)
+  def getMyFieldCount(uid: String, myFieldInfo: List[ScanByColumn]): Int = {
+    var fieldCount = 0
+    myFieldInfo.foreach{f =>
+      f.y.foreach{ys =>
+        f.x.foreach{xs =>
+          fieldCount += (xs._2 - xs._1 + 1) * (ys._2 - ys._1 + 1)
+        }
+      }
     }
+    fieldCount
   }
 
   def cleanSnakeTurnPoint(sid: String):Unit = {
