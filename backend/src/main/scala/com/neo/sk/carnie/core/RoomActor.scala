@@ -363,8 +363,8 @@ object RoomActor {
           }
 
           //错峰发送
-          for ((u, i) <- userMap) {
-            if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 2 ||
+          for ((u, i) <- userMap) { //todo:SyncFrame-100
+            if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 10 == 2 ||
               (userDeadList.contains(u) && curTime - userDeadList(u) <= maxWaitingTime4Restart) && (tickCount - i.joinFrame) % 100 == 2) {
               dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
               watcherMap.filter(_._2._1 == u).foreach { w =>
