@@ -434,7 +434,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.cleanDiedSnakeInfo(id)
 
       case Protocol.SomeOneWin(winner) =>
-        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData)
+        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData4Draw)
         isWin = true
         //        winnerName = winner
         //        winData = finalData
@@ -445,8 +445,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isContinue)
-          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank, currentNum)
+        if (grid.snakes.exists(_._1 == myId) && !isWin && isContinue)
+          drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")

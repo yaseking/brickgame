@@ -74,7 +74,7 @@ class GameScene(img: Int, frameRate: Int) {
 //    rankCanvas.setHeight(rankHeight)
   }
 
-  def draw(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String): Unit = {
+  def draw(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, championId: String): Unit = {
     view.drawGrid(uid, data, offsetTime, grid, championId, frameRate)
     view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
@@ -105,9 +105,9 @@ class GameScene(img: Int, frameRate: Int) {
     viewCtx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData): Unit = {
+  def drawGameWin(myId: String, winner: String, data: FrontProtocol.Data4Draw,winningData:WinData): Unit = {
     rank.drawClearRank()
-    view.drawGameWin(myId: String, winner: String, data: Data4TotalSync,winningData:WinData)
+    view.drawGameWin(myId: String, winner: String, data, winningData)
   }
 
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int): Unit = {

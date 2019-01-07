@@ -124,7 +124,7 @@ class BotController(player: PlayerInfoInClient,
       addBackendInfo(grid.frameCount)
     }
 
-    val gridData = grid.getGridData
+    val gridData = grid.getGridData4Draw
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
@@ -203,7 +203,7 @@ class BotController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
-          val finalData = grid.getGridData
+          val finalData = grid.getGridData4Draw
           drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
           grid.cleanData()
         }

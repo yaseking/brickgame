@@ -335,7 +335,7 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
-          val finalData = grid.getGridData
+          val finalData = grid.getGridData4Draw
           drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
 //          winnerName = winner
 //          winnerData = Some(finalData)

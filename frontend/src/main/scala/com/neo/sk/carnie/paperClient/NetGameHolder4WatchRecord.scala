@@ -33,7 +33,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   var loading = true
   private var killInfo = ("", "", "")
   var lastTime = 0
-  var winData: Protocol.Data4TotalSync = grid.getGridData
+  var winData: FrontProtocol.Data4Draw = grid.getGridData4Draw
   var fieldNum = 1
   var snakeNum = 1
   var syncGridData4Replay: scala.Option[Protocol.Data4TotalSync] = None
@@ -381,7 +381,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       //          grid.snakes -= id
       //        }
       case Protocol.SomeOneWin(winner) =>
-        val finalData = grid.getGridData
+        val finalData = grid.getGridData4Draw
         println(s"recv someONeWin==============, winner:$winner")
         isWin = true
         winnerName = winner

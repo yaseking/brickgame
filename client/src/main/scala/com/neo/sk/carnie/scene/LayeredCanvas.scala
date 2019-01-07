@@ -156,7 +156,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
 
-  def drawBorder(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
+  def drawBorder(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
 
     val snakes = data.snakes
 
@@ -364,7 +364,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
 
 
-  def drawHumanView(currentRank: List[Score],uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int]): Unit = { //头所在的点是屏幕的正中心
+  def drawHumanView(currentRank: List[Score],uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int]): Unit = { //头所在的点是屏幕的正中心
     
     val snakes = data.snakes
     humanViewCtx.clearRect(0, 0, humanWindowBoundary.x, humanWindowBoundary.y)
@@ -406,7 +406,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     data.bodyDetails.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       humanViewCtx.setFill(color)
-      val turnPoints = bds.turn.turnPoint
+      val turnPoints = bds.turn
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
         val end = turnPoints(i + 1)
@@ -559,7 +559,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
   
-  def drawSelfView(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawSelfView(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     
     val snakes = data.snakes
 
@@ -601,7 +601,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     }
 
     val bodyInWindow = data.bodyDetails.filter{b =>
-      b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
+      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
 
 
     scale = 1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00008
@@ -613,7 +613,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     bodyInWindow.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       selfViewCtx.setFill(color)
-      val turnPoints = bds.turn.turnPoint
+      val turnPoints = bds.turn
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
         val end = turnPoints(i + 1)
@@ -680,7 +680,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
 
-  def drawSelf(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawSelf(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -721,7 +721,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     }
 
     val bodyInWindow = data.bodyDetails.filter{b =>
-      b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
+      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
 
     selfCtx.save()
 
@@ -741,7 +741,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       val bds = bd.get
       val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       selfCtx.setFill(color)
-      val turnPoints = bds.turn.turnPoint
+      val turnPoints = bds.turn
 //      val turnPoints = data.bodyDetails.filter(_.uid == uid).head.turn.turnPoint
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
@@ -809,7 +809,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
   
-  def drawHeader(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
+  def drawHeader(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -856,7 +856,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     headerCtx.restore()
   }
 
-  def drawBody(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, frameRate: Int):Unit ={
+  def drawBody(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int):Unit ={
     val snakes = data.snakes
 
     val lastHeader = snakes.find(_.id == uid) match {
@@ -896,7 +896,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       }
   
     val bodyInWindow = data.bodyDetails.filter{b =>
-      b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
+      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
   
     scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     viewCtx.save()
@@ -906,7 +906,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     bodyInWindow.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       viewCtx.setFill(color)
-      val turnPoints = bds.turn.turnPoint
+      val turnPoints = bds.turn
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
         val end = turnPoints(i + 1)
