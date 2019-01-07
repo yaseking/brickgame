@@ -461,6 +461,8 @@ class DrawGame(
       ctx.fillStyle = i.color
       ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
     }
+    ctx.font = "22px Helvetica"
+    ctx.fillStyle = ColorsSetting.fontColor2
     ctx.fillText(s"${TimeTool.dateFormatDefault(System.currentTimeMillis())}", w.toInt, h.toInt)
   }
 
