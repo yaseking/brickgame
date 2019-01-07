@@ -461,7 +461,7 @@ class DrawGame(
       ctx.fillStyle = i.color
       ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
     }
-    ctx.font = "22px Helvetica"
+    ctx.font = "12px Helvetica"
     ctx.fillStyle = ColorsSetting.fontColor2
     ctx.fillText(s"${TimeTool.dateFormatDefault(System.currentTimeMillis())}", w.toInt, h.toInt)
   }
@@ -503,7 +503,7 @@ class DrawGame(
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "10px Helvetica"
-    drawTextLine("Version:20190107", rightBegin.toInt+140, index, currentRankBaseLine-1)
+    drawTextLine("Version:20190107", rightBegin.toInt+100, index, currentRankBaseLine-1)
     rankCtx.font = "14px Helvetica"
     drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {
