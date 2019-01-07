@@ -305,7 +305,7 @@ class DrawGame(
   //    }
   //  }
 
-  def drawGrid(uid: String, data: Data4TotalSync, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[List[FieldByColumn]] = None): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[List[FieldByColumn]] = None): Unit = { //头所在的点是屏幕的正中心
     //    println(s"drawGrid-frameRate: $frameRate")
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
@@ -341,8 +341,7 @@ class DrawGame(
       }
     }
 
-    val bodyInWindow = data.bodyDetails.filter{b =>
-      b.turn.turnPoint.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
+    val bodyInWindow = data.bodyDetails.filter{b =>b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
 
     scale = Math.max(1 - grid.getMyFieldCount(uid, maxPoint, minPoint) * 0.00002, 0.94)
     ctx.save()
@@ -352,7 +351,7 @@ class DrawGame(
     bodyInWindow.foreach { bds =>
       val color = snakes.find(_.id == bds.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       ctx.fillStyle = color
-      val turnPoints = bds.turn.turnPoint
+      val turnPoints = bds.turn
       (0 until turnPoints.length - 1).foreach { i => //拐点渲染
         val start = turnPoints(i)
         val end = turnPoints(i + 1)

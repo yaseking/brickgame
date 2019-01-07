@@ -208,7 +208,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
 
       if (!isWin) {
-        val gridData = grid.getGridData
+        val gridData = grid.getGridData4Draw
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             if (firstCome) firstCome = false
@@ -290,7 +290,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
 
-  def drawGameImage(uid: String, data: Data4TotalSync, offsetTime: Long): Unit = {
+  def drawGameImage(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long): Unit = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),
       frameRate = frameRate, newFieldInfo = grid.historyFieldInfo.get(grid.frameCount + 1))
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))

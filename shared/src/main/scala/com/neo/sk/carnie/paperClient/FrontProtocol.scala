@@ -13,8 +13,19 @@ object FrontProtocol {
 
   case object DrawGameOff extends DrawFunction
 
-  case class DrawBaseGame(data: Protocol.Data4TotalSync) extends DrawFunction
+  case class DrawBaseGame(data: Data4Draw) extends DrawFunction
 
   case class DrawGameDie(killerName: Option[String]) extends DrawFunction
 
+  case class Data4Draw(
+                             frameCount: Int,
+                             snakes: List[SkDt],
+                             bodyDetails: List[BodyInfo4Draw],
+                             fieldDetails: List[Protocol.FieldByColumn]
+                           )
+
+  case class BodyInfo4Draw(
+                           uid: String,
+                           turn: List[Protocol.Point4Trans]
+                         )
 }

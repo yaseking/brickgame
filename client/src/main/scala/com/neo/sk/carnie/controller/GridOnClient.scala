@@ -254,4 +254,31 @@ class GridOnClient(override val boundary: Point) extends Grid {
     snakes = updatedSnakes.map(s => (s.data.id, s.data)).toMap
   }
 
+  def getGridData4Draw: FrontProtocol.Data4Draw = {
+    var fields: List[Fd] = Nil
+    val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, snakeTurnPoints.getOrElse(s.id, Nil)) }.toList
+
+    grid.foreach {
+      case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
+      case _ => //doNothing
+    }
+
+    val fieldDetails =
+      fields.groupBy(_.id).map { case (userId, fieldPoints) =>
+        Protocol.FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
+          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))
+        }.toList.groupBy(_._2).map { case (r, target) =>
+          Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+        }.toList)
+      }.toList
+
+    FrontProtocol.Data4Draw(
+      frameCount,
+      snakes.values.toList,
+      bodyDetails,
+      fieldDetails
+    )
+  }
+
+
 }

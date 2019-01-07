@@ -462,33 +462,6 @@ trait Grid {
     )
   }
 
-  def getGridDataWith: Protocol.Data4TotalSync = {
-    var fields: List[Fd] = Nil
-    val bodyDetails = snakes.values.map { s => BodyBaseInfo(s.id, getSnakesTurn(s.id, s.header)) }.toList
-
-    grid.foreach {
-      case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
-      case _ => //doNothing
-    }
-
-    val fieldDetails =
-      fields.groupBy(_.id).map { case (userId, fieldPoints) =>
-        FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
-          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))
-        }.toList.groupBy(_._2).map { case (r, target) =>
-          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
-        }.toList)
-      }.toList
-
-    Protocol.Data4TotalSync(
-      frameCount,
-      snakes.values.toList,
-      bodyDetails,
-      fieldDetails
-      //      killHistory.map(k => Kill(k._1, k._2._1, k._2._2, k._2._3)).toList
-    )
-  }
-
   def getKiller(myId: String): Option[(String, String, Int)] = {
     killHistory.get(myId) match {
       case Some(info) if info._3 > frameCount - 3 => Some(info)
@@ -523,7 +496,8 @@ trait Grid {
   def getSnakesTurn(sid: String, header: Point): TurnInfo = {
     val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
     if (turnPoint.nonEmpty) {
-      TurnInfo(turnPoint ::: List(Point4Trans(header.x.toShort, header.y.toShort)), grid.filter(_._2 match { case Body(id, fid) if id == sid && fid.nonEmpty => true case _ => false }).map(g =>
+      TurnInfo(turnPoint ::: List(Point4Trans(header.x.toShort, header.y.toShort)),
+        grid.filter(_._2 match { case Body(id, fid) if id == sid && fid.nonEmpty => true case _ => false }).map(g =>
         (Point4Trans(g._1.x.toShort, g._1.y.toShort), g._2.asInstanceOf[Body].fid.get)).toList)
     } else TurnInfo(Nil, Nil)
   }

@@ -204,7 +204,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
 
 
       if (!isWin) {
-        val gridData = grid.getGridData
+        val gridData = grid.getGridData4Draw
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             if (firstCome) firstCome = false

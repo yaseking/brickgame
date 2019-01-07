@@ -207,7 +207,7 @@ class GameController(player: PlayerInfoInClient,
     }
 
 
-    val gridData = grid.getGridData
+    val gridData = grid.getGridData4Draw
 
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
