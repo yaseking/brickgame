@@ -354,7 +354,7 @@ class DrawGame(
       if (snakes.exists(_.id == user.uid)) {
         var userScanField: List[FrontProtocol.Scan4Draw] = Nil
         user.scanField.foreach { field =>
-          if (field.y <= maxPoint.y && field.y >= minPoint.y ) {
+          if (field.y < maxPoint.y + 5 && field.y > minPoint.y - 5) {
             userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
           }
         }
