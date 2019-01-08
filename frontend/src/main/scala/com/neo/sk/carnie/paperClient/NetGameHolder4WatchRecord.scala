@@ -343,7 +343,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
               (event, loading) match {
                 case (EncloseEvent(_), true) => replayMessageHandler(event, frameIndex)
                 case (DirectionEvent(_, _), true) => replayMessageHandler(event, frameIndex)
-                case (e@NewSnakeInfo(_, _, _), true) => spaceEvent += (frameIndex -> e)
+                case (e@NewSnakeInfo(_, _, _), _) => spaceEvent += (frameIndex -> e)
                 case (e@RankEvent(_), true) => rankEvent += (frameIndex -> e)
                 case (_, false) => replayMessageHandler(event, frameIndex)
                 case _ =>
