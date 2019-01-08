@@ -124,7 +124,7 @@ class BotController(player: PlayerInfoInClient,
       addBackendInfo(grid.frameCount)
     }
 
-    val gridData = grid.getGridData
+    val gridData = grid.getGridData4Draw
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
@@ -203,7 +203,7 @@ class BotController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
-          val finalData = grid.getGridData
+          val finalData = grid.getGridData4Draw
           drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
           grid.cleanData()
         }
@@ -244,7 +244,7 @@ class BotController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           println(s"user $id left:::")
           grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-          grid.cleanDiedSnakeInfo(id)
+          grid.cleanDiedSnakeInfo(List(id))
         }
 
 
@@ -307,9 +307,7 @@ class BotController(player: PlayerInfoInClient,
     }
 
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      deadSnake.foreach { sid =>
-        grid.cleanDiedSnakeInfo(sid)
-      }
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
 
     grid.historyNewSnake.get(frame).foreach { newSnakes =>

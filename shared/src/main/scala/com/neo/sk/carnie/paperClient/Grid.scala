@@ -413,9 +413,9 @@ trait Grid {
     val fieldDetails =
       fields.groupBy(_.id).map { case (userId, fieldPoints) =>
         FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
-          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted))
+          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).sorted))
         }.toList.groupBy(_._2).map { case (r, target) =>
-          ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
+          ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
         }.toList)
       }.toList
     //find vertex
@@ -520,13 +520,18 @@ trait Grid {
     }
   }
 
-  def cleanDiedSnakeInfo(sid: String): Unit = {
-    returnBackField(sid)
-    grid ++= grid.filter(_._2 match { case Body(_, fid) if fid.nonEmpty && fid.get == sid => true case _ => false }).map { g =>
-      Point(g._1.x, g._1.y) -> Body(g._2.asInstanceOf[Body].id, None)
+  def cleanDiedSnakeInfo(dieSnakes: List[String]): Unit = {
+    snakeTurnPoints --= dieSnakes
+    grid.foreach { g =>
+      g._2 match {
+        case Body(bid, fid) if fid.nonEmpty && dieSnakes.contains(bid) => grid += g._1 -> Field(fid.get)
+        case Body(bid, _) if dieSnakes.contains(bid) => grid -= g._1
+        case Body(bid, fid) if dieSnakes.contains(fid.getOrElse("")) => grid += g._1 -> Body(bid, None)
+        case Field(fid) if dieSnakes.contains(fid) => grid -= g._1
+        case _ =>
+      }
     }
-    grid = grid.filter {_._2 match {case Field(id) if id == sid => false case _ => true}}
-    snakes -= sid
+    snakes --= dieSnakes
   }
 
 }

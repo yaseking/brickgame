@@ -335,7 +335,7 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
-          val finalData = grid.getGridData
+          val finalData = grid.getGridData4Draw
           drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
 //          winnerName = winner
 //          winnerData = Some(finalData)
@@ -353,7 +353,7 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           println(s"user $id left:::")
           grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-          grid.cleanDiedSnakeInfo(id)
+          grid.cleanDiedSnakeInfo(List(id))
         }
 
       case x@Protocol.DeadPage(kill, area, playTime) =>
@@ -581,9 +581,7 @@ class GameController(player: PlayerInfoInClient,
     }
 
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      deadSnake.foreach { sid =>
-        grid.cleanDiedSnakeInfo(sid)
-      }
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
 
     grid.historyNewSnake.get(frame).foreach { newSnakes =>

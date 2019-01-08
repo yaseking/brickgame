@@ -355,10 +355,10 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case UserLeft(id) =>
         println(s"user $id left:::")
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-        grid.cleanDiedSnakeInfo(id)
+        grid.cleanDiedSnakeInfo(List(id))
 
       case Protocol.SomeOneWin(winner) =>
-        val finalData = grid.getGridData
+        val finalData = grid.getGridData4Draw
         drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
         isWin = true
         //        winnerName = winner
@@ -371,8 +371,8 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
         maxArea = Constant.shortMax(maxArea, personalScore.area)
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isSynced)
-          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank, currentNum)
+        if (grid.snakes.exists(_._1 == myId) && !isWin && isSynced)
+          drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.SyncFrame =>
         syncFrame = Some(data)
@@ -486,9 +486,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
     }
 
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      deadSnake.foreach { sid =>
-        grid.cleanDiedSnakeInfo(sid)
-      }
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
 
     grid.historyNewSnake.get(frame).foreach { newSnakes =>

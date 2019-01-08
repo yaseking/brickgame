@@ -9,7 +9,7 @@ object FrontProtocol {
 
   case object DrawGameWait extends DrawFunction
 
-  case class DrawGameWin(winnerName: String, winData: Protocol.Data4TotalSync) extends DrawFunction
+  case class DrawGameWin(winnerName: String, winData: Data4Draw) extends DrawFunction
 
   case object DrawGameOff extends DrawFunction
 
@@ -28,4 +28,14 @@ object FrontProtocol {
                            uid: String,
                            turn: List[Protocol.Point4Trans]
                          )
+
+  case class Field4Draw(
+                            uid: String,
+                            scanField: List[Scan4Draw]
+                          )
+
+  case class Scan4Draw(
+                       y: Short,
+                       x: List[(Short, Short)]
+                       )
 }

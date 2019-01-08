@@ -139,6 +139,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       }
     }
 
+    val firstPart = System.currentTimeMillis() - logicFrameTime
+    var secondPart = 0l
+    var thirdPart = 0l
+    var forthPart = 0l
+    var detailPart = 0l
+
     var isAlreadySendSync = false
 
     if (webSocketClient.getWsState) {
@@ -165,6 +171,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
         case None =>
       }
+
+      secondPart = System.currentTimeMillis() - logicFrameTime - firstPart
 
       if (syncGridData.nonEmpty) { //全量数据
         if (grid.snakes.nonEmpty) {
@@ -207,8 +215,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         addBackendInfo(grid.frameCount)
       }
 
+      thirdPart = System.currentTimeMillis() - logicFrameTime - secondPart
+
       if (!isWin) {
+        val startTime = System.currentTimeMillis()
         val gridData = grid.getGridData4Draw
+        detailPart = System.currentTimeMillis() - startTime
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
             if (firstCome) firstCome = false
@@ -230,12 +242,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             FrontProtocol.DrawGameWait
         }
       }
+      forthPart = System.currentTimeMillis() - logicFrameTime - thirdPart
     } else {
       drawFunction = FrontProtocol.DrawGameOff
     }
     val dealTime = System.currentTimeMillis() - logicFrameTime
     if (dealTime > 50)
-      println(s"logicFrame deal time:$dealTime")
+      println(s"logicFrame deal time:$dealTime;first:$firstPart;second:$secondPart;third:$thirdPart;forthpart:$forthPart;detailPart:$detailPart")
   }
 
   def draw(offsetTime: Long): Unit = {
@@ -431,10 +444,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case UserLeft(id) =>
         println(s"user $id left:::")
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
-        grid.cleanDiedSnakeInfo(id)
+        grid.cleanDiedSnakeInfo(List(id))
 
       case Protocol.SomeOneWin(winner) =>
-        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData)
+        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData4Draw)
         isWin = true
         //        winnerName = winner
         //        winData = finalData
@@ -445,8 +458,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
-        if (grid.getGridData.snakes.exists(_.id == myId) && !isWin && isContinue)
-          drawGame.drawRank(myId, grid.getGridData.snakes, currentRank, personalScore, personalRank, currentNum)
+        if (grid.snakes.exists(_._1 == myId) && !isWin && isContinue)
+          drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
@@ -568,9 +581,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   def addDieSnake(frame: Int): Unit = {
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      deadSnake.foreach { sid =>
-        grid.cleanDiedSnakeInfo(sid)
-      }
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
   }
 
@@ -587,38 +598,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
       if (newSnakes._1.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
     }
-  }
-
-  private var myGroupField: FieldByColumn = FieldByColumn(myId, Nil)
-
-  private def getMyField(): Unit = {
-    val myField = grid.grid.filter(_._2 == Field(myId))
-    val myBody = grid.snakeTurnPoints.getOrElse(myId, Nil)
-
-    //        newField = myField.map { f =>
-    myGroupField = FieldByColumn(myId, myField.keys.groupBy(_.y).map { case (y, target) =>
-      (y.toShort, Tool.findContinuous(target.map(_.x.toShort).toArray.sorted)) //read
-    }.toList.groupBy(_._2).map { case (r, target) =>
-      ScanByColumn(Tool.findContinuous(target.map(_._1).toArray.sorted), r)
-    }.toList)
-
-
-    //    println(s"=======myField:$myGroupField, myBody:$myBody")
-  }
-
-  private def transformData(data: Data4TotalSyncCondensed): Data4TotalSync = {
-    val newBodyDt = data.bodyDetails.map {s=>
-      val carnieId = grid.carnieMap(s.uid)
-      BodyBaseInfo(carnieId, TurnInfo(s.turn.turnPoint, s.turn.pointOnField.map{p =>
-        val carnieId = grid.carnieMap(p._2)
-        (p._1, carnieId)
-      }))
-    }
-    val newFieldDt = data.fieldDetails.map {f =>
-      val id = grid.carnieMap(f.uid)
-      FieldByColumn(id, f.scanField)
-    }
-    Data4TotalSync(data.frameCount, data.snakes, newBodyDt, newFieldDt)
   }
 
   override def render: Elem = {
