@@ -141,16 +141,19 @@ class GameController(player: PlayerInfoInClient,
     pingMap += (pingId -> curTime)
     playActor ! PlayGameWebSocket.MsgToService(Protocol.SendPingPacket(pingId))
 
+    var isAlreadySendSync = false
+
     recallFrame match {
       case Some(-1) =>
         println("!!!!!!!!:NeedToSync")
         playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
+        isAlreadySendSync = true
         recallFrame = None
 
       case Some(frame) =>
         val time1 = System.currentTimeMillis()
         println(s"before recall...frame:${grid.frameCount}")
-        grid.historyDieSnake.filter{d => d._2.contains(player.id) && d._1 > frame}.keys.headOption match {
+        grid.historyDieSnake.filter { d => d._2.contains(player.id) && d._1 > frame }.keys.headOption match {
           case Some(dieFrame) =>
             if (dieFrame - 2 > frame) grid.recallGrid(frame, dieFrame - 2)
             else grid.setGridInGivenFrame(frame)
@@ -165,7 +168,7 @@ class GameController(player: PlayerInfoInClient,
     }
 
     if (syncGridData.nonEmpty) { //全量数据
-      if(grid.snakes.nonEmpty){
+      if (grid.snakes.nonEmpty) {
         println("total syncGridData")
         grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
       }
@@ -175,33 +178,32 @@ class GameController(player: PlayerInfoInClient,
     } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
       val frontend = grid.frameCount
       val backend = syncFrame.get.frameCount
-      val advancedFrame = Math.abs(backend - frontend)
-      if (backend > frontend && advancedFrame == 1) {
+      val advancedFrame = backend - frontend
+      if (advancedFrame == 1) {
         println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-        addBackendInfo(grid.frameCount)
         grid.updateOnClient()
         addBackendInfo(grid.frameCount)
-      } else if(frontend > backend && grid.historyStateMap.get(backend).nonEmpty){
+      } else if (advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty) {
         println(s"frontend advanced backend,frontend$frontend,backend:$backend")
         grid.setGridInGivenFrame(backend)
-      } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
+      } else if (advancedFrame == 0) {
+        println(s"frontend equal to backend,frontend$frontend,backend:$backend")
+      } else if (advancedFrame > 0 && advancedFrame < (grid.maxDelayed - 1)) {
         println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-        val endFrame = grid.historyDieSnake.filter{d => d._2.contains(player.id) && d._1 > frontend}.keys.headOption match {
+        val endFrame = grid.historyDieSnake.filter { d => d._2.contains(player.id) && d._1 > frontend }.keys.headOption match {
           case Some(dieFrame) => Math.min(dieFrame - 1, backend)
           case None => backend
         }
-        (frontend until endFrame).foreach { frame =>
-          grid.frameCount = frame
-          addBackendInfo(frame)
+        (frontend until endFrame).foreach { _ =>
           grid.updateOnClient()
+          addBackendInfo(grid.frameCount)
         }
         println(s"after speed,frame:${grid.frameCount}")
       } else {
-        playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
+        if (!isAlreadySendSync) playActor ! PlayGameWebSocket.MsgToService(NeedToSync.asInstanceOf[UserAction])
       }
       syncFrame = None
     } else {
-      addBackendInfo(grid.frameCount)
       grid.updateOnClient()
       addBackendInfo(grid.frameCount)
     }
@@ -367,7 +369,7 @@ class GameController(player: PlayerInfoInClient,
       case Protocol.Ranks(current, score, rank, currentNum) =>
         Boot.addToPlatform {
           currentRank = current
-          maxArea = Math.max(maxArea, score.area)
+//          maxArea = Math.max(maxArea, score.area)
           if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin && isSynced){
             gameScene.drawRank(player.id, grid.getGridData.snakes, current, score, rank, currentNum)
 //            layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
@@ -390,7 +392,9 @@ class GameController(player: PlayerInfoInClient,
           grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
             FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
           })
-          if (data.frameCount < grid.frameCount) {
+          if(data.frameCount == grid.frameCount){
+            addNewSnake(data.frameCount)
+          } else if (data.frameCount < grid.frameCount) {
             println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
           }
@@ -437,12 +441,12 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.NewFieldInfo =>
         Boot.addToPlatform{
-          if (data.fieldDetails.exists(_.uid == player.id))
-            println("got new field")
           val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
           if (fields.exists(_.uid == player.id)) audioFinish.play()
           grid.historyFieldInfo += data.frameCount -> fields
-          if (data.frameCount < grid.frameCount) {
+          if(data.frameCount == grid.frameCount){
+            addFieldInfo(data.frameCount)
+          } else if (data.frameCount < grid.frameCount) {
             println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
           }
@@ -576,14 +580,25 @@ class GameController(player: PlayerInfoInClient,
   }
 
   def addBackendInfo(frame: Int): Unit = {
+    addFieldInfo(frame)
+    addDieSnake(frame)
+    addNewSnake(frame)
+  }
+
+  def addFieldInfo(frame: Int): Unit = {
     grid.historyFieldInfo.get(frame).foreach { data =>
+      if (data.nonEmpty) println(s"addFieldInfo:$frame")
       grid.addNewFieldInfo(data)
     }
+  }
 
+  def addDieSnake(frame: Int): Unit = {
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
       grid.cleanDiedSnakeInfo(deadSnake)
     }
+  }
 
+  def addNewSnake(frame: Int): Unit = {
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
       if (newSnakes._1.map(_.id).contains(player.id) && !firstCome && !isContinue) spaceKey()
       newSnakes._1.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点

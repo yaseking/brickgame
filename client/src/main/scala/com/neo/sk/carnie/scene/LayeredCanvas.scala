@@ -74,7 +74,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   var a=0
 
   def getAllImageData ={
-    val canvasList = List(humanViewCanvas,positionCanvas,BorderCanvas,viewCanvas,selfViewCanvas,selfCanvas,rankCanvas,headerCanvas)
+    val canvasList = List(humanViewCanvas,positionCanvas,BorderCanvas,headerCanvas,viewCanvas,selfViewCanvas,selfCanvas,rankCanvas)
     canvasList.map(c => getImageData(c))
   }
 
@@ -130,14 +130,13 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     positionCtx.fillRect(0, 0, w , h )
     positionCtx.restore()
 
-    positionCtx.setFill(Color.rgb(105,105,105))
+//    positionCtx.setFill(Color.rgb(105,105,105))
+//    positionCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.x, positionCanvasUnit)
+//    positionCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.y)
+//    positionCtx.fillRect(positionCanvasUnit, border.y * positionCanvasUnit, positionCanvasUnit * border.x , positionCanvasUnit)
+//    positionCtx.fillRect(border.x  * positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.y )
+//    positionCtx.restore()
 
-    positionCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.x, positionCanvasUnit)
-    positionCtx.fillRect(positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.y)
-    positionCtx.fillRect(positionCanvasUnit, border.y * positionCanvasUnit, positionCanvasUnit * border.x , positionCanvasUnit)
-    positionCtx.fillRect(border.x  * positionCanvasUnit, positionCanvasUnit, positionCanvasUnit, positionCanvasUnit * border.y )
-
-    positionCtx.restore()
     positionCtx.setFill(Color.WHITE)
     positionCtx.fillRect( offx - window.x / 2 * positionCanvasUnit , offy  - window.y / 2 * positionCanvasUnit, window.x * positionCanvasUnit, window.y * positionCanvasUnit)
 //    if(isMe){
