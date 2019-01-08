@@ -92,7 +92,7 @@ object RoomActor {
             case _ => Protocol.frameRate1
           }
           log.info(s"frameRate: $frameRate")
-          val botsList = AppSettings.botMap.map { b =>
+          val botsList = AppSettings.botMap.take(AppSettings.minPlayerNum - 1).map { b =>
             val id = "bot_" + roomId + b._1
             getBotActor(ctx, id) ! BotActor.InitInfo(b._2, mode, grid, ctx.self)
             (id, b._2)

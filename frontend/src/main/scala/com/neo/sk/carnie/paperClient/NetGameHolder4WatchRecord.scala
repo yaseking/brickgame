@@ -369,6 +369,31 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       //          grid.snakes += (id -> snakeInfo.get)
       //        }
 
+        if (grid.frameCount < frameIndex) {
+          spaceEvent += (frameIndex -> SpaceEvent(id))
+        } else {
+          if (id == myId) {
+            audio1.pause()
+            audio1.currentTime = 0
+            audioKilled.pause()
+            audioKilled.currentTime = 0
+            scoreFlag = true
+            firstCome = true
+            myScore = BaseScore(0, 0, 0)
+            if (isWin) {
+              isWin = false
+              winnerName = "unknown"
+            }
+            isContinue = true
+            val frameRate = myMode match {
+              case 2 => frameRate2
+              case _ => frameRate1
+            }
+            nextFrame = dom.window.requestAnimationFrame(gameRender(frameRate))
+
+          }
+        }
+
 
       case Protocol.LeftEvent(id, name) =>
       //        if (grid.frameCount < frameIndex) {
