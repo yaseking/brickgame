@@ -326,15 +326,10 @@ var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setFill(color)
-//      field.scanField.foreach { point =>
-//        point.x.foreach { x =>
-//          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-//        }
-//      }
       fieldInWindow.foreach { field => //按行渲染
         field.scanField.foreach { point =>
           point.x.foreach { x =>
-            ctx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+            ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
           }
         }
       }

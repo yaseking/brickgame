@@ -442,7 +442,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       field.scanField.foreach { point =>
         point.x.foreach { x =>
-          humanViewCtx.fillRect(x._1 * humanCanvasUnit, point.y * humanCanvasUnit, humanCanvasUnit * (x._2 - x._1 + 1), humanCanvasUnit * 1.05)
+          humanViewCtx.fillRect((x._1 + offX) * canvasUnit, (point.y + offY) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
         }
       }
     }
@@ -651,7 +651,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       field.scanField.foreach { point =>
         point.x.foreach { x =>
-          selfViewCtx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
         }
       }
     }
@@ -782,7 +782,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       field.scanField.foreach { point =>
         point.x.foreach { x =>
-          selfCtx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
         }
       }
     }
@@ -943,7 +943,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       field.scanField.foreach { point =>
         point.x.foreach { x =>
-          viewCtx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          viewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
         }
       }
     }
