@@ -575,8 +575,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def addFieldInfo(frame: Int): Unit = {
-    println(s"addFieldInfo:$frame.")
     grid.historyFieldInfo.get(frame).foreach { data =>
+      if (data.nonEmpty) println(s"addFieldInfo:$frame")
       grid.addNewFieldInfo(data)
     }
   }
