@@ -263,8 +263,12 @@ class GridOnClient(override val boundary: Point) extends Grid {
     val t2 = System.currentTimeMillis()
     grid.foreach {
       case (p, Field(id)) =>
+        val tx = System.currentTimeMillis()
         val map = fields.getOrElse(id, Map.empty)
+        val tx2 = System.currentTimeMillis()
         fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+        val tx3 = System.currentTimeMillis()
+        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
 
       case _ => //doNothing
     }
