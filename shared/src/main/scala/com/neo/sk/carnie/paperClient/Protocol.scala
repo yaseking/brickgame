@@ -32,11 +32,6 @@ object Protocol {
                              fieldDetails: List[FieldByColumnCondensed]
                            ) extends GameMessage
 
-  case class NewSnakeInfo(
-                           frameCount: Int,
-                           snake: List[SkDt],
-                           filedDetails: List[FieldByColumnCondensed]
-                         ) extends GameMessage
 
   case class KilledSkData(
                            killedSkInfo: List[KilledSkDt]
@@ -150,6 +145,13 @@ object Protocol {
 
   //essf
   sealed trait GameEvent extends GameMessage
+
+  case class NewSnakeInfo(
+                           frameCount: Int,
+                           snake: List[SkDt],
+                           filedDetails: List[FieldByColumnCondensed]
+                         ) extends GameEvent
+
 
   case class JoinEvent(id: String, name: String) extends GameEvent
 

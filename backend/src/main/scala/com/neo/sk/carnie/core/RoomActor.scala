@@ -352,6 +352,7 @@ object RoomActor {
               subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
                 (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
               NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
+            gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField)))
             dispatch(
               subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
               NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
