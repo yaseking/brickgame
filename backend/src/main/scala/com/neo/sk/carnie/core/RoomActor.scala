@@ -130,6 +130,7 @@ object RoomActor {
           grid.addSnake(id, roomId, name, img, carnieMap(id))
           dispatchTo(subscribersMap, id, Protocol.Id(id))
           gameEvent += ((grid.frameCount, JoinEvent(id, name)))
+          log.info(s"userMap.size:${userMap.size}, minplayerNum:${AppSettings.minPlayerNum}, botMap.size:${botMap.size}")
           while (userMap.size > AppSettings.minPlayerNum && botMap.nonEmpty) {
             val killBot = botMap.head
             botMap.-=(killBot._1)
