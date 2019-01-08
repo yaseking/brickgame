@@ -171,7 +171,7 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   override def systemInfo(request: Credit): Future[SystemInfoRsp] = {
     println(s"systemInfo Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
-      Future.successful(SystemInfoRsp(frameRate = Protocol.frameRate1, state = state))
+      Future.successful(SystemInfoRsp(framePeriod = Protocol.frameRate1, state = state))
     } else Future.successful(SystemInfoRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
