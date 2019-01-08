@@ -497,10 +497,10 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
   }
 
   def spaceKey(): Unit = {
-    audio1.pause()
-    audio1.currentTime = 0
-    audioKilled.pause()
-    audioKilled.currentTime = 0
+//    audio1.pause()
+//    audio1.currentTime = 0
+//    audioKilled.pause()
+//    audioKilled.currentTime = 0
     scoreFlag = true
     firstCome = true
     myScore = BaseScore(0, 0, 0)
