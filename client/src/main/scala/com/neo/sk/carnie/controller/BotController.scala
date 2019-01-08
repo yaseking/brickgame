@@ -284,9 +284,11 @@ class BotController(player: PlayerInfoInClient,
       case data: Protocol.NewFieldInfo =>
 //        println(s"====================new field")
         Boot.addToPlatform {
-          val fields = data.fieldDetails.map{f => Protocol.FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+          val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
           grid.historyFieldInfo += data.frameCount -> fields
-          if (data.frameCount < grid.frameCount) {
+          if(data.frameCount == grid.frameCount){
+            addFieldInfo(data.frameCount)
+          } else if (data.frameCount < grid.frameCount) {
             println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
           }
@@ -302,14 +304,25 @@ class BotController(player: PlayerInfoInClient,
   }
 
   def addBackendInfo(frame: Int): Unit = {
+    addFieldInfo(frame)
+    addDieSnake(frame)
+    addNewSnake(frame)
+  }
+
+  def addFieldInfo(frame: Int): Unit = {
     grid.historyFieldInfo.get(frame).foreach { data =>
+      if (data.nonEmpty) println(s"addFieldInfo:$frame")
       grid.addNewFieldInfo(data)
     }
+  }
 
+  def addDieSnake(frame: Int): Unit = {
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
       grid.cleanDiedSnakeInfo(deadSnake)
     }
+  }
 
+  def addNewSnake(frame: Int): Unit = {
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
 //      if (newSnakes._1.map(_.id).contains(player.id) && !firstCome && !isContinue) spaceKey()
       newSnakes._1.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
