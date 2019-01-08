@@ -262,7 +262,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 //    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
+  var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
     data.fieldDetails.foreach { user =>
       if (snakes.exists(_.id == user.uid)) {
         var userScanField: List[FrontProtocol.Scan4Draw] = Nil
@@ -326,11 +326,9 @@ var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setFill(color)
-      fieldInWindow.foreach { field => //按行渲染
-        field.scanField.foreach { point =>
-          point.x.foreach { x =>
-            ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-          }
+      field.scanField.foreach { point =>
+        point.x.foreach { x =>
+          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
         }
       }
     }

@@ -260,7 +260,7 @@ class BotController(player: PlayerInfoInClient,
           println("rank!!!")
           currentRank = current
           myCurrentRank = score
-          layeredGameScene.drawRank(player.id,grid.getGridData.snakes,currentRank)
+          layeredGameScene.layered.drawRank(player.id,grid.getGridData.snakes,currentRank)
         }
 
       case data: Protocol.Data4TotalSync =>

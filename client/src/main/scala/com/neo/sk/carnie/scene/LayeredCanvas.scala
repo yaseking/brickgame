@@ -59,10 +59,10 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private val championHeaderImg = new Image("champion.png")
   private val myHeaderImg = imgMap(img)
   private val crownImg = new Image("crown.png")
-  private var canvasUnit = (positionWindowBoundary.x / window.x).toDouble
-  private var humanCanvasUnit = humanWindowBoundary.x / window.x
-  private var humanCanvasUnitY = humanWindowBoundary.y / window.y
-  private var canvasUnitY =   positionWindowBoundary.y / window.y
+  private val canvasUnit = (positionWindowBoundary.x / window.x).toDouble
+  private val humanCanvasUnit = (humanWindowBoundary.x / window.x).toDouble
+  private var humanCanvasUnitY = (humanWindowBoundary.y / window.y).toDouble
+  private var canvasUnitY =   (positionWindowBoundary.y / window.y).toDouble
   private var scale = 1.0
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val textLineHeight = 15
@@ -158,21 +158,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   def drawBorder(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
 
-    val snakes = data.snakes
-
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-
+    val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
+      findOffset(BorderCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int)
 
     BorderCtx.setFill(Color.BLACK)
     val w = positionWindowBoundary.x //400
@@ -365,36 +352,15 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
 
   def drawHumanView(currentRank: List[Score],uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int]): Unit = { //头所在的点是屏幕的正中心
-    
+
     val snakes = data.snakes
-    humanViewCtx.clearRect(0, 0, humanWindowBoundary.x, humanWindowBoundary.y)
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offX = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offY = window.y / 2 - lastHeader.y //新的框的y偏移量
-
-
-
-
-    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
-    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
 
     humanViewCtx.clearRect(0, 0, humanWindowBoundary.x, humanWindowBoundary.y)
-    humanViewCtx.setFill(ColorsSetting.backgroundColor)
-    humanViewCtx.fillRect(0,0,humanWindowBoundary.x,humanWindowBoundary.y)
-    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offX, y = i.header.y + offY)))
-//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-    val fieldInWindow = data.fieldDetails
 
-    scale = 1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00008
+    val (snakeWithOff, fieldInWindow, bodyInWindow, offX, offY) =
+      findOffset(humanViewCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int,isHuman = true)
+
+//    scale = 1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00008
     humanViewCtx.save()
 
     humanViewCtx.setFill(Color.rgb(105,105,105))
@@ -402,51 +368,12 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     humanViewCtx.fillRect(humanCanvasUnit * offX, humanCanvasUnit * offY, humanCanvasUnit, humanCanvasUnit * BorderSize.h)
     humanViewCtx.fillRect(humanCanvasUnit * offX, (BorderSize.h + offY) * humanCanvasUnit, humanCanvasUnit * (BorderSize.w + 1), humanCanvasUnit)
     humanViewCtx.fillRect((BorderSize.w + offX) * humanCanvasUnit, humanCanvasUnit * offY, humanCanvasUnit, humanCanvasUnit * (BorderSize.h + 1))
-    humanViewCtx.setGlobalAlpha(0.6)
-    data.bodyDetails.foreach { bds =>
-      val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      humanViewCtx.setFill(color)
-      val turnPoints = bds.turn
-      (0 until turnPoints.length - 1).foreach { i => //拐点渲染
-        val start = turnPoints(i)
-        val end = turnPoints(i + 1)
-        if (start.x == end.x) { //同x
-          if (start.y > end.y) {
-            humanViewCtx.fillRect((start.x + offX) * humanCanvasUnit, (end.y + 1 + offY) * humanCanvasUnit, humanCanvasUnit, (start.y - end.y) * humanCanvasUnit)
-          } else {
-            humanViewCtx.fillRect((start.x + offX) * humanCanvasUnit, (start.y + offY) * humanCanvasUnit, humanCanvasUnit, (end.y - start.y) * humanCanvasUnit)
-          }
-        } else { // 同y
 
-          if (start.x > end.x) {
-            humanViewCtx.fillRect((end.x + 1 + offX) * humanCanvasUnit, (end.y + offY) * humanCanvasUnit, (start.x - end.x) * humanCanvasUnit, humanCanvasUnit)
-          } else {
-            humanViewCtx.fillRect((start.x + offX) * humanCanvasUnit, (start.y + offY) * humanCanvasUnit, (end.x - start.x) * humanCanvasUnit, humanCanvasUnit)
-          }
-        }
-      }
-      if (turnPoints.nonEmpty) {
-        humanViewCtx.fillRect((turnPoints.last.x + offX) * humanCanvasUnit, (turnPoints.last.y + offY) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
-      }
-    }
+    drawForBody(bodyInWindow, humanViewCanvas, snakes, offX, offY, canvasUnit = humanCanvasUnit)
 
-    humanViewCtx.setGlobalAlpha(1)
-    fieldInWindow.foreach { field => //按行渲染
-      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      humanViewCtx.setFill(color)
-//      field.scanField.foreach { point =>
-//        point.x.foreach { x =>
-//          humanViewCtx.fillRect((x._1 + offX) * humanCanvasUnit, (point.y + offY) * humanCanvasUnit, humanCanvasUnit * (x._2 - x._1 + 1), humanCanvasUnit * 1.05)
-//        }
-//      }
+    drawForField(fieldInWindow, humanViewCanvas, snakes, offX, offY, canvasUnit = humanCanvasUnit)
 
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          humanViewCtx.fillRect((x._1 + offX) * canvasUnit, (point.y + offY) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-        }
-      }
-    }
-
+//    drawForHeader(snakeWithOff.filter(_.id == uid), humanViewCanvas, uid, offsetTime, grid, frameRate, canvasUnit = humanCanvasUnit)
 
     snakeWithOff.foreach { s =>
       humanViewCtx.setFill(Constant.hex2Rgb(s.color))
@@ -562,175 +489,39 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     
     val snakes = data.snakes
 
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / frameRate
+    val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
+      findOffset(selfViewCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int)
 
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-
-    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
-    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
-
-    val w = positionWindowBoundary.x //400
-    val h = positionWindowBoundary.y //300
-    selfViewCtx.clearRect(0, 0, w, h)
-    selfViewCtx.setFill(Color.BLACK)
-    selfViewCtx.save()
-    selfViewCtx.fillRect(0, 0, w , h )
-    selfViewCtx.restore()
-//    selfViewCtx.setFill(ColorsSetting.backgroundColor)
-//    selfViewCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
-    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-    var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
-    data.fieldDetails.foreach { user =>
-      if (snakes.exists(_.id == user.uid)) {
-        var userScanField: List[FrontProtocol.Scan4Draw] = Nil
-        user.scanField.foreach { field =>
-          if (field.y < maxPoint.y && field.y > minPoint.y) {
-            userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
-          }
-        }
-        fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
-      }
-    }
-
-    val bodyInWindow = data.bodyDetails.filter{b =>
-      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
-
-
-    scale = 1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00008
     selfViewCtx.save()
 
-//    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
+    drawForBody(bodyInWindow, selfViewCanvas, snakes, offx, offy)
+
+    drawForField(fieldInWindow, selfViewCanvas, snakes, offx, offy)
+
+    drawForHeader(snakeWithOff, selfViewCanvas, uid, offsetTime, grid, frameRate)
+
 //    drawCache(offx , offy)
-    selfViewCtx.setGlobalAlpha(0.6)
-    bodyInWindow.foreach { bds =>
-      val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      selfViewCtx.setFill(color)
-      val turnPoints = bds.turn
-      (0 until turnPoints.length - 1).foreach { i => //拐点渲染
-        val start = turnPoints(i)
-        val end = turnPoints(i + 1)
-        if (start.x == end.x) { //同x
-          if (start.y > end.y) {
-            selfViewCtx.fillRect((start.x + offx) * canvasUnit, (end.y + 1 + offy) * canvasUnit, canvasUnit, (start.y - end.y) * canvasUnit)
-          } else {
-            selfViewCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, canvasUnit, (end.y - start.y) * canvasUnit)
-          }
-        } else { // 同y
-
-          if (start.x > end.x) {
-            selfViewCtx.fillRect((end.x + 1 + offx) * canvasUnit, (end.y + offy) * canvasUnit, (start.x - end.x) * canvasUnit, canvasUnit)
-          } else {
-            selfViewCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, (end.x - start.x) * canvasUnit, canvasUnit)
-          }
-        }
-      }
-      if (turnPoints.nonEmpty) {
-        selfViewCtx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
-      }
-    }
-
-    selfViewCtx.setGlobalAlpha(1)
-    fieldInWindow.foreach { field => //按行渲染
-      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      selfViewCtx.setFill(color)
-//      field.scanField.foreach { point =>
-//        point.x.foreach { x =>
-//          selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.1)
-//        }
-//      }
-
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          selfViewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-        }
-      }
-    }
-
-
-    snakeWithOff.foreach { s =>
-      selfViewCtx.setFill(Constant.hex2Rgb(s.color))
-
-      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / frameRate
-      selfViewCtx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-
-//      if (s.id == championId)
-//        selfViewCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      selfViewCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-
-      selfViewCtx.setFont(Font.font(16))
-      selfViewCtx.setFill(Color.rgb(0, 0, 0))
-//      val t = new Text(s"${s.name}")
-//      selfViewCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
-    }
-
-    selfViewCtx.restore()
 
   }
 
   def drawSelf(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / frameRate
+    val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
+      findOffset(selfCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int)
 
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-
-    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
-    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
-
-    val w = positionWindowBoundary.x //400
-    val h = positionWindowBoundary.y //300
-    selfCtx.clearRect(0, 0, w, h)
-    selfCtx.setFill(Color.BLACK)
+    //    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     selfCtx.save()
-    selfCtx.fillRect(0, 0, w , h )
-    selfCtx.restore()
-//    selfCtx.setFill(ColorsSetting.backgroundColor)
-//    selfCtx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
-    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-    var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
-    data.fieldDetails.foreach { user =>
-      if (snakes.exists(_.id == user.uid)) {
-        var userScanField: List[FrontProtocol.Scan4Draw] = Nil
-        user.scanField.foreach { field =>
-          if (field.y < maxPoint.y && field.y > minPoint.y) {
-            userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
-          }
-        }
-        fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
-      }
-    }
 
-    val bodyInWindow = data.bodyDetails.filter{b =>
-      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
+    //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
+    drawForBody(bodyInWindow.filter(_.uid == uid), selfCanvas, snakes, offx, offy)
 
-    selfCtx.save()
+    drawForField(fieldInWindow.filter(_.uid == uid), selfCanvas, snakes, offx, offy)
+
+    drawForHeader(snakeWithOff.filter(_.id == uid), selfCanvas, uid, offsetTime, grid, frameRate)
 
 //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-    selfCtx.setFill(Color.rgb(105,105,105))
+//    selfCtx.setFill(Color.rgb(105,105,105))
 //
 //  //画边界
 //    selfCtx.fillRect(canvasUnit * offx, canvasUnit * offy, canvasUnit * BorderSize.w, canvasUnit)
@@ -738,242 +529,40 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    selfCtx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
 //    selfCtx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
 
-
-    selfCtx.setGlobalAlpha(0.6)
-    val bd = bodyInWindow.find(_.uid == uid)
-    if(bd.isDefined){
-      val bds = bd.get
-      val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      selfCtx.setFill(color)
-      val turnPoints = bds.turn
-//      val turnPoints = data.bodyDetails.filter(_.uid == uid).head.turn.turnPoint
-      (0 until turnPoints.length - 1).foreach { i => //拐点渲染
-        val start = turnPoints(i)
-        val end = turnPoints(i + 1)
-        if (start.x == end.x) { //同x
-          if (start.y > end.y) {
-            selfCtx.fillRect((start.x + offx) * canvasUnit, (end.y + 1 + offy) * canvasUnit, canvasUnit, (start.y - end.y) * canvasUnit)
-          } else {
-            selfCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, canvasUnit, (end.y - start.y) * canvasUnit)
-          }
-        } else { // 同y
-
-          if (start.x > end.x) {
-            selfCtx.fillRect((end.x + 1 + offx) * canvasUnit, (end.y + offy) * canvasUnit, (start.x - end.x) * canvasUnit, canvasUnit)
-          } else {
-            selfCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, (end.x - start.x) * canvasUnit, canvasUnit)
-          }
-        }
-      }
-      if (turnPoints.nonEmpty) {
-        selfCtx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
-      }
-    }
-
-    selfCtx.setGlobalAlpha(1)
-    fieldInWindow.filter(_.uid == uid).foreach { field => //按行渲染
-      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      selfCtx.setFill(color)
-//      field.scanField.foreach { point =>
-//        point.x.foreach { x =>
-//          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.10)
-//        }
-//      }
-
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          selfCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-        }
-      }
-    }
-
-    snakeWithOff.filter(_.id == uid).foreach { s =>
-      selfCtx.setFill(Constant.hex2Rgb(s.color))
-
-      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / frameRate
-      selfCtx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-
-//      if (s.id == championId)
-//        selfCtx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      selfCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-
-//      selfCtx.setFont(Font.font(16))
-//      selfCtx.setFill(Color.rgb(0, 0, 0))
-//      val t = new Text(s"${s.name}")
-//      selfCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
-    }
-
-    selfCtx.restore()
-
-
   }
   
   def drawHeader(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
-    val snakes = data.snakes
+    val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
+      findOffset(headerCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int)
 
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-
-    val w = positionWindowBoundary.x //400
-    val h = positionWindowBoundary.y //300
-    headerCtx.clearRect(0, 0, w, h)
-    headerCtx.setFill(Color.BLACK)
-    headerCtx.save()
-    headerCtx.fillRect(0, 0, w , h )
-    headerCtx.restore()
-    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-
+    //    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     headerCtx.save()
 
-    headerCtx.setFill(Color.rgb(105,105,105))
+    //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
+    drawForHeader(snakeWithOff, headerCanvas, uid, offsetTime, grid, frameRate)
 
-    headerCtx.setGlobalAlpha(0.6)
-
-    snakeWithOff.foreach { s =>
-      headerCtx.setFill(Constant.hex2Rgb(s.color))
-
-      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / frameRate
-      headerCtx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      headerCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-    }
-
-    headerCtx.restore()
   }
 
   def drawBody(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int):Unit ={
     val snakes = data.snakes
+    val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
+      findOffset(viewCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int)
 
-    val lastHeader = snakes.find(_.id == uid) match {
-      case Some(s) =>
-        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-        s.header + direction * offsetTime.toFloat / frameRate
-
-      case None =>
-        Point(border.x / 2, border.y / 2)
-    }
-
-    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
-    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
-
-    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
-    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
-
-    viewCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    viewCtx.setFill(Color.BLACK)
-    val w = positionWindowBoundary.x //400
-    val h = positionWindowBoundary.y //300
-//    viewCtx.clearRect(0,0,w,h)
-    viewCtx.save()
-    viewCtx.fillRect(0, 0, w , h )
-    viewCtx.restore()
-    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
-//    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-    var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
-    data.fieldDetails.foreach { user =>
-      if (snakes.exists(_.id == user.uid)) {
-        var userScanField: List[FrontProtocol.Scan4Draw] = Nil
-        user.scanField.foreach { field =>
-          if (field.y < maxPoint.y && field.y > minPoint.y) {
-            userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
-          }
-        }
-        fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
-      }
-    }
-  
-    val bodyInWindow = data.bodyDetails.filter{b =>
-      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)}
-  
-    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
+//    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     viewCtx.save()
 
     //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-    viewCtx.setGlobalAlpha(0.6)
-    bodyInWindow.foreach { bds =>
-      val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      viewCtx.setFill(color)
-      val turnPoints = bds.turn
-      (0 until turnPoints.length - 1).foreach { i => //拐点渲染
-        val start = turnPoints(i)
-        val end = turnPoints(i + 1)
-        if (start.x == end.x) { //同x
-          if (start.y > end.y) {
-            viewCtx.fillRect((start.x + offx) * canvasUnit, (end.y + 1 + offy) * canvasUnit, canvasUnit, (start.y - end.y) * canvasUnit)
-          } else {
-            viewCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, canvasUnit, (end.y - start.y) * canvasUnit)
-          }
-        } else { // 同y
+    drawForBody(bodyInWindow, viewCanvas, snakes, offx, offy)
 
-          if (start.x > end.x) {
-            viewCtx.fillRect((end.x + 1 + offx) * canvasUnit, (end.y + offy) * canvasUnit, (start.x - end.x) * canvasUnit, canvasUnit)
-          } else {
-            viewCtx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, (end.x - start.x) * canvasUnit, canvasUnit)
-          }
-        }
-      }
-      if (turnPoints.nonEmpty) {
-        viewCtx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
-      }
-    }
+    drawForField(fieldInWindow, viewCanvas, snakes, offx, offy)
 
-    viewCtx.setGlobalAlpha(1)
-    fieldInWindow.foreach { field => //按行渲染
-      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      viewCtx.setFill(color)
-
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          viewCtx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-        }
-      }
-    }
-
-    viewCtx.setGlobalAlpha(1)
-    snakeWithOff.foreach { s =>
-      viewCtx.setFill(Constant.hex2Rgb(s.color))
-
-      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
-      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
-      val off = direction * offsetTime.toFloat / frameRate
-      viewCtx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      viewCtx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
-
-//      viewCtx.setFont(Font.font(16))
-//      viewCtx.setFill(Color.rgb(0, 0, 0))
-//      val t = new Text(s"${s.name}")
-//      viewCtx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
-    }
-
-    viewCtx.restore()
+    drawForHeader(snakeWithOff, viewCanvas, uid, offsetTime, grid, frameRate)
 
   }
 
   private var lastRankNum = 0 //清屏用
   def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score]): Unit = {
-
 //    val leftBegin = 20
     val rightBegin = 20
 //    val maxArea = if(0.4 - currentRank.length * 0.5 > 0.15) 0.4 - currentRank.length * 0.5 else 0.15
@@ -983,22 +572,19 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val killUnit = if(currentRank.nonEmpty){if(currentRank.map(_.k).max != 0)ratioLen / currentRank.map(_.k).max else ratioLen}
                        else 0
 
-    drawClearRank()//绘制前清除canvas
+//    drawClearRank()//绘制前清除canvas
 
     lastRankNum = currentRank.length
 
     rankCtx.setGlobalAlpha(1.0)
     rankCtx.setTextBaseline(VPos.TOP)
 
-    rankCtx.clearRect(0, 0, windowBoundary.x, windowBoundary.y)
-    rankCtx.setFill(Color.BLACK)
     val w = positionWindowBoundary.x //400
     val h = positionWindowBoundary.y //300
-    //    rankCtx.clearRect(0,0,w,h)
-
+    rankCtx.clearRect(0, 0, w, h)
+    rankCtx.setFill(Color.BLACK)
     rankCtx.fillRect(0, 0, w , h )
     rankCtx.save()
-//    rankCtx.restore()
 
     val currentRankBaseLine = 1
     var index = 0
@@ -1046,5 +632,142 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     p.y < windowMax.y && p.y > windowMin.y && p.x > windowMin.x && p.x < windowMax.x
   }
 
+  def findOffset(canvas: Canvas,uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long,
+                 grid: Grid, frameRate: Int, isHuman: Boolean = false) = {
+    val ctx = canvas.getGraphicsContext2D
+    val snakes = data.snakes
+    val lastHeader = snakes.find(_.id == uid) match {
+      case Some(s) =>
+        val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+        val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+        s.header + direction * offsetTime.toFloat / frameRate
+
+      case None =>
+        Point(border.x / 2, border.y / 2)
+    }
+
+    val offx = window.x / 2 - lastHeader.x //新的框的x偏移量
+    val offy = window.y / 2 - lastHeader.y //新的框的y偏移量
+
+    val newWindowBorder = Point(window.x / scale.toFloat, window.y / scale.toFloat)
+    val (minPoint, maxPoint) = (lastHeader - newWindowBorder, lastHeader + newWindowBorder)
+
+    if (!isHuman) {
+      val w = windowBoundary.x
+      val h = windowBoundary.y
+      ctx.clearRect(0, 0, w, h)
+      ctx.setFill(Color.BLACK)
+      ctx.save()
+      ctx.fillRect(0, 0, w, h)
+      ctx.restore()
+    }
+    else {
+      humanViewCtx.clearRect(0, 0, humanWindowBoundary.x, humanWindowBoundary.y)
+      humanViewCtx.setFill(ColorsSetting.backgroundColor)
+      humanViewCtx.fillRect(0,0,humanWindowBoundary.x,humanWindowBoundary.y)
+    }
+
+    val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
+    //    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
+    var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
+    data.fieldDetails.foreach { user =>
+      if (snakes.exists(_.id == user.uid)) {
+        var userScanField: List[FrontProtocol.Scan4Draw] = Nil
+        user.scanField.foreach { field =>
+          if (field.y < maxPoint.y && field.y > minPoint.y) {
+            userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
+          }
+        }
+        fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
+      }
+    }
+
+
+    val bodyInWindow = data.bodyDetails.filter { b =>
+      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)
+    }
+
+    (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy)
+  }
+
+  def drawForBody(bodyInWindow: List[FrontProtocol.BodyInfo4Draw], canvas: Canvas, snakes: List[SkDt], offx: Float, offy: Float, canvasUnit: Double = canvasUnit ): Unit = {
+    val ctx = canvas.getGraphicsContext2D
+    ctx.setGlobalAlpha(0.6)
+    bodyInWindow.foreach { bds =>
+      val color = snakes.find(_.id == bds.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      ctx.setFill(color)
+      val turnPoints = bds.turn
+      (0 until turnPoints.length - 1).foreach { i => //拐点渲染
+        val start = turnPoints(i)
+        val end = turnPoints(i + 1)
+        if (start.x == end.x) { //同x
+          if (start.y > end.y) {
+            ctx.fillRect((start.x + offx) * canvasUnit, (end.y + 1 + offy) * canvasUnit, canvasUnit, (start.y - end.y) * canvasUnit)
+          } else {
+            ctx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, canvasUnit, (end.y - start.y) * canvasUnit)
+          }
+        } else { // 同y
+
+          if (start.x > end.x) {
+            ctx.fillRect((end.x + 1 + offx) * canvasUnit, (end.y + offy) * canvasUnit, (start.x - end.x) * canvasUnit, canvasUnit)
+          } else {
+            ctx.fillRect((start.x + offx) * canvasUnit, (start.y + offy) * canvasUnit, (end.x - start.x) * canvasUnit, canvasUnit)
+          }
+        }
+      }
+      if (turnPoints.nonEmpty) {
+        ctx.fillRect((turnPoints.last.x + offx) * canvasUnit, (turnPoints.last.y + offy) * canvasUnit, canvasUnit, canvasUnit)
+      }
+    }
+  }
+
+  def drawForField(fieldInWindow: List[FrontProtocol.Field4Draw], canvas: Canvas, snakes: List[SkDt], offx: Float, offy: Float, canvasUnit: Double = canvasUnit): Unit = {
+    val ctx = canvas.getGraphicsContext2D
+    ctx.setGlobalAlpha(1)
+    fieldInWindow.foreach { field => //按行渲染
+      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+      ctx.setFill(color)
+      field.scanField.foreach { point =>
+        point.x.foreach { x =>
+          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+        }
+      }
+    }
+//    ctx.setGlobalAlpha(1)
+//    fieldInWindow.foreach { field => //按行渲染
+//      val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
+//      ctx.setFill(color)
+//      field.scanField.foreach { fids =>
+//        fids.y.foreach{y =>
+//          fids.x.foreach{x =>
+//            ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.05))
+//          }
+//        }
+//      }
+//    }
+  }
+
+  def drawForHeader(snakeWithOff: List[SkDt], canvas: Canvas, uid: String, offsetTime: Long, grid: Grid, frameRate: Int, canvasUnit: Double = canvasUnit): Unit ={
+    val ctx = canvas.getGraphicsContext2D
+    ctx.setGlobalAlpha(1)
+    snakeWithOff.foreach { s =>
+      ctx.setFill(Constant.hex2Rgb(s.color))
+
+      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+      val off = direction * offsetTime.toFloat / frameRate
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+
+      val otherHeaderImg = imgMap(s.img)
+      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+
+      //      ctx.setFont(Font.font(16))
+      //      ctx.setFill(Color.rgb(0, 0, 0))
+      //      val t = new Text(s"${s.name}")
+      //      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
+    }
+    ctx.restore()
+  }
 
 }
