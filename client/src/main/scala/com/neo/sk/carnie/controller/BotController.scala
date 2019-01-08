@@ -257,10 +257,10 @@ class BotController(player: PlayerInfoInClient,
 
       case Protocol.Ranks(current, score, _, _) =>
         Boot.addToPlatform {
-          println("rank!!!")
+//          println(s"rank!!! $score")
           currentRank = current
           myCurrentRank = score
-          layeredGameScene.layered.drawRank(player.id,grid.getGridData.snakes,currentRank)
+          layeredGameScene.layered.drawRank(player.id,grid.getGridData.snakes,List(score))
         }
 
       case data: Protocol.Data4TotalSync =>
@@ -327,14 +327,16 @@ class BotController(player: PlayerInfoInClient,
   def getAllImage  = {
     Boot.addToPlatform {
       val imageList = layeredGameScene.layered.getAllImageData
-      val humanObservation: _root_.scala.Option[ImgData] = imageList.find(_._1 == "6").map(_._2)
+      val humanObservation: _root_.scala.Option[ImgData] = imageList.find(_._1 == "7").map(_._2)
       val layeredObservation: LayeredObservation = LayeredObservation(
         imageList.find(_._1 == "0").map(_._2),
         imageList.find(_._1 == "1").map(_._2),
         imageList.find(_._1 == "2").map(_._2),
         imageList.find(_._1 == "3").map(_._2),
         imageList.find(_._1 == "4").map(_._2),
-        imageList.find(_._1 == "5").map(_._2)
+        imageList.find(_._1 == "5").map(_._2),
+        imageList.find(_._1 == "6").map(_._2),
+        None
       )
       val observation = (humanObservation, Some(layeredObservation), grid.frameCount, true)
       botActor ! Observation(observation)

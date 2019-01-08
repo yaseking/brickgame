@@ -34,7 +34,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private val humanWindowBoundary = Point(humanViewCanvas.getWidth.toFloat, humanViewCanvas.getHeight.toFloat - 210 )
   private val positionWindowBoundary = Point(positionCanvas.getWidth.toFloat, positionCanvas.getHeight.toFloat)
   
-  private val positionCanvasUnit = positionWindowBoundary.x / (border.x + 10)
+  private val positionCanvasUnit = positionWindowBoundary.x / border.x
   private var positionCanvasUnitY = positionWindowBoundary.y / border.y
 
   private val viewCtx = viewCanvas.getGraphicsContext2D
@@ -461,8 +461,12 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     humanViewCtx.clearRect(0, 400, 800 , 210)
     humanViewCtx.setFill(Color.BLACK)
     humanViewCtx.save()
-    humanViewCtx.fillRect(0, 400, 395 , 210 )
+    humanViewCtx.fillRect(0, 405, 395 , 210 )
     humanViewCtx.restore()
+//    humanViewCtx.setFill(Color.WHITE)
+//    humanViewCtx.save()
+//    humanViewCtx.fillRect(0, 405, 395 , 210 )
+//    humanViewCtx.restore()
 
     val baseLine4A = 2
     var index4A = 0

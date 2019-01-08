@@ -61,35 +61,37 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   viewCanvas.setLayoutX(1000)
   viewCanvas.setId("2")
 
+  headerCanvas.setHeight(viewHeight)
+  headerCanvas.setWidth(viewWidth)
+  headerCanvas.setLayoutY(345)
+  headerCanvas.setLayoutX(1405)
+  headerCanvas.setId("3")
+
   selfViewCanvas.setHeight(viewHeight)
   selfViewCanvas.setWidth(viewWidth)
-  selfViewCanvas.setLayoutY(345)
-  selfViewCanvas.setLayoutX(1405)
-  selfViewCanvas.setId("3")
+  selfViewCanvas.setLayoutY(550)
+  selfViewCanvas.setLayoutX(1000)
+  selfViewCanvas.setId("4")
 
   selfCanvas.setHeight(viewHeight)
   selfCanvas.setWidth(viewWidth)
   selfCanvas.setLayoutY(550)
-  selfCanvas.setLayoutX(1000)
-  selfCanvas.setId("4")
+  selfCanvas.setLayoutX(1405)
+  selfCanvas.setId("5")
 
   rankCanvas.setHeight(viewHeight)
   rankCanvas.setWidth(viewWidth)
-  rankCanvas.setLayoutY(550)
-  rankCanvas.setLayoutX(1405)
-  rankCanvas.setId("5")
+  rankCanvas.setLayoutY(545)
+  rankCanvas.setLayoutX(595)
+  rankCanvas.setId("6")
 
   humanViewCanvas.setHeight(humanViewHeight + 210)
   humanViewCanvas.setWidth(humanViewWidth)
   humanViewCanvas.setLayoutY(140)
   humanViewCanvas.setLayoutX(195)
-  humanViewCanvas.setId("6")
+  humanViewCanvas.setId("7")
 
-  headerCanvas.setHeight(viewHeight)
-  headerCanvas.setWidth(viewWidth)
-  headerCanvas.setLayoutY(545)
-  headerCanvas.setLayoutX(595)
-  headerCanvas.setId("7")
+
   
   
 
@@ -119,7 +121,7 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     layered.drawBorder(uid, data, offsetTime, grid, frameRate)
     layered.drawSelfView(uid, data, offsetTime, grid,  frameRate)
     layered.drawSelf(uid, data, offsetTime, grid, frameRate)
-    layered.drawRank(uid, data.snakes, currentRank)
+//    layered.drawRank(uid, data.snakes, currentRank)
     layered.drawBody(uid, data, offsetTime, grid, frameRate)
     layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate,myActions)
     layered.drawHeader(uid, data, offsetTime, grid, frameRate)
