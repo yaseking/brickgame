@@ -263,13 +263,13 @@ class GridOnClient(override val boundary: Point) extends Grid {
     val t2 = System.currentTimeMillis()
     grid.foreach {
       case (p, Field(id)) =>
-        val tx = System.currentTimeMillis()
+//        val tx = System.currentTimeMillis()
         val map = fields.getOrElse(id, Map.empty)
-        val tx2 = System.currentTimeMillis()
+//        val tx2 = System.currentTimeMillis()
 //        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
         fields.update(id, map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil))))
-        val tx3 = System.currentTimeMillis()
-        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
+//        val tx3 = System.currentTimeMillis()
+//        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
 
       case _ => //doNothing
     }
@@ -282,7 +282,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     }.toList
     val t4 = System.currentTimeMillis()
 
-    println(s"get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
+    println(s"===get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
 
     FrontProtocol.Data4Draw(
       frameCount,
