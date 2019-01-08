@@ -129,6 +129,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       }
 
       if (spaceEvent.contains(grid.frameCount)) {
+        println(s"space event get !!!!")
         //        println(s"space event exists:${spaceEvent(grid.frameCount).id}, frame: ${grid.frameCount}")
 //        replayMessageHandler(spaceEvent(grid.frameCount), grid.frameCount.toInt)
         val newSnakes = spaceEvent(grid.frameCount)
