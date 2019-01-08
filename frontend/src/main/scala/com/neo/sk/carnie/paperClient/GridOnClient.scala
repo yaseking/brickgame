@@ -256,18 +256,20 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def getGridData4Draw: FrontProtocol.Data4Draw = {
+    import scala.collection.mutable
     val t1 = System.currentTimeMillis()
-    val fields = scala.collection.mutable.Map.empty[String, Map[Short, List[Short]]]
+    val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
 
     val t2 = System.currentTimeMillis()
     grid.foreach {
       case (p, Field(id)) =>
 //        val tx = System.currentTimeMillis()
-        val map = fields.getOrElse(id, Map.empty)
+        val map = fields.getOrElse(id, mutable.Map.empty)
 //        val tx2 = System.currentTimeMillis()
 //        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
-        fields.update(id, map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil))))
+        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+        fields.update(id, map)
 //        val tx3 = System.currentTimeMillis()
 //        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
 
@@ -282,7 +284,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     }.toList
     val t4 = System.currentTimeMillis()
 
-    println(s"===get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
+    println(s"=====get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
 
     FrontProtocol.Data4Draw(
       frameCount,
