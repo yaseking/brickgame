@@ -8,7 +8,7 @@ import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgent
 import com.neo.sk.carnie.actor.BotActor
 import org.seekloud.esheepapi.pb.actions.Move
 import akka.actor.typed.scaladsl.AskPattern._
-import com.neo.sk.carnie.paperClient.Score
+import com.neo.sk.carnie.paperClient.{Protocol, Score}
 import com.neo.sk.carnie.common.BotAppSetting
 import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
@@ -168,6 +168,12 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     } else Future.successful(SimpleRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
+  override def systemInfo(request: Credit): Future[SystemInfoRsp] = {
+    println(s"systemInfo Called by [$request")
+    if (request.apiToken == BotAppSetting.apiToken) {
+      Future.successful(SystemInfoRsp(frameRate = Protocol.frameRate1, state = state))
+    } else Future.successful(SystemInfoRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
+  }
 
 
 }

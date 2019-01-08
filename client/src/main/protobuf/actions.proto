@@ -38,18 +38,3 @@ message Swing {
   float radian = 1;
   float distance = 2;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
