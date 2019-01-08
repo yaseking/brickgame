@@ -257,7 +257,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   def getGridData4Draw: FrontProtocol.Data4Draw = {
     val t1 = System.currentTimeMillis()
-    var fields = Map.empty[String, Map[Short, List[Short]]]
+    val fields = scala.collection.mutable.Map.empty[String, Map[Short, List[Short]]]
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
 
     val t2 = System.currentTimeMillis()
@@ -266,7 +266,8 @@ class GridOnClient(override val boundary: Point) extends Grid {
         val tx = System.currentTimeMillis()
         val map = fields.getOrElse(id, Map.empty)
         val tx2 = System.currentTimeMillis()
-        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+//        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+        fields.update(id, map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil))))
         val tx3 = System.currentTimeMillis()
         println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
 
