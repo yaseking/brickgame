@@ -226,8 +226,8 @@ class DrawGame(
     ctx.globalAlpha = 0.6
     ctx.restore()
     ctx.save()
-    if (dom.window.innerWidth > 1200) ctx.font = "bold 18px Microsoft YaHei"
-    else ctx.font = "bold 14px Microsoft YaHei"
+    if (dom.window.innerWidth > 1200) ctx.font = "bold 20px Microsoft YaHei"
+    else ctx.font = "bold 15px Microsoft YaHei"
     ctx.fillStyle = "#FF5809"
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
