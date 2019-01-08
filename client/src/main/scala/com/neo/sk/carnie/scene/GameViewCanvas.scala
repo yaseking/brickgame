@@ -95,11 +95,9 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
 //            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
 //          }
 //        }
-        field.scanField.foreach { fids =>
-          fids.y.foreach{y =>
-            fids.x.foreach{x =>
-              ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, y._1 * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.05))
-            }
+        field.scanField.foreach { point =>
+          point.x.foreach { x =>
+            ctx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
           }
         }
       }
@@ -264,13 +262,16 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 //    val fieldInWindow = data.fieldDetails.map { f => FieldByColumn(f.uid, f.scanField.filter(p => p.y < maxPoint.y && p.y > minPoint.y)) }
-  var fieldInWindow: List[FieldByColumn] = Nil
+var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
     data.fieldDetails.foreach { user =>
       if (snakes.exists(_.id == user.uid)) {
-        fieldInWindow = FieldByColumn(user.uid, user.scanField.map { field =>
-          ScanByColumn(field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y),
-            field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x))
-        }) :: fieldInWindow
+        var userScanField: List[FrontProtocol.Scan4Draw] = Nil
+        user.scanField.foreach { field =>
+          if (field.y < maxPoint.y && field.y > minPoint.y) {
+            userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
+          }
+        }
+        fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
       }
     }
 
@@ -330,10 +331,10 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
 //          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
 //        }
 //      }
-      field.scanField.foreach { fids =>
-        fids.y.foreach{y =>
-          fids.x.foreach{x =>
-            ctx.fillRect((x._1 + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1.04))
+      fieldInWindow.foreach { field => //按行渲染
+        field.scanField.foreach { point =>
+          point.x.foreach { x =>
+            ctx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
           }
         }
       }

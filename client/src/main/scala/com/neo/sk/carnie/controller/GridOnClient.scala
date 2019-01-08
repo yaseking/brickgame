@@ -255,22 +255,22 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def getGridData4Draw: FrontProtocol.Data4Draw = {
-    var fields: List[Fd] = Nil
+    var fields = Map.empty[String, Map[Short, List[Short]]]
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
 
     grid.foreach {
-      case (p, Field(id)) => fields ::= Fd(id, p.x.toInt, p.y.toInt)
+      case (p, Field(id)) =>
+        val map = fields.getOrElse(id, Map.empty)
+        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+
       case _ => //doNothing
     }
 
-    val fieldDetails =
-      fields.groupBy(_.id).map { case (userId, fieldPoints) =>
-        Protocol.FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
-          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).sorted))
-        }.toList.groupBy(_._2).map { case (r, target) =>
-          Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
-        }.toList)
-      }.toList
+    val fieldDetails = fields.map { f =>
+      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
+        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
+      }.toList)
+    }.toList
 
     FrontProtocol.Data4Draw(
       frameCount,

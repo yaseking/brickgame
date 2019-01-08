@@ -21,7 +21,7 @@ object FrontProtocol {
                              frameCount: Int,
                              snakes: List[SkDt],
                              bodyDetails: List[BodyInfo4Draw],
-                             fieldDetails: List[Protocol.FieldByColumn]
+                             fieldDetails: List[Field4Draw]
                            )
 
   case class BodyInfo4Draw(

@@ -256,47 +256,22 @@ class GridOnClient(override val boundary: Point) extends Grid {
   }
 
   def getGridData4Draw: FrontProtocol.Data4Draw = {
-    val beginTime = System.currentTimeMillis()
     var fields = Map.empty[String, Map[Short, List[Short]]]
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
-    var fields1: List[Fd] = Nil
-
-    val drawFirst = System.currentTimeMillis() - beginTime
 
     grid.foreach {
       case (p, Field(id)) =>
         val map = fields.getOrElse(id, Map.empty)
         fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
-        fields1 ::= Fd(id, p.x.toInt, p.y.toInt)
 
       case _ => //doNothing
     }
 
-    val drawsecond = System.currentTimeMillis() - beginTime - drawFirst
-
-    val fieldDetails1 = fields.map { f =>
-      Protocol.FieldByColumn(f._1, f._2.map { p =>
-        (p._1, Tool.findContinuous(p._2.sorted))
-      }.toList.groupBy(_._2).map { case (r, target) =>
-        Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
+    val fieldDetails = fields.map { f =>
+      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
+        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
       }.toList)
     }.toList
-
-    val testTime = System.currentTimeMillis() - beginTime - drawsecond
-
-    val fieldDetails =
-      fields1.groupBy(_.id).map { case (userId, fieldPoints) =>
-        Protocol.FieldByColumn(userId, fieldPoints.groupBy(_.y).map { case (y, target) =>
-          (y.toShort, Tool.findContinuous(target.map(_.x.toShort).sorted))
-        }.toList.groupBy(_._2).map { case (r, target) =>
-          Protocol.ScanByColumn(Tool.findContinuous(target.map(_._1).sorted), r)
-        }.toList)
-      }.toList
-
-
-    val drawthird = System.currentTimeMillis() - beginTime - testTime
-
-    println(s"drawFirst:$drawFirst,drawsecond:$drawsecond,drawthird:$drawthird;testTime:$testTime")
 
     FrontProtocol.Data4Draw(
       frameCount,
