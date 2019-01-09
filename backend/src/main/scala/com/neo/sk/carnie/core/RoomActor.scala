@@ -430,7 +430,7 @@ object RoomActor {
                 gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
                 userDeadList += u._1 -> curTime
                 if (u._1.take(3) == "bot") {
-                  botMap.-=(u._1)
+//                  botMap.-=(u._1)
                   getBotActor(ctx, u._1) ! BotDead
                 }
               }
