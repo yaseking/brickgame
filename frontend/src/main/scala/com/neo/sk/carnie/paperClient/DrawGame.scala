@@ -226,14 +226,13 @@ class DrawGame(
     ctx.globalAlpha = 0.6
     ctx.restore()
     ctx.save()
-    if (dom.window.innerWidth > 1200) ctx.font = "bold 30px Microsoft YaHei"
-    else ctx.font = "bold 20px Microsoft YaHei"
+    if (dom.window.innerWidth > 1200) ctx.font = "bold 20px Microsoft YaHei"
+    else ctx.font = "bold 15px Microsoft YaHei"
     ctx.fillStyle = "#FF5809"
     val txt = s"$killedName is killed by $killerName"
     val length = ctx.measureText(txt).width
     val offx = length / 2
-    //    ctx.drawImage(bloodImg, dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 2).toInt - 180, 300, 50)
-    ctx.fillText(s"$killedName is killed by $killerName", dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 5).toInt)
+    ctx.fillText(s"$killedName is killed by $killerName", dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 9).toInt)
     ctx.restore()
   }
 
@@ -533,7 +532,7 @@ class DrawGame(
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "10px Helvetica"
-    drawTextLine("Version:20190108", rightBegin.toInt+100, index, currentRankBaseLine-1)
+    drawTextLine("Version:20190109", rightBegin.toInt+100, index, currentRankBaseLine-1)
     rankCtx.font = "14px Helvetica"
     drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {
