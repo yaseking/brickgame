@@ -50,6 +50,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   var pingId: Short = 0
 
+  var frameTemp = 0
+
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
   private var winningData = WinData(0, Some(0))
@@ -407,6 +409,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myId = id
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
+        if (frame >= frameTemp) frameTemp =  frame else println(s"!!!!!!!error: frame from msg:$frame, frameTemp: $frameTemp")
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           if (id == myId) { //收到自己的进行校验是否与预判一致，若不一致则回溯
@@ -432,6 +435,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case OtherAction(carnieId, keyCode, frame) =>
+        if (frame >= frameTemp) frameTemp =  frame else println(s"!!!!!!!error: frame from msg:$frame, frameTemp: $frameTemp")
+
         if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
           val id = grid.carnieMap(carnieId)
           grid.addActionWithFrame(id, keyCode, frame)
@@ -462,15 +467,21 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.Data4TotalSync =>
+        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount else println(s"!!!!!!!error: frame from msg:${data.frameCount}, frameTemp: $frameTemp")
+
         println(s"===========recv total data")
         syncGridData = Some(data)
         isSynced = true
 
       case data: Protocol.SyncFrame =>
+        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount else println(s"!!!!!!!error: frame from msg:${data.frameCount}, frameTemp: $frameTemp")
+
         syncFrame = Some(data)
         isSynced = true
 
       case data: Protocol.NewSnakeInfo =>
+        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount else println(s"!!!!!!!error: frame from msg:${data.frameCount}, frameTemp: $frameTemp")
+
         data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
         grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
           FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
@@ -488,6 +499,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         maxArea = Constant.shortMax(maxArea, area)
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
+        if (frame >= frameTemp) frameTemp =  frame else println(s"!!!!!!!error: frame from msg:$frame, frameTemp: $frameTemp")
+
         deadInfo.find{d => grid.carnieMap.getOrElse(d.carnieId, "") == myId} match {
           case Some(myKillInfo) if myKillInfo.killerId.nonEmpty =>
             isGetKiller = true
@@ -520,7 +533,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case data: Protocol.NewFieldInfo =>
-//        println(s"got NewFieldInfo:${data.frameCount}.")
+        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount else println(s"!!!!!!!error: frame from msg:${data.frameCount}, frameTemp: $frameTemp")
+
+        //        println(s"got NewFieldInfo:${data.frameCount}.")
         val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
         if (fields.exists(_.uid == myId)) audioFinish.play()
         grid.historyFieldInfo += data.frameCount -> fields
