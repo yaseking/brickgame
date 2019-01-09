@@ -58,16 +58,19 @@ class BotController(player: PlayerInfoInClient,
 //    allImageData = getAllImage
     logicFrameTime = System.currentTimeMillis()
 
+    var isAlreadySendSync = false
+
     recallFrame match {
       case Some(-1) =>
         println("!!!!!!!!:NeedToSync")
         botActor ! BotActor.MsgToService(NeedToSync.asInstanceOf[UserAction])
+        isAlreadySendSync = true
         recallFrame = None
 
       case Some(frame) =>
         val time1 = System.currentTimeMillis()
         println(s"before recall...frame:${grid.frameCount}")
-        grid.historyDieSnake.filter{d => d._2.contains(player.id) && d._1 > frame}.keys.headOption match {
+        grid.historyDieSnake.filter { d => d._2.contains(player.id) && d._1 > frame }.keys.headOption match {
           case Some(dieFrame) =>
             if (dieFrame - 2 > frame) grid.recallGrid(frame, dieFrame - 2)
             else grid.setGridInGivenFrame(frame)
@@ -82,7 +85,7 @@ class BotController(player: PlayerInfoInClient,
     }
 
     if (syncGridData.nonEmpty) { //全量数据
-      if(grid.snakes.nonEmpty){
+      if (grid.snakes.nonEmpty) {
         println("total syncGridData")
         grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
       }
@@ -92,34 +95,32 @@ class BotController(player: PlayerInfoInClient,
     } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
       val frontend = grid.frameCount
       val backend = syncFrame.get.frameCount
-      val advancedFrame = Math.abs(backend - frontend)
-      if (backend > frontend && advancedFrame == 1) {
+      val advancedFrame = backend - frontend
+      if (advancedFrame == 1) {
         println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-        addBackendInfo(grid.frameCount)
         grid.updateOnClient()
         addBackendInfo(grid.frameCount)
-      } else if(frontend > backend && grid.historyStateMap.get(backend).nonEmpty){
+      } else if (advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty) {
         println(s"frontend advanced backend,frontend$frontend,backend:$backend")
         grid.setGridInGivenFrame(backend)
-      } else if (backend >= frontend && advancedFrame < (grid.maxDelayed - 1)) {
+      } else if (advancedFrame == 0) {
+        println(s"frontend equal to backend,frontend$frontend,backend:$backend")
+      } else if (advancedFrame > 0 && advancedFrame < (grid.maxDelayed - 1)) {
         println(s"backend advanced frontend,frontend$frontend,backend:$backend")
-        val endFrame = grid.historyDieSnake.filter{d => d._2.contains(player.id) && d._1 > frontend}.keys.headOption match {
+        val endFrame = grid.historyDieSnake.filter { d => d._2.contains(player.id) && d._1 > frontend }.keys.headOption match {
           case Some(dieFrame) => Math.min(dieFrame - 1, backend)
           case None => backend
         }
-
-        (frontend until endFrame).foreach { frame =>
-          grid.frameCount = frame
-          addBackendInfo(frame)
+        (frontend until endFrame).foreach { _ =>
           grid.updateOnClient()
+          addBackendInfo(grid.frameCount)
         }
         println(s"after speed,frame:${grid.frameCount}")
       } else {
-        botActor ! BotActor.MsgToService(NeedToSync.asInstanceOf[UserAction])
+        if (!isAlreadySendSync) botActor ! BotActor.MsgToService(NeedToSync.asInstanceOf[UserAction])
       }
       syncFrame = None
     } else {
-      addBackendInfo(grid.frameCount)
       grid.updateOnClient()
       addBackendInfo(grid.frameCount)
     }
@@ -150,39 +151,27 @@ class BotController(player: PlayerInfoInClient,
 
       case Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
         Boot.addToPlatform {
-          Boot.addToPlatform {
-            if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
-              val id = grid.carnieMap(carnieId)
-              if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
-                myActions += frame -> keyCode
-                //            println(s"recv:$r")
-                if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
-                  grid.addActionWithFrame(id, keyCode, frame)
-                  if (frame < grid.frameCount) {
-                    if(frame == grid.frameCount) println("!!!!!!!!!!!!!!frame == frontendFrame")
-                    println(s"recall for my Action1,backend:$frame,frontend:${grid.frameCount}")
-                    recallFrame = grid.findRecallFrame(frame, recallFrame)
-                  }
-                } else {
-                  if (grid.myActionHistory(actionId)._1 != keyCode || grid.myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
-                    //                println(s"now:${grid.frameCount}...history:${grid.myActionHistory(actionId)._2}...backend:$frame")
-                    grid.deleteActionWithFrame(id, grid.myActionHistory(actionId)._2)
-                    grid.addActionWithFrame(id, keyCode, frame)
-                    val miniFrame = Math.min(frame, grid.myActionHistory(actionId)._2)
-                    if (miniFrame < grid.frameCount) {
-                      println(s"recall for my Action2,backend:$miniFrame,frontend:${grid.frameCount}")
-                      recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
-                    }
-                  }
-                  grid.myActionHistory -= actionId
-                }
-              } else { //收到别人的动作则加入action，若帧号滞后则进行回溯
+          if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
+            val id = grid.carnieMap(carnieId)
+            if (id == player.id) { //收到自己的进行校验是否与预判一致，若不一致则回溯
+              myActions += frame -> keyCode
+              if (grid.myActionHistory.get(actionId).isEmpty) { //前端没有该项，则加入
                 grid.addActionWithFrame(id, keyCode, frame)
-                //            println(s"addActionWithFrame time:${System.currentTimeMillis() - sendTime}")
                 if (frame < grid.frameCount) {
-                  println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+                  println(s"recall for my Action1,backend:$frame,frontend:${grid.frameCount}")
                   recallFrame = grid.findRecallFrame(frame, recallFrame)
                 }
+              } else {
+                if (grid.myActionHistory(actionId)._1 != keyCode || grid.myActionHistory(actionId)._2 != frame) { //若keyCode或则frame不一致则进行回溯
+                  grid.deleteActionWithFrame(id, grid.myActionHistory(actionId)._2)
+                  grid.addActionWithFrame(id, keyCode, frame)
+                  val miniFrame = Math.min(frame, grid.myActionHistory(actionId)._2)
+                  if (miniFrame < grid.frameCount) {
+                    println(s"recall for my Action2,backend:$miniFrame,frontend:${grid.frameCount}")
+                    recallFrame = grid.findRecallFrame(miniFrame, recallFrame)
+                  }
+                }
+                grid.myActionHistory -= actionId
               }
             }
           }
@@ -273,9 +262,11 @@ class BotController(player: PlayerInfoInClient,
         Boot.addToPlatform{
           data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
           grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
-            Protocol.FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
+            FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
           })
-          if (data.frameCount < grid.frameCount) {
+          if(data.frameCount == grid.frameCount){
+            addNewSnake(data.frameCount)
+          } else if (data.frameCount < grid.frameCount) {
             println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
           }
