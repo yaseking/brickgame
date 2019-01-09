@@ -80,7 +80,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   def getImageData(canvas: Canvas) = {
 //    a += 1
-    val h = canvas.getHeight.toInt
+    var h = canvas.getHeight.toInt
+    if (canvas.getId == "7") h -= 210
     val w = canvas.getWidth.toInt
     val params = new SnapshotParameters
     val id = canvas.getId
@@ -104,7 +105,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     byteBuffer.flip()
     val byteArray = byteBuffer.array().take(byteBuffer.limit())
 //    println(ByteString.copyFrom(byteArray),byteArray.length,byteBuffer.limit())
-    (id,ImgData(w,h,w*h,ByteString.copyFrom(byteArray)))
+    (id, ImgData(w ,h, 4, ByteString.copyFrom(byteArray)))
 //    println("byte" + byte.toList.length)
 //    for(x <- 0 until w){
 //      for(y <- 0 until h){

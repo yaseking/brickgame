@@ -85,7 +85,7 @@ object BotActor {
           if (actionNum == 0) actionCode = (Random.nextInt(4) + 37).toByte
           roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           actionNum match {
-            case 0 => gaming(botId, grid, roomActor, frameRate,actionNum + 1)
+            case 0 => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
             case _ => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
           }
 
@@ -99,15 +99,16 @@ object BotActor {
             val newHeader = (2 to 2).map(header + direction * _)
             newHeader.foreach{ h =>
               grid.grid.get(h) match {
-                case Some(Border) => actionCode = pointsToAvoid(direction)
-                case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
-                case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
+                case Some(Border) => actionCode = pointsToAction(direction)
+//                case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
+//                case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
 //                case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
                 case _  => actionCode = pointsToAction(direction)
               }
             }
+            actionCode = 0
           }
-//          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
+          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
           roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           gaming(botId, grid, roomActor, frameRate, actionNum)
 
