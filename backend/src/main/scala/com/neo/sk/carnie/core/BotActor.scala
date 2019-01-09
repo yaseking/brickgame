@@ -87,6 +87,18 @@ object BotActor {
               val direction = grid.snakes.find(_._1 == botId).get._2.direction
               actionCode = pointsToAction(directionToRight(direction))
             }
+            if(grid.snakes.exists(_._1 == botId)){
+              val header = grid.snakes.find(_._1 == botId).get._2.header
+              val direction = grid.snakes.find(_._1 == botId).get._2.direction
+              //            log.info(s"=====bot direction:$direction")
+              val newHeader = List(3,2,1).map(header + directionToRight(direction) * _)
+              newHeader.foreach{ h =>
+                grid.grid.get(h) match {
+                  case Some(Body(bid, _))  => actionCode = pointsToAvoid(direction)
+                  case _  => actionCode = pointsToAction(directionToRight(direction))
+                }
+              }
+            }
             if (stateForA == 0) actionCode = (Random.nextInt(4) + 37).toByte
             roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           }
@@ -110,7 +122,7 @@ object BotActor {
               val header = grid.snakes.find(_._1 == botId).get._2.header
               val direction = grid.snakes.find(_._1 == botId).get._2.direction
               //            log.info(s"=====bot direction:$direction")
-              val newHeader = (2 to 2).map(header + direction * _)
+              val newHeader = List(3,2,1).map(header + direction * _)
               newHeader.foreach{ h =>
                 grid.grid.get(h) match {
                   case Some(Border) =>
