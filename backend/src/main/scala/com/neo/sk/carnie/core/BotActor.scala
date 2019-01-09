@@ -57,7 +57,7 @@ object BotActor {
             roomActor ! RoomActor.JoinRoom4Bot(botId, botName, ctx.self, new Random().nextInt(6))
             val randomTime = 1 + scala.util.Random.nextInt(20)
             timer.startSingleTimer(MakeActionKey, MakeAction(0), randomTime * frameRate.millis)
-//            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
+            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
             gaming(botId, grid, roomActor, frameRate)
 
           case unknownMsg@_ =>
@@ -99,14 +99,16 @@ object BotActor {
             val newHeader = (2 to 2).map(header + direction * _)
             newHeader.foreach{ h =>
               grid.grid.get(h) match {
-                case Some(Border) => actionCode = pointsToAction(direction)
+                case Some(Border) =>
+                  actionCode = pointsToAction(direction)
 //                case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
 //                case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
 //                case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
                 case _  => actionCode = pointsToAction(direction)
+
               }
             }
-            actionCode = 0
+//            actionCode = 0
           }
           timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
           roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
