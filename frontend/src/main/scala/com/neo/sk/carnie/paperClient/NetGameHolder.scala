@@ -277,6 +277,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //        audio1.play()
         isContinue = false
 
+//      case FrontProtocol.DrawGameWin1(winner, winData) =>
+//        //        if(isPlay){
+//        //          BGM.pause()
+//        //          BGM.currentTime = 0
+//        //          isPlay = false
+//        //        }
+//        drawGame.drawGameWin1(myId, winner, winData, winningData)
+//        //        audio1.play()
+//        isContinue = false
+
       case FrontProtocol.DrawBaseGame(data) =>
         //        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
         drawGameImage(myId, data, offsetTime)
@@ -441,6 +451,18 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
         }
 
+      case data: Protocol.NewFieldInfo =>
+        //        println(s"got NewFieldInfo:${data.frameCount}.")
+        val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+        if (fields.exists(_.uid == myId)) audioFinish.play()
+        grid.historyFieldInfo += data.frameCount -> fields
+        if(data.frameCount == grid.frameCount){
+          addFieldInfo(data.frameCount)
+        } else if (data.frameCount < grid.frameCount) {
+          println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
+          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+        }
+
       case UserLeft(id) =>
         println(s"user $id left:::")
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
@@ -519,17 +541,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           recallFrame = grid.findRecallFrame(deadRecallFrame, recallFrame)
         }
 
-      case data: Protocol.NewFieldInfo =>
-//        println(s"got NewFieldInfo:${data.frameCount}.")
-        val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-        if (fields.exists(_.uid == myId)) audioFinish.play()
-        grid.historyFieldInfo += data.frameCount -> fields
-        if(data.frameCount == grid.frameCount){
-          addFieldInfo(data.frameCount)
-        } else if (data.frameCount < grid.frameCount) {
-          println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
-        }
+
 
       case x@Protocol.ReceivePingPacket(recvPingId) =>
         val currentTime = System.currentTimeMillis()

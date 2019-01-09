@@ -257,7 +257,62 @@ class DrawGame(
         ctx.fillStyle = color
         field.scanField.foreach { point =>
           point.x.foreach { x =>
-            ctx.fillRect(x._1 * canvasUnit, point.y * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          }
+        }
+      }
+    }
+    ctx.restore()
+    ctx.save()
+    ctx.scale(1, 1)
+    ctx.globalAlpha = 1
+    ctx.font = "bold 30px Microsoft YaHei"
+    ctx.fillStyle = "#000000"
+    val txt1 = s"The Winner is $winner"
+    val txt2 = s"Press space to reStart"
+
+    //    println(ctx.measureText(txt2).width.toString)
+    val length = ctx.measureText(txt1).width
+    ctx.fillText(txt1, dom.window.innerWidth.toFloat / 2 - length / 2, 150)
+    ctx.font = "bold 24px Helvetica"
+    ctx.fillStyle = "#000000"
+    val txt4 = s"WINNER SCORE:" + f"${winningData.winnerScore / canvasSize * 100}%.2f" + "%"
+    val length1 = ctx.measureText(txt4).width
+    if (winningData.yourScore.isDefined) {
+      val txt3 = s"YOUR SCORE:" + f"${winningData.yourScore.get / canvasSize * 100}%.2f" + "%"
+      ctx.fillText(txt3, (windowBoundary.x - length1) / 2, windowBoundary.y / 2)
+    }
+    ctx.fillText(txt4, (windowBoundary.x - length1) / 2, windowBoundary.y / 2 + 40)
+    ctx.font = "bold 20px Microsoft YaHei"
+    ctx.fillText(txt2, dom.window.innerWidth.toFloat - 300, dom.window.innerHeight.toFloat - 100)
+    ctx.drawImage(crownImg, dom.window.innerWidth.toFloat / 2, 75, 50, 50)
+    ctx.restore()
+  }
+
+  def drawGameWin1(myId: String, winner: String, data: Data4TotalSync, winningData: WinData): Unit = {
+    ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
+    rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+    val winnerId = data.snakes.find(_.name == winner).map(_.id).get
+    val snakes = data.snakes
+    val snakesFields = data.fieldDetails
+    val width = dom.window.innerWidth.toFloat - BorderSize.w * canvasUnit * 0.33
+    val height = dom.window.innerHeight.toFloat - BorderSize.h * canvasUnit * 0.33
+    ctx.save()
+    ctx.scale(0.33, 0.33)
+    ctx.fillStyle = ColorsSetting.borderColor
+    ctx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit * BorderSize.w, canvasUnit)
+    ctx.fillRect(1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * BorderSize.h)
+    ctx.fillRect(1.5 * width - canvasUnit, BorderSize.h * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
+    ctx.fillRect(BorderSize.w * canvasUnit + 1.5 * width - canvasUnit, 1.5 * height - canvasUnit, canvasUnit, canvasUnit * (BorderSize.h + 1))
+    snakesFields.foreach { field =>
+      if (field.uid == myId || field.uid == winnerId) {
+        val color = snakes.find(_.id == field.uid).map(_.color).get
+        ctx.fillStyle = color
+        field.scanField.foreach { fids =>
+          fids.y.foreach{y =>
+            fids.x.foreach{x =>
+              ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, y._1 * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * (y._2 - y._1 + 1))
+            }
           }
         }
       }

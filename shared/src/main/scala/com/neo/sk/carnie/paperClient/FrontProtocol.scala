@@ -1,5 +1,7 @@
 package com.neo.sk.carnie.paperClient
 
+import com.neo.sk.carnie.paperClient.Protocol.Data4TotalSync
+
 /**
   * Created by dry on 2018/11/26.
   **/
@@ -10,6 +12,8 @@ object FrontProtocol {
   case object DrawGameWait extends DrawFunction
 
   case class DrawGameWin(winnerName: String, winData: Data4Draw) extends DrawFunction
+
+  case class DrawGameWin1(winnerName: String, winData: Data4TotalSync) extends DrawFunction
 
   case object DrawGameOff extends DrawFunction
 
