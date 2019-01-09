@@ -24,7 +24,7 @@ object BotActor {
 
   case class MakeAction(a: Int) extends Command
 
-  case class MakeMiniAction(point: Point) extends Command
+  case class MakeMiniAction(point: Point, state: Int) extends Command
 
   case object KillBot extends Command
 
@@ -57,7 +57,7 @@ object BotActor {
             roomActor ! RoomActor.JoinRoom4Bot(botId, botName, ctx.self, new Random().nextInt(6))
             val randomTime = 1 + scala.util.Random.nextInt(20)
             timer.startSingleTimer(MakeActionKey, MakeAction(0), randomTime * frameRate.millis)
-            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
+            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0),1),  (randomTime + 1) * frameRate.millis)
             gaming(botId, grid, roomActor, frameRate)
 
           case unknownMsg@_ =>
@@ -84,44 +84,50 @@ object BotActor {
           }
           if (actionNum == 0) actionCode = (Random.nextInt(4) + 37).toByte
           roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
-          actionNum match {
-            case 0 => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
-            case _ => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
-          }
+//          actionNum match {
+//            case 0 => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
+//            case _ => gaming(botId, grid, roomActor, frameRate, actionNum + 1)
+//          }
+          gaming(botId, grid, roomActor, frameRate, actionNum + 1)
 
-        case MakeMiniAction(a@Point(x,y)) =>
-
-//          log.info("miniAction")
+        case MakeMiniAction(a@Point(x,y), state) =>
           var actionCode: Byte = 32
-          if(grid.snakes.exists(_._1 == botId)){
-            val header = grid.snakes.find(_._1 == botId).get._2.header
-            val direction = grid.snakes.find(_._1 == botId).get._2.direction
-//            log.info(s"=====bot direction:$direction")
-            val newHeader = (2 to 2).map(header + direction * _)
-            newHeader.foreach{ h =>
-              grid.grid.get(h) match {
-                case Some(Border) =>
-//                  log.info(s"")
-                  actionCode = pointsToAction(direction)
-//                case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
-//                case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
-//                case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
-                case _  => actionCode = pointsToAction(direction)
-
-              }
-            }
-//            actionCode = 0
+          if (state == actionNum - 1) {
+            val nextState = state + 1
+            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),nextState),  frameRate.millis)
           }
-//          log.info(s"=====bot actionCode:$actionCode")
-          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode)),  frameRate.millis)
-          roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
+          else {
+            if(grid.snakes.exists(_._1 == botId)){
+              val header = grid.snakes.find(_._1 == botId).get._2.header
+              val direction = grid.snakes.find(_._1 == botId).get._2.direction
+              //            log.info(s"=====bot direction:$direction")
+              val newHeader = (2 to 2).map(header + direction * _)
+              newHeader.foreach{ h =>
+                grid.grid.get(h) match {
+                  case Some(Border) =>
+                    //                  log.info(s"")
+                   actionCode = pointsToAction(directionToRight(direction))
+                  case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
+                  case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
+                  case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
+                  case _  => actionCode = pointsToAction(direction)
+
+                }
+              }
+              //            actionCode = 0
+            }
+            //          log.info(s"=====bot actionCode:$actionCode")
+            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),state),  frameRate.millis)
+            roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
+          }
+
           gaming(botId, grid, roomActor, frameRate, actionNum)
 
         case BotDead =>
 //          log.info(s"bot dead:$botId")
           timer.startSingleTimer(SpaceKey, Space, (2 + scala.util.Random.nextInt(8)) * frameRate.millis)
           timer.cancel(MakeActionKey)
-//          timer.cancel(MakeMiniActionKey)
+          timer.cancel(MakeMiniActionKey)
           dead(botId, grid, roomActor, frameRate)
 
         case KillBot =>
@@ -150,7 +156,7 @@ object BotActor {
 //          log.info(s"back to game: botId:$botId")
           val randomTime = 2 + scala.util.Random.nextInt(20)
           timer.startSingleTimer(MakeActionKey, MakeAction(0), randomTime * frameRate.millis)
-          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0)),  (randomTime + 1) * frameRate.millis)
+          timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(Point(0,0),1),  (randomTime + 1) * frameRate.millis)
           gaming(botId, grid, roomActor, frameRate)
 
         case KillBot =>
