@@ -138,8 +138,8 @@ trait AdminService extends ServiceUtils
               p.count(i => dateFormat.format(i.startTime) >= startS && dateFormat.format(i.endTime) <= endS)))
           }.recover {
             case e: Exception =>
-              log.info(s"getPlayerRecord exception.." + e.getMessage)
-              complete(ErrorRsp(130019, "getPlayerRecord error."))
+              log.info(s"getPlayerRecordByTime exception.." + e.getMessage)
+              complete(ErrorRsp(130019, "getPlayerRecordByTime error."))
           }
         }
       case Left(_) =>

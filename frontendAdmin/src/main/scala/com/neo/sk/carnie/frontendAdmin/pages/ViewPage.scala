@@ -150,12 +150,12 @@ object ViewPage extends Page{
           if (rsp.errCode == 0) {
             playerRecordsVar := rsp.data
             ViewPage.page = page
+            isSearch := false
             if(rsp.data.nonEmpty)
               pageVar := (page, rsp.playerAmount)
             else
               pageVar := (page, 0)
-            isGetAmount := true
-            isSearch := false
+
           }
           else {
             println("error======" + rsp.msg)
@@ -184,12 +184,11 @@ object ViewPage extends Page{
           if (rsp.errCode == 0) {
             playerRecordsVar := rsp.data
             ViewPage.page = page
+            isSearch := true
             if(rsp.data.nonEmpty)
               pageVar := (page, rsp.playerAmount)
             else
               pageVar := (page, 0)
-            isGetAmount := true
-            isSearch := true
           }
           else {
             println("error======" + rsp.msg)
@@ -213,8 +212,10 @@ object ViewPage extends Page{
       case Right(rsp) =>
         try {
           if (rsp.errCode == 0) {
-            playerAmountS = rsp.playerAmount
+            println(s"total :${rsp.playerAmount}, today: ${rsp.playerAmountToday}")
+            playerAmount = rsp.playerAmount
             playerAmountToday = rsp.playerAmountToday
+            isGetAmount := true
           }
           else {
             println("error======" + rsp.msg)
@@ -241,7 +242,9 @@ object ViewPage extends Page{
       case Right(rsp) =>
         try {
           if (rsp.errCode == 0) {
+            println(s"search :${rsp.playerAmount}")
             playerAmountS = rsp.playerAmount
+            isGetAmount := true
           }
           else {
             println("error======" + rsp.msg)
