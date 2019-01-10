@@ -97,10 +97,10 @@ object BotActor {
               newHeader.foreach{ h =>
                 grid.grid.get(h) match {
                   case Some(Body(bid, _)) if flag =>
-                    actionCode = pointsToAvoid(direction)
+                    actionCode = pointsToAction(direction)
                     flag = false
                   case Some(Border) if flag =>
-                    actionCode = pointsToAvoid(direction)
+                    actionCode = pointsToAction(direction)
                     flag = false
                   case _  =>
                 }
@@ -145,7 +145,7 @@ object BotActor {
                   case Some(Field(fid)) if fid == botId && flag =>
                     actionCode = pointsToAction(direction)
                     flag = false
-                  case _  => actionCode = pointsToAction(direction)
+                  case _  if flag => actionCode = pointsToAction(direction)
 
                 }
               }
