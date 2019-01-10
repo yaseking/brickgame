@@ -171,7 +171,8 @@ class DrawGame(
 //    ctx.fillStyle = ColorsSetting.backgroundColor2
     //    ctx.fillStyle = ColorsSetting.backgroundColor
 //    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.gameNameColor
+//    ctx.fillStyle = ColorsSetting.gameNameColor
+    ctx.fillStyle = ColorsSetting.fontColor3
 
     ctx.font = "24px Helvetica"
     ctx.scale(1, 1)
@@ -200,7 +201,7 @@ class DrawGame(
     ctx.save()
     ctx.font = "bold 24px Helvetica"
 //    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.fillStyle = ColorsSetting.backgroundColor2
+    ctx.fillStyle = ColorsSetting.fontColor3
     ctx.fillText("YOUR SCORE:", x, y + 70)
     ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
     ctx.fillText("BEST SCORE:", x, y + 110)
