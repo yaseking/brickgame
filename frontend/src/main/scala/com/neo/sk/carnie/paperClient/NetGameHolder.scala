@@ -600,6 +600,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def spaceKey(): Unit = {
+    println(s"===========spaceKey")
     grid.cleanSnakeTurnPoint(myId)
     killInfo = None
     grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
