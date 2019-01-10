@@ -35,7 +35,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var isSynced = false
   //  var justSynced = false
   var isWin = false
-  var isPlay = false
+  var isPlay = true
   //  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String)] = None
   var barrageDuration = 0
@@ -298,7 +298,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //          BGM.currentTime = 0
         //          isPlay = false
         //        }
-        if (isContinue) audioKilled.play()
+        if (isPlay) {
+          audioKilled.play()
+          isPlay = false
+        }
         if (data.nonEmpty) drawGameImage(myId, data.get, offsetTime)
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
@@ -326,6 +329,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
                   println("onkeydown:Space")
+                  isPlay = true
                   isGetKiller = false
                   killerInfo = None
                   val msg: Protocol.UserAction = PressSpace

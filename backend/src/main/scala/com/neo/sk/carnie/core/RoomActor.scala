@@ -36,7 +36,7 @@ object RoomActor {
 
   private val decreaseRate = AppSettings.decreaseRate
 
-  private val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
+  private val fullSize = (BorderSize.w - 1) * (BorderSize.h - 1)
 
 //  private val maxWaitingTime4Restart = 3000
 
