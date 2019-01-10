@@ -6,7 +6,7 @@ import akka.actor.typed.ActorRef
 import com.neo.sk.carnie.Boot
 import com.neo.sk.carnie.actor.LoginSocketClient
 import com.neo.sk.carnie.actor.LoginSocketClient.{Connection2EsByMail, EstablishConnection2Es}
-import com.neo.sk.carnie.scene.{GameScene, LoginScene, RoomListScene, SelectScene}
+import com.neo.sk.carnie.scene._
 import com.neo.sk.carnie.common.Context
 import com.neo.sk.carnie.utils.Api4GameAgent._
 import com.neo.sk.carnie.Boot.{executor, materializer, system}
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
   * Created by dry on 2018/10/26.
   **/
 
-class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, img: Int
+class LoginController(modeScene: ModeScene, loginScene: LoginScene, context: Context) {//mode: Int, img: Int
 
   val loginSocketClient = system.spawn(LoginSocketClient.create(context, this), "loginSocketClient")
 
@@ -47,6 +47,13 @@ class LoginController(loginScene: LoginScene, context: Context) {//mode: Int, im
 //              loginSocketClient ! Connection2EsByMail(10000, "test123", "test123")
           }
         }
+      }
+    }
+
+    override def comeBack(): Unit = {
+      Boot.addToPlatform{
+        Boot.system.stop(loginSocketClient.toUntyped)
+        context.switchScene(modeScene.getScene, "模式选择", false)
       }
     }
   })
