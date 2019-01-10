@@ -10,7 +10,7 @@ class ModeController(modeScene: ModeScene, context: Context) {
     override def gotoNormalScene(): Unit = {
       Boot.addToPlatform{
         val loginScene = new LoginScene
-        val loginController = new LoginController(loginScene, context)
+        val loginController = new LoginController(modeScene, loginScene, context)
         loginController.init()
         loginController.showScene()
       }

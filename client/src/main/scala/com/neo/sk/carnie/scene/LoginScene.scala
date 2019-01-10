@@ -19,6 +19,7 @@ import javafx.scene.text.Font
 object LoginScene {
   trait LoginSceneListener {
     def loginByMail()
+    def comeBack()
   }
 }
 
@@ -37,7 +38,7 @@ class LoginScene {
   Boot.addToPlatform(canvasCtx.drawImage(img, 0, 0 ,500 ,500))
 
   button.setLayoutX(212)
-  button.setLayoutY(400)
+  button.setLayoutY(380)
   val shadow = new DropShadow()
 
   button.addEventHandler(MouseEvent.MOUSE_ENTERED,new EventHandler[MouseEvent] {
@@ -54,6 +55,11 @@ class LoginScene {
 
   button.setStyle("-fx-font: 15 arial; -fx-base: #67B567; -fx-background-radius: 10px;") //green
 
+  val backBtn = new Button("返回")
+  backBtn.setLayoutX(228)
+  backBtn.setLayoutY(420)
+  backBtn.setStyle("-fx-font: 15 arial; -fx-base: #CA5C54; -fx-background-radius: 10px;")
+
   canvasCtx.setFill(Color.rgb(255, 255, 255))
   canvasCtx.fillRect(0, 0, width, height)
   canvasCtx.setFont(Font.font(18))
@@ -61,9 +67,11 @@ class LoginScene {
   canvasCtx.fillText("扫码登录", 215, 380)
   group.getChildren.add(canvas)
   group.getChildren.add(button)
+  group.getChildren.add(backBtn)
   val scene = new Scene(group)
 
   button.setOnAction(_ => loginSceneListener.loginByMail())
+  backBtn.setOnAction(_ => loginSceneListener.comeBack())
 
   def drawScanUrl(imageStream: ByteArrayInputStream) = {
     Boot.addToPlatform {
