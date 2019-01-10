@@ -45,6 +45,8 @@ object RoomActor {
 
   private final case object SyncKey
 
+  private case object UserDeadTimerKey extends Command
+
   sealed trait Command
 
   case class UserActionOnServer(id: String, action: Protocol.UserAction) extends Command
@@ -64,6 +66,8 @@ object RoomActor {
   case class WatcherLeftRoom(userId: String) extends Command
 
   final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
+
+  case class CloseWs(userId: String) extends Command
 
   private case object Sync extends Command
 
@@ -85,7 +89,7 @@ object RoomActor {
       Behaviors.withTimers[Command] {
         implicit timer =>
           val grid = new GridOnServer(border)
-          val winStandard = fullSize * 0.1//upperLimit
+          val winStandard = fullSize * upperLimit
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           val frameRate = mode match {
             case 2 => Protocol.frameRate2
@@ -170,6 +174,7 @@ object RoomActor {
           val killHistoryInFrame = grid.killHistory.filter(k => k._2._3 + 1 == frame)
           users.foreach { u =>
             val id = u._1
+            timer.startSingleTimer(UserDeadTimerKey + id, CloseWs(id), 1.minutes)
             if (userMap.get(id).nonEmpty) {
               var killerId: Option[String] = None
               val name = userMap(id).name
@@ -225,7 +230,11 @@ object RoomActor {
           log.debug(s"LeftRoom:::$id")
           dispatch(subscribersMap, Protocol.UserLeft(id))
           carnieMap.-=(id)
-          if (userDeadList.contains(id)) userDeadList -= id
+          if (userDeadList.contains(id))  {
+            userDeadList -= id
+            timer.cancel(UserDeadTimerKey + id)
+          }
+
           grid.removeSnake(id)
           grid.cleanSnakeTurnPoint(id)
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
@@ -265,6 +274,7 @@ object RoomActor {
           val subscribersOpt = subscribersMap.find(_._2.equals(actor))
           if (subscribersOpt.nonEmpty) {
             val (id, _) = subscribersOpt.get
+            if (userDeadList.contains(id)) timer.cancel(UserDeadTimerKey + id)
             log.debug(s"got Terminated id = $id")
             val name = userMap.get(id).head.name
             carnieMap.-=(id)
@@ -276,6 +286,12 @@ object RoomActor {
             if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
           }
           if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
+
+        case CloseWs(id) =>
+          log.info(s"close ws")
+          dispatchTo(subscribersMap, id, Protocol.CloseWs)
+          Behaviors.same
+
 
         case UserActionOnServer(id, action) =>
           val curTime = System.currentTimeMillis()
@@ -305,6 +321,7 @@ object RoomActor {
 
             case PressSpace =>
               if (userDeadList.contains(id)) {
+                timer.cancel(UserDeadTimerKey + id)
                 val info = userMap.getOrElse(id, UserInfo("", -1L, -1L, 0))
                 grid.addSnake(id, roomId, info.name, info.img,
                   carnieMap.get(id) match {

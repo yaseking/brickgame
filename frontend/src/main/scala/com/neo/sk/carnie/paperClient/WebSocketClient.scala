@@ -112,6 +112,9 @@ class WebSocketClient (
                     case WinData(_, _) =>
                       win = win + blobMsg.size
 
+                    case CloseWs =>
+                      gameStream.close()
+
                     case _ =>
                       other = other + blobMsg.size
                   }

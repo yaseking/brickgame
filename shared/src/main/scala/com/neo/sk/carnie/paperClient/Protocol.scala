@@ -109,6 +109,8 @@ object Protocol {
 
   case class OtherAction(id: Byte, keyCode: Byte, frame: Int) extends GameMessage
 
+  case object CloseWs extends GameMessage
+
   case class ReplayFinish(id: String) extends GameMessage
 
   case class Ranks(currentRank: List[Score], personalScore: Score, personalRank: Byte, currentNum: Byte) extends GameMessage

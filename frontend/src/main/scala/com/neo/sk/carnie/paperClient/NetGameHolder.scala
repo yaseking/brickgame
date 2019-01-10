@@ -415,6 +415,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myId = id
         myTrueId = id
 
+      case Protocol.CloseWs =>
+
+
+
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
 //        if (frame >= frameTemp) frameTemp =  frame
 //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:$frame, frameTemp: $frameTemp,msg:$r")
