@@ -21,7 +21,7 @@ class DrawGame(
   private val window = Point(Window.w, Window.h)
   private var canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   private val smallMap = Point(littleMap.w, littleMap.h)
-  private val canvasSize = (border.x - 2) * (border.y - 2)
+  private val canvasSize = (border.x - 1) * (border.y - 1)
 
   private val textLineHeight = 15
   private val fillWidth = 33

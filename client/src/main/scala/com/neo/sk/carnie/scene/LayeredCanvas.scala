@@ -46,7 +46,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
   private val humanViewCtx = humanViewCanvas.getGraphicsContext2D
   private val headerCtx = headerCanvas.getGraphicsContext2D
   
-  private val canvasSize = (border.x - 2) * (border.y - 2)
+  private val canvasSize = (border.x - 1) * (border.y - 1)
   private val imgMap: Map[Int, Image] =
     Map(
       0 -> new Image("img/luffy.png"),

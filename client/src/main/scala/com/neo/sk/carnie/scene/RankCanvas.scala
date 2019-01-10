@@ -22,7 +22,7 @@ class RankCanvas(canvas: Canvas)  {
   private val bronzeImg = new Image("bronze.png")
   private val killImg = new Image("kill.png")
   private val border = Point(BorderSize.w, BorderSize.h)
-  private val canvasSize = (border.x - 2) * (border.y - 2)
+  private val canvasSize = (border.x - 1) * (border.y - 1)
 
   private val textLineHeight = 15
   private val fillWidth = 33

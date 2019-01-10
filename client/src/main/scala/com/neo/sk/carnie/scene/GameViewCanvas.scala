@@ -24,7 +24,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
   private var windowBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat)
   private val ctx = canvas.getGraphicsContext2D
   private val rankCtx = rankCanvas.getGraphicsContext2D
-  private val canvasSize = (border.x - 2) * (border.y - 2)
+  private val canvasSize = (border.x - 1) * (border.y - 1)
   private val imgMap: Map[Int, Image] =
     Map(
       0 -> new Image("img/luffy.png"),

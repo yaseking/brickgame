@@ -453,6 +453,23 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
         grid.cleanDiedSnakeInfo(List(id))
 
+      case data: Protocol.NewFieldInfo =>
+        //        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
+        //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
+
+        //        println(s"got NewFieldInfo:${data.frameCount}.")
+        val fields = data.fieldDetails.map{f =>
+          if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
+          FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+        if (fields.exists(_.uid == myId)) audioFinish.play()
+        grid.historyFieldInfo += data.frameCount -> fields
+        if(data.frameCount == grid.frameCount){
+          addFieldInfo(data.frameCount)
+        } else if (data.frameCount < grid.frameCount) {
+          println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
+          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+        }
+
       case Protocol.SomeOneWin(winner) =>
         drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData4Draw)
         isWin = true
@@ -538,22 +555,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           recallFrame = grid.findRecallFrame(deadRecallFrame, recallFrame)
         }
 
-      case data: Protocol.NewFieldInfo =>
-//        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
-//        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
 
-        //        println(s"got NewFieldInfo:${data.frameCount}.")
-        val fields = data.fieldDetails.map{f =>
-          if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
-          FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-        if (fields.exists(_.uid == myId)) audioFinish.play()
-        grid.historyFieldInfo += data.frameCount -> fields
-        if(data.frameCount == grid.frameCount){
-          addFieldInfo(data.frameCount)
-        } else if (data.frameCount < grid.frameCount) {
-          println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
-        }
 
       case x@Protocol.ReceivePingPacket(recvPingId) =>
         val currentTime = System.currentTimeMillis()
