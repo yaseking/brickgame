@@ -74,6 +74,8 @@ object BotActor {
 
   case class TimeOut(msg: String) extends Command
 
+  case class GetFrame(replyTo: ActorRef[Int]) extends Command
+
   final case class SwitchBehavior(
                                    name: String,
                                    behavior: Behavior[Command],
@@ -227,6 +229,10 @@ object BotActor {
           log.info(s"player:${playerInfo.id} leave room, botActor stop.")
           Behaviors.stopped
 
+        case GetFrame(replyTo) =>
+          replyTo ! botController.grid.frameCount
+          Behaviors.same
+
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown")
           Behaviors.unhandled
@@ -291,6 +297,10 @@ object BotActor {
 
         case ReturnObservation(replyTo) =>
           replyTo ! (None, None, botController.grid.frameCount, false)
+          Behaviors.same
+
+        case GetFrame(replyTo) =>
+          replyTo ! botController.grid.frameCount
           Behaviors.same
 
         case unknown@_ =>

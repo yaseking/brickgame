@@ -12,7 +12,7 @@ import com.neo.sk.carnie.paperClient.{Protocol, Score}
 import com.neo.sk.carnie.common.BotAppSetting
 import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
-import com.neo.sk.carnie.actor.BotActor.Reincarnation
+import com.neo.sk.carnie.actor.BotActor.{GetFrame, Reincarnation}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -173,6 +173,14 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     if (request.apiToken == BotAppSetting.apiToken) {
       Future.successful(SystemInfoRsp(framePeriod = Protocol.frameRate1, state = state))
     } else Future.successful(SystemInfoRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
+  }
+
+  override def currentFrame(request: Credit): Future[CurrentFrameRsp] = {
+    println(s"currentFrame Called by [$request")
+    if (request.apiToken == BotAppSetting.apiToken) {
+      val rstF: Future[Int] = botActor ? GetFrame
+      rstF.map { rsp => CurrentFrameRsp(frame = rsp, state = state) }
+    } else Future.successful(CurrentFrameRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
 
