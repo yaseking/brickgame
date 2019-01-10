@@ -199,7 +199,8 @@ class DrawGame(
     ctx.fillText(text, dom.window.innerWidth / 2 - offx, y) //(500,180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
-    ctx.fillStyle = ColorsSetting.fontColor
+//    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillText("YOUR SCORE:", x, y + 70)
     ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
     ctx.fillText("BEST SCORE:", x, y + 110)
