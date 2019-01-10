@@ -320,6 +320,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   def drawGameImage(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long): Unit = {
     drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),
       frameRate = frameRate, newFieldInfo = grid.historyFieldInfo.get(grid.frameCount + 1))
+    if (data.snakes.filter(_.id == uid).map(_.header).isEmpty) println(s"!!!!!!empty 找不到id:$uid")
     drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
