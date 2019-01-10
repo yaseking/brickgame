@@ -53,6 +53,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   var frameTemp = 0
 
+  var pingTimer = -1
+
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
   private var winningData = WinData(0, Some(0))
@@ -107,7 +109,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     //    BGM.play()
     //    isPlay = true
     dom.window.setInterval(() => gameLoop(), frameRate)
-    dom.window.setInterval(() => {
+    pingTimer = dom.window.setInterval(() => {
       if (pingId > 10000) pingId = 0 else pingId = (pingId + 1).toShort
       pingMap += (pingId -> System.currentTimeMillis())
       webSocketClient.sendMessage(SendPingPacket(pingId).asInstanceOf[UserAction])
@@ -420,6 +422,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         myTrueId = id
 
       case Protocol.CloseWs =>
+        if (pingTimer != -1) {
+          dom.window.clearInterval(pingTimer)
+          pingTimer = -1
+        }
+        drawFunction = FrontProtocol.DrawGameOff
+
 
 
 

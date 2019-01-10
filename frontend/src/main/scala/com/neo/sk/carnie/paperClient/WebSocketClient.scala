@@ -114,6 +114,9 @@ class WebSocketClient (
 
                     case CloseWs =>
                       gameStream.close()
+                      wsSetup = false
+                      gameStreamOpt = None
+                      close(event)
 
                     case _ =>
                       other = other + blobMsg.size
