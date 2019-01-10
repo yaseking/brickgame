@@ -25,6 +25,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var currentRank = List.empty[Score]
   var historyRank = List.empty[Score]
   private var myId = ""
+  var myTrueId = ""
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -235,7 +236,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             //            if (BGM.paused) {
             //              isPlay = false
             //            }
-            FrontProtocol.DrawBaseGame(gridData)
+            if (myId == myTrueId) FrontProtocol.DrawBaseGame(gridData) else FrontProtocol.DrawGameDie(killerInfo, Some(gridData))
 
           case None if isGetKiller && !firstCome =>
             FrontProtocol.DrawGameDie(killerInfo)
@@ -290,7 +291,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           if (barrageDuration == 0) killInfo = None
         }
 
-      case FrontProtocol.DrawGameDie(killerName) =>
+      case FrontProtocol.DrawGameDie(killerName, data) =>
         //        println(s"drawFunction::: drawGameDie")
         //        if(isPlay){
         //          BGM.pause()
@@ -298,9 +299,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         //          isPlay = false
         //        }
         if (isContinue) audioKilled.play()
+        if (data.nonEmpty) drawGameImage(myId, data.get, offsetTime)
         drawGame.drawGameDie(killerName, myScore, maxArea)
         killInfo = None
-        isContinue = false
+//        isContinue = false
     }
   }
 
@@ -407,6 +409,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     data match {
       case Protocol.Id(id) =>
         myId = id
+        myTrueId = id
 
       case r@Protocol.SnakeAction(carnieId, keyCode, frame, actionId) =>
 //        if (frame >= frameTemp) frameTemp =  frame
@@ -497,6 +500,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
         }
+        if (data.snake.exists(_.id == myTrueId)) myId = myTrueId
 
       case x@Protocol.DeadPage(kill, area, playTime) =>
         println(s"recv userDead $x")
@@ -510,13 +514,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         deadInfo.find{d => grid.carnieMap.getOrElse(d.carnieId, "") == myId} match {
           case Some(myKillInfo) if myKillInfo.killerId.nonEmpty =>
             isGetKiller = true
-            killerInfo = grid.snakes.get(grid.carnieMap.getOrElse(myKillInfo.killerId.get, "")).map(_.name)
+            val info = grid.snakes.get(grid.carnieMap.getOrElse(myKillInfo.killerId.get, ""))
+            killerInfo = info.map(_.name)
+            if (info.map(_.id).nonEmpty) myId = info.get.id
 
           case None =>
 
           case _ =>
             isGetKiller = true
             killerInfo = None
+            if(currentRank.nonEmpty) myId = currentRank.head.id
         }
         val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
         grid.historyDieSnake += frame -> deadList

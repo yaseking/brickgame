@@ -17,7 +17,7 @@ object FrontProtocol {
 
   case class DrawBaseGame(data: Data4Draw) extends DrawFunction
 
-  case class DrawGameDie(killerName: Option[String]) extends DrawFunction
+  case class DrawGameDie(killerName: Option[String], data: Option[Data4Draw] = None) extends DrawFunction
 
   case class Data4Draw(
                              frameCount: Int,

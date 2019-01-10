@@ -168,9 +168,9 @@ class DrawGame(
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
     //    backBtn.style.display="block"
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
-    ctx.fillStyle = ColorsSetting.backgroundColor2
+//    ctx.fillStyle = ColorsSetting.backgroundColor2
     //    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.gameNameColor
 
     ctx.font = "24px Helvetica"
