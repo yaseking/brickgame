@@ -147,6 +147,7 @@ object BotActor {
                     flag = false
                   case _  if flag => actionCode = pointsToAction(direction)
 
+                  case _ =>
                 }
               }
             }
