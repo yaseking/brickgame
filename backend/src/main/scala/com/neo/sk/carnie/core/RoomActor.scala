@@ -368,7 +368,7 @@ object RoomActor {
               }
             }
 
-            if ((tickCount - i.joinFrame) % 20 == 5) {
+            if ((tickCount - i.joinFrame) % 20 == 5 && !userDeadList.contains(u)) {
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
                 (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
               watcherMap.filter(_._2._1 == u).foreach { w =>
