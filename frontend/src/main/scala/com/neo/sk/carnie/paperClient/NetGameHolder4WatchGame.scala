@@ -275,7 +275,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           if (barrageDuration == 0) killInfo = None
         }
 
-      case FrontProtocol.DrawGameDie(killerName) =>
+      case FrontProtocol.DrawGameDie(killerName, data) =>
         //        if(!BGM.paused){
         //          BGM.pause()
         //        BGM.currentTime = 0

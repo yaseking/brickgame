@@ -283,7 +283,7 @@ class GameController(player: PlayerInfoInClient,
           if (grid.barrageDuration == 0) grid.killInfo = None
         }
 
-      case FrontProtocol.DrawGameDie(killerName) =>
+      case FrontProtocol.DrawGameDie(killerName, data) =>
         if(BGM.isPlaying){
           BGM.stop()
         }

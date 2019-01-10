@@ -42,7 +42,7 @@ trait PlayerService extends ServiceUtils with CirceSupport {
   private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.PlayerService")
 
 
-  val netSnakeRoute = {
+  private val netSnakeRoute = {
     path("join") {
       parameter(
         'id.as[String],
@@ -339,6 +339,8 @@ trait PlayerService extends ServiceUtils with CirceSupport {
             case WinData(_, _) =>
               win = win + a.length
 
+            case OtherAction(_, _, _) =>
+              snakeAction = snakeAction + a.length
             case _ =>
               other = other + a.length
           }

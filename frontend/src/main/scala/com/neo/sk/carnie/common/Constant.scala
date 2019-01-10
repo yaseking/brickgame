@@ -29,6 +29,7 @@ object Constant {
     val yellowColor = "#FFFF00"
     val darkYellowColor = "#EBEB68"
     val backgroundColor2 = "#333333"
+    val fontColor3 = "#A9A9A9"
   }
 
   def shortMax(a: Short, b: Short): Short ={

@@ -168,10 +168,11 @@ class DrawGame(
   def drawGameDie(killerOpt: Option[String], myScore: BaseScore, maxArea: Int, isReplay: Boolean = false): Unit = {
     //    backBtn.style.display="block"
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
-    ctx.fillStyle = ColorsSetting.backgroundColor2
+//    ctx.fillStyle = ColorsSetting.backgroundColor2
     //    ctx.fillStyle = ColorsSetting.backgroundColor
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.gameNameColor
+//    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+//    ctx.fillStyle = ColorsSetting.gameNameColor
+    ctx.fillStyle = ColorsSetting.fontColor3
 
     ctx.font = "24px Helvetica"
     ctx.scale(1, 1)
@@ -184,7 +185,7 @@ class DrawGame(
     val length = ctx.measureText(text).width
     val offx = length / 2
     val x = (dom.window.innerWidth / 2).toInt - 145
-    val y = if (isReplay) (dom.window.innerHeight / 2).toInt - 80 else (dom.window.innerHeight / 2).toInt - 180
+    val y = if (isReplay) (dom.window.innerHeight / 2).toInt - 80 else (dom.window.innerHeight / 2).toInt - 100
     //    val y = (dom.window.innerHeight / 2).toInt - 180
 
     val gameTime = myScore.playTime
@@ -199,7 +200,8 @@ class DrawGame(
     ctx.fillText(text, dom.window.innerWidth / 2 - offx, y) //(500,180)
     ctx.save()
     ctx.font = "bold 24px Helvetica"
-    ctx.fillStyle = ColorsSetting.fontColor
+//    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.fillStyle = ColorsSetting.fontColor3
     ctx.fillText("YOUR SCORE:", x, y + 70)
     ctx.fillText(f"${myScore.area / canvasSize * 100}%.2f" + "%", x + 230, y + 70)
     ctx.fillText("BEST SCORE:", x, y + 110)
