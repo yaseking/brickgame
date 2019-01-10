@@ -92,10 +92,17 @@ object BotActor {
               val direction = grid.snakes.find(_._1 == botId).get._2.direction
               //            log.info(s"=====bot direction:$direction")
               val newHeader = List(3,2,1).map(header + directionToRight(direction) * _)
+              actionCode = pointsToAction(directionToRight(direction))
+              var flag = true
               newHeader.foreach{ h =>
                 grid.grid.get(h) match {
-                  case Some(Body(bid, _))  => actionCode = pointsToAvoid(direction)
-                  case _  => actionCode = pointsToAction(directionToRight(direction))
+                  case Some(Body(bid, _)) if flag =>
+                    actionCode = pointsToAvoid(direction)
+                    flag = false
+                  case Some(Border) if flag =>
+                    actionCode = pointsToAvoid(direction)
+                    flag = false
+                  case _  =>
                 }
               }
             }
@@ -123,21 +130,26 @@ object BotActor {
               val direction = grid.snakes.find(_._1 == botId).get._2.direction
               //            log.info(s"=====bot direction:$direction")
               val newHeader = List(3,2,1).map(header + direction * _)
+              var flag = true
               newHeader.foreach{ h =>
                 grid.grid.get(h) match {
-                  case Some(Border) =>
-                    //                  log.info(s"")
-                   actionCode = pointsToAction(directionToRight(direction))
-                  case Some(Body(bid, _)) if bid == botId => actionCode = pointsToAvoid(direction)
-                  case Some(Body(bid, _)) if bid != botId => actionCode = pointsToAvoid(direction)
-                  case Some(Field(fid)) if fid == botId => actionCode = pointsToAction(direction)
+                  case Some(Border) if flag=>
+                    actionCode = pointsToAction(directionToRight(direction))
+                    flag = false
+                  case Some(Body(bid, _)) if bid == botId && flag =>
+                    actionCode = pointsToAvoid(direction)
+                    flag = false
+                  case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
+                    actionCode = pointsToAvoid(direction)
+                    flag = false
+                  case Some(Field(fid)) if fid == botId && flag =>
+                    actionCode = pointsToAction(direction)
+                    flag = false
                   case _  => actionCode = pointsToAction(direction)
 
                 }
               }
-              //            actionCode = 0
             }
-            //          log.info(s"=====bot actionCode:$actionCode")
             timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),state),  frameRate.millis)
             roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           }
