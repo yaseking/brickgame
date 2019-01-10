@@ -380,7 +380,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         grid.cleanDiedSnakeInfo(List(id))
 
       case Protocol.SomeOneWin(winner) =>
-        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData4Draw)
+        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
         isWin = true
         //        winnerName = winner
         //        winData = finalData

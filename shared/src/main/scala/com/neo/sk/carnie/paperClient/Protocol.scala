@@ -25,12 +25,12 @@ object Protocol {
                              fieldDetails: List[FieldByColumn]
                            ) extends GameMessage
 
-  case class Data4TotalSyncCondensed(
-                             frameCount: Int,
-                             snakes: List[SkDt],
-                             bodyDetails: List[BodyBaseInfoCondensed],
-                             fieldDetails: List[FieldByColumnCondensed]
-                           ) extends GameMessage
+//  case class Data4TotalSyncCondensed(
+//                             frameCount: Int,
+//                             snakes: List[SkDt],
+//                             bodyDetails: List[BodyBaseInfoCondensed],
+//                             fieldDetails: List[FieldByColumnCondensed]
+//                           ) extends GameMessage
 
 
   case class KilledSkData(
@@ -44,20 +44,20 @@ object Protocol {
                            turn: TurnInfo
                          )
 
-  case class BodyBaseInfoCondensed(
-                           uid: Byte,
-                           turn: TurnInfoCondensed
-                         )
+//  case class BodyBaseInfoCondensed(
+//                           uid: Byte,
+//                           turn: TurnInfoCondensed
+//                         )
 
   case class TurnInfo(
                        turnPoint: List[Point4Trans],
                        pointOnField: List[(Point4Trans, String)]
                      ) // (拐点顺序list， 占着别人领域的身体点)
 
-  case class TurnInfoCondensed(
-                       turnPoint: List[Point4Trans],
-                       pointOnField: List[(Point4Trans, Byte)]
-                     )
+//  case class TurnInfoCondensed(
+//                       turnPoint: List[Point4Trans],
+//                       pointOnField: List[(Point4Trans, Byte)]
+//                     )
 
   case class FieldByColumn(
                             uid: String,

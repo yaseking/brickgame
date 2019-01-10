@@ -478,7 +478,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case Protocol.SomeOneWin(winner) =>
-        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getGridData4Draw)
+        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
         isWin = true
         //        winnerName = winner
         //        winData = finalData

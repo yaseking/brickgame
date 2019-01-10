@@ -273,11 +273,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
 //        val tx3 = System.currentTimeMillis()
 //        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
 
-      case (p, Body(_, Some(fid))) =>
-        val map = fields.getOrElse(fid, mutable.Map.empty)
-        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
-        fields.update(fid, map)
-
       case _ => //doNothing
     }
 //    val t3 = System.currentTimeMillis()
@@ -300,6 +295,37 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   }
 
+  def getWinData4Draw: FrontProtocol.WinData4Draw = {
+    import scala.collection.mutable
+    val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
+
+    grid.foreach {
+      case (p, Field(id)) =>
+        val map = fields.getOrElse(id, mutable.Map.empty)
+        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+        fields.update(id, map)
+
+      case (p, Body(_, Some(fid))) =>
+        val map = fields.getOrElse(fid, mutable.Map.empty)
+        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+        fields.update(fid, map)
+
+      case _ => //doNothing
+    }
+
+    val fieldDetails = fields.map { f =>
+      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
+        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
+      }.toList)
+    }.toList
+
+    FrontProtocol.WinData4Draw(
+      frameCount,
+      snakes.values.toList,
+      fieldDetails
+    )
+
+  }
   def getMyTurnPoint(sid:String, header: Point): List[Protocol.Point4Trans] = {
     val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
     if (turnPoint.nonEmpty) {

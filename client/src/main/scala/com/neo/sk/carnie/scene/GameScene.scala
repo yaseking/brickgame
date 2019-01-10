@@ -105,7 +105,7 @@ class GameScene(img: Int, frameRate: Int) {
     viewCtx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: FrontProtocol.Data4Draw,winningData:WinData): Unit = {
+  def drawGameWin(myId: String, winner: String, data: FrontProtocol.WinData4Draw,winningData:WinData): Unit = {
     rank.drawClearRank()
     view.drawGameWin(myId: String, winner: String, data, winningData)
   }

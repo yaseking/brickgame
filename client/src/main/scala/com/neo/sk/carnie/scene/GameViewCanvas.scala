@@ -71,7 +71,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: FrontProtocol.Data4Draw,winningData:WinData): Unit = {
+  def drawGameWin(myId: String, winner: String, data: FrontProtocol.WinData4Draw,winningData:WinData): Unit = {
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
     val snakes = data.snakes
     val snakesFields = data.fieldDetails

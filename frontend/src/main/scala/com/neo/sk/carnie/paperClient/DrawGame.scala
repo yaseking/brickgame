@@ -238,7 +238,7 @@ class DrawGame(
     ctx.restore()
   }
 
-  def drawGameWin(myId: String, winner: String, data: FrontProtocol.Data4Draw, winningData: WinData): Unit = {
+  def drawGameWin(myId: String, winner: String, data: FrontProtocol.WinData4Draw, winningData: WinData): Unit = {
     ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
     val winnerId = data.snakes.find(_.name == winner).map(_.id).get
