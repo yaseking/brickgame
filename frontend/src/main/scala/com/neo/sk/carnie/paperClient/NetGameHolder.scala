@@ -236,7 +236,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             //            if (BGM.paused) {
             //              isPlay = false
             //            }
-            if (myId == myTrueId) FrontProtocol.DrawBaseGame(gridData) else FrontProtocol.DrawGameDie(killerInfo, Some(gridData))
+            if (myId == myTrueId) {
+              isPlay = true
+              FrontProtocol.DrawBaseGame(gridData)
+            }
+            else
+              FrontProtocol.DrawGameDie(killerInfo, Some(gridData))
 
           case None if isGetKiller && !firstCome =>
             FrontProtocol.DrawGameDie(killerInfo)
@@ -329,7 +334,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                 case FrontProtocol.DrawBaseGame(_) =>
                 case _ =>
                   println("onkeydown:Space")
-                  isPlay = true
                   isGetKiller = false
                   killerInfo = None
                   val msg: Protocol.UserAction = PressSpace
