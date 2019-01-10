@@ -322,7 +322,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),
         frameRate = frameRate, newFieldInfo = grid.historyFieldInfo.get(grid.frameCount + 1))
       drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    } else println(s"!!!!!!empty 找不到id:$uid")
+    }
 
   }
 
@@ -603,7 +603,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def spaceKey(): Unit = {
-    println(s"===========spaceKey")
     grid.cleanSnakeTurnPoint(myId)
     killInfo = None
     grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
@@ -649,7 +648,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       newSnakes._1.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
       grid.snakes ++= newSnakes._1.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(newSnakes._2)
-      if (newSnakes._1.exists(_.id == myTrueId)) myId = myTrueId; println(s"回到自己视角")
+      if (newSnakes._1.exists(_.id == myTrueId)) myId = myTrueId
 
     }
   }
