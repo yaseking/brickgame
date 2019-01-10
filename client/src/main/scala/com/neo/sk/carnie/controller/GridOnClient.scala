@@ -263,6 +263,10 @@ class GridOnClient(override val boundary: Point) extends Grid {
         val map = fields.getOrElse(id, Map.empty)
         fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
 
+      case (p, Body(_, Some(id))) =>
+        val map = fields.getOrElse(id, Map.empty)
+        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+
       case _ => //doNothing
     }
 
