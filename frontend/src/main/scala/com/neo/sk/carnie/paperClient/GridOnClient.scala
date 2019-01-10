@@ -273,6 +273,11 @@ class GridOnClient(override val boundary: Point) extends Grid {
 //        val tx3 = System.currentTimeMillis()
 //        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
 
+      case (p, Body(_, Some(fid))) =>
+        val map = fields.getOrElse(fid, mutable.Map.empty)
+        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+        fields.update(fid, map)
+
       case _ => //doNothing
     }
 //    val t3 = System.currentTimeMillis()
