@@ -38,7 +38,7 @@ object RoomActor {
 
   private val fullSize = (BorderSize.w - 2) * (BorderSize.h - 2)
 
-  private val maxWaitingTime4Restart = 3000
+//  private val maxWaitingTime4Restart = 3000
 
 
   //  private val classify = 5
@@ -184,12 +184,12 @@ object RoomActor {
               //              log.debug(s"user $id dead:::::")
               dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
               //              dispatch(subscribersMap, Protocol.UserDead(frame, id, name, killerName))
-              val info = userMap(id).copy(joinFrame = -1L) //死了之后不发消息
-              userMap.update(id, info)
+//              val info = userMap(id).copy(joinFrame = -1L) //死了之后不发消息
+//              userMap.update(id, info)
               watcherMap.filter(_._2._1 == id).foreach { user =>
                 dispatchTo(subscribersMap, user._1, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
-                val watcherInfo = watcherMap(user._1).copy(_2 = -1L)
-                watcherMap.update(user._1, watcherInfo)
+//                val watcherInfo = watcherMap(user._1).copy(_2 = -1L)
+//                watcherMap.update(user._1, watcherInfo)
               }
               //              log.debug(s"watchMap: ${watcherMap.filter(_._2._1==id)}, watchedId: $id")
               //上传战绩
@@ -289,9 +289,7 @@ object RoomActor {
                 watcherMap.filter(_._2._1 == id).foreach{ w =>
                   dispatchTo(subscribersMap,w._1, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
                 }
-                dispatch(subscribersMap.filterNot(_._1 == id).
-                  filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
-                  (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
+                dispatch(subscribersMap.filterNot(_._1 == id),
                   Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
 
                 dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)),
@@ -338,20 +336,17 @@ object RoomActor {
 
           if (grid.newInfo.nonEmpty) { //有新的蛇
             val newSnakeField = grid.newInfo.map(n => (n._1, n._2.carnieId, n._3)).map { f =>
-              if (userDeadList.contains(f._1) && curTime - userDeadList(f._1) > maxWaitingTime4Restart) {
-                dispatchTo(subscribersMap, f._1, newData)
-                watcherMap.filter(_._2._1 == f._1).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
-              } //同步全量数据
+//              if (userDeadList.contains(f._1) && curTime - userDeadList(f._1) > maxWaitingTime4Restart) {
+//                dispatchTo(subscribersMap, f._1, newData)
+//                watcherMap.filter(_._2._1 == f._1).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
+//              } //同步全量数据
               val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
               userMap.put(f._1, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
               userDeadList -= f._1
               if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
               grid.zipFieldWithCondensed((f._2, f._3))
             }
-            dispatch(
-              subscribersMap.filter(s => userMap.getOrElse(s._1, UserInfo("", -1L, -1L, 0)).joinFrame != -1L ||
-                (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)), //死亡时间小于3s继续发消息
-              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
+            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField)))
             dispatch(
               subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
@@ -366,16 +361,14 @@ object RoomActor {
 
           //错峰发送
           for ((u, i) <- userMap) {
-            if (i.joinFrame != -1L && (tickCount - i.joinFrame) % 100 == 2 ||
-              (userDeadList.contains(u) && curTime - userDeadList(u) <= maxWaitingTime4Restart) && (tickCount - i.joinFrame) % 100 == 2) {
+            if ((tickCount - i.joinFrame) % 100 == 2) {
               dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
               watcherMap.filter(_._2._1 == u).foreach { w =>
                 dispatchTo(subscribersMap, w._1, SyncFrame(newData.frameCount))
               }
             }
 
-            if ((i.joinFrame != -1L && (tickCount - i.joinFrame) % 20 == 5 ||
-              (userDeadList.contains(u) && curTime - userDeadList(u) <= maxWaitingTime4Restart)) && grid.currentRank.exists(_.id == u) && (tickCount - i.joinFrame) % 20 == 5) {
+            if ((tickCount - i.joinFrame) % 20 == 5) {
               dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
                 (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
               watcherMap.filter(_._2._1 == u).foreach { w =>
@@ -389,13 +382,12 @@ object RoomActor {
             val zipFields = finishFields.filter(s => grid.snakes.get(s._1).nonEmpty).map(f => grid.zipField((f._1, grid.snakes(f._1).carnieId, f._2)))
             newField = zipFields.map(_._1)
 
-            userMap.filter(s => s._2.joinFrame != -1L ||
-              (userDeadList.contains(s._1) && curTime - userDeadList(s._1) <= maxWaitingTime4Restart)).foreach(u =>
+            userMap.foreach(u =>
               dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
             watcherMap.filter(w =>
               userMap.get(w._2._1) match {
                 case None => false
-                case Some(_) if userDeadList.contains(w._2._1) && curTime - userDeadList(w._2._1) > maxWaitingTime4Restart => false
+//                case Some(_) if userDeadList.contains(w._2._1) && curTime - userDeadList(w._2._1) > maxWaitingTime4Restart => false
                 case _ => true
               }
             ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
