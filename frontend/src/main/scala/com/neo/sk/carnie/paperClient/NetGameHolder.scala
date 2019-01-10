@@ -500,7 +500,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
         }
-        if (data.snake.exists(_.id == myTrueId)) myId = myTrueId
 
       case x@Protocol.DeadPage(kill, area, playTime) =>
         println(s"recv userDead $x")
@@ -624,6 +623,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       newSnakes._1.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
       grid.snakes ++= newSnakes._1.map(s => s.id -> s).toMap
       grid.addNewFieldInfo(newSnakes._2)
+      if (newSnakes._1.exists(_.id == myTrueId)) myId = myTrueId
+
     }
   }
 
