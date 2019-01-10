@@ -140,7 +140,7 @@ object BotActor {
                     actionCode = pointsToAvoid(direction)
                     flag = false
                   case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
-                    actionCode = pointsToAvoid(direction)
+                    actionCode = pointsToAction(directionToRight(direction))
                     flag = false
                   case Some(Field(fid)) if fid == botId && flag =>
                     actionCode = pointsToAction(direction)
