@@ -38,10 +38,22 @@ object AdminPtcl {
     endTime: Long
   )
 
+  case class PlayerAmountRsp(
+                              playerAmount: Int,
+                              playerAmountToday: Int,
+                              errCode: Int = 0,
+                              msg: String = "ok"
+                         ) extends CommonRsp
+
+  case class PlayerByTimeAmountRsp(
+                              playerAmount: Int,
+                              errCode: Int = 0,
+                              msg: String = "ok"
+                            ) extends CommonRsp
+
   case class PlayerRecordRsp(
     data: List[PlayerRecord],
     playerAmount: Int,
-    playerAmountToday: Int,
     errCode: Int = 0,
     msg: String = "ok"
   ) extends CommonRsp
@@ -54,4 +66,9 @@ object AdminPtcl {
     page: Int,
     time: String
   )
+
+  case class TimeReq(
+                          time: String
+                        )
+
 }

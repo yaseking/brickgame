@@ -149,8 +149,6 @@ object ViewPage extends Page{
         try {
           if (rsp.errCode == 0) {
             playerRecordsVar := rsp.data
-            playerAmount = rsp.playerAmount
-            playerAmountToday = rsp.playerAmountToday
             ViewPage.page = page
             if(rsp.data.nonEmpty)
               pageVar := (page, rsp.playerAmount)
@@ -185,8 +183,6 @@ object ViewPage extends Page{
         try {
           if (rsp.errCode == 0) {
             playerRecordsVar := rsp.data
-            playerAmountS = rsp.playerAmount
-            playerAmountToday = rsp.playerAmountToday
             ViewPage.page = page
             if(rsp.data.nonEmpty)
               pageVar := (page, rsp.playerAmount)
@@ -207,12 +203,65 @@ object ViewPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("get player records error!")
+        JsFunc.alert("get player records by time error!")
+    }
+  }
+
+  def getPlayerRecordAmount() : Unit = {
+    val url = Routes.Admin.getPlayerRecordAmount
+    Http.getAndParse[PlayerAmountRsp](url).map{
+      case Right(rsp) =>
+        try {
+          if (rsp.errCode == 0) {
+            playerAmountS = rsp.playerAmount
+            playerAmountToday = rsp.playerAmountToday
+          }
+          else {
+            println("error======" + rsp.msg)
+            JsFunc.alert(rsp.msg)
+          }
+        }
+        catch {
+          case e: Exception =>
+            println(e)
+        }
+
+      case Left(e) =>
+        println("error======" + e)
+        JsFunc.alert("get player amount error!")
+    }
+  }
+
+  def getPlayerByTimeAmount() : Unit = {
+    val url = Routes.Admin.getPlayerByTimeAmount
+    val time = dom.document.getElementById("timeInput").asInstanceOf[Input].value.toString
+    val data = TimeReq(time).asJson.noSpaces
+    println("time: " + time)
+    Http.postJsonAndParse[PlayerByTimeAmountRsp](url,data).map{
+      case Right(rsp) =>
+        try {
+          if (rsp.errCode == 0) {
+            playerAmountS = rsp.playerAmount
+          }
+          else {
+            println("error======" + rsp.msg)
+            JsFunc.alert(rsp.msg)
+          }
+        }
+        catch {
+          case e: Exception =>
+            println(e)
+        }
+
+      case Left(e) =>
+        println("error======" + e)
+        JsFunc.alert("get player records amount by time error!")
     }
   }
 
   override def render: Elem = {
     getPlayerRecord(1)
+    getPlayerRecordAmount()
     <div>
       <div class="container">
         <h1 style="text-align:center;font-family:楷体;">历史玩家记录</h1>
@@ -225,7 +274,7 @@ object ViewPage extends Page{
           }
         </div>
         <div>
-          <button class="btn btn-success" style="font-size:16px;border-radius:10px;outline:none" onclick={() => getPlayerRecordByTime(1)}>按日期查询</button>
+          <button class="btn btn-success" style="font-size:16px;border-radius:10px;outline:none" onclick={() => getPlayerRecordByTime(1);getPlayerByTimeAmount()}>按日期查询</button>
           <input  type="date" id="timeInput"></input>
         </div>
         <br></br>
