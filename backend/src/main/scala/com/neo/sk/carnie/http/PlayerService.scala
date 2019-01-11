@@ -62,6 +62,7 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport{
               setSession (
                 UserSession(UserInfo(id)).toUserSessionMap
               ) { ctx =>
+                log.debug("test!!!!!!!!!!!!!!!!!!!")
                 ctx.complete()
               }
               handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
