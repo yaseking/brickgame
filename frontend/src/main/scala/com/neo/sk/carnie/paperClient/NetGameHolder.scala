@@ -487,7 +487,11 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         val fields = data.fieldDetails.map{f =>
           if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
           FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-        if (fields.exists(_.uid == myId)) audioFinish.play()
+        if (fields.exists(_.uid == myId)) {
+          audioFinish.play()
+          val myField = fields.filter(_.uid == myId)
+          println(s"fieldDetail: $myField")
+        }
         grid.historyFieldInfo += data.frameCount -> fields
         if(data.frameCount == grid.frameCount){
           addFieldInfo(data.frameCount)
