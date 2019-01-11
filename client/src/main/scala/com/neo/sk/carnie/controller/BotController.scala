@@ -129,11 +129,11 @@ class BotController(player: PlayerInfoInClient,
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id),myActions)
+        layeredGameScene.draw(currentRank, player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id),myActions)
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
-      case None =>
-        drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
+//      case None =>
+//        drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
       case _ =>
         drawFunction = FrontProtocol.DrawGameWait
@@ -302,7 +302,7 @@ class BotController(player: PlayerInfoInClient,
 
   def addFieldInfo(frame: Int): Unit = {
     grid.historyFieldInfo.get(frame).foreach { data =>
-      if (data.nonEmpty) println(s"addFieldInfo:$frame")
+//      if (data.nonEmpty) println(s"addFieldInfo:$frame")
       grid.addNewFieldInfo(data)
     }
   }
