@@ -65,6 +65,7 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport{
                 log.debug("test!!!!!!!!!!!!!!!!!!!")
                 ctx.complete()
               }
+              log.debug(s"session: $optionalSession")
               handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
             }
           }
