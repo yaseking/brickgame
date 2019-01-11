@@ -337,12 +337,15 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             case KeyCode.Space =>
               drawFunction match {
                 case FrontProtocol.DrawBaseGame(_) =>
-                case _ =>
+                case FrontProtocol.DrawGameDie(_, _) =>
                   println("onkeydown:Space")
                   isGetKiller = false
                   killerInfo = None
                   val msg: Protocol.UserAction = PressSpace
                   webSocketClient.sendMessage(msg)
+                case FrontProtocol.DrawGameOff if !firstCome=>
+                  webSocketClient.setUp(order, webSocketPara)
+                case _ =>
               }
 
 
