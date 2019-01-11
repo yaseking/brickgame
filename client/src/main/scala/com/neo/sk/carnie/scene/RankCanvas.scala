@@ -59,18 +59,18 @@ class RankCanvas(canvas: Canvas)  {
     ctx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
 
-    currentRank.filter(_.id == uid).foreach { score =>
+    if (personalScore.id == uid) {
       val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setGlobalAlpha(0.6)
       ctx.setFill(color)
       ctx.save()
-      ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
+      ctx.fillRect(leftBegin, (myRankBaseLine - 1) * textLineHeight, fillWidth + windowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), textLineHeight + 10)
       ctx.restore()
 
       ctx.setGlobalAlpha(1)
       ctx.setFont(Font.font(22))
       ctx.setFill(Color.rgb(0,0,0))
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
+      drawTextLine(f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLine)
     }
 
     val currentRankBaseLine = 2

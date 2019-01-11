@@ -134,6 +134,14 @@ class GameController(player: PlayerInfoInClient,
       gameScene.resetScreen(stageWidth,stageHeight,stageWidth,stageHeight)
       stageCtx.getStage.setWidth(stageWidth)
       stageCtx.getStage.setHeight(stageHeight)
+      if (!isContinue) {
+        if (isWin) {
+          val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
+          gameScene.drawGameWin(player.id, winInfo.winnerName, winInfo.winData, winningData)
+        } else {
+          gameScene.drawGameDie(killerInfo, myScore, maxArea)
+        }
+      }
     }
     logicFrameTime = System.currentTimeMillis()
     if (pingId > 10000) pingId = 0  else pingId = (pingId + 1).toShort
@@ -208,45 +216,39 @@ class GameController(player: PlayerInfoInClient,
       addBackendInfo(grid.frameCount)
     }
 
+    if (!isWin) {
+      val gridData = grid.getGridData4Draw
 
-    val gridData = grid.getGridData4Draw
-
-    gridData.snakes.find(_.id == player.id) match {
-      case Some(_) =>
-        if(firstCome)
-          firstCome = false
-//        if(playBgm) {
-//          BGM.play(30)
-//          playBgm = false
-//        }
-//        if(!BGM.isPlaying){
-//          BGM = bgmList(getRandom(bgmAmount))
-//          BGM.play(30)
-//        }
-//        val offsetTime = System.currentTimeMillis() - logicFrameTime
-//        val a = System.currentTimeMillis()
-//        layeredGameScene.draw(currentRank,player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id))
-//        val x = getAllImage
-//        val b = System.currentTimeMillis()
-//        println("drawTime:" + (b-a) )
-//        println(s"${grid.getGridData.snakes.map(_.id)}")
-        drawFunction = FrontProtocol.DrawBaseGame(gridData)
+      gridData.snakes.find(_.id == player.id) match {
+        case Some(_) =>
+          if(firstCome) firstCome = false
+          //        if(playBgm) {
+          //          BGM.play(30)
+          //          playBgm = false
+          //        }
+          //        if(!BGM.isPlaying){
+          //          BGM = bgmList(getRandom(bgmAmount))
+          //          BGM.play(30)
+          //        }
+          drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
 
 
-      case None if isWin =>
+        //      case None if isWin =>
 
-      case None if isGetKiller && !firstCome =>
-        if(btnFlag) {
-          gameScene.group.getChildren.add(gameScene.backBtn)
-          btnFlag = false
-        }
-        FrontProtocol.DrawGameDie(killerInfo)
+        case None if isGetKiller && !firstCome =>
+          if(btnFlag) {
+            gameScene.group.getChildren.add(gameScene.backBtn)
+            btnFlag = false
+          }
+          drawFunction = FrontProtocol.DrawGameDie(killerInfo)
 
 
-      case _ =>
-        drawFunction = FrontProtocol.DrawGameWait
+        case _ =>
+          drawFunction = FrontProtocol.DrawGameWait
+      }
     }
+
   }
 
   def draw(offsetTime: Long): Unit = {
@@ -288,6 +290,7 @@ class GameController(player: PlayerInfoInClient,
           BGM.stop()
         }
 //        if (isContinue) audioDie.play()
+
         gameScene.drawGameDie(killerName, myScore, maxArea)
 //        layeredGameScene.drawGameDie(killerName, myScore, maxArea)
         grid.killInfo = None
@@ -334,6 +337,20 @@ class GameController(player: PlayerInfoInClient,
             recallFrame = grid.findRecallFrame(frame, recallFrame)
           }
         }
+
+      case data: Protocol.NewFieldInfo =>
+        Boot.addToPlatform{
+          val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+          if (fields.exists(_.uid == player.id)) audioFinish.play()
+          grid.historyFieldInfo += data.frameCount -> fields
+          if(data.frameCount == grid.frameCount){
+            addFieldInfo(data.frameCount)
+          } else if (data.frameCount < grid.frameCount) {
+            println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
+            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+          }
+        }
+
 
       case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
@@ -402,22 +419,17 @@ class GameController(player: PlayerInfoInClient,
 
       case Protocol.UserDeadMsg(frame, deadInfo) =>
         Boot.addToPlatform{
-          deadInfo.foreach{d =>
-            if (grid.carnieMap.get(d.carnieId).isDefined){
-              if (grid.carnieMap(d.carnieId) == player.id){
-                if (d.killerId.isDefined){
-                  val killerId = grid.carnieMap(d.killerId.get)
-                  isGetKiller = true
-                  if (grid.snakes.get(killerId).isDefined){
-                    killerInfo = Some(grid.snakes(killerId).name)
-                  }
-                }
-                else {
-                  isGetKiller = true
-                  killerInfo = None
-                }
-              }
-            }
+          deadInfo.find{d => grid.carnieMap.getOrElse(d.carnieId, "") == player.id} match {
+            case Some(myKillInfo) if myKillInfo.killerId.nonEmpty =>
+              isGetKiller = true
+              val info = grid.snakes.get(grid.carnieMap.getOrElse(myKillInfo.killerId.get, ""))
+              killerInfo = info.map(_.name)
+
+            case None =>
+
+            case _ =>
+              isGetKiller = true
+              killerInfo = None
           }
           val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
           grid.historyDieSnake += frame -> deadList
@@ -439,18 +451,6 @@ class GameController(player: PlayerInfoInClient,
         }
 
 
-      case data: Protocol.NewFieldInfo =>
-        Boot.addToPlatform{
-          val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-          if (fields.exists(_.uid == player.id)) audioFinish.play()
-          grid.historyFieldInfo += data.frameCount -> fields
-          if(data.frameCount == grid.frameCount){
-            addFieldInfo(data.frameCount)
-          } else if (data.frameCount < grid.frameCount) {
-            println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
-          }
-        }
 
       case x@Protocol.ReceivePingPacket(actionId) =>
         Boot.addToPlatform{
@@ -475,34 +475,46 @@ class GameController(player: PlayerInfoInClient,
     gameScene.viewCanvas.setOnKeyPressed{ event =>
       val key = event.getCode
       if (Constant.watchKeys.contains(key)) {
-        val delay = if(mode==2) 4 else 2
+        val delay = if(mode==2) 2 else 1
         val frame = grid.frameCount + delay
 //        val actionId = idGenerator.getAndIncrement()
-        val keyCode = Constant.keyCode2Byte(key)
-        grid.addActionWithFrame(player.id, keyCode, frame)
+//        val keyCode = Constant.keyCode2Byte(key)
+//        grid.addActionWithFrame(player.id, keyCode, frame)
         key match {
           case KeyCode.SPACE =>
-            val msg: Protocol.UserAction = PressSpace
-            playActor ! PlayGameWebSocket.MsgToService(msg)
+            drawFunction match {
+              case FrontProtocol.DrawBaseGame(_) =>
+
+              case _ =>
+                isGetKiller = false
+                killerInfo = None
+                val msg: Protocol.UserAction = PressSpace
+                playActor ! PlayGameWebSocket.MsgToService(msg)
+            }
 
           case _ =>
-            val newKeyCode = Constant.keyCode2Byte(
-              if (mode == 1)
-                key match {
-                  case KeyCode.LEFT => KeyCode.RIGHT
-                  case KeyCode.RIGHT => KeyCode.LEFT
-                  case KeyCode.DOWN => KeyCode.UP
-                  case KeyCode.UP => KeyCode.DOWN
-                  case _ => KeyCode.SPACE
-                } else key)
+            drawFunction match {
+              case FrontProtocol.DrawBaseGame(_) =>
+                val newKeyCode = Constant.keyCode2Byte(
+                  if (mode == 1)
+                    key match {
+                      case KeyCode.LEFT => KeyCode.RIGHT
+                      case KeyCode.RIGHT => KeyCode.LEFT
+                      case KeyCode.DOWN => KeyCode.UP
+                      case KeyCode.UP => KeyCode.DOWN
+                      case _ => KeyCode.SPACE
+                    } else key)
 
-            val actionInfo = grid.getUserMaxActionFrame(player.id, frame)
-            if(actionInfo._1 < frame + maxContainableAction && actionInfo._2 != newKeyCode) {
-              val actionId = idGenerator.getAndIncrement()
-              grid.addActionWithFrame(player.id, newKeyCode, actionInfo._1)
-              grid.myActionHistory += actionId -> (newKeyCode, actionInfo._1)
-              val msg: Protocol.UserAction = Protocol.Key(newKeyCode, frame, actionId)
-              playActor ! PlayGameWebSocket.MsgToService(msg)
+                val actionInfo = grid.getUserMaxActionFrame(player.id, frame)
+                if (actionInfo._1 < frame + maxContainableAction && actionInfo._2 != newKeyCode) {
+                  val actionId = idGenerator.getAndIncrement()
+                  grid.addActionWithFrame(player.id, newKeyCode, actionInfo._1)
+                  grid.myActionHistory += actionId -> (newKeyCode, actionInfo._1)
+                  val msg: Protocol.UserAction = Protocol.Key(newKeyCode, frame, actionId)
+                  playActor ! PlayGameWebSocket.MsgToService(msg)
+                }
+
+              case _ =>
             }
         }
       }
@@ -570,6 +582,8 @@ class GameController(player: PlayerInfoInClient,
     myScore = BaseScore(0, 0, 0)
     isContinue = true
     isSynced = false
+    isGetKiller = false
+    killerInfo = None
     Boot.addToPlatform{
       gameScene.group.getChildren.remove(gameScene.backBtn)
       btnFlag = true
@@ -587,7 +601,7 @@ class GameController(player: PlayerInfoInClient,
 
   def addFieldInfo(frame: Int): Unit = {
     grid.historyFieldInfo.get(frame).foreach { data =>
-      if (data.nonEmpty) println(s"addFieldInfo:$frame")
+//      if (data.nonEmpty) println(s"addFieldInfo:$frame")
       grid.addNewFieldInfo(data)
     }
   }

@@ -139,7 +139,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           val winInfo = drawFunction.asInstanceOf[FrontProtocol.DrawGameWin]
           drawGame.drawGameWin(myId, winInfo.winnerName, winInfo.winData, winningData)
         } else {
-          drawGame.drawGameDie(grid.getKiller(myId).map(_._2), myScore, maxArea)
+          drawGame.drawGameDie(killerInfo, myScore, maxArea)
         }
       }
     }
