@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
   * Date: 9/1/2016
   * Time: 4:13 PM
   */
-trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport{
+trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport with SessionBase{
 
   implicit val system: ActorSystem
 
@@ -71,7 +71,28 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport{
           }
         }
       }
-    } ~ path("createRoom") {
+    } ~
+    path("reJoin") {
+      parameter(
+        'id.as[String],
+        'name.as[String],
+        'mode.as[Int],
+        'img.as[Int]
+      ) { (id, name, mode, img) =>
+        dealFutureResult {
+          val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
+          msg.map{r=>
+            if(r)
+              getFromResource("html/errPage.html")
+            else {
+              userAuth{ _ =>
+                handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+              }
+            }
+          }
+        }
+      }
+    }~ path("createRoom") {
       parameter(
         'id.as[String],
         'name.as[String],

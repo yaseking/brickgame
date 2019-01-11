@@ -8,6 +8,8 @@ object WebSocketProtocol {
 
   case class PlayGamePara(playerId: String, playerName: String, mode: Int = 0, img: Int = 0) extends WebSocketPara//img: Int
 
+  case class ReJoinGamePara(playerId: String, playerName: String, mode: Int = 0, img: Int = 0) extends WebSocketPara//img: Int
+
   case class CreateRoomPara(playerId: String, playerName: String, pwd: String = "", mode: Int = 0, img: Int = 0) extends WebSocketPara//img: Int
 
   case class WatchGamePara(roomId: String, playerId: String, accessCode: String) extends WebSocketPara

@@ -178,7 +178,7 @@ SessionBase extends SessionSupport{
         f(session.userInfo)
 
       case None =>
-        redirect("/titans/user/page#/LoginPage", StatusCodes.SeeOther)
+        complete(noSessionError())
     }
   }
 
