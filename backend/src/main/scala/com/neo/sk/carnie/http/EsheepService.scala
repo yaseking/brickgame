@@ -43,11 +43,7 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
                   case Right(rsp) =>
                     if(rsp.playerId == playerId){
                       addCacheControlHeadersWithFilter(`public`, `max-age`(cacheSeconds)) {
-                        setSession (
-                          UserSession(UserInfo(playerId)).toUserSessionMap
-                        ) { ctx =>
-                          ctx.complete(getFromResource("html/index.html"))
-                        }
+                        getFromResource("html/index.html")
                       }
                     } else {
                       complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))
