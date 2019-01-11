@@ -13,10 +13,12 @@ import akka.actor.typed.scaladsl.AskPattern._
 import akka.http.scaladsl.model.headers.{CacheDirective, `Cache-Control`}
 import io.circe.Error
 import com.neo.sk.carnie.ptcl.EsheepPtcl._
-import com.neo.sk.utils.{CirceSupport, EsheepClient}
-import akka.http.scaladsl.model.headers.CacheDirectives.{ `max-age`, `public` }
+import com.neo.sk.utils.{CirceSupport, EsheepClient, SessionSupport}
+import akka.http.scaladsl.model.headers.CacheDirectives.{`max-age`, `public`}
+import com.neo.sk.carnie.http.SessionBase.{UserInfo, UserSession}
+
 import scala.concurrent.Future
-trait EsheepService extends ServiceUtils with CirceSupport {
+trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -41,7 +43,11 @@ trait EsheepService extends ServiceUtils with CirceSupport {
                   case Right(rsp) =>
                     if(rsp.playerId == playerId){
                       addCacheControlHeadersWithFilter(`public`, `max-age`(cacheSeconds)) {
-                        getFromResource("html/index.html")
+                        setSession (
+                          UserSession(UserInfo(playerId)).toUserSessionMap
+                        ) { ctx =>
+                          ctx.complete(getFromResource("html/index.html"))
+                        }
                       }
                     } else {
                       complete(ErrorRsp(120001, "Some errors happened in verifyAccessCode."))

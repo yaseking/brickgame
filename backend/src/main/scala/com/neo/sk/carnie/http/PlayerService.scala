@@ -59,11 +59,7 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport{
             if(r)
               getFromResource("html/errPage.html")
             else {
-              setSession (
-                UserSession(UserInfo(id)).toUserSessionMap
-              ) { ctx =>
-                ctx.complete(handleWebSocketMessages(webSocketChatFlow(id, name, mode, img)))
-              }
+              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
             }
           }
         }
