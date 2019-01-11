@@ -19,7 +19,7 @@ import scala.xml.Elem
   * Time: 12:45 PM
   */
 
-class NetGameHolder(order: String, webSocketPara: PlayGamePara, mode: Int, img: Int = 0, frameRate: Int = 150) extends Component {
+class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img: Int = 0, frameRate: Int = 150) extends Component {
   //0:正常模式，1:反转模式, 2:2倍加速模式
 
   var currentRank = List.empty[Score]
@@ -344,7 +344,8 @@ class NetGameHolder(order: String, webSocketPara: PlayGamePara, mode: Int, img: 
                   val msg: Protocol.UserAction = PressSpace
                   webSocketClient.sendMessage(msg)
                 case FrontProtocol.DrawGameOff if !firstCome=>
-                  webSocketClient.setUp(order, ReJoinGamePara(webSocketPara.playerId, webSocketPara.playerName, webSocketPara.mode, webSocketPara.img))
+                  val para = webSocketPara.asInstanceOf[PlayGamePara]
+                  webSocketClient.setUp(order, ReJoinGamePara(para.playerId, para.playerName, para.mode, para.img))
                 case _ =>
               }
 
