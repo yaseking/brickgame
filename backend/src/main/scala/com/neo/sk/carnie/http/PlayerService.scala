@@ -1,6 +1,7 @@
 package com.neo.sk.carnie.http
 
 import java.net.URLDecoder
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
@@ -16,10 +17,12 @@ import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.core.TokenActor.AskForToken
 import com.neo.sk.carnie.ptcl.ErrorRsp
-import com.neo.sk.utils.{CirceSupport, EsheepClient}
+import com.neo.sk.utils.{CirceSupport, EsheepClient, SessionSupport}
 import io.circe.generic.auto._
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.carnie.Boot.scheduler
+import com.neo.sk.carnie.http.SessionBase.{UserInfo, UserSession}
+
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /**
@@ -27,7 +30,7 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
   * Date: 9/1/2016
   * Time: 4:13 PM
   */
-trait PlayerService extends ServiceUtils with CirceSupport {
+trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport{
 
   implicit val system: ActorSystem
 
@@ -55,8 +58,13 @@ trait PlayerService extends ServiceUtils with CirceSupport {
           msg.map{r=>
             if(r)
               getFromResource("html/errPage.html")
-            else
-              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+            else {
+              setSession (
+                UserSession(UserInfo(id)).toUserSessionMap
+              ) { ctx =>
+                ctx.complete(handleWebSocketMessages(webSocketChatFlow(id, name, mode, img)))
+              }
+            }
           }
         }
       }
