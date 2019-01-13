@@ -59,13 +59,25 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             if(r)
               getFromResource("html/errPage.html")
             else {
-              setSession (
-                UserSession(UserInfo(id)).toUserSessionMap
-              ) { ctx =>
-                log.debug("test!!!!!!!!!!!!!!!!!!!")
-                ctx.complete()
-              }
-              log.debug(s"session: $optionalSession")
+              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+            }
+          }
+        }
+      }
+    } ~
+    path("addSession") {
+      parameter(
+        'id.as[String],
+        'name.as[String],
+        'mode.as[Int],
+        'img.as[Int]
+      ) { (id, name, mode, img) =>
+        dealFutureResult {
+          val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
+          msg.map{r=>
+            if(r)
+              getFromResource("html/errPage.html")
+            else {
               handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
             }
           }
@@ -85,9 +97,10 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             if(r)
               getFromResource("html/errPage.html")
             else {
-              userAuth{ _ =>
-                handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
-              }
+//              userAuth{ _ =>
+//                handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+//              }
+              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
             }
           }
         }

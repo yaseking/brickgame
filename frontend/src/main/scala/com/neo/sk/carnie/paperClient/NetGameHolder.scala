@@ -1,7 +1,8 @@
 package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
-import com.neo.sk.carnie.common.Constant
+
+import com.neo.sk.carnie.common.{Constant}
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
@@ -10,7 +11,9 @@ import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
 import com.neo.sk.carnie.util.Component
-
+import io.circe.generic.auto._
+import io.circe.parser.decode
+import io.circe.syntax._
 import scala.xml.Elem
 
 /**
@@ -54,6 +57,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var frameTemp = 0
 
   var pingTimer = -1
+
+  var gameLoopTimer = -1
+
+  var renderId = 0
 
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
@@ -108,7 +115,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     //    BGM = bgmList(getRandom(bgmAmount))
     //    BGM.play()
     //    isPlay = true
-    dom.window.setInterval(() => gameLoop(), frameRate)
+    gameLoopTimer = dom.window.setInterval(() => gameLoop(), frameRate)
     pingTimer = dom.window.setInterval(() => {
       if (pingId > 10000) pingId = 0 else pingId = (pingId + 1).toShort
       pingMap += (pingId -> System.currentTimeMillis())
@@ -125,7 +132,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     draw(offsetTime)
 //    lastTime1 = curTime
     if (isContinue)
-      dom.window.requestAnimationFrame(gameRender())
+      renderId = dom.window.requestAnimationFrame(gameRender())
   }
 
 
@@ -344,8 +351,24 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   val msg: Protocol.UserAction = PressSpace
                   webSocketClient.sendMessage(msg)
                 case FrontProtocol.DrawGameOff if !firstCome=>
+                  dom.window.cancelAnimationFrame(renderId)
+                  killInfo = None
+                  grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
+                  drawFunction = FrontProtocol.DrawGameWait
+                  //    audio1.pause()
+                  //    audio1.currentTime = 0
+                  audioKilled.pause()
+                  audioKilled.currentTime = 0
+                  firstCome = true
+                  isSynced = false
+                  isGetKiller = false
+                  killerInfo = None
+                  if (isWin) isWin = false
+                  myScore = BaseScore(0, 0, 0)
+                  isContinue = true
                   val para = webSocketPara.asInstanceOf[PlayGamePara]
                   webSocketClient.setUp(order, ReJoinGamePara(para.playerId, para.playerName, para.mode, para.img))
+
                 case _ =>
               }
 
@@ -433,6 +456,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           dom.window.clearInterval(pingTimer)
           pingTimer = -1
         }
+        dom.window.clearInterval(gameLoopTimer)
         drawFunction = FrontProtocol.DrawGameOff
 
 
@@ -665,6 +689,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     grid.historyNewSnake.get(frame).foreach { newSnakes =>
       if (newSnakes._1.map(_.id).contains(myId) && !firstCome && !isContinue) spaceKey()
     }
+  }
+
+  def addSession(id: String) = {
+    val data = Id(id).asJson.noSpaces
+    val url = "http://"
+
   }
 
   override def render: Elem = {
