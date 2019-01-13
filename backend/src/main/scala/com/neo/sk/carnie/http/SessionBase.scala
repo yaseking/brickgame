@@ -57,12 +57,14 @@ object SessionBase extends CirceSupport{
   )
 
   case class UserSession(
-    userInfo: UserInfo
+    userInfo: UserInfo,
+    time: Long
   ) {
     def toUserSessionMap: Map[String, String] = {
       Map(
         SessionTypeKey -> UserSessionKey.SESSION_TYPE,
-        UserSessionKey.uid -> userInfo.uid.toString
+        UserSessionKey.uid -> userInfo.uid.toString,
+        UserSessionKey.timestamp -> time.toString
       )
     }
   }
@@ -125,7 +127,8 @@ SessionBase extends SessionSupport{
             Some(UserSession(
               UserInfo(
                 sessionMap(UserSessionKey.uid)
-              )
+              ),
+              sessionMap(UserSessionKey.timestamp).toLong
             ))
           }
         } else {

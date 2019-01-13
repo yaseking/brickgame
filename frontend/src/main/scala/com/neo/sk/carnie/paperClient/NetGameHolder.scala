@@ -2,7 +2,8 @@ package com.neo.sk.carnie.paperClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.carnie.common.{Constant}
+import com.neo.sk.carnie.Routes
+import com.neo.sk.carnie.common.Constant
 import org.scalajs.dom.html.Canvas
 import com.neo.sk.carnie.paperClient.Protocol._
 import org.scalajs.dom
@@ -10,10 +11,12 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 import com.neo.sk.carnie.paperClient.WebSocketProtocol._
-import com.neo.sk.carnie.util.Component
+import com.neo.sk.carnie.ptcl.SuccessRsp
+import com.neo.sk.carnie.util.{Component, Http}
 import io.circe.generic.auto._
-import io.circe.parser.decode
 import io.circe.syntax._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
 
 /**
@@ -98,6 +101,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
 
   def init(): Unit = {
+    val para = webSocketPara.asInstanceOf[PlayGamePara]
+    addSession(para.playerId)
     webSocketClient.setUp(order, webSocketPara)
   }
 
@@ -692,8 +697,19 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def addSession(id: String) = {
-    val data = Id(id).asJson.noSpaces
-    val url = "http://"
+    val url = Routes.Carnie.addSession+s"?id=$id"
+    Http.getAndParse[SuccessRsp](url).map {
+      case Right(rsp) =>
+        if (rsp.errCode == 0) {
+          println("Success to addSession!")
+        }
+        else {
+          println(s"Some errors happened in addSession: ${rsp.msg}")
+        }
+
+      case Left(e) =>
+        println(s"Some errors happened in addSession: $e")
+    }
 
   }
 

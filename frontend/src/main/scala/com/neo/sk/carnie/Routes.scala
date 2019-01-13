@@ -11,5 +11,6 @@ object Routes {
     val getRoomList = baseUrl + "/getRoomList"
     val updateRoomList = baseUrl + "/updateRoomList"
     val getRoomList4Front = baseUrl + "/getRoomList4Front"
+    val addSession = baseUrl + "/addSession"
   }
 }

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.carnie.Boot.roomManager
 import com.neo.sk.carnie.common.AppSettings
 import com.neo.sk.carnie.core.TokenActor.AskForToken
-import com.neo.sk.carnie.ptcl.ErrorRsp
+import com.neo.sk.carnie.ptcl.{ErrorRsp, SuccessRsp}
 import com.neo.sk.utils.{CirceSupport, EsheepClient, SessionSupport}
 import io.circe.generic.auto._
 import akka.actor.typed.scaladsl.AskPattern._
@@ -67,20 +67,12 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
     } ~
     path("addSession") {
       parameter(
-        'id.as[String],
-        'name.as[String],
-        'mode.as[Int],
-        'img.as[Int]
-      ) { (id, name, mode, img) =>
-        dealFutureResult {
-          val msg: Future[Boolean] = roomManager ? (RoomManager.JudgePlaying(id, _))
-          msg.map{r=>
-            if(r)
-              getFromResource("html/errPage.html")
-            else {
-              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
-            }
-          }
+        'id.as[String]
+      ) { id =>
+        setSession(
+          UserSession(UserInfo(id), System.currentTimeMillis()).toUserSessionMap
+        ) { ctx =>
+          ctx.complete(SuccessRsp())
         }
       }
     } ~
@@ -97,10 +89,10 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             if(r)
               getFromResource("html/errPage.html")
             else {
-//              userAuth{ _ =>
-//                handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
-//              }
-              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+              userAuth{ _ =>
+                handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
+              }
+//              handleWebSocketMessages(webSocketChatFlow(id, name, mode, img))
             }
           }
         }
