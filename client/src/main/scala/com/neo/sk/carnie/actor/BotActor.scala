@@ -240,6 +240,7 @@ object BotActor {
           Behaviors.same
 
         case Dead =>
+          log.info(s"switch to dead behavior")
           dead(actor, botController, playerInfo)
 
         case LeaveRoom=>

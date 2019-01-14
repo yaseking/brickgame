@@ -330,9 +330,9 @@ class BotController(player: PlayerInfoInClient,
 
   def addDieSnake(frame: Int): Unit = {
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
-      grid.cleanDiedSnakeInfo(deadSnake)
       botActor ! Dead
       isDead = true
+      grid.cleanDiedSnakeInfo(deadSnake)
     }
   }
 

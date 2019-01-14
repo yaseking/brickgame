@@ -540,6 +540,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         }
 
       case Protocol.SomeOneWin(winner) =>
+        myId = myTrueId
         drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
         isWin = true
         //        winnerName = winner
