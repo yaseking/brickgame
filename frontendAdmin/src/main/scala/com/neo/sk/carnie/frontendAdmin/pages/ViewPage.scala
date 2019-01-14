@@ -169,7 +169,8 @@ object ViewPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("get player records error!")
+        JsFunc.alert("对不起，您尚未登陆!")
+        dom.window.location.href=""
     }
   }
 
@@ -202,7 +203,8 @@ object ViewPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("get player records by time error!")
+        JsFunc.alert("对不起，您尚未登陆!")
+        dom.window.location.href=""
     }
   }
 
@@ -229,7 +231,8 @@ object ViewPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("get player amount error!")
+        JsFunc.alert("对不起，您尚未登陆!")
+        dom.window.location.href=""
     }
   }
 
@@ -258,7 +261,8 @@ object ViewPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("get player records amount by time error!")
+        JsFunc.alert("对不起，您尚未登陆!")
+        dom.window.location.href=""
     }
   }
 

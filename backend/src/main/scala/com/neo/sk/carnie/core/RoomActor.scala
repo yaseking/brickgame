@@ -40,6 +40,8 @@ object RoomActor {
 
 //  private val maxWaitingTime4Restart = 3000
 
+  private val waitingTime4CloseWs = 15.minutes
+
 
   //  private val classify = 5
 
@@ -141,7 +143,8 @@ object RoomActor {
             userMap.-=(killBot._1)
             carnieMap.-=(killBot._1)
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
-            ctx.self ! LeftRoom(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
+//            ctx.self ! LeftRoom(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
+            roomManager ! RoomManager.Left(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
           }
           idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap, carnieMap)
 
@@ -174,7 +177,7 @@ object RoomActor {
           val killHistoryInFrame = grid.killHistory.filter(k => k._2._3 + 1 == frame)
           users.foreach { u =>
             val id = u._1
-            timer.startSingleTimer(UserDeadTimerKey + id, CloseWs(id), 10.seconds)//1.minutes
+            timer.startSingleTimer(UserDeadTimerKey + id, CloseWs(id), waitingTime4CloseWs)
             if (userMap.get(id).nonEmpty) {
               var killerId: Option[String] = None
               val name = userMap(id).name
@@ -427,6 +430,7 @@ object RoomActor {
             userMap.foreach { u =>
               if (!userDeadList.contains(u._1)) {
                 gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
+                timer.startSingleTimer(UserDeadTimerKey + u._1, CloseWs(u._1), waitingTime4CloseWs)
                 userDeadList += u._1 -> curTime
                 if (u._1.take(3) == "bot") {
 //                  botMap.-=(u._1)

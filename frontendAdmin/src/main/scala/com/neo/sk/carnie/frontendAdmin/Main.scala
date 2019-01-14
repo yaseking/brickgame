@@ -36,8 +36,9 @@ object MainEnter extends PageSwitcher {
 
   val header: Rx[Elem] = currentHashVar.map {
     //    case Nil => Header.render
-    case "LoginPage" :: Nil => <div></div>
-    case _ => Header.render
+    case "View" :: Nil => Header.render
+    case "CurrentDataPage" :: Nil => Header.render
+    case _ => <div></div>
   }
 
   def show(): Cancelable = {

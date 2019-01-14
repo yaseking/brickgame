@@ -74,97 +74,111 @@ trait AdminService extends ServiceUtils
 //  }
 
   private val getRoomPlayerList = (path("getRoomPlayerList") & get & pathEndOrSingleSlash) {
-//    val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-    val msg: Future[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]] = roomManager ? RoomManager.ReturnRoomMap
-    dealFutureResult{
-      msg.map { plist =>
-//        val plist =r.map(i => i._1 -> i._2._3)
-          complete(RoomMapRsp(RoomMapInfo(plist)))
-      }
+    adminAuth {
+      _ =>
+        //    val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
+        val msg: Future[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]] = roomManager ? RoomManager.ReturnRoomMap
+        dealFutureResult {
+          msg.map { plist =>
+            //        val plist =r.map(i => i._1 -> i._2._3)
+            complete(RoomMapRsp(RoomMapInfo(plist)))
+          }
+        }
     }
   }
 
   private val getPlayerRecord = (path("getPlayerRecord") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error,PageReq]]){
-      case Right(req) =>
-        val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-        val date = dateFormat.format(System.currentTimeMillis())
-        val start = date.take(11) + "00:00:00"
-        val end = date.take(11) + "23:59:59"
-        dealFutureResult{
-          PlayerRecordDAO.getPlayerRecord().map{p =>
-            complete(AdminPtcl.PlayerRecordRsp(p.toList.map{i =>
-              AdminPtcl.PlayerRecord(i.id, i.playerId, i.nickname, i.killing, i.killed,
-                i.score, i.startTime, i.endTime)}.slice((req.page - 1) * 5, req.page * 5),p.length
+    adminAuth {
+      _ =>
+        entity(as[Either[Error, PageReq]]) {
+          case Right(req) =>
+            val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+            dealFutureResult {
+              PlayerRecordDAO.getPlayerRecord().map { p =>
+                complete(AdminPtcl.PlayerRecordRsp(p.toList.map { i =>
+                  AdminPtcl.PlayerRecord(i.id, i.playerId, i.nickname, i.killing, i.killed,
+                    i.score, i.startTime, i.endTime)
+                }.slice((req.page - 1) * 5, req.page * 5), p.length
                 ))
-          }.recover {
-            case e: Exception =>
-              log.info(s"getPlayerRecord exception.." + e.getMessage)
-              complete(ErrorRsp(130019, "getPlayerRecord error."))
-          }
+              }.recover {
+                case e: Exception =>
+                  log.info(s"getPlayerRecord exception.." + e.getMessage)
+                  complete(ErrorRsp(130019, "getPlayerRecord error."))
+              }
+            }
+          case Left(_) =>
+            complete(ErrorRsp(130026, "parse error."))
         }
-      case Left(_) =>
-        complete(ErrorRsp(130026, "parse error."))
     }
   }
 
   private val getPlayerRecordAmount = (path("getPlayerRecordAmount") & get & pathEndOrSingleSlash) {
-    val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    val date = dateFormat.format(System.currentTimeMillis())
-    val start = date.take(11) + "00:00:00"
-    val end = date.take(11) + "23:59:59"
-    dealFutureResult{
-      PlayerRecordDAO.getPlayerRecord().map{p =>
-        complete(AdminPtcl.PlayerAmountRsp(p.map(_.playerId).distinct.length,
-          p.filter(i => dateFormat.format(i.startTime) >= start && dateFormat.format(i.endTime) <= end).map(_.playerId).distinct.length))
-      }.recover {
-        case e: Exception =>
-          log.info(s"getPlayerRecordAmount exception.." + e.getMessage)
-          complete(ErrorRsp(130020, "getPlayerRecordAmount error."))
-      }
+    adminAuth {
+      _ =>
+        val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val date = dateFormat.format(System.currentTimeMillis())
+        val start = date.take(11) + "00:00:00"
+        val end = date.take(11) + "23:59:59"
+        dealFutureResult {
+          PlayerRecordDAO.getPlayerRecord().map { p =>
+            complete(AdminPtcl.PlayerAmountRsp(p.map(_.playerId).distinct.length,
+              p.filter(i => dateFormat.format(i.startTime) >= start && dateFormat.format(i.endTime) <= end).map(_.playerId).distinct.length))
+          }.recover {
+            case e: Exception =>
+              log.info(s"getPlayerRecordAmount exception.." + e.getMessage)
+              complete(ErrorRsp(130020, "getPlayerRecordAmount error."))
+          }
+        }
     }
   }
 
   private val getPlayerRecordByTime = (path("getPlayerRecordByTime") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error,PageTimeReq]]){
-      case Right(req) =>
-        val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-        val startS = req.time.take(10) + " 00:00:00"
-        val endS = req.time.take(10) + " 23:59:59"
-        dealFutureResult{
-          PlayerRecordDAO.getPlayerRecord().map{p =>
-            complete(AdminPtcl.PlayerRecordRsp(p.toList.filter(i => dateFormat.format(i.startTime) >= startS && dateFormat.format(i.endTime) <= endS).map{i =>
-              AdminPtcl.PlayerRecord(i.id, i.playerId, i.nickname, i.killing, i.killed, i.score, i.startTime, i.endTime)}.slice((req.page - 1) * 5, req.page * 5),
-              p.count(i => dateFormat.format(i.startTime) >= startS && dateFormat.format(i.endTime) <= endS)))
-          }.recover {
-            case e: Exception =>
-              log.info(s"getPlayerRecordByTime exception.." + e.getMessage)
-              complete(ErrorRsp(130019, "getPlayerRecordByTime error."))
-          }
+    adminAuth {
+      _ =>
+        entity(as[Either[Error, PageTimeReq]]) {
+          case Right(req) =>
+            val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+            val startS = req.time.take(10) + " 00:00:00"
+            val endS = req.time.take(10) + " 23:59:59"
+            dealFutureResult {
+              PlayerRecordDAO.getPlayerRecord().map { p =>
+                complete(AdminPtcl.PlayerRecordRsp(p.toList.filter(i => dateFormat.format(i.startTime) >= startS && dateFormat.format(i.endTime) <= endS).map { i =>
+                  AdminPtcl.PlayerRecord(i.id, i.playerId, i.nickname, i.killing, i.killed, i.score, i.startTime, i.endTime)
+                }.slice((req.page - 1) * 5, req.page * 5),
+                  p.count(i => dateFormat.format(i.startTime) >= startS && dateFormat.format(i.endTime) <= endS)))
+              }.recover {
+                case e: Exception =>
+                  log.info(s"getPlayerRecordByTime exception.." + e.getMessage)
+                  complete(ErrorRsp(130019, "getPlayerRecordByTime error."))
+              }
+            }
+          case Left(_) =>
+            complete(ErrorRsp(130026, "parse error."))
         }
-      case Left(_) =>
-        complete(ErrorRsp(130026, "parse error."))
     }
   }
 
   private val getPlayerByTimeAmount = (path("getPlayerByTimeAmount") & post & pathEndOrSingleSlash) {
-    entity(as[Either[Error,AdminPtcl.TimeReq]]){
-      case Right(req) =>
-        val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-        val startS = req.time.take(10) + " 00:00:00"
-        val endS = req.time.take(10) + " 23:59:59"
-        dealFutureResult{
-          PlayerRecordDAO.getPlayerRecord().map{p =>
-            complete(AdminPtcl.PlayerByTimeAmountRsp(p.filter(i => dateFormat.format(i.startTime) >= startS &&
-              dateFormat.format(i.endTime) <= endS).map(_.playerId).distinct.length))
-          }.recover {
-            case e: Exception =>
-              log.info(s"getPlayerByTimeAmount exception.." + e.getMessage)
-              complete(ErrorRsp(130021, "getPlayerByTimeAmount error."))
-          }
+    adminAuth {
+      _ =>
+        entity(as[Either[Error, AdminPtcl.TimeReq]]) {
+          case Right(req) =>
+            val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+            val startS = req.time.take(10) + " 00:00:00"
+            val endS = req.time.take(10) + " 23:59:59"
+            dealFutureResult {
+              PlayerRecordDAO.getPlayerRecord().map { p =>
+                complete(AdminPtcl.PlayerByTimeAmountRsp(p.filter(i => dateFormat.format(i.startTime) >= startS &&
+                  dateFormat.format(i.endTime) <= endS).map(_.playerId).distinct.length))
+              }.recover {
+                case e: Exception =>
+                  log.info(s"getPlayerByTimeAmount exception.." + e.getMessage)
+                  complete(ErrorRsp(130021, "getPlayerByTimeAmount error."))
+              }
+            }
+          case Left(_) =>
+            complete(ErrorRsp(130026, "parse error."))
         }
-      case Left(_) =>
-        complete(ErrorRsp(130026, "parse error."))
     }
   }
 

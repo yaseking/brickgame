@@ -13,7 +13,7 @@ import akka.http.scaladsl.model.headers.{CacheDirective, `Cache-Control`}
 import akka.http.scaladsl.server.Directive0
 import akka.http.scaladsl.model.headers.CacheDirectives.{`max-age`, `public`}
 
-import com.neo.sk.carnie.common.AppSettings.httpDomain
+import com.neo.sk.carnie.common.AppSettings.httpUrl
 
 /**
   * User: Taoz
@@ -36,7 +36,7 @@ trait HttpService extends PlayerService
   implicit val timeout: Timeout
 
   private val home = get {
-    redirect(Uri(s"http://$httpDomain/esheep#/home"),StatusCodes.SeeOther)
+    redirect(Uri(s"$httpUrl"),StatusCodes.SeeOther)
   }
 
   val routes = ignoreTrailingSlash{
