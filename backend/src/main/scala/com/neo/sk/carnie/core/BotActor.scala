@@ -105,6 +105,16 @@ object BotActor {
                   case _  =>
                 }
               }
+              val newHeaderStraight = List(4,3,2,1).map(header + direction * _)
+              flag = true
+              newHeaderStraight.foreach{ h =>
+                grid.grid.get(h) match {
+                  case Some(Field(id)) if flag && id == botId =>
+                    actionCode = pointsToAction(direction)
+                    flag = false
+                  case _  =>
+                }
+              }
             }
             if (stateForA == 0) actionCode = (Random.nextInt(4) + 37).toByte
             roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))

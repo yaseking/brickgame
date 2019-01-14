@@ -90,6 +90,7 @@ object CurrentDataPage extends Page{
           </div>
           <div class="col-xs-1" style="text-align:center;font-weight:bold">roomId</div>
           <div class="col-xs-1" style="text-align:center;font-weight:bold">model</div>
+          <div class="col-xs-2" style="text-align:center;font-weight:bold">amount of players</div>
           <div class="col-xs-2" style="text-align:center;font-weight:bold">playerId</div>
           <div class="col-xs-2" style="text-align:center;font-weight:bold">playerName</div>
           <br></br>
@@ -111,6 +112,9 @@ object CurrentDataPage extends Page{
         </div>
         <div class="col-xs-1" style="text-align:center;">
           {room.model}
+        </div>
+        <div class="col-xs-2" style="text-align:center;">
+          {roomPlayerMap(room.id).toList.length}
         </div>
         <div class="col-xs-2" style="text-align:center;">
           {
