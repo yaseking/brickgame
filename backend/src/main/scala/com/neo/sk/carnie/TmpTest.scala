@@ -139,7 +139,7 @@ object TmpTest extends Grid{
 
   def main(args: Array[String]): Unit = {
 //    getGridData
-   List(3,2,1).foreach(i =>
+    (1 to 10).toList.reverse.foreach(i =>
     println(i))
   }
 }

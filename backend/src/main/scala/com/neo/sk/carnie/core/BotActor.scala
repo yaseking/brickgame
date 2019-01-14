@@ -90,9 +90,10 @@ object BotActor {
             if(grid.snakes.exists(_._1 == botId)){
               val header = grid.snakes.find(_._1 == botId).get._2.header
               val direction = grid.snakes.find(_._1 == botId).get._2.direction
+              val rightDirection = directionToRight(direction)
               //            log.info(s"=====bot direction:$direction")
-              val newHeader = List(3,2,1).map(header + directionToRight(direction) * _)
-              actionCode = pointsToAction(directionToRight(direction))
+              val newHeader = List(3,2,1).map(header + rightDirection * _)
+              actionCode = pointsToAction(rightDirection)
               var flag = true
               newHeader.foreach{ h =>
                 grid.grid.get(h) match {
@@ -138,19 +139,18 @@ object BotActor {
             if(grid.snakes.exists(_._1 == botId)){
               val header = grid.snakes.find(_._1 == botId).get._2.header
               val direction = grid.snakes.find(_._1 == botId).get._2.direction
+              val rightDirection = directionToRight(direction)
+              val leftDirection = actionToPoints(pointsToAvoid(direction))
               //            log.info(s"=====bot direction:$direction")
               val newHeader = List(3,2,1).map(header + direction * _)
               var flag = true
               newHeader.foreach{ h =>
                 grid.grid.get(h) match {
                   case Some(Border) if flag=>
-                    actionCode = pointsToAction(directionToRight(direction))
-                    flag = false
-                  case Some(Body(bid, _)) if bid == botId && flag =>
-                    actionCode = pointsToAvoid(direction)
+                    actionCode = pointsToAction(rightDirection)
                     flag = false
                   case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
-                    actionCode = pointsToAction(directionToRight(direction))
+                    actionCode = pointsToAction(rightDirection)
                     flag = false
                   case Some(Field(fid)) if fid == botId && flag =>
                     actionCode = pointsToAction(direction)
@@ -160,8 +160,46 @@ object BotActor {
                   case _ =>
                 }
               }
-              if (state > 1) {
-
+              val isInField = grid.grid.get(header - direction) match {
+                case Some(Field(id)) if id == botId => true
+                case _ => false
+              }
+              if (!isInField) {
+                val newHeaderRight = (1 to 4).toList.reverse.map(header + rightDirection * _)
+                var flag = true
+                newHeaderRight.foreach{ h =>
+                  grid.grid.get(h) match {
+                    case Some(Field(fid)) if fid == botId && flag =>
+                      actionCode = pointsToAction(rightDirection)
+                      flag = false
+                    case Some(Body(bid, _)) if bid == botId  =>
+                      actionCode = pointsToAction(direction)
+                    case Some(Body(bid, _)) if bid != botId && bid.take(3) == "bot" =>
+                      actionCode = pointsToAction(direction)
+                    case _ =>
+                  }
+                }
+                val newHeaderLeft = (1 to 10).toList.reverse.map(header + actionToPoints(pointsToAvoid(direction)) * _)
+                flag = true
+                newHeaderLeft.foreach{ h =>
+                  grid.grid.get(h) match {
+                    case Some(Field(fid)) if fid == botId && flag =>
+                      actionCode = pointsToAvoid(direction)
+                      flag = false
+                    case Some(Body(bid, _)) if bid == botId  =>
+                      actionCode = pointsToAction(direction)
+                    case Some(Body(bid, _)) if bid != botId && bid.take(3) == "bot" =>
+                      actionCode = pointsToAction(direction)
+                    case _ =>
+                  }
+                }
+                newHeader.foreach { h =>
+                  grid.grid.get(h) match {
+                    case Some(Body(bid, _)) if bid == botId && flag =>
+                      actionCode = pointsToAvoid(direction)
+                    case _ =>
+                  }
+                }
               }
             }
             timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),state),  frameRate.millis)

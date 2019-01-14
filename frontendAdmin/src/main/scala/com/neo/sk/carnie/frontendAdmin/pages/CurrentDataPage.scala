@@ -91,8 +91,8 @@ object CurrentDataPage extends Page{
           <div class="col-xs-1" style="text-align:center;font-weight:bold">roomId</div>
           <div class="col-xs-1" style="text-align:center;font-weight:bold">model</div>
           <div class="col-xs-2" style="text-align:center;font-weight:bold">amount of players</div>
-          <div class="col-xs-2" style="text-align:center;font-weight:bold">playerId</div>
-          <div class="col-xs-2" style="text-align:center;font-weight:bold">playerName</div>
+          <div class="col-xs-2" style="text-align:left;font-weight:bold">playerId</div>
+          <div class="col-xs-2" style="text-align:left;font-weight:bold">playerName</div>
           <br></br>
         </div>
         <div>
@@ -116,15 +116,17 @@ object CurrentDataPage extends Page{
         <div class="col-xs-2" style="text-align:center;">
           {roomPlayerMap(room.id).toList.length}
         </div>
-        <div class="col-xs-2" style="text-align:center;">
+        <div class="col-xs-2" style="text-align:left;">
           {
+          var n = 0
           roomPlayerMap(room.id).toList.map{
             i =>
-              <div>{s"${i._1}"}</div>
+              n += 1
+              <div>{s"$n、${i._1}"}</div>
           }
           }
         </div>
-        <div class="col-xs-2" style="text-align:center;">
+        <div class="col-xs-2" style="text-align:left;">
           {
           roomPlayerMap(room.id).toList.map{
             i =>
