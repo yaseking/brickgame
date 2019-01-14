@@ -3,6 +3,7 @@ package com.neo.sk.carnie.paperClient
 import com.neo.sk.carnie.common.Constant.ColorsSetting
 import com.neo.sk.carnie.paperClient.Protocol._
 import com.neo.sk.carnie.util.TimeTool
+import javafx.scene.paint.Color
 import org.scalajs.dom
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.html.{Button, Canvas, Image}
@@ -461,12 +462,20 @@ class DrawGame(
       val off = direction * offsetTime.toFloat / frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+//      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
+//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
 
       if (s.id == championId)
         ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+//      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+
+      val lightC = findLightColor(s.color)
+      val darkC = findDarkColor(s.color)
+//      println(s"color-${s.color},lightC-$lightC,darkC-$darkC")
+      ctx.fillStyle = lightC
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.fillStyle = darkC
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.1 * canvasUnit)
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
@@ -668,6 +677,44 @@ class DrawGame(
     ctx.translate(x, y)
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
+  }
+
+  def findLightColor(str: String) = {
+    val (r, g, b) = hex2Rgb(str)
+    val newR = decToHex(r+20)
+    val newG = decToHex(g+20)
+    val newB = decToHex(b+20)
+    s"#$newR$newG$newB"
+  }
+
+  def findDarkColor(str: String) = {
+    val (r, g, b) = hex2Rgb(str)
+    val newR = decToHex(r-20)
+    val newG = decToHex(g-20)
+    val newB = decToHex(b-20)
+    s"#$newR$newG$newB"
+  }
+
+  def hex2Rgb(hex: String):(Int, Int, Int) = {
+    val red = hexToDec(hex.slice(1, 3))
+    val green = hexToDec(hex.slice(3, 5))
+    val blue = hexToDec(hex.takeRight(2))
+    (red, green, blue)
+  }
+
+  def hexToDec(hex: String): Int = {
+    val hexString: String = "0123456789ABCDEF"
+    var target = 0
+    var base = Math.pow(16, hex.length - 1).toInt
+    for (i <- 0 until hex.length) {
+      target = target + hexString.indexOf(hex(i)) * base
+      base = base / 16
+    }
+    target
+  }
+
+  def decToHex(num: Int) = {
+    Integer.toHexString(num)
   }
 
   def isPointInWindow(p: Point4Trans, windowMax: Point, windowMin: Point): Boolean = {

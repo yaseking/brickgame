@@ -85,7 +85,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   }
 
   def getRandom(start: Int): Int = {
-    val end = 256
+    val end = 226
     val rnd = new scala.util.Random
     start + rnd.nextInt(end - start)
   }
