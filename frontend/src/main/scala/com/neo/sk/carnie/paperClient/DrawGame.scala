@@ -681,17 +681,17 @@ class DrawGame(
 
   def findLightColor(str: String) = {
     val (r, g, b) = hex2Rgb(str)
-    val newR = decToHex((r+20)%256)
-    val newG = decToHex((g+20)%256)
-    val newB = decToHex((b+20)%256)
+    val newR = decToHex(r+20)
+    val newG = decToHex(g+20)
+    val newB = decToHex(b+20)
     s"#$newR$newG$newB"
   }
 
   def findDarkColor(str: String) = {
     val (r, g, b) = hex2Rgb(str)
-    val newR = decToHex((r+236)%256)
-    val newG = decToHex((g+236)%256)
-    val newB = decToHex((b+236)%256)
+    val newR = decToHex(r-20)
+    val newG = decToHex(g-20)
+    val newB = decToHex(b-20)
     s"#$newR$newG$newB"
   }
 
@@ -714,10 +714,7 @@ class DrawGame(
   }
 
   def decToHex(num: Int) = {
-    if(num<16)
-      "0"+Integer.toHexString(num)
-    else
-      Integer.toHexString(num)
+    Integer.toHexString(num)
   }
 
   def isPointInWindow(p: Point4Trans, windowMax: Point, windowMin: Point): Boolean = {
