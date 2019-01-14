@@ -174,7 +174,7 @@ object RoomActor {
           val killHistoryInFrame = grid.killHistory.filter(k => k._2._3 + 1 == frame)
           users.foreach { u =>
             val id = u._1
-            timer.startSingleTimer(UserDeadTimerKey + id, CloseWs(id), 10.seconds)//1.minutes
+            timer.startSingleTimer(UserDeadTimerKey + id, CloseWs(id), 15.minutes)
             if (userMap.get(id).nonEmpty) {
               var killerId: Option[String] = None
               val name = userMap(id).name
