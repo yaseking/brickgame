@@ -353,25 +353,25 @@ class DrawGame(
 
     var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
     data.fieldDetails.foreach { user =>
-      if (snakes.exists(_.id == user.uid)) {
-//      if (!snakes.exists(_.id == user.uid)) {
-//        println(s"snakes don't exist fieldId-${user.uid}")
-//      }
-        var userScanField: List[FrontProtocol.Scan4Draw] = Nil
-        user.scanField.foreach { field =>
-          if (field.y < maxPoint.y + 10 && field.y > minPoint.y - 5) {
-            userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
-          }
-        }
-        fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
+//      if (snakes.exists(_.id == user.uid)) {
+      if (!snakes.exists(_.id == user.uid)) {
+        println(s"snakes don't exist fieldId-${user.uid}")
       }
+      var userScanField: List[FrontProtocol.Scan4Draw] = Nil
+      user.scanField.foreach { field =>
+        if (field.y < maxPoint.y + 10 && field.y > minPoint.y - 5) {
+          userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
+        }
+      }
+      fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
+//      }
     }
 
     val bodyInWindow = data.bodyDetails.filter{b =>
-//      if(!snakes.exists(_.id == b.uid)) {
-//        println(s"snakes don't exist bodyId-${b.uid}")
-//      }
-      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint)) && snakes.exists(_.id == b.uid)
+      if(!snakes.exists(_.id == b.uid)) {
+        println(s"snakes don't exist bodyId-${b.uid}")
+      }
+      b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint))
     }
 
     scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
