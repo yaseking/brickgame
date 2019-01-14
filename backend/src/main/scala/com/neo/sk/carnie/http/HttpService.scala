@@ -36,7 +36,7 @@ trait HttpService extends PlayerService
   implicit val timeout: Timeout
 
   private val home = get {
-    redirect(Uri(s"http://$httpDomain/esheep#/home"),StatusCodes.SeeOther)
+    redirect(Uri(s"$httpDomain"),StatusCodes.SeeOther)
   }
 
   val routes = ignoreTrailingSlash{
