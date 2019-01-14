@@ -70,7 +70,7 @@ object CurrentDataPage extends Page{
       case Left(e) =>
         println("error======" + e)
         JsFunc.alert("对不起，您尚未登陆!")
-        dom.window.location.href="#/admin"
+        dom.window.location.href=""
     }
   }
 
