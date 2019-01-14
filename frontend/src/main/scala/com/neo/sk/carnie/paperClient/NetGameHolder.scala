@@ -355,6 +355,12 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
                   killerInfo = None
                   val msg: Protocol.UserAction = PressSpace
                   webSocketClient.sendMessage(msg)
+                case FrontProtocol.DrawGameWin(_, _) =>
+                  println("onkeydown:Space")
+                  isGetKiller = false
+                  killerInfo = None
+                  val msg: Protocol.UserAction = PressSpace
+                  webSocketClient.sendMessage(msg)
                 case FrontProtocol.DrawGameOff if !firstCome=>
                   dom.window.cancelAnimationFrame(renderId)
                   killInfo = None

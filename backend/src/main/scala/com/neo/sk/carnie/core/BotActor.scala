@@ -150,6 +150,9 @@ object BotActor {
                   case _ =>
                 }
               }
+              if (state > 1) {
+
+              }
             }
             timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),state),  frameRate.millis)
             roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
