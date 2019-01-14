@@ -43,7 +43,7 @@ object AppSettings {
 
   val httpInterface = appConfig.getString("http.interface")
   val httpPort = appConfig.getInt("http.port")
-  val httpUrl = appConfig.getString("http.domain")
+  val httpUrl = appConfig.getString("http.url")
 
   val botMap = {
     import collection.JavaConverters._

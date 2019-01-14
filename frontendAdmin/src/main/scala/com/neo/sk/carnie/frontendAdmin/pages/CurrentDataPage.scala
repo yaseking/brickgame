@@ -69,7 +69,8 @@ object CurrentDataPage extends Page{
 
       case Left(e) =>
         println("error======" + e)
-        JsFunc.alert("get room players error!")
+        JsFunc.alert("对不起，您尚未登陆!")
+        dom.window.location.href="#/admin"
     }
   }
 
