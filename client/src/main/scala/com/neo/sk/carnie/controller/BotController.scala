@@ -42,6 +42,7 @@ class BotController(player: PlayerInfoInClient,
   private var myActions = Map.empty[Int,Int]
   private var logicFrameTime = System.currentTimeMillis()
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
+  var isDead = false
 
   def startGameLoop(): Unit = { //渲染帧
     layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
@@ -82,6 +83,22 @@ class BotController(player: PlayerInfoInClient,
         recallFrame = None
 
       case None =>
+    }
+
+    if (!isDead) {
+      val imageList = layeredGameScene.layered.getAllImageData
+      val humanObservation: _root_.scala.Option[ImgData] = imageList.find(_._1 == "7").map(_._2)
+      val layeredObservation: LayeredObservation = LayeredObservation(
+        imageList.find(_._1 == "0").map(_._2),
+        imageList.find(_._1 == "1").map(_._2),
+        imageList.find(_._1 == "2").map(_._2),
+        imageList.find(_._1 == "3").map(_._2),
+        imageList.find(_._1 == "4").map(_._2),
+        imageList.find(_._1 == "5").map(_._2),
+        imageList.find(_._1 == "6").map(_._2),
+        None
+      )
+      botActor ! Observation(humanObservation, Some(layeredObservation), grid.frameCount, true)
     }
 
     if (syncGridData.nonEmpty) { //全量数据
@@ -128,6 +145,7 @@ class BotController(player: PlayerInfoInClient,
     val gridData = grid.getGridData4Draw
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
+        isDead = false
         val offsetTime = System.currentTimeMillis() - logicFrameTime
         layeredGameScene.draw(currentRank, player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id),myActions)
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
@@ -136,6 +154,7 @@ class BotController(player: PlayerInfoInClient,
 //        drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
       case _ =>
+        isDead = true
         drawFunction = FrontProtocol.DrawGameWait
     }
   }
@@ -240,6 +259,7 @@ class BotController(player: PlayerInfoInClient,
       case x@Protocol.DeadPage(_, _, _) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
+          isDead = true
           botActor ! Dead
         }
 
@@ -328,22 +348,22 @@ class BotController(player: PlayerInfoInClient,
     }
   }
 
-  def getAllImage  = {
-    Boot.addToPlatform {
-      val imageList = layeredGameScene.layered.getAllImageData
-      val humanObservation: _root_.scala.Option[ImgData] = imageList.find(_._1 == "7").map(_._2)
-      val layeredObservation: LayeredObservation = LayeredObservation(
-        imageList.find(_._1 == "0").map(_._2),
-        imageList.find(_._1 == "1").map(_._2),
-        imageList.find(_._1 == "2").map(_._2),
-        imageList.find(_._1 == "3").map(_._2),
-        imageList.find(_._1 == "4").map(_._2),
-        imageList.find(_._1 == "5").map(_._2),
-        imageList.find(_._1 == "6").map(_._2),
-        None
-      )
-      val observation = (humanObservation, Some(layeredObservation), grid.frameCount, true)
-      botActor ! Observation(observation)
-    }
-  }
+//  def getAllImage  = {
+//    Boot.addToPlatform {
+//      val imageList = layeredGameScene.layered.getAllImageData
+//      val humanObservation: _root_.scala.Option[ImgData] = imageList.find(_._1 == "7").map(_._2)
+//      val layeredObservation: LayeredObservation = LayeredObservation(
+//        imageList.find(_._1 == "0").map(_._2),
+//        imageList.find(_._1 == "1").map(_._2),
+//        imageList.find(_._1 == "2").map(_._2),
+//        imageList.find(_._1 == "3").map(_._2),
+//        imageList.find(_._1 == "4").map(_._2),
+//        imageList.find(_._1 == "5").map(_._2),
+//        imageList.find(_._1 == "6").map(_._2),
+//        None
+//      )
+//      val observation = (humanObservation, Some(layeredObservation), grid.frameCount, true)
+//      botActor ! Observation(observation)
+//    }
+//  }
 }

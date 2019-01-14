@@ -46,6 +46,8 @@ object BotActor {
 
   val delay = 2
 
+  var observation: (Option[ImgData], Option[LayeredObservation], Int, Boolean) = (None, None, -1, false)
+
   private final case object BehaviorChangeKey
 
   case object Work extends Command
@@ -216,15 +218,23 @@ object BotActor {
           Behaviors.same
 
         case ReturnObservation(replyTo) =>
-          botController.getAllImage
-          waitingForObservation(actor, botController, playerInfo, replyTo)
+          replyTo ! observation
+//          botController.getAllImage
+//          waitingForObservation(actor, botController, playerInfo, replyTo)
+          Behaviors.same
 
         case ReturnObservationWithInfo(replyTo) =>
-          botController.getAllImage
-          waitingForObservationWithInfo(actor, botController, playerInfo, replyTo)
+//          botController.getAllImage
+//          waitingForObservationWithInfo(actor, botController, playerInfo, replyTo)
+          replyTo ! (observation._1, observation._2, botController.myCurrentRank, observation._3, observation._4)
+          Behaviors.same
 
         case ReturnInform(replyTo) =>
           replyTo ! (botController.myCurrentRank, botController.grid.frameCount)
+          Behaviors.same
+
+        case Observation(obs) =>
+          observation = obs
           Behaviors.same
 
         case Dead =>
@@ -263,41 +273,41 @@ object BotActor {
     }
   }
 
-  def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
-                            botController: BotController,
-                            playerInfo: PlayerInfoInClient,
-                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Int, Boolean)])(
-    implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
-    Behaviors.receive[Command] { (ctx, msg) =>
-      msg match {
-        case Observation(obs) =>
-          replyTo ! obs
-          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
+//  def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
+//                            botController: BotController,
+//                            playerInfo: PlayerInfoInClient,
+//                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Int, Boolean)])(
+//    implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+//    Behaviors.receive[Command] { (ctx, msg) =>
+//      msg match {
+//        case Observation(obs) =>
+//          replyTo ! obs
+//          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
+//
+//        case unknown@_ =>
+//          stashBuffer.stash(unknown)
+//          Behaviors.same
+//      }
+//    }
+//  }
 
-        case unknown@_ =>
-          stashBuffer.stash(unknown)
-          Behaviors.same
-      }
-    }
-  }
-
-  def waitingForObservationWithInfo(actor: ActorRef[Protocol.WsSendMsg],
-                            botController: BotController,
-                            playerInfo: PlayerInfoInClient,
-                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)])(
-                             implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
-    Behaviors.receive[Command] { (ctx, msg) =>
-      msg match {
-        case Observation(obs) =>
-          replyTo ! (obs._1, obs._2, botController.myCurrentRank, obs._3, obs._4)
-          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
-
-        case unknown@_ =>
-          stashBuffer.stash(unknown)
-          Behaviors.same
-      }
-    }
-  }
+//  def waitingForObservationWithInfo(actor: ActorRef[Protocol.WsSendMsg],
+//                            botController: BotController,
+//                            playerInfo: PlayerInfoInClient,
+//                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)])(
+//                             implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+//    Behaviors.receive[Command] { (ctx, msg) =>
+//      msg match {
+//        case Observation(obs) =>
+//          replyTo ! (obs._1, obs._2, botController.myCurrentRank, obs._3, obs._4)
+//          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
+//
+//        case unknown@_ =>
+//          stashBuffer.stash(unknown)
+//          Behaviors.same
+//      }
+//    }
+//  }
 
   def dead(actor: ActorRef[Protocol.WsSendMsg],
            botController: BotController,
