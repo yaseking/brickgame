@@ -468,6 +468,8 @@ class DrawGame(
         ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
       ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
 
+      val lightColor =
+
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y - 1) * canvasUnit - 3) //-10
@@ -669,6 +671,10 @@ class DrawGame(
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
   }
+
+  def findLightColor = {}
+
+  def findDarkColor = {}
 
   def isPointInWindow(p: Point4Trans, windowMax: Point, windowMin: Point): Boolean = {
     p.y < windowMax.y && p.y > windowMin.y && p.x > windowMin.x && p.x < windowMax.x
