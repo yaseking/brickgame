@@ -20,10 +20,11 @@ class BotSceneController(modeScene: ModeScene,botScene: BotScene, context: Conte
             //todo 连接webSocket
             case Right(rst) =>
               Boot.addToPlatform {
+                val domain = rst.gsPrimaryInfo.domain
                 val layeredGameScreen = new LayeredGameScene(0, 150)
                 context.switchScene(layeredGameScreen.getScene, "layered", true, true)
                 layeredGameScreen.drawGameWait(context.getStage.getWidth.toInt, context.getStage.getHeight.toInt)
-                new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen)
+                new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen, domain)
               }
             case Left(e) =>
               log.error(s"bot link game agent error, $e")

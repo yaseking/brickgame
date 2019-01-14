@@ -88,18 +88,19 @@ object BotActor {
                                  ) extends Command
 
 
-  def create(botController: BotController, playerInfo: PlayerInfoInClient): Behavior[Command] = {
+  def create(botController: BotController, playerInfo: PlayerInfoInClient, domain: String): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
       implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers { implicit timer =>
         ctx.self ! Work
-        waitingForWork(botController, playerInfo)
+        waitingForWork(botController, playerInfo, domain)
       }
     }
   }
 
   def waitingForWork(botController: BotController,
-                     playerInfo: PlayerInfoInClient)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+                     playerInfo: PlayerInfoInClient,
+                     domain: String)(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Work =>
@@ -118,7 +119,7 @@ object BotActor {
 //          println("=================")
 //          server.awaitTermination()
           log.debug("DONE.")
-          waitingGame(botController, playerInfo)
+          waitingGame(botController, playerInfo, domain)
 
         case unknown@_ =>
           log.debug(s"i receive an unknown msg:$unknown")
@@ -128,14 +129,15 @@ object BotActor {
   }
 
   def waitingGame(botController: BotController,
-                  playerInfo: PlayerInfoInClient
+                  playerInfo: PlayerInfoInClient,
+                  domain: String
                  )(implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case CreateRoom(apiToken, pwd, replyTo) =>
           log.debug(s"recv $msg")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(
-            getCreateRoomWebSocketUri(playerInfo.id, playerInfo.name, apiToken, pwd)))
+            getCreateRoomWebSocketUri(domain, playerInfo.id, playerInfo.name, apiToken, pwd)))
           val source = getSource
           val sink = getSink(botController)
           val ((stream, response), closed) =
@@ -152,7 +154,7 @@ object BotActor {
               Future.successful("connect success")
             } else {
               replyTo ! "error"
-              ctx.self ! SwitchBehavior("waitingGame", waitingGame(botController, playerInfo))
+              ctx.self ! SwitchBehavior("waitingGame", waitingGame(botController, playerInfo, domain))
               throw new RuntimeException(s"Connection failed: ${upgrade.response.status}")
             }
           } //ws建立
@@ -167,7 +169,7 @@ object BotActor {
 
         case JoinRoom(roomId, apiToken, replyTo) =>
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(
-            getJoinRoomWebSocketUri(roomId, playerInfo.id, playerInfo.name, apiToken)))
+            getJoinRoomWebSocketUri(domain, roomId, playerInfo.id, playerInfo.name, apiToken)))
           val source = getSource
           val sink = getSink(botController)
           val ((stream, response), closed) =
@@ -426,16 +428,16 @@ object BotActor {
     stashBuffer.unstashAll(ctx, behavior)
   }
 
-  def getJoinRoomWebSocketUri(roomId: String, playerId: String, name: String, accessCode: String): String = {
+  def getJoinRoomWebSocketUri(domain: String, roomId: String, playerId: String, name: String, accessCode: String): String = {
   val wsProtocol = "ws"
-    val domain = "10.1.29.250:30368"
+//    val domain = "10.1.29.250:30368"
     //    val domain = "localhost:30368"
     s"$wsProtocol://$domain/carnie/joinGame4Client?id=$playerId&name$name&accessCode=$accessCode&mode=1&img=1&roomId=$roomId"
   }
 
-  def getCreateRoomWebSocketUri(playerId: String, name: String, accessCode: String, pwd: String): String = {
+  def getCreateRoomWebSocketUri(domain: String, playerId: String, name: String, accessCode: String, pwd: String): String = {
     val wsProtocol = "ws"
-    val domain = "flowdev.neoap.com"
+//    val domain = "flowdev.neoap.com"
 
     //    val domain = "10.1.29.250:30368"
     //    val domain = "localhost:30368"

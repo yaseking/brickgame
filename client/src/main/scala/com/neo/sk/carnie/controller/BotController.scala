@@ -22,10 +22,11 @@ import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 class BotController(player: PlayerInfoInClient,
                     stageCtx: Context,
                     layeredGameScene: LayeredGameScene,
+                    domain: String,
                     mode: Int =0,
                     ) {
 
-  private val botActor = Boot.system.spawn(BotActor.create(this, player), "botActor")
+  private val botActor = Boot.system.spawn(BotActor.create(this, player, domain), "botActor")
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
