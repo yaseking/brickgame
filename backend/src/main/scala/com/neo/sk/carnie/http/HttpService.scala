@@ -1,14 +1,19 @@
 package com.neo.sk.carnie.http
 
 import akka.actor.{ActorRef, ActorSystem}
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{StatusCode, Uri}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.util.Timeout
+
 import scala.concurrent.ExecutionContextExecutor
 import akka.http.scaladsl.model.headers.{CacheDirective, `Cache-Control`}
 import akka.http.scaladsl.server.Directive0
-import akka.http.scaladsl.model.headers.CacheDirectives.{ `max-age`, `public` }
+import akka.http.scaladsl.model.headers.CacheDirectives.{`max-age`, `public`}
+
+import com.neo.sk.carnie.common.AppSettings.httpDomain
 
 /**
   * User: Taoz
@@ -30,14 +35,17 @@ trait HttpService extends PlayerService
 
   implicit val timeout: Timeout
 
-  val routes =
+  private val home = get {
+    redirect(Uri(s"http://$httpDomain/esheep#/home"),StatusCodes.SeeOther)
+  }
+
+  val routes = ignoreTrailingSlash{
     pathPrefix("carnie") {
       netSnakeRoute ~
         resourceRoutes ~
         esheepRoute ~
         roomApiRoutes ~
         adminRoutes
-    }
-
-
+    } ~ home
+  }
 }
