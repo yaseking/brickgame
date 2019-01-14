@@ -149,9 +149,7 @@ object BotActor {
                   case Some(Border) if flag=>
                     actionCode = pointsToAction(rightDirection)
                     flag = false
-                  case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
-                    actionCode = pointsToAction(rightDirection)
-                    flag = false
+
                   case Some(Field(fid)) if fid == botId && flag =>
                     actionCode = pointsToAction(direction)
                     flag = false
@@ -193,10 +191,15 @@ object BotActor {
                     case _ =>
                   }
                 }
+                flag = true
                 newHeader.foreach { h =>
                   grid.grid.get(h) match {
                     case Some(Body(bid, _)) if bid == botId && flag =>
                       actionCode = pointsToAvoid(direction)
+                      flag = false
+                    case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
+                      actionCode = pointsToAction(rightDirection)
+                      flag = false
                     case _ =>
                   }
                 }
