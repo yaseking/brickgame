@@ -146,7 +146,7 @@ class BotController(player: PlayerInfoInClient,
     val gridData = grid.getGridData4Draw
     gridData.snakes.find(_.id == player.id) match {
       case Some(_) =>
-        isDead = false
+//        isDead = false
         val offsetTime = System.currentTimeMillis() - logicFrameTime
         layeredGameScene.draw(currentRank, player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id),myActions)
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
@@ -155,7 +155,7 @@ class BotController(player: PlayerInfoInClient,
 //        drawFunction = FrontProtocol.DrawGameDie(grid.getKiller(player.id).map(_._2))
 
       case _ =>
-        isDead = true
+//        isDead = true
         drawFunction = FrontProtocol.DrawGameWait
     }
   }
@@ -260,8 +260,8 @@ class BotController(player: PlayerInfoInClient,
       case x@Protocol.DeadPage(_, _, _) =>
         println(s"recv userDead $x")
         Boot.addToPlatform {
-          isDead = true
-          botActor ! Dead
+//          isDead = true
+//          botActor ! Dead
         }
 
 
@@ -331,6 +331,8 @@ class BotController(player: PlayerInfoInClient,
   def addDieSnake(frame: Int): Unit = {
     grid.historyDieSnake.get(frame).foreach { deadSnake =>
       grid.cleanDiedSnakeInfo(deadSnake)
+      botActor ! Dead
+      isDead = true
     }
   }
 
@@ -339,6 +341,7 @@ class BotController(player: PlayerInfoInClient,
 //      if (newSnakes._1.map(_.id).contains(player.id) && !firstCome && !isContinue) spaceKey()
       newSnakes._1.foreach { s => grid.cleanSnakeTurnPoint(s.id) } //清理死前拐点
       grid.snakes ++= newSnakes._1.map(s => s.id -> s).toMap
+      if (newSnakes._1.exists(_.id == player.id)) isDead = false
       grid.addNewFieldInfo(newSnakes._2)
     }
   }
