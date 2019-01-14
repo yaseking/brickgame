@@ -46,6 +46,8 @@ object BotActor {
 
   val delay = 2
 
+  var observation: (Option[ImgData], Option[LayeredObservation], Int, Boolean) = (None, None, -1, false)
+
   private final case object BehaviorChangeKey
 
   case object Work extends Command
@@ -65,6 +67,8 @@ object BotActor {
   case class Action(move: Move, replyTo: ActorRef[Long]) extends Command
 
   case class ReturnObservation(replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Int, Boolean)]) extends Command
+
+  case class ReturnObservationWithInfo(replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)]) extends Command
 
   case class Observation(obs: (Option[ImgData], Option[LayeredObservation], Int, Boolean)) extends Command
 
@@ -214,12 +218,23 @@ object BotActor {
           Behaviors.same
 
         case ReturnObservation(replyTo) =>
-          botController.getAllImage
-//          Behaviors.same
-          waitingForObservation(actor, botController, playerInfo, replyTo)
+          replyTo ! observation
+//          botController.getAllImage
+//          waitingForObservation(actor, botController, playerInfo, replyTo)
+          Behaviors.same
+
+        case ReturnObservationWithInfo(replyTo) =>
+//          botController.getAllImage
+//          waitingForObservationWithInfo(actor, botController, playerInfo, replyTo)
+          replyTo ! (observation._1, observation._2, botController.myCurrentRank, observation._3, observation._4)
+          Behaviors.same
 
         case ReturnInform(replyTo) =>
           replyTo ! (botController.myCurrentRank, botController.grid.frameCount)
+          Behaviors.same
+
+        case Observation(obs) =>
+          observation = obs
           Behaviors.same
 
         case Dead =>
@@ -258,23 +273,41 @@ object BotActor {
     }
   }
 
-  def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
-                            botController: BotController,
-                            playerInfo: PlayerInfoInClient,
-                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Int, Boolean)])(
-    implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
-    Behaviors.receive[Command] { (ctx, msg) =>
-      msg match {
-        case Observation(obs) =>
-          replyTo ! obs
-          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
+//  def waitingForObservation(actor: ActorRef[Protocol.WsSendMsg],
+//                            botController: BotController,
+//                            playerInfo: PlayerInfoInClient,
+//                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Int, Boolean)])(
+//    implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+//    Behaviors.receive[Command] { (ctx, msg) =>
+//      msg match {
+//        case Observation(obs) =>
+//          replyTo ! obs
+//          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
+//
+//        case unknown@_ =>
+//          stashBuffer.stash(unknown)
+//          Behaviors.same
+//      }
+//    }
+//  }
 
-        case unknown@_ =>
-          stashBuffer.stash(unknown)
-          Behaviors.same
-      }
-    }
-  }
+//  def waitingForObservationWithInfo(actor: ActorRef[Protocol.WsSendMsg],
+//                            botController: BotController,
+//                            playerInfo: PlayerInfoInClient,
+//                            replyTo: ActorRef[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)])(
+//                             implicit stashBuffer: StashBuffer[Command], timer: TimerScheduler[Command]): Behavior[Command] = {
+//    Behaviors.receive[Command] { (ctx, msg) =>
+//      msg match {
+//        case Observation(obs) =>
+//          replyTo ! (obs._1, obs._2, botController.myCurrentRank, obs._3, obs._4)
+//          stashBuffer.unstashAll(ctx, gaming(actor, botController, playerInfo))
+//
+//        case unknown@_ =>
+//          stashBuffer.stash(unknown)
+//          Behaviors.same
+//      }
+//    }
+//  }
 
   def dead(actor: ActorRef[Protocol.WsSendMsg],
            botController: BotController,
@@ -285,10 +318,10 @@ object BotActor {
         case Reincarnation(replyTo) =>
           actor ! PressSpace
           replyTo ! SimpleRsp(state = State.in_game, msg = "ok")
-//          botController.startGameLoop()
+          //          botController.startGameLoop()
           botController.grid.cleanSnakeTurnPoint(playerInfo.id)
           botController.grid.actionMap = botController.grid.actionMap.filterNot(_._2.contains(playerInfo.id))
-          log.info(s"recv msg:$msg")
+          log.info(s"recv msg:$msg,frame:${botController.grid.frameCount}")
           gaming(actor, botController, playerInfo)
 
         case Action(move, replyTo) =>
@@ -297,6 +330,11 @@ object BotActor {
 
         case ReturnObservation(replyTo) =>
           replyTo ! (None, None, botController.grid.frameCount, false)
+          Behaviors.same
+
+        case ReturnObservationWithInfo(replyTo) =>
+          log.debug("rec ReturnObservationWithInfo when dead!!!!")
+          replyTo ! (None, None, botController.myCurrentRank, botController.grid.frameCount, false)
           Behaviors.same
 
         case GetFrame(replyTo) =>
@@ -397,7 +435,9 @@ object BotActor {
 
   def getCreateRoomWebSocketUri(playerId: String, name: String, accessCode: String, pwd: String): String = {
     val wsProtocol = "ws"
-    val domain = "10.1.29.250:30368"
+    val domain = "flowdev.neoap.com"
+
+    //    val domain = "10.1.29.250:30368"
     //    val domain = "localhost:30368"
     s"$wsProtocol://$domain/carnie/joinGame4ClientCreateRoom?id=$playerId&name=$name&accessCode=$accessCode&mode=1&img=1&pwd=$pwd"
   }

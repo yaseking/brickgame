@@ -353,10 +353,6 @@ object RoomActor {
 
           if (grid.newInfo.nonEmpty) { //有新的蛇
             val newSnakeField = grid.newInfo.map(n => (n._1, n._2.carnieId, n._3)).map { f =>
-//              if (userDeadList.contains(f._1) && curTime - userDeadList(f._1) > maxWaitingTime4Restart) {
-//                dispatchTo(subscribersMap, f._1, newData)
-//                watcherMap.filter(_._2._1 == f._1).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
-//              } //同步全量数据
               val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
               userMap.put(f._1, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
               userDeadList -= f._1
@@ -401,13 +397,7 @@ object RoomActor {
 
             userMap.foreach(u =>
               dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
-            watcherMap.filter(w =>
-              userMap.get(w._2._1) match {
-                case None => false
-//                case Some(_) if userDeadList.contains(w._2._1) && curTime - userDeadList(w._2._1) > maxWaitingTime4Restart => false
-                case _ => true
-              }
-            ).foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
+            watcherMap.foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
