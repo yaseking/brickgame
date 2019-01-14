@@ -41,7 +41,6 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
     println(s"!!!!!createRoom Called by [$request")
     if (request.credit.nonEmpty && request.credit.get.apiToken == BotAppSetting.apiToken) {
-      println(s"tttttttttttest")
       state = State.init_game
       val rstF: Future[String] = botActor ?
         (BotActor.CreateRoom(request.credit.get.apiToken, request.password, _))
@@ -137,16 +136,34 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     } else Future.successful(ObservationRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
+  override def observationWithInfo(request: Credit): Future[ObservationWithInfoRsp] = {
+    if (request.apiToken == BotAppSetting.apiToken) {
+      if (state == State.in_game) {
+        val rstF: Future[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)]  = botActor ? BotActor.ReturnObservationWithInfo
+        rstF.map {rst =>
+          if (rst._5) {//in game
+            state = State.in_game
+            ObservationWithInfoRsp(rst._2, rst._1, rst._3.area, rst._3.k, frameIndex = rst._4, state = state, msg = "ok")
+
+          } else { //killed
+            state = State.killed
+            ObservationWithInfoRsp(errCode = 10004, state = state, msg = s"not in_game state")
+          }
+        }.recover {
+          case e: Exception =>
+            ObservationWithInfoRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+        }
+      } else Future.successful(ObservationWithInfoRsp(errCode = 10004, state = state, msg = s"not in_game state"))
+
+    } else Future.successful(ObservationWithInfoRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
+  }
+
   override def inform(request: Credit): Future[InformRsp] = {
     println(s"inform Called by [$request")
-    if(request.apiToken == BotAppSetting.apiToken) {
+    if (request.apiToken == BotAppSetting.apiToken) {
       val rstF: Future[(Score, Long)] = botActor ? BotActor.ReturnInform
       rstF.map { rst =>
-        val health = state match {
-          case State.in_game => 1
-          case _ => 0
-        }
-        InformRsp(rst._1.area, rst._1.k, health, rst._2,state = state)
+        InformRsp(rst._1.area, rst._1.k, frameIndex = rst._2, state = state)
       }.recover {
         case e: Exception =>
           InformRsp(errCode = 10001, state = state, msg = s"internal error:$e")
@@ -176,10 +193,11 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
   }
 
   override def currentFrame(request: Credit): Future[CurrentFrameRsp] = {
-    println(s"currentFrame Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
       val rstF: Future[Int] = botActor ? GetFrame
-      rstF.map { rsp => CurrentFrameRsp(frame = rsp, state = state) }
+      rstF.map { rsp =>
+        CurrentFrameRsp(frame = rsp, state = state)
+      }
     } else Future.successful(CurrentFrameRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 

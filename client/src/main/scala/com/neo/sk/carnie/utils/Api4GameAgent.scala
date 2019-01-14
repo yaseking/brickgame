@@ -31,7 +31,6 @@ object Api4GameAgent extends HttpUtil {
     }
   }
 
-  //fixme 尚未添加bot玩家
   def linkGameAgent(gameId: Long, playerId: String, token: String) = {
     val data = LinkGameAgentReq(gameId, playerId).asJson.noSpaces
     val url = "http://" + AppSetting.esheepDomain + "/esheep/api/gameAgent/joinGame?token=" + token
