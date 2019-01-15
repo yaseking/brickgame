@@ -78,6 +78,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val canvasList = List(humanViewCanvas,positionCanvas,BorderCanvas,headerCanvas,viewCanvas,selfViewCanvas,selfCanvas,rankCanvas)
     canvasList.map(c => getImageData(c))
   }
+  var isPrint = true
 
   def getImageData(canvas: Canvas) = {
 //    a += 1
@@ -108,7 +109,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
         byteBuffer.clear()
         for (y <- 0 until height; x <- 0 until width) {
           val color = reader.getArgb(x, y)
-          writer.setColor(x,y,reader.getColor(x,y))
+          writer.setArgb(x,y,color)
           byteBuffer.putInt(color)
         }
         byteBuffer.flip() //翻转，修改lim为当前pos，pos置0
@@ -119,12 +120,19 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
         val byteArray = new Array[Byte](1 * width * height)
         for (y <- 0 until height; x <- 0 until width) {
           val color = reader.getColor(x, y).grayscale()
-          val gray = (color.getRed * color.getOpacity * 255).toByte
+          val gray = (color.getRed * color.getOpacity).toByte
+          writer.setArgb(x,y,gray)
           byteArray(y * height + x) = gray
         }
         ByteString.copyFrom(byteArray)
       }
-
+    if (canvas.getId == "3"){
+      humanViewCtx.drawImage(wIm, 10, 10)
+      if (isPrint){
+        println(s"${data.toByteArray.toList.distinct}")
+        isPrint = false
+      }
+    }
     (id, ImgData(width ,height, 4, data))
   }
 

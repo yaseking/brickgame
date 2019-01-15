@@ -123,9 +123,9 @@ class LayeredGameScene (img: Int, frameRate: Int) {
     layered.drawSelf(uid, data, offsetTime, grid, frameRate)
 //    layered.drawRank(uid, data.snakes, currentRank)
     layered.drawBody(uid, data, offsetTime, grid, frameRate)
-    layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate,myActions)
+//    layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate,myActions)
+//    layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     layered.drawHeader(uid, data, offsetTime, grid, frameRate)
-    layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
   }
 
 
