@@ -107,7 +107,7 @@ object BotActor {
 //          val executor = concurrent.ExecutionContext.Implicits.global
           val port = 5322//todo config
 
-          val server = BotServer.build(port, executor, ctx.self, playerInfo.name)
+          val server = BotServer.build(port, executor, ctx.self, playerInfo.name, botController)
           server.start()
           log.debug(s"Server started at $port")
 //          println(s"--------------")
