@@ -373,7 +373,7 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             case DeadPage(_, _, _) =>
               dead = dead + a.length
 
-            case WinData(_, _) =>
+            case WinData(_, _, _) =>
               win = win + a.length
 
             case OtherAction(_, _, _) =>
