@@ -22,7 +22,7 @@ class BotSceneController(modeScene: ModeScene,botScene: BotScene, context: Conte
               Boot.addToPlatform {
                 val domain = rst.gsPrimaryInfo.domain
                 val layeredGameScreen = new LayeredGameScene(0, 150)
-                context.switchScene(layeredGameScreen.getScene, "layered", true, true)
+                context.switchScene4Play(layeredGameScreen.getScene, "layered", false, false,1630,660)
                 layeredGameScreen.drawGameWait(context.getStage.getWidth.toInt, context.getStage.getHeight.toInt)
                 new BotController(PlayerInfoInClient(botId, botKey, rst.accessCode), context, layeredGameScreen, domain)
               }

@@ -8,8 +8,9 @@ import java.nio.ByteBuffer
 
 import com.neo.sk.carnie.paperClient._
 import com.neo.sk.carnie.paperClient.Protocol._
+import com.neo.sk.carnie.common.BotAppSetting.isGray
 import javafx.scene.canvas.{Canvas, GraphicsContext}
-import javafx.scene.image.Image
+import javafx.scene.image.{Image, WritableImage}
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, FontPosture, FontWeight, Text}
 import com.neo.sk.carnie.common.Constant
@@ -80,39 +81,51 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   def getImageData(canvas: Canvas) = {
 //    a += 1
-    var h = canvas.getHeight.toInt
-    if (canvas.getId == "7") h -= 210
-    val w = canvas.getWidth.toInt
+    var height = canvas.getHeight.toInt
+    if (canvas.getId == "7") height -= 210
+    val width = canvas.getWidth.toInt
     val params = new SnapshotParameters
     val id = canvas.getId
     params.setFill(Color.TRANSPARENT)
 
     val writableImage = canvas.snapshot(params,null)
-    val bufferedImage = new BufferedImage(w,h,2)
-//    val reader = writableImage.getPixelReader
-    SwingFXUtils.fromFXImage(writableImage,bufferedImage)
-//    val y = bufferedImage.getHeight
-//    val x = bufferedImage.getWidth
-//    println("height" + y + "width" + x)
-    val argb = bufferedImage.getRGB(0,0,w,h,null,0,w)
-//    println("rgb" + rgb.toList.filter(_ != 2146825717 ))
-//    val byte = rgb.map(_.toByte)
-//    println("rgb" + rgb.toList)
-    val byteBuffer = ByteBuffer.allocate(4*w*h)
-    argb.foreach{i =>
-      byteBuffer.putInt(i)
-    }
-    byteBuffer.flip()
-    val byteArray = byteBuffer.array().take(byteBuffer.limit())
-//    println(ByteString.copyFrom(byteArray),byteArray.length,byteBuffer.limit())
-    (id, ImgData(w ,h, 4, ByteString.copyFrom(byteArray)))
-//    println("byte" + byte.toList.length)
-//    for(x <- 0 until w){
-//      for(y <- 0 until h){
-//        val rgb1 = reader.getColor(x,y).toString
-//        if(rgb1 != "0xf5f5f57f")println(rgb1)
-//      }
+//    val bufferedImage = new BufferedImage(width,height,2)
+//    SwingFXUtils.fromFXImage(writableImage,bufferedImage)
+//    val argb = bufferedImage.getRGB(0,0,width,height,null,0,width)
+//    val byteBuffer = ByteBuffer.allocate(4*width*height)
+//    argb.foreach{i =>
+//      byteBuffer.putInt(i)
 //    }
+//    byteBuffer.flip()
+//    val byteArray = byteBuffer.array().take(byteBuffer.limit())
+    val reader = writableImage.getPixelReader
+    val wIm = new WritableImage(width,height)
+    val writer = wIm.getPixelWriter
+    val data =
+      if(!isGray) {
+        //获取彩图，每个像素点4Byte
+        val byteBuffer = ByteBuffer.allocate(4 * width * height)
+        byteBuffer.clear()
+        for (y <- 0 until height; x <- 0 until width) {
+          val color = reader.getArgb(x, y)
+          writer.setColor(x,y,reader.getColor(x,y))
+          byteBuffer.putInt(color)
+        }
+        byteBuffer.flip() //翻转，修改lim为当前pos，pos置0
+        val arrayOfByte = byteBuffer.array().take(byteBuffer.limit) //take前limit个Byte，去除Buffer内余下的多余数据
+        ByteString.copyFrom(arrayOfByte)
+      } else {
+        //获取灰度图，每个像素点1Byte
+        val byteArray = new Array[Byte](1 * width * height)
+        for (y <- 0 until height; x <- 0 until width) {
+          val color = reader.getColor(x, y).grayscale()
+          val gray = (color.getRed * color.getOpacity * 255).toByte
+          byteArray(y * height + x) = gray
+        }
+        ByteString.copyFrom(byteArray)
+      }
+
+    (id, ImgData(width ,height, 4, data))
   }
 
   def drawPosition(myHeader: Point,championHeader: Option[Point],isMe: Boolean):Unit = {

@@ -126,6 +126,8 @@ class GameController(player: PlayerInfoInClient,
       gameScene.resetScreen(Constant.CanvasWidth,Constant.CanvasHeight,Constant.CanvasWidth,Constant.CanvasHeight)
       stageCtx.getStage.setWidth(Constant.CanvasWidth)
       stageCtx.getStage.setHeight(Constant.CanvasHeight)
+      stageCtx.getStage.setX(200)
+      stageCtx.getStage.setY(200)
       exitFullScreen = true
     }
     if(stageWidth != stageCtx.getStage.getWidth.toInt || stageHeight != stageCtx.getStage.getHeight.toInt){
