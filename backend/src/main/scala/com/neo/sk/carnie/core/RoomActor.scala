@@ -139,12 +139,12 @@ object RoomActor {
           log.info(s"userMap.size:${userMap.size}, minplayerNum:${AppSettings.minPlayerNum}, botMap.size:${botMap.size}")
           while (userMap.size > AppSettings.minPlayerNum && botMap.nonEmpty) {
             val killBot = botMap.head
+            roomManager ! RoomManager.Left(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
             botMap.-=(killBot._1)
             userMap.-=(killBot._1)
             carnieMap.-=(killBot._1)
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
 //            ctx.self ! LeftRoom(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
-            roomManager ! RoomManager.Left(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
           }
           idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap, carnieMap)
 

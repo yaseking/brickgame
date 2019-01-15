@@ -13,6 +13,8 @@ import com.neo.sk.carnie.common.BotAppSetting
 import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 import com.neo.sk.carnie.Boot.{executor, scheduler, timeout}
 import com.neo.sk.carnie.actor.BotActor.{GetFrame, Reincarnation}
+import com.neo.sk.carnie.controller.BotController
+import io.grpc.stub.StreamObserver
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -23,9 +25,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object BotServer {
 
-  def build(port: Int, executionContext: ExecutionContext, botActor:  ActorRef[BotActor.Command], botName: String): Server = {
+  def build(port: Int, executionContext: ExecutionContext, botActor:  ActorRef[BotActor.Command],
+            botName: String, botController: BotController): Server = {
 
-    val service = new BotServer(botActor:  ActorRef[BotActor.Command])
+    val service = new BotServer(botActor:  ActorRef[BotActor.Command], botController)
 
     ServerBuilder.forPort(port).addService(
       EsheepAgentGrpc.bindService(service, executionContext)
@@ -34,7 +37,7 @@ object BotServer {
   }
 }
 
-class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
+class BotServer(botActor: ActorRef[BotActor.Command], botController: BotController) extends EsheepAgent {
 
   private var state: State = State.unknown
 
@@ -192,13 +195,23 @@ class BotServer(botActor: ActorRef[BotActor.Command]) extends EsheepAgent {
     } else Future.successful(SystemInfoRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
-  override def currentFrame(request: Credit): Future[CurrentFrameRsp] = {
+  override def currentFrame(request: Credit, responseObserver: StreamObserver[CurrentFrameRsp]): Unit = {
     if (request.apiToken == BotAppSetting.apiToken) {
-      val rstF: Future[Int] = botActor ? GetFrame
-      rstF.map { rsp =>
-        CurrentFrameRsp(frame = rsp, state = state)
+//      val rstF: Future[Int] = botActor ? GetFrame
+//      rstF.map { rsp =>
+//        CurrentFrameRsp(frame = rsp, state = state)
+//      }
+      var lastFrameCount = -1L
+      while(true) {
+        if (botController.grid.frameCount != lastFrameCount) {
+          val rsp = CurrentFrameRsp(botController.grid.frameCount)
+          responseObserver.onNext(rsp)
+          lastFrameCount = botController.grid.frameCount
+        }
+        Thread.sleep(40L)
+
       }
-    } else Future.successful(CurrentFrameRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
+    } else responseObserver.onCompleted()
   }
 
 

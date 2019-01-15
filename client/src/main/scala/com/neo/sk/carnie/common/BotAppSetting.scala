@@ -15,11 +15,14 @@ object BotAppSetting {
   val psw = userConfig.getString("psw")
 
   val render = appConfig.getBoolean("render")
+  val isViewObservation = appConfig.getBoolean("isViewObservation")
+  val isGray = appConfig.getBoolean("isGray")
 
   val apiToken = appConfig.getString("apiToken")
 
   val botInfo = appConfig.getConfig("botInfo")
   val botId = botInfo.getString("botId")
   val botKey = botInfo.getString("botKey")
+
 
 }
