@@ -209,7 +209,7 @@ object BotActor {
             roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           }
 
-          gaming(botId, grid, roomActor, frameRate, stateForA, stateForMini + 1)
+          gaming(botId, grid, roomActor, frameRate, stateForA, stateForMini)
 
         case BotDead =>
 //          log.info(s"bot dead:$botId")
