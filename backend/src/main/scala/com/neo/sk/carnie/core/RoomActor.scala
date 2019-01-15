@@ -91,7 +91,7 @@ object RoomActor {
       Behaviors.withTimers[Command] {
         implicit timer =>
           val grid = new GridOnServer(border)
-          val winStandard = fullSize * upperLimit
+          val winStandard = fullSize * 0.1 //upperLimit
           //            implicit val sendBuffer = new MiddleBufferInJvm(81920)
           val frameRate = mode match {
             case 2 => Protocol.frameRate2
@@ -386,19 +386,20 @@ object RoomActor {
             userMap.foreach { u =>
               if (u._1 == grid.currentRank.head.id) {
                 dispatchToPlayerAndWatcher(
-                  subscribersMap, watcherMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
+                  subscribersMap, watcherMap, u._1, Protocol.WinData(grid.currentRank.head.area, None, userMap(grid.currentRank.head.id).name))
               }
               else {
                 dispatchToPlayerAndWatcher(
                   subscribersMap, watcherMap, u._1,
-                  Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption)
+                  Protocol.WinData(grid.currentRank.head.area,
+                    grid.currentRank.filter(_.id == u._1).map(_.area).headOption, userMap(grid.currentRank.head.id).name)
                 )
               }
 
             }
-            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
-            dispatchToPlayerAndWatcher(
-              subscribersMap, watcherMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
+//            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
+//            dispatchToPlayerAndWatcher(
+//              subscribersMap, watcherMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
 
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name)))
             userMap.foreach { u =>

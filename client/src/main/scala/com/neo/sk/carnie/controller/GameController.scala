@@ -71,7 +71,7 @@ class GameController(player: PlayerInfoInClient,
   private var isContinue = true
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Int = 0
-  private var winningData = WinData(0,Some(0))
+  private var winningData = WinData(0, Some(0), "")
   private val timeline = new Timeline()
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
@@ -354,21 +354,21 @@ class GameController(player: PlayerInfoInClient,
         }
 
 
-      case Protocol.SomeOneWin(winner) =>
-        Boot.addToPlatform {
-          val finalData = grid.getWinData4Draw
-          drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
-//          winnerName = winner
-//          winnerData = Some(finalData)
-          isWin = true
-//          audioWin.play()
-          //        gameScene.drawGameWin(player.id, winner, finalData)
-          grid.cleanData()
-        }
+//      case Protocol.SomeOneWin(winner) =>
+//        Boot.addToPlatform {
+//          val finalData = grid.getWinData4Draw
+//          drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
+////          winnerName = winner
+////          winnerData = Some(finalData)
+//          isWin = true
+////          audioWin.play()
+//          //        gameScene.drawGameWin(player.id, winner, finalData)
+//          grid.cleanData()
+//        }
 
-      case x@Protocol.WinnerBestScore(score) =>
-        log.debug(s"receive winnerBestScore msg:$x")
-          maxArea = Math.max(maxArea,score)
+//      case x@Protocol.WinnerBestScore(score) =>
+//        log.debug(s"receive winnerBestScore msg:$x")
+//          maxArea = Math.max(maxArea,score)
 
       case UserLeft(id) =>
         Boot.addToPlatform {
@@ -462,9 +462,17 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
-      case x@Protocol.WinData(_,_) =>
+      case x@Protocol.WinData(winnerScore, yourScore, winner) =>
         log.debug(s"receive winningData msg:$x")
-        winningData = x
+        Boot.addToPlatform{
+          winningData = x
+          if (winner == player.id) maxArea = Math.max(maxArea, winnerScore)
+          val finalData = grid.getWinData4Draw
+          drawFunction = FrontProtocol.DrawGameWin(winner, finalData)
+          isWin = true
+          grid.cleanData()
+        }
+
 
       case unknown@_ =>
         log.debug(s"i receive an unknown msg:$unknown")

@@ -54,7 +54,7 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
   private var recallFrame: scala.Option[Int] = None
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
-  private var winningData = WinData(0, Some(0))
+  private var winningData = WinData(0, Some(0), "")
 
   var pingMap = Map.empty[Short, Long] // id, 时间戳
 
@@ -379,15 +379,15 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
         grid.cleanDiedSnakeInfo(List(id))
 
-      case Protocol.SomeOneWin(winner) =>
-        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
-        isWin = true
-        //        winnerName = winner
-        //        winData = finalData
-        grid.cleanData()
+//      case Protocol.SomeOneWin(winner) =>
+//        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
+//        isWin = true
+//        //        winnerName = winner
+//        //        winData = finalData
+//        grid.cleanData()
 
-      case Protocol.WinnerBestScore(score) =>
-        maxArea = Constant.shortMax(maxArea, score)
+//      case Protocol.WinnerBestScore(score) =>
+//        maxArea = Constant.shortMax(maxArea, score)
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
@@ -488,9 +488,13 @@ class NetGameHolder4WatchGame(order: String, webSocketPara: WebSocketPara) exten
           pingMap -= recvPingId
         }
 
-      case x@Protocol.WinData(_, _) =>
+      case x@Protocol.WinData(winnerScore, yourScore, winnerName) =>
+        if (winnerName == myId) maxArea = Constant.shortMax(maxArea, winnerScore)
         println(s"receive winningData msg:$x")
         winningData = x
+        drawFunction = FrontProtocol.DrawGameWin(winnerName, grid.getWinData4Draw)
+        isWin = true
+        grid.cleanData()
 
       case x@_ =>
         println(s"receive unknown msg:$x")

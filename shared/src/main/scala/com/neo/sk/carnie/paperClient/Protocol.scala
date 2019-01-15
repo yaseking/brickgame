@@ -119,7 +119,7 @@ object Protocol {
 
   case class SomeOneWin(winnerName: String) extends GameMessage with GameEvent
 
-  case class WinData(winnerScore: Short, yourScore: Option[Short]) extends GameMessage with GameEvent
+  case class WinData(winnerScore: Short, yourScore: Option[Short], winnerName: String) extends GameMessage with GameEvent
 
   //  case class SomeWin(winnerName: String,finalData:Data4TotalSync) extends GameMessage with GameEvent
 

@@ -49,7 +49,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
-  private var winningData = WinData(0,Some(0))
+  private var winningData = WinData(0, Some(0), "")
 
 
   //  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -435,7 +435,8 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
 //          }
 //        }
 
-      case x@Protocol.WinData(winnerScore,yourScore) =>
+      case x@Protocol.WinData(winnerScore, yourScore, winner) =>
+        if (winner == myId) maxArea = Constant.shortMax(maxArea, winnerScore)
         println(s"receive winningData msg:$x")
         winningData = x
 
