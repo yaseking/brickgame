@@ -144,7 +144,6 @@ object RoomActor {
             userMap.-=(killBot._1)
             carnieMap.-=(killBot._1)
             getBotActor(ctx, killBot._1) ! BotActor.KillBot
-//            ctx.self ! LeftRoom(killBot._1, userMap.getOrElse(killBot._1, UserInfo("", -1L, -1L, 0)).name)
           }
           idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap, carnieMap)
 
@@ -192,12 +191,8 @@ object RoomActor {
               //              log.debug(s"user $id dead:::::")
               dispatchTo(subscribersMap, id, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
               //              dispatch(subscribersMap, Protocol.UserDead(frame, id, name, killerName))
-//              val info = userMap(id).copy(joinFrame = -1L) //死了之后不发消息
-//              userMap.update(id, info)
               watcherMap.filter(_._2._1 == id).foreach { user =>
                 dispatchTo(subscribersMap, user._1, Protocol.DeadPage(u._2, u._3, ((endTime - startTime) / 1000).toShort))
-//                val watcherInfo = watcherMap(user._1).copy(_2 = -1L)
-//                watcherMap.update(user._1, watcherInfo)
               }
               //              log.debug(s"watchMap: ${watcherMap.filter(_._2._1==id)}, watchedId: $id")
               //上传战绩
@@ -304,14 +299,9 @@ object RoomActor {
                 grid.addActionWithFrame(id, keyCode, realFrame)
 
                 dispatchTo(subscribersMap, id, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId)) //发送自己的action
-//                watcherMap.filter(_._2._1 == id).foreach{ w =>
-//                  dispatchTo(subscribersMap,w._1, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
-//                }
+
                 dispatch(subscribersMap.filterNot(_._1 == id),
                   Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
-
-//                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)),
-//                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))//
               }
 
             case SendPingPacket(pingId) =>
@@ -339,7 +329,6 @@ object RoomActor {
                   dispatchTo(subscribersMap, w._1, Protocol.ReStartGame)
                 }
                 gameEvent += ((grid.frameCount, SpaceEvent(id)))
-                //                userDeadList -= id
               }
             case _ =>
           }
@@ -363,38 +352,23 @@ object RoomActor {
             }
             dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField)))
-//            dispatch(
-//              subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
-//              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             grid.newInfo = Nil
           }
 
           firstComeList.foreach { id =>
-            dispatchToPlayerAndWatcher(subscribersMap, watcherMap, id, newData)
-//            dispatchTo(subscribersMap, id, newData)
-//            watcherMap.filter(_._2._1 == id).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
+            dispatchTo(subscribersMap, id, newData)
           }
 
           //错峰发送
           for ((u, i) <- userMap) {
             if ((tickCount - i.joinFrame) % 100 == 2) {
               dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, SyncFrame(newData.frameCount))
-//              dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
-//              watcherMap.filter(_._2._1 == u).foreach { w =>
-//                dispatchTo(subscribersMap, w._1, SyncFrame(newData.frameCount))
-//              }
             }
 
             if ((tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u)) {
               val message = Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
                 (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte)
               dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, message)
-//              dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-//                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
-//              watcherMap.filter(_._2._1 == u).foreach { w =>
-//                dispatchTo(subscribersMap, w._1, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-//                  (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
-//              }
             }
           }
 
@@ -413,30 +387,19 @@ object RoomActor {
               if (u._1 == grid.currentRank.head.id) {
                 dispatchToPlayerAndWatcher(
                   subscribersMap, watcherMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
-//                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
-//                watcherMap.filter(_._2._1 == u._1).foreach { w =>
-//                  dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, None))
-//                }
               }
               else {
                 dispatchToPlayerAndWatcher(
                   subscribersMap, watcherMap, u._1,
                   Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption)
                 )
-//                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
-//                watcherMap.filter(_._2._1 == u._1).foreach { w =>
-//                  dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
-//                }
               }
 
             }
             dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
             dispatchToPlayerAndWatcher(
               subscribersMap, watcherMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
-//            dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
-//            watcherMap.filter(_._2._1 == grid.currentRank.head.id).foreach { w =>
-//              dispatchTo(subscribersMap, w._1, Protocol.WinnerBestScore(grid.currentRank.head.area))
-//            }
+
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name)))
             userMap.foreach { u =>
               if (!userDeadList.contains(u._1)) {
