@@ -167,8 +167,8 @@ object RoomActor {
           dispatchTo(subscribersMap, userId, Protocol.Id4Watcher(truePlayerId, userId))
           val img = if (userMap.get(playerId).nonEmpty) userMap.get(playerId).head.img else 0
           dispatchTo(subscribersMap, userId, Protocol.StartWatching(mode, img))
-//          val gridData = grid.getGridData
-//          dispatch(subscribersMap, gridData)
+          val gridData = grid.getGridData
+          dispatchTo(subscribersMap, userId, gridData)
           idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, firstComeList, botMap, carnieMap)
 
         case UserDead(_, _, users) =>
@@ -297,7 +297,6 @@ object RoomActor {
 
 
         case UserActionOnServer(id, action) =>
-          val curTime = System.currentTimeMillis()
           action match {
             case Key(keyCode, frameCount, actionId) =>
               if (grid.snakes.get(id).nonEmpty) {
@@ -305,14 +304,14 @@ object RoomActor {
                 grid.addActionWithFrame(id, keyCode, realFrame)
 
                 dispatchTo(subscribersMap, id, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId)) //发送自己的action
-                watcherMap.filter(_._2._1 == id).foreach{ w =>
-                  dispatchTo(subscribersMap,w._1, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
-                }
+//                watcherMap.filter(_._2._1 == id).foreach{ w =>
+//                  dispatchTo(subscribersMap,w._1, Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))
+//                }
                 dispatch(subscribersMap.filterNot(_._1 == id),
                   Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息
 
-                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)),
-                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))// todo
+//                dispatch(subscribersMap.filter(s => watcherMap.contains(s._1)),
+//                  Protocol.SnakeAction(grid.snakes(id).carnieId, keyCode, realFrame, actionId))//
               }
 
             case SendPingPacket(pingId) =>
@@ -364,33 +363,38 @@ object RoomActor {
             }
             dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField)))
-            dispatch(
-              subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
-              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
+//            dispatch(
+//              subscribersMap.filter(s => watcherMap.contains(s._1)), //死亡时间小于3s继续发消息
+//              NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             grid.newInfo = Nil
           }
 
           firstComeList.foreach { id =>
-            dispatchTo(subscribersMap, id, newData)
-            watcherMap.filter(_._2._1 == id).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
+            dispatchToPlayerAndWatcher(subscribersMap, watcherMap, id, newData)
+//            dispatchTo(subscribersMap, id, newData)
+//            watcherMap.filter(_._2._1 == id).foreach { w => dispatchTo(subscribersMap, w._1, newData) }
           }
 
           //错峰发送
           for ((u, i) <- userMap) {
             if ((tickCount - i.joinFrame) % 100 == 2) {
-              dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
-              watcherMap.filter(_._2._1 == u).foreach { w =>
-                dispatchTo(subscribersMap, w._1, SyncFrame(newData.frameCount))
-              }
+              dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, SyncFrame(newData.frameCount))
+//              dispatchTo(subscribersMap, u, SyncFrame(newData.frameCount))
+//              watcherMap.filter(_._2._1 == u).foreach { w =>
+//                dispatchTo(subscribersMap, w._1, SyncFrame(newData.frameCount))
+//              }
             }
 
             if ((tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u)) {
-              dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
-              watcherMap.filter(_._2._1 == u).foreach { w =>
-                dispatchTo(subscribersMap, w._1, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-                  (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
-              }
+              val message = Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
+                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte)
+              dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, message)
+//              dispatchTo(subscribersMap, u, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
+//                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
+//              watcherMap.filter(_._2._1 == u).foreach { w =>
+//                dispatchTo(subscribersMap, w._1, Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
+//                  (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte))
+//              }
             }
           }
 
@@ -398,9 +402,8 @@ object RoomActor {
             val zipFields = finishFields.filter(s => grid.snakes.get(s._1).nonEmpty).map(f => grid.zipField((f._1, grid.snakes(f._1).carnieId, f._2)))
             newField = zipFields.map(_._1)
 
-            userMap.foreach(u =>
+            (userMap ++ watcherMap).foreach(u =>
               dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
-            watcherMap.foreach(u => dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
           }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
@@ -408,34 +411,39 @@ object RoomActor {
             grid.cleanData()
             userMap.foreach { u =>
               if (u._1 == grid.currentRank.head.id) {
-                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
-                watcherMap.filter(_._2._1 == u._1).foreach { w =>
-                  dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, None))
-                }
+                dispatchToPlayerAndWatcher(
+                  subscribersMap, watcherMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
+//                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, None))
+//                watcherMap.filter(_._2._1 == u._1).foreach { w =>
+//                  dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, None))
+//                }
               }
               else {
-                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
-                watcherMap.filter(_._2._1 == u._1).foreach { w =>
-                  dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
-                }
+                dispatchToPlayerAndWatcher(
+                  subscribersMap, watcherMap, u._1,
+                  Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption)
+                )
+//                dispatchTo(subscribersMap, u._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
+//                watcherMap.filter(_._2._1 == u._1).foreach { w =>
+//                  dispatchTo(subscribersMap, w._1, Protocol.WinData(grid.currentRank.head.area, grid.currentRank.filter(_.id == u._1).map(_.area).headOption))
+//                }
               }
 
             }
             dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
-            dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
-            watcherMap.filter(_._2._1 == grid.currentRank.head.id).foreach { w =>
-              dispatchTo(subscribersMap, w._1, Protocol.WinnerBestScore(grid.currentRank.head.area))
-            }
+            dispatchToPlayerAndWatcher(
+              subscribersMap, watcherMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
+//            dispatchTo(subscribersMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
+//            watcherMap.filter(_._2._1 == grid.currentRank.head.id).foreach { w =>
+//              dispatchTo(subscribersMap, w._1, Protocol.WinnerBestScore(grid.currentRank.head.area))
+//            }
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name)))
             userMap.foreach { u =>
               if (!userDeadList.contains(u._1)) {
                 gameEvent += ((grid.frameCount, LeftEvent(u._1, u._2.name)))
                 timer.startSingleTimer(UserDeadTimerKey + u._1, CloseWs(u._1), waitingTime4CloseWs)
                 userDeadList += u._1 -> curTime
-                if (u._1.take(3) == "bot") {
-//                  botMap.-=(u._1)
-                  getBotActor(ctx, u._1) ! BotDead
-                }
+                if (u._1.take(3) == "bot") getBotActor(ctx, u._1) ! BotDead
               }
             }
           }
@@ -480,6 +488,13 @@ object RoomActor {
     subscribers.values.foreach {
       _ ! gameOutPut
     }
+  }
+
+  def dispatchToPlayerAndWatcher(subscribers: mutable.HashMap[String, ActorRef[WsSourceProtocol.WsMsgSource]],
+                                 watcherMap: mutable.HashMap[String, (String, Long)],
+                                 id: String, gameOutPut: Protocol.GameMessage): Unit = {
+    (id :: watcherMap.filter(_._2._1 == id).keys.toList).foreach (u => dispatchTo(subscribers, u, gameOutPut))
+
   }
 
   private def getGameRecorder(ctx: ActorContext[Command], roomId: Int, grid: GridOnServer, mode: Int): ActorRef[GameRecorder.Command] = {
