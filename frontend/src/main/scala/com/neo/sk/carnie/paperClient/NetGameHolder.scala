@@ -67,7 +67,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   private var myScore = BaseScore(0, 0, 0)
   private var maxArea: Short = 0
-  private var winningData = WinData(0, Some(0))
+  private var winningData = WinData(0, Some(0), "")
 
   private var recallFrame: scala.Option[Int] = None
 
@@ -537,16 +537,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
         }
 
-      case Protocol.SomeOneWin(winner) =>
-        myId = myTrueId
-        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
-        isWin = true
-        //        winnerName = winner
-        //        winData = finalData
-        grid.cleanData()
+//      case Protocol.SomeOneWin(winner) =>
+//        myId = myTrueId
+//        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
+//        isWin = true
+//        //        winnerName = winner
+//        //        winData = finalData
+//        grid.cleanData()
 
-      case Protocol.WinnerBestScore(score) =>
-        maxArea = Constant.shortMax(maxArea, score)
+//      case Protocol.WinnerBestScore(score) =>
+//        maxArea = Constant.shortMax(maxArea, score)
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
@@ -635,9 +635,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           pingMap -= recvPingId
         }
 
-      case x@Protocol.WinData(_, _) =>
+      case x@Protocol.WinData(winnerScore, yourScore, winnerName) =>
+        if (winnerName == myTrueId) maxArea = Constant.shortMax(maxArea, winnerScore)
         println(s"receive winningData msg:$x")
         winningData = x
+        myId = myTrueId
+        drawFunction = FrontProtocol.DrawGameWin(winnerName, grid.getWinData4Draw)
+        isWin = true
+        grid.cleanData()
 
       case x@_ =>
         println(s"receive unknown msg:$x")

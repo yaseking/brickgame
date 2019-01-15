@@ -110,7 +110,7 @@ class WebSocketClient (
                     case DeadPage(_, _, _) =>
                       dead = dead + blobMsg.size
 
-                    case WinData(_, _) =>
+                    case WinData(_, _, _) =>
                       win = win + blobMsg.size
 
                     case CloseWs =>

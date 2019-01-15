@@ -238,6 +238,11 @@ class BotController(player: PlayerInfoInClient,
           }
         }
 
+      case Protocol.WinData(_, _, _) =>
+        Boot.addToPlatform{
+          grid.cleanData()
+        }
+
 
 //      case Protocol.UserLeft(id) =>
 //        Boot.addToPlatform {
