@@ -367,7 +367,7 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             case Ranks(_, _, _, _) =>
               rank = rank + a.length
 
-            case NewSnakeInfo(_, _, _) =>
+            case NewSnakeInfo(_, _) =>
               newSnakeInfo = newSnakeInfo + a.length
 
             case DeadPage(_, _, _) =>

@@ -104,7 +104,7 @@ class WebSocketClient (
                     case Ranks(_, _, _, _) =>
                       rank = rank + blobMsg.size
 
-                    case NewSnakeInfo(_, _, _) =>
+                    case NewSnakeInfo(_, _) =>
                       newSnakeInfo = newSnakeInfo + blobMsg.size
 
                     case DeadPage(_, _, _) =>

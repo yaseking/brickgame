@@ -342,7 +342,7 @@ object RoomActor {
           val newData = grid.getGridData
           var newField: List[Protocol.FieldByColumn] = Nil
 
-          if (grid.newInfo.nonEmpty) { //有新的蛇
+          val newSnakesInfo = if (grid.newInfo.nonEmpty) { //有新的蛇
             val newSnakeField = grid.newInfo.map(n => (n._1, n._2.carnieId, n._3)).map { f =>
               val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
               userMap.put(f._1, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
@@ -350,20 +350,36 @@ object RoomActor {
               if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
               grid.zipFieldWithCondensed((f._2, f._3))
             }
-            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
-            gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField)))
+//            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
+            gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.newInfo.map(_._2), newSnakeField)))
             grid.newInfo = Nil
+            Some(NewSnakeInfo(grid.newInfo.map(_._2), newSnakeField))
+          } else None
+
+          val newFieldsInfo = if (finishFields.nonEmpty) { //发送圈地数据
+            val zipFields = finishFields.filter(s => grid.snakes.get(s._1).nonEmpty).map(f => grid.zipField((f._1, grid.snakes(f._1).carnieId, f._2)))
+            newField = zipFields.map(_._1)
+            Some(zipFields.map(_._2))
+
+//            (userMap ++ watcherMap).foreach(u =>
+//              dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
+          } else None
+
+          if (newSnakesInfo.isDefined && newFieldsInfo.isDefined) {
+            val message = Protocol.NewData(grid.frameCount, newSnakesInfo, newFieldsInfo)
+            dispatch(subscribersMap.filterNot(s => firstComeList.contains(s._1)), message)
           }
 
-          firstComeList.foreach { id =>
-            dispatchTo(subscribersMap, id, newData)
-          }
+          dispatch(subscribersMap.filter(s => firstComeList.contains(s._1)), newData)
+//          firstComeList.foreach { id =>
+//            dispatchTo(subscribersMap, id, newData)
+//          }
 
           //错峰发送
           for ((u, i) <- userMap) {
-            if ((tickCount - i.joinFrame) % 100 == 2) {
-              dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, SyncFrame(newData.frameCount))
-            }
+//            if ((tickCount - i.joinFrame) % 100 == 2) {
+//              dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, SyncFrame(newData.frameCount))
+//            }
 
             if ((tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u)) {
               val message = Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
@@ -372,13 +388,6 @@ object RoomActor {
             }
           }
 
-          if (finishFields.nonEmpty) { //发送圈地数据
-            val zipFields = finishFields.filter(s => grid.snakes.get(s._1).nonEmpty).map(f => grid.zipField((f._1, grid.snakes(f._1).carnieId, f._2)))
-            newField = zipFields.map(_._1)
-
-            (userMap ++ watcherMap).foreach(u =>
-              dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
-          }
 
           if (grid.currentRank.nonEmpty && grid.currentRank.head.area >= winStandard) { //判断是否胜利
             log.info(s"win!! currentRank: ${grid.currentRank}")
@@ -386,7 +395,8 @@ object RoomActor {
             userMap.foreach { u =>
               if (u._1 == grid.currentRank.head.id) {
                 dispatchToPlayerAndWatcher(
-                  subscribersMap, watcherMap, u._1, Protocol.WinData(grid.currentRank.head.area, None, userMap(grid.currentRank.head.id).name))
+                  subscribersMap, watcherMap, u._1,
+                  Protocol.WinData(grid.currentRank.head.area, None, userMap(grid.currentRank.head.id).name))
               }
               else {
                 dispatchToPlayerAndWatcher(

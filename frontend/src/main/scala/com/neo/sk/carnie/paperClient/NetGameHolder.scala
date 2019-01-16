@@ -516,37 +516,61 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
         grid.cleanDiedSnakeInfo(List(id))
 
-      case data: Protocol.NewFieldInfo =>
-        //        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
-        //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
+//      case data: Protocol.NewFieldInfo =>
+//        //        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
+//        //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
+//
+//        //        println(s"got NewFieldInfo:${data.frameCount}.")
+//        val fields = data.fieldDetails.map{f =>
+//          if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
+//          FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+//        if (fields.exists(_.uid == myId)) {
+//          audioFinish.play()
+//          val myField = fields.filter(_.uid == myId)
+//          println(s"fieldDetail: $myField")
+//        }
+//        grid.historyFieldInfo += data.frameCount -> fields
+//        if(data.frameCount == grid.frameCount){
+//          addFieldInfo(data.frameCount)
+//        } else if (data.frameCount < grid.frameCount) {
+//          println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
+//          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+//        }
 
-        //        println(s"got NewFieldInfo:${data.frameCount}.")
-        val fields = data.fieldDetails.map{f =>
-          if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
-          FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-        if (fields.exists(_.uid == myId)) {
-          audioFinish.play()
-          val myField = fields.filter(_.uid == myId)
-          println(s"fieldDetail: $myField")
+      case Protocol.NewData(frameCount, newSnakes, newField) =>
+        if (newSnakes.isDefined) {
+          val data = newSnakes.get
+          data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
+          grid.historyNewSnake += frameCount -> (data.snake, data.filedDetails.map { f =>
+            FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
+          })
+          if(frameCount == grid.frameCount){
+            addNewSnake(frameCount)
+          } else if (frameCount < grid.frameCount) {
+            println(s"recall for NewSnakeInfo,backend:$frameCount,frontend:${grid.frameCount}")
+            recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
+          }
         }
-        grid.historyFieldInfo += data.frameCount -> fields
-        if(data.frameCount == grid.frameCount){
-          addFieldInfo(data.frameCount)
-        } else if (data.frameCount < grid.frameCount) {
-          println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+        if (newField.isDefined) {
+          val fields = newField.get.map{f =>
+            if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
+            FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+          if (fields.exists(_.uid == myTrueId)) {
+            audioFinish.play()
+            val myField = fields.filter(_.uid == myTrueId)
+            println(s"fieldDetail: $myField")
+          }
+          grid.historyFieldInfo += frameCount -> fields
+          if(frameCount == grid.frameCount){
+            addFieldInfo(frameCount)
+          } else if (frameCount < grid.frameCount) {
+            println(s"recall for NewFieldInfo,backend:$frameCount,frontend:${grid.frameCount}")
+            recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
+          }
         }
 
-//      case Protocol.SomeOneWin(winner) =>
-//        myId = myTrueId
-//        drawFunction = FrontProtocol.DrawGameWin(winner, grid.getWinData4Draw)
-//        isWin = true
-//        //        winnerName = winner
-//        //        winData = finalData
-//        grid.cleanData()
-
-//      case Protocol.WinnerBestScore(score) =>
-//        maxArea = Constant.shortMax(maxArea, score)
+        syncFrame = Some(SyncFrame(frameCount))
+        isSynced = true
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
@@ -561,27 +585,27 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         syncGridData = Some(data)
         isSynced = true
 
-      case data: Protocol.SyncFrame =>
-//        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
-//        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
+//      case data: Protocol.SyncFrame =>
+////        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
+////        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
+//
+//        syncFrame = Some(data)
+//        isSynced = true
 
-        syncFrame = Some(data)
-        isSynced = true
-
-      case data: Protocol.NewSnakeInfo =>
-//        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
-//        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
-
-        data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
-        grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
-          FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
-        })
-        if(data.frameCount == grid.frameCount){
-          addNewSnake(data.frameCount)
-        } else if (data.frameCount < grid.frameCount) {
-          println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
-        }
+//      case data: Protocol.NewSnakeInfo =>
+////        if (data.frameCount >= frameTemp) frameTemp =  data.frameCount
+////        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
+//
+//        data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
+//        grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
+//          FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
+//        })
+//        if(data.frameCount == grid.frameCount){
+//          addNewSnake(data.frameCount)
+//        } else if (data.frameCount < grid.frameCount) {
+//          println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
+//          recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+//        }
 
       case x@Protocol.DeadPage(kill, area, playTime) =>
         println(s"recv userDead $x")

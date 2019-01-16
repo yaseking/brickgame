@@ -149,10 +149,15 @@ object Protocol {
   sealed trait GameEvent extends GameMessage
 
   case class NewSnakeInfo(
-                           frameCount: Int,
+//                           frameCount: Int,
                            snake: List[SkDt],
                            filedDetails: List[FieldByColumnCondensed]
                          ) extends GameEvent
+
+  case class NewData(frameCount: Int,
+                     newSnakes: Option[NewSnakeInfo],
+                     newField: Option[List[FieldByColumnCondensed]]
+                    ) extends GameEvent
 
 
   case class JoinEvent(id: String, name: String) extends GameEvent

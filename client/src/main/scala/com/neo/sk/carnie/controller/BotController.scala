@@ -198,17 +198,19 @@ class BotController(player: PlayerInfoInClient,
         }
 
       case OtherAction(carnieId, keyCode, frame) =>
-        if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
-          val id = grid.carnieMap(carnieId)
-          grid.addActionWithFrame(id, keyCode, frame)
-          if (frame < grid.frameCount) {
-            println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
-            recallFrame = grid.findRecallFrame(frame, recallFrame)
+        Boot.addToPlatform {
+          if (grid.snakes.contains(grid.carnieMap.getOrElse(carnieId, ""))) {
+            val id = grid.carnieMap(carnieId)
+            grid.addActionWithFrame(id, keyCode, frame)
+            if (frame < grid.frameCount) {
+              println(s"recall for other Action,backend:$frame,frontend:${grid.frameCount}")
+              recallFrame = grid.findRecallFrame(frame, recallFrame)
+            }
           }
         }
 
-      case data: Protocol.SyncFrame =>
-        syncFrame = Some(data)
+//      case data: Protocol.SyncFrame =>
+//        syncFrame = Some(data)
 
       case Protocol.SomeOneWin(winner) =>
         Boot.addToPlatform {
@@ -284,32 +286,68 @@ class BotController(player: PlayerInfoInClient,
           syncGridData = Some(data)
         }
 
-      case data: Protocol.NewSnakeInfo =>
+      case Protocol.NewData(frameCount, newSnakes, newField) =>
         Boot.addToPlatform{
-          data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
-          grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
-            FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
-          })
-          if(data.frameCount == grid.frameCount){
-            addNewSnake(data.frameCount)
-          } else if (data.frameCount < grid.frameCount) {
-            println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+          if (newSnakes.isDefined) {
+            val data = newSnakes.get
+            data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
+            grid.historyNewSnake += frameCount -> (data.snake, data.filedDetails.map { f =>
+              FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
+            })
+            if(frameCount == grid.frameCount){
+              addNewSnake(frameCount)
+            } else if (frameCount < grid.frameCount) {
+              println(s"recall for NewSnakeInfo,backend:$frameCount,frontend:${grid.frameCount}")
+              recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
+            }
           }
+          if (newField.isDefined) {
+            val fields = newField.get.map{f =>
+              if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
+              FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+//            if (fields.exists(_.uid == player.id)) {
+//              val myField = fields.filter(_.uid == player.id)
+//              println(s"fieldDetail: $myField")
+//            }
+            grid.historyFieldInfo += frameCount -> fields
+            if(frameCount == grid.frameCount){
+              addFieldInfo(frameCount)
+            } else if (frameCount < grid.frameCount) {
+              println(s"recall for NewFieldInfo,backend:$frameCount,frontend:${grid.frameCount}")
+              recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
+            }
+          }
+
+          syncFrame = Some(SyncFrame(frameCount))
+//          isSynced = true
         }
 
-      case data: Protocol.NewFieldInfo =>
-//        println(s"====================new field")
-        Boot.addToPlatform {
-          val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-          grid.historyFieldInfo += data.frameCount -> fields
-          if(data.frameCount == grid.frameCount){
-            addFieldInfo(data.frameCount)
-          } else if (data.frameCount < grid.frameCount) {
-            println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
-            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
-          }
-        }
+//      case data: Protocol.NewSnakeInfo =>
+//        Boot.addToPlatform{
+//          data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
+//          grid.historyNewSnake += data.frameCount -> (data.snake, data.filedDetails.map { f =>
+//            FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
+//          })
+//          if(data.frameCount == grid.frameCount){
+//            addNewSnake(data.frameCount)
+//          } else if (data.frameCount < grid.frameCount) {
+//            println(s"recall for NewSnakeInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
+//            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+//          }
+//        }
+
+//      case data: Protocol.NewFieldInfo =>
+////        println(s"====================new field")
+//        Boot.addToPlatform {
+//          val fields = data.fieldDetails.map{f =>FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
+//          grid.historyFieldInfo += data.frameCount -> fields
+//          if(data.frameCount == grid.frameCount){
+//            addFieldInfo(data.frameCount)
+//          } else if (data.frameCount < grid.frameCount) {
+//            println(s"recall for NewFieldInfo,backend:${data.frameCount},frontend:${grid.frameCount}")
+//            recallFrame = grid.findRecallFrame(data.frameCount - 1, recallFrame)
+//          }
+//        }
 
       case x@Protocol.ReceivePingPacket(_) =>
         Boot.addToPlatform{
