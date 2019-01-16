@@ -322,7 +322,7 @@ trait Grid {
 
     snakes = newSnakes.map(s => (s.data.id, s.data)).toMap
 
-    (finishFields, finalDie)
+    (finishFields, finalDie.distinct)
   }
 
   def enclosure(snake: SkDt, origin: String, newHeader: Point, newDirection: Point) = {

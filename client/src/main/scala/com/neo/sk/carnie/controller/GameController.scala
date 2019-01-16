@@ -434,7 +434,9 @@ class GameController(player: PlayerInfoInClient,
               isGetKiller = true
               killerInfo = None
           }
+          println(s"======deadInfo: $deadInfo")
           val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
+          println(s"==============deadList: $deadList")
           grid.historyDieSnake += frame -> deadList
           deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
             val idOp = grid.carnieMap.get(i.carnieId)
