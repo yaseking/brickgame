@@ -397,9 +397,6 @@ object RoomActor {
               }
 
             }
-//            dispatch(subscribersMap, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name))
-//            dispatchToPlayerAndWatcher(
-//              subscribersMap, watcherMap, grid.currentRank.head.id, Protocol.WinnerBestScore(grid.currentRank.head.area))
 
             gameEvent += ((grid.frameCount, Protocol.SomeOneWin(userMap(grid.currentRank.head.id).name)))
             userMap.foreach { u =>

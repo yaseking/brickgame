@@ -389,7 +389,8 @@ class GameController(player: PlayerInfoInClient,
         Boot.addToPlatform {
           currentRank = current
 //          maxArea = Math.max(maxArea, score.area)
-          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin && isSynced){
+//          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin && isSynced){
+          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin){
             gameScene.drawRank(player.id, grid.getGridData.snakes, current, score, rank, currentNum)
 //            layeredGameScene.drawRank(player.id, grid.getGridData.snakes, current)
 //            layeredGameScene.drawHumanRank(player.id, grid.getGridData.snakes, currentRank)
