@@ -703,9 +703,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   }
 
   def addBackendInfo(frame: Int): Unit = {
+    addDieSnake(frame)
     addNewSnake(frame)
     addFieldInfo(frame)
-    addDieSnake(frame)
   }
 
   def addFieldInfo(frame: Int): Unit = {
