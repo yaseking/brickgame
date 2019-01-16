@@ -129,7 +129,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //      humanViewCtx.drawImage(wIm, 10, 10)
 //        println(s"${data.toByteArray.toList.distinct}")
 //    }
-    (id, ImgData(width ,height, 4, data))
+    val pixelLength = if(isGray) 1 else 4
+    (id, ImgData(width ,height, pixelLength, data))
   }
 
   def drawPosition(myHeader: Point,championHeader: Option[Point],isMe: Boolean):Unit = {
