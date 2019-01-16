@@ -350,7 +350,6 @@ object RoomActor {
               userDeadList -= f._1
               grid.zipFieldWithCondensed((f._2, f._3))
             }
-//            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.newInfo.map(_._2), newSnakeField)))
             Some(NewSnakeInfo(grid.newInfo.map(_._2), newSnakeField))
           } else None
@@ -360,9 +359,6 @@ object RoomActor {
             val zipFields = finishFields.filter(s => grid.snakes.get(s._1).nonEmpty).map(f => grid.zipField((f._1, grid.snakes(f._1).carnieId, f._2)))
             newField = zipFields.map(_._1)
             Some(zipFields.map(_._2))
-
-//            (userMap ++ watcherMap).foreach(u =>
-//              dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
           } else None
 
           if (newSnakesInfo.isDefined || newFieldsInfo.isDefined) {
@@ -371,16 +367,9 @@ object RoomActor {
           }
 
           dispatch(subscribersMap.filter(s => firstComeList.contains(s._1)), newData)
-//          firstComeList.foreach { id =>
-//            dispatchTo(subscribersMap, id, newData)
-//          }
 
           //错峰发送
           for ((u, i) <- userMap) {
-//            if ((tickCount - i.joinFrame) % 100 == 2) {
-//              dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, SyncFrame(newData.frameCount))
-//            }
-
             if ((tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u)) {
               val isInTop5 = grid.currentRank.take(5).find(_.id == u)
               val personalScore = if (isInTop5.isDefined) None else Some(grid.currentRank.filter(_.id == u).head)

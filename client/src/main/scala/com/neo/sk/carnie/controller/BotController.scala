@@ -272,12 +272,12 @@ class BotController(player: PlayerInfoInClient,
         }
 
 
-      case Protocol.Ranks(current, score, _, _) =>
+      case Protocol.Ranks(current, scoreOp, _, _) =>
         Boot.addToPlatform {
 //          println(s"rank!!! $score")
           currentRank = current
-          myCurrentRank = score
-          layeredGameScene.layered.drawRank(player.id,grid.getGridData.snakes,List(score))
+          myCurrentRank = if(scoreOp.isEmpty) current.filter(_.id == player.id).head else scoreOp.get
+          layeredGameScene.layered.drawRank(player.id,grid.getGridData.snakes,List(myCurrentRank))
         }
 
       case data: Protocol.Data4TotalSync =>
@@ -305,10 +305,10 @@ class BotController(player: PlayerInfoInClient,
             val fields = newField.get.map{f =>
               if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
               FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
-//            if (fields.exists(_.uid == player.id)) {
-//              val myField = fields.filter(_.uid == player.id)
-//              println(s"fieldDetail: $myField")
-//            }
+            if (fields.exists(_.uid == player.id)) {
+              val myField = fields.filter(_.uid == player.id)
+              println(s"fieldDetail: $myField")
+            }
             grid.historyFieldInfo += frameCount -> fields
             if(frameCount == grid.frameCount){
               addFieldInfo(frameCount)
