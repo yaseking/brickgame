@@ -365,7 +365,7 @@ object RoomActor {
 //              dispatchTo(subscribersMap, u._1, NewFieldInfo(grid.frameCount, zipFields.map(_._2))))
           } else None
 
-          if (newSnakesInfo.isDefined && newFieldsInfo.isDefined) {
+          if (newSnakesInfo.isDefined || newFieldsInfo.isDefined) {
             val message = Protocol.NewData(grid.frameCount, newSnakesInfo, newFieldsInfo)
             dispatch(subscribersMap.filterNot(s => firstComeList.contains(s._1)), message)
           }
