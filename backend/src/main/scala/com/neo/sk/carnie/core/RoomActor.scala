@@ -352,9 +352,9 @@ object RoomActor {
             }
 //            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
             gameEvent += ((grid.frameCount, Protocol.NewSnakeInfo(grid.newInfo.map(_._2), newSnakeField)))
-            grid.newInfo = Nil
             Some(NewSnakeInfo(grid.newInfo.map(_._2), newSnakeField))
           } else None
+          grid.newInfo = Nil
 
           val newFieldsInfo = if (finishFields.nonEmpty) { //发送圈地数据
             val zipFields = finishFields.filter(s => grid.snakes.get(s._1).nonEmpty).map(f => grid.zipField((f._1, grid.snakes(f._1).carnieId, f._2)))
