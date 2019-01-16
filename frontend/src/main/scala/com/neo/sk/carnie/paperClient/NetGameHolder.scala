@@ -547,7 +547,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
           })
           if(frameCount == grid.frameCount){
-//            addNewSnake(frameCount)
+            addNewSnake(frameCount)
           } else if (frameCount < grid.frameCount) {
             println(s"recall for NewSnakeInfo,backend:$frameCount,frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
@@ -565,7 +565,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
           grid.historyFieldInfo += frameCount -> fields
           if(frameCount == grid.frameCount){
-//            addFieldInfo(frameCount)
+            addFieldInfo(frameCount)
           } else if (frameCount < grid.frameCount) {
             println(s"recall for NewFieldInfo,backend:$frameCount,frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
