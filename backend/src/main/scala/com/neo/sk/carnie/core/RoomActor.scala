@@ -346,8 +346,8 @@ object RoomActor {
             val newSnakeField = grid.newInfo.map(n => (n._1, n._2.carnieId, n._3)).map { f =>
               val info = userMap.getOrElse(f._1, UserInfo("", -1L, -1L, 0))
               userMap.put(f._1, UserInfo(info.name, System.currentTimeMillis(), tickCount, info.img))
+              if (f._1.take(3) == "bot" && userDeadList.contains(f._1)) getBotActor(ctx, f._1) ! BackToGame
               userDeadList -= f._1
-              if (f._1.take(3) == "bot") getBotActor(ctx, f._1) ! BackToGame
               grid.zipFieldWithCondensed((f._2, f._3))
             }
 //            dispatch(subscribersMap, NewSnakeInfo(grid.frameCount, grid.newInfo.map(_._2), newSnakeField))
