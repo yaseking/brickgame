@@ -78,7 +78,6 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val canvasList = List(humanViewCanvas,positionCanvas,BorderCanvas,headerCanvas,viewCanvas,selfViewCanvas,selfCanvas,rankCanvas)
     canvasList.map(c => getImageData(c))
   }
-  var isPrint = true
 
   def getImageData(canvas: Canvas) = {
 //    a += 1
@@ -120,19 +119,16 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
         val byteArray = new Array[Byte](1 * width * height)
         for (y <- 0 until height; x <- 0 until width) {
           val color = reader.getColor(x, y).grayscale()
-          val gray = (color.getRed * color.getOpacity).toByte
-          writer.setArgb(x,y,gray)
-          byteArray(y * height + x) = gray
+          val gray = color.getRed * color.getOpacity
+          writer.setColor(x,y,new Color(gray,gray,gray,color.getOpacity))
+          byteArray(y * height + x) = (gray * 255).toByte
         }
         ByteString.copyFrom(byteArray)
       }
-    if (canvas.getId == "3"){
-      humanViewCtx.drawImage(wIm, 10, 10)
-      if (isPrint){
-        println(s"${data.toByteArray.toList.distinct}")
-        isPrint = false
-      }
-    }
+//    if (canvas.getId == "2"){
+//      humanViewCtx.drawImage(wIm, 10, 10)
+//        println(s"${data.toByteArray.toList.distinct}")
+//    }
     (id, ImgData(width ,height, 4, data))
   }
 
