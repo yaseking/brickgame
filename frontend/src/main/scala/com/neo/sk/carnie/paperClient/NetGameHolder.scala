@@ -538,6 +538,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //        }
 
       case Protocol.NewData(frameCount, newSnakes, newField) =>
+        println(s"===recv newData in frame:$frameCount")
         if (newSnakes.isDefined) {
           val data = newSnakes.get
           data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
