@@ -618,7 +618,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case Protocol.UserDeadMsg(frame, deadInfo) =>
 //        if (frame >= frameTemp) frameTemp =  frame
 //        else println(s"!!!!!!!error:frame of front: ${grid.frameCount}, frame from msg:$frame, frameTemp: $frameTemp,msg:$data")
-
+        val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
+        println(s"=======deadList:$deadList")
         deadInfo.find{d => grid.carnieMap.getOrElse(d.carnieId, "") == myId} match {
           case Some(myKillInfo) if myKillInfo.killerId.nonEmpty =>
             val info = grid.snakes.get(grid.carnieMap.getOrElse(myKillInfo.killerId.get, ""))
@@ -626,7 +627,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               isGetKiller = true
               killerInfo = info.map(_.name)
             }
-            if (info.map(_.id).nonEmpty) myId = info.get.id
+            if (info.map(_.id).nonEmpty && !deadList.contains(info.get.id)) myId = info.get.id
+            else if(currentRank.filterNot(_.id == myId).nonEmpty) myId = currentRank.filterNot(_.id == myId).head.id
+            else myId = grid.snakes.keys.filterNot(s => deadList.contains(s)).head
 
           case None =>
 
@@ -636,9 +639,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               killerInfo = None
             }
             if(currentRank.filterNot(_.id == myId).nonEmpty) myId = currentRank.filterNot(_.id == myId).head.id
+            else myId = grid.snakes.keys.filterNot(s => deadList.contains(s)).head
         }
-        val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
-        println(s"=======deadList:$deadList")
+
         grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
           val idOp = grid.carnieMap.get(i.carnieId)
