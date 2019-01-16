@@ -204,7 +204,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         val backend = syncFrame.get.frameCount
         val advancedFrame = backend - frontend
         if (advancedFrame == 1) {
-          println(s"backend advanced frontend,frontend$frontend,backend:$backend")
+//          println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           grid.updateOnClient()
           addBackendInfo(grid.frameCount)
         } else if (advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty) {
@@ -547,7 +547,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)
           })
           if(frameCount == grid.frameCount){
-            addNewSnake(frameCount)
+//            addNewSnake(frameCount)
           } else if (frameCount < grid.frameCount) {
             println(s"recall for NewSnakeInfo,backend:$frameCount,frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
@@ -565,7 +565,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
           grid.historyFieldInfo += frameCount -> fields
           if(frameCount == grid.frameCount){
-            addFieldInfo(frameCount)
+//            addFieldInfo(frameCount)
           } else if (frameCount < grid.frameCount) {
             println(s"recall for NewFieldInfo,backend:$frameCount,frontend:${grid.frameCount}")
             recallFrame = grid.findRecallFrame(frameCount - 1, recallFrame)
@@ -651,6 +651,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
         }
         if(frame == grid.frameCount){
+          println(s"!!!!!!!!!!!!!!frame==grid.frame")
           addDieSnake(frame)
         } else if (frame < grid.frameCount) {
           println(s"recall for UserDeadMsg,backend:$frame,frontend:${grid.frameCount}")
