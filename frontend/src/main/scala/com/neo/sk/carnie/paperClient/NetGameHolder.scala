@@ -540,6 +540,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case Protocol.NewData(frameCount, newSnakes, newField) =>
         println(s"===recv newData in frame:$frameCount")
         if (newSnakes.isDefined) {
+          println(s"get newSnakes!!!")
           val data = newSnakes.get
           data.snake.foreach { s => grid.carnieMap += s.carnieId -> s.id }
           grid.historyNewSnake += frameCount -> (data.snake, data.filedDetails.map { f =>
@@ -553,6 +554,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
         }
         if (newField.isDefined) {
+          println(s"get newFields!!!")
           val fields = newField.get.map{f =>
             if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
             FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
