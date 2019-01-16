@@ -382,8 +382,11 @@ object RoomActor {
 //            }
 
             if ((tickCount - i.joinFrame) % 20 == 5 && grid.currentRank.exists(_.id == u)) {
-              val message = Protocol.Ranks(grid.currentRank.take(5), grid.currentRank.filter(_.id == u).head,
-                (grid.currentRank.indexOf(grid.currentRank.filter(_.id == u).head) + 1).toByte, grid.currentRank.length.toByte)
+              val isInTop5 = grid.currentRank.take(5).find(_.id == u)
+              val personalScore = if (isInTop5.isDefined) None else Some(grid.currentRank.filter(_.id == u).head)
+              val personalRank =
+                if (personalScore.isDefined) Some((grid.currentRank.indexOf(personalScore.get) + 1).toByte) else None
+              val message = Protocol.Ranks(grid.currentRank.take(5), personalScore, personalRank, grid.currentRank.length.toByte)
               dispatchToPlayerAndWatcher(subscribersMap, watcherMap, u, message)
             }
           }

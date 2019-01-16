@@ -515,8 +515,9 @@ class DrawGame(
     ctx.fillText(s"${TimeTool.dateFormatDefault(System.currentTimeMillis())}", w.toInt, h.toInt)
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int, currentNum: Byte): Unit = {
-
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScoreOp: Option[Score], personalRankOp: Option[Byte], currentNum: Byte): Unit = {
+    val personalScore = if (personalScoreOp.isDefined) personalScoreOp.get else currentRank.filter(_.id == uid).head
+    val personalRank = if (personalRankOp.isDefined) personalRankOp.get else currentRank.indexOf(personalScore) + 1
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
 

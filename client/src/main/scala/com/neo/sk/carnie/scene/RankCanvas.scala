@@ -39,7 +39,10 @@ class RankCanvas(canvas: Canvas)  {
     windowBoundary = Point(realWindowWidth.toFloat, realWindowHeight.toFloat)
   }
 
-  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score], personalScore: Score, personalRank: Int, currentNum: Byte): Unit = {
+  def drawRank(uid: String, snakes: List[SkDt], currentRank: List[Score],
+               personalScoreOp: Option[Score], personalRankOp: Option[Byte], currentNum: Byte): Unit = {
+    val personalScore = if (personalScoreOp.isDefined) personalScoreOp.get else currentRank.filter(_.id == uid).head
+    val personalRank = if (personalRankOp.isDefined) personalRankOp.get else currentRank.indexOf(personalScore) + 1
 
     val leftBegin = 20
     val rightBegin = windowBoundary.x - 230
