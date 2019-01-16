@@ -237,10 +237,8 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.fillRect(canvasUnit * offx, (BorderSize.h + offy) * canvasUnit, canvasUnit * (BorderSize.w + 1), canvasUnit)
     ctx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
-
   def drawGrid(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, championId: String, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
-
     val lastHeader = snakes.find(_.id == uid) match {
       case Some(s) =>
         val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
@@ -335,18 +333,40 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
 
 
     snakeWithOff.foreach { s =>
-      ctx.setFill(Constant.hex2Rgb(s.color))
+      val color = Constant.hex2Rgb(s.color)
+      ctx.setFill(color)
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
       val off = direction * offsetTime.toFloat / frameRate
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
+      //      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
+      //      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+
       if (s.id == championId)
-        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+      //      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+
+      val lightC = findLightColor(s.color)
+      val darkC = findDarkColor(s.color)
+      //      println(s"color-${s.color},lightC-$lightC,darkC-$darkC")
+      ctx.setFill(Constant.hex2Rgb(lightC))
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.setFill(Constant.hex2Rgb(darkC))
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.1 * canvasUnit)
+//      ctx.setFill(Constant.hex2Rgb(s.color))
+
+
+
+
+//      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+//
+//      if (s.id == championId)
+//        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit)
+//      val otherHeaderImg = imgMap(s.img)
+//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+//      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       ctx.setFont(Font.font(16))
       ctx.setFill(Color.rgb(0, 0, 0))
@@ -365,6 +385,34 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.translate(x, y)
     ctx.scale(scale, scale)
     ctx.translate(-x, -y)
+  }
+
+  def findLightColor(str: String) = {
+    val (r, g, b) = hex2Rgb(str)
+    val newR = decToHex(r+20)
+    val newG = decToHex(g+20)
+    val newB = decToHex(b+20)
+    s"#$newR$newG$newB".toUpperCase
+  }
+
+  def findDarkColor(str: String) = {
+    val (r, g, b) = hex2Rgb(str)
+    val newR = decToHex(r-20)
+    val newG = decToHex(g-20)
+    val newB = decToHex(b-20)
+    s"#$newR$newG$newB".toUpperCase
+  }
+
+  def hex2Rgb(hex: String):(Int, Int, Int) = {
+    val red = Constant.hexToDec(hex.slice(1, 3))
+    val green = Constant.hexToDec(hex.slice(3, 5))
+    val blue = Constant.hexToDec(hex.takeRight(2))
+    (red, green, blue)
+  }
+
+
+  def decToHex(num: Int) = {
+    Integer.toHexString(num)
   }
 
   def isPointInWindow(p: Point4Trans, windowMax: Point, windowMin: Point): Boolean = {
