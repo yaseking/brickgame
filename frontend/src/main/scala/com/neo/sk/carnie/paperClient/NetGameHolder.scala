@@ -594,16 +594,20 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
         deadInfo.find{d => grid.carnieMap.getOrElse(d.carnieId, "") == myId} match {
           case Some(myKillInfo) if myKillInfo.killerId.nonEmpty =>
-            isGetKiller = true
             val info = grid.snakes.get(grid.carnieMap.getOrElse(myKillInfo.killerId.get, ""))
-            killerInfo = info.map(_.name)
+            if (myId == myTrueId) { //死亡观战视角时，不更新killInfo
+              isGetKiller = true
+              killerInfo = info.map(_.name)
+            }
             if (info.map(_.id).nonEmpty) myId = info.get.id
 
           case None =>
 
           case _ =>
-            isGetKiller = true
-            killerInfo = None
+            if (myId == myTrueId) {
+              isGetKiller = true
+              killerInfo = None
+            }
             if(currentRank.filterNot(_.id == myId).nonEmpty) myId = currentRank.filterNot(_.id == myId).head.id
         }
         val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
