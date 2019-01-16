@@ -638,6 +638,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             if(currentRank.filterNot(_.id == myId).nonEmpty) myId = currentRank.filterNot(_.id == myId).head.id
         }
         val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
+        println(s"=======deadList:$deadList")
         grid.historyDieSnake += frame -> deadList
         deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
           val idOp = grid.carnieMap.get(i.carnieId)
