@@ -553,7 +553,7 @@ class DrawGame(
     val currentRankBaseLine = 2
     var index = 0
     rankCtx.font = "10px Helvetica"
-    drawTextLine("Version:20190114a", rightBegin.toInt+100, index, currentRankBaseLine-1)
+    drawTextLine("Version:20190116", rightBegin.toInt+100, index, currentRankBaseLine-1)
     rankCtx.font = "14px Helvetica"
     drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {
