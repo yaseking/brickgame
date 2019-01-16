@@ -629,7 +629,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
             }
             if (info.map(_.id).nonEmpty && !deadList.contains(info.get.id)) myId = info.get.id
             else if(currentRank.filterNot(_.id == myId).nonEmpty) myId = currentRank.filterNot(_.id == myId).head.id
-            else myId = grid.snakes.keys.filterNot(s => deadList.contains(s)).head
 
           case None =>
 
@@ -639,7 +638,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
               killerInfo = None
             }
             if(currentRank.filterNot(_.id == myId).nonEmpty) myId = currentRank.filterNot(_.id == myId).head.id
-            else myId = grid.snakes.keys.filterNot(s => deadList.contains(s)).head
         }
 
         grid.historyDieSnake += frame -> deadList
