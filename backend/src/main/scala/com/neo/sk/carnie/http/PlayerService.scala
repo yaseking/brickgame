@@ -383,8 +383,6 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             case WinData(_, _, _) =>
               win = win + a.length
 
-            case OtherAction(_, _, _) =>
-              snakeAction = snakeAction + a.length
             case _ =>
               other = other + a.length
           }
