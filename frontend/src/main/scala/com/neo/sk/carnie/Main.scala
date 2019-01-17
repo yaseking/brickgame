@@ -55,7 +55,7 @@ object Main extends js.JSApp {
 //    currentPage = new JoinGamePage("playGame", PlayGamePara(s"test$r", s"test$r")).render
 //    currentPage = new CanvasPage().render
 //    show()
-//    new NetGameHolder("playGame", PlayGamePara(s"test$r", s"test$r", 0, headId), 0, headId, frameRate1).init()
+//    new NetGameHolder("playGame", PlayGamePara(s"娜可露露$r", s"娜可露露$r", 0, headId), 0, headId, frameRate1).init()
 //    new NetGameHolder4WatchGame("watchGame", WatchGamePara(s"1000", s"bot_10001001", " ")).init()
 
 

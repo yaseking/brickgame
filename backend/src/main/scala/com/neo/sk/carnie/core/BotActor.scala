@@ -197,9 +197,9 @@ object BotActor {
                     case Some(Body(bid, _)) if bid == botId && flag =>
                       actionCode = pointsToAvoid(direction)
                       flag = false
-                    case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
-                      actionCode = pointsToAction(rightDirection)
-                      flag = false
+//                    case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
+//                      actionCode = pointsToAction(rightDirection)
+//                      flag = false
                     case _ =>
                   }
                 }
