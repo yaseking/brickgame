@@ -522,6 +522,7 @@ trait Grid {
     snakeTurnPoints --= dieSnakes
     grid.foreach { g =>
       g._2 match {
+        case Body(bid, fid) if fid.nonEmpty && dieSnakes.contains(bid) && dieSnakes.contains(fid.get) => grid -= g._1
         case Body(bid, fid) if fid.nonEmpty && dieSnakes.contains(bid) => grid += g._1 -> Field(fid.get)
         case Body(bid, _) if dieSnakes.contains(bid) => grid -= g._1
         case Body(bid, fid) if dieSnakes.contains(fid.getOrElse("")) => grid += g._1 -> Body(bid, None)
