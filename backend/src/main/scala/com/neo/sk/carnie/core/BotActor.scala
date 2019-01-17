@@ -24,7 +24,7 @@ object BotActor {
 
   case class MakeAction(a: Int, state: Int) extends Command
 
-  case class MakeMiniAction(point: Point, state: Int) extends Command
+  case class MakeMiniAction(point: Point, state: Int, isRefrain: Boolean = false) extends Command
 
   case object KillBot extends Command
 
@@ -127,12 +127,13 @@ object BotActor {
 //          }
           gaming(botId, grid, roomActor, frameRate, stateForA + 1, stateForMA)
 
-        case MakeMiniAction(a@Point(x,y), state) =>
+        case MakeMiniAction(a@Point(x,y), state, isRefrain) =>
           var actionCode: Byte = 32
           var stateForMini = stateForMA
+          var isRe = isRefrain
           if (state == stateForA - 1) {
             val nextState = state + 1
-            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),nextState),  frameRate.millis)
+            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),nextState,isRe),  frameRate.millis)
           }
           else {
             stateForMini = stateForMA + 1
@@ -146,6 +147,8 @@ object BotActor {
               var flag = true
               newHeader.foreach{ h =>
                 grid.grid.get(h) match {
+                  case Some(Field(fid)) if fid == botId && h == header + direction =>
+                    isRe = false
                   case Some(Border) if flag=>
                     actionCode = pointsToAction(rightDirection)
                     flag = false
@@ -153,6 +156,11 @@ object BotActor {
                   case Some(Field(fid)) if fid == botId && flag =>
                     actionCode = pointsToAction(direction)
                     flag = false
+
+//                  case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
+//                    actionCode = pointsToAction(rightDirection)
+//                    flag = false
+
                   case _  if flag => actionCode = pointsToAction(direction)
 
                   case _ =>
@@ -163,32 +171,35 @@ object BotActor {
                 case _ => false
               }
               if (!isInField) {
-                val newHeaderRight = (1 to 4).toList.reverse.map(header + rightDirection * _)
                 var flag = true
-                newHeaderRight.foreach{ h =>
-                  grid.grid.get(h) match {
-                    case Some(Field(fid)) if fid == botId && flag =>
-                      actionCode = pointsToAction(rightDirection)
-                      flag = false
-                    case Some(Body(bid, _)) if bid == botId  =>
-                      actionCode = pointsToAction(direction)
-                    case Some(Body(bid, _)) if bid != botId && bid.take(3) == "bot" =>
-                      actionCode = pointsToAction(direction)
-                    case _ =>
+                if (!isRefrain){
+                  isRe = true
+                  val newHeaderRight = (1 to 4).toList.reverse.map(header + rightDirection * _)
+                  newHeaderRight.foreach{ h =>
+                    grid.grid.get(h) match {
+                      case Some(Field(fid)) if fid == botId && flag =>
+                        actionCode = pointsToAction(rightDirection)
+                        flag = false
+                      case Some(Body(bid, _)) if bid == botId  =>
+                        actionCode = pointsToAction(direction)
+                      case Some(Body(bid, _)) if bid != botId && bid.take(3) == "bot" =>
+                        actionCode = pointsToAction(direction)
+                      case _ =>
+                    }
                   }
-                }
-                val newHeaderLeft = (1 to 10).toList.reverse.map(header + actionToPoints(pointsToAvoid(direction)) * _)
-                flag = true
-                newHeaderLeft.foreach{ h =>
-                  grid.grid.get(h) match {
-                    case Some(Field(fid)) if fid == botId && flag =>
-                      actionCode = pointsToAvoid(direction)
-                      flag = false
-                    case Some(Body(bid, _)) if bid == botId  =>
-                      actionCode = pointsToAction(direction)
-                    case Some(Body(bid, _)) if bid != botId && bid.take(3) == "bot" =>
-                      actionCode = pointsToAction(direction)
-                    case _ =>
+                  val newHeaderLeft = (1 to 10).toList.reverse.map(header + actionToPoints(pointsToAvoid(direction)) * _)
+                  flag = true
+                  newHeaderLeft.foreach{ h =>
+                    grid.grid.get(h) match {
+                      case Some(Field(fid)) if fid == botId && flag =>
+                        actionCode = pointsToAvoid(direction)
+                        flag = false
+                      case Some(Body(bid, _)) if bid == botId  =>
+                        actionCode = pointsToAction(direction)
+                      case Some(Body(bid, _)) if bid != botId && bid.take(3) == "bot" =>
+                        actionCode = pointsToAction(direction)
+                      case _ =>
+                    }
                   }
                 }
                 flag = true
@@ -197,15 +208,16 @@ object BotActor {
                     case Some(Body(bid, _)) if bid == botId && flag =>
                       actionCode = pointsToAvoid(direction)
                       flag = false
-//                    case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
-//                      actionCode = pointsToAction(rightDirection)
-//                      flag = false
+                    case Some(Body(bid, _)) if bid != botId && flag && bid.take(3) == "bot" =>
+                      actionCode = pointsToAction(rightDirection)
+                      flag = false
                     case _ =>
                   }
                 }
               }
+
             }
-            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),state),  frameRate.millis)
+            timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),state,isRe),  frameRate.millis)
             roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           }
 
