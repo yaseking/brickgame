@@ -41,6 +41,7 @@ class BotController(player: PlayerInfoInClient,
   var syncGridData: scala.Option[Protocol.Data4TotalSync] = None
   var myCurrentRank = Score(player.id, player.name, 0)
   private var myActions = Map.empty[Int,Int]
+  var rankInfo: scala.Option[Ranks] = None
   private var logicFrameTime = System.currentTimeMillis()
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
   var isDead = false
@@ -115,7 +116,7 @@ class BotController(player: PlayerInfoInClient,
       val backend = syncFrame.get.frameCount
       val advancedFrame = backend - frontend
       if (advancedFrame == 1) {
-        println(s"backend advanced frontend,frontend$frontend,backend:$backend")
+//        println(s"backend advanced frontend,frontend$frontend,backend:$backend")
         grid.updateOnClient()
         addBackendInfo(grid.frameCount)
       } else if (advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty) {
@@ -148,7 +149,14 @@ class BotController(player: PlayerInfoInClient,
       case Some(_) =>
 //        isDead = false
         val offsetTime = System.currentTimeMillis() - logicFrameTime
-        layeredGameScene.draw(currentRank, player.id, gridData, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(player.id),myActions)
+        if(rankInfo.isDefined)
+        layeredGameScene.draw(currentRank, player.id, gridData, offsetTime, grid,
+          currentRank.headOption.map(_.id).getOrElse(player.id),myActions,
+          rankInfo.get.personalScore, rankInfo.get.personalRank, rankInfo.get.currentNum)
+//        else {
+//          layeredGameScene.drawGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
+//          layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
+//        }
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
 //      case None =>
@@ -272,10 +280,11 @@ class BotController(player: PlayerInfoInClient,
         }
 
 
-      case Protocol.Ranks(current, scoreOp, _, _) =>
+      case x@Protocol.Ranks(current, scoreOp, _, _) =>
         Boot.addToPlatform {
 //          println(s"rank!!! $score")
           currentRank = current
+          rankInfo = Some(x)
           myCurrentRank = if(scoreOp.isEmpty) current.filter(_.id == player.id).head else scoreOp.get
           layeredGameScene.layered.drawRank(player.id,grid.getGridData.snakes,List(myCurrentRank))
         }

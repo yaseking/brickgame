@@ -265,7 +265,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid.foreach {
       case (p, Field(id)) =>
 //        val tx = System.currentTimeMillis()
-        val map = fields.getOrElse(id, mutable.Map.empty)
+        val map = fields.getOrElse(id, mutable.Map.empty[Short, List[Short]])
 //        val tx2 = System.currentTimeMillis()
 //        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
         map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))

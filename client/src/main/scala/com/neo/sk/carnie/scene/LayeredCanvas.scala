@@ -337,7 +337,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     selfViewCtx.fillRect((BorderSize.w + offx) * canvasUnit, canvasUnit * offy, canvasUnit, canvasUnit * (BorderSize.h + 1))
   }
 
-  def drawHumanMap(myHeader: Point, otherSnakes: List[SkDt]):Unit={
+  def drawHumanMap(myHeader: Point, Snakes: List[SkDt], championId: String):Unit={
     val offx = myHeader.x.toDouble / border.x * smallMap.x
     val offy = myHeader.y.toDouble / border.y * smallMap.y
     humanViewCtx.setFill(ColorsSetting.mapColor)
@@ -349,12 +349,25 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     humanViewCtx.setGlobalAlpha(0.5)
     humanViewCtx.fillRect(w, h, littleMap.w * humanCanvasUnit + 10, littleMap.h * humanCanvasUnit + 10)
     humanViewCtx.restore()
-    humanViewCtx.drawImage(myHeaderImg, w + offx * humanCanvasUnit, h + offy * humanCanvasUnit, 10, 10)
-    otherSnakes.foreach { i =>
-      val x = i.header.x.toDouble / border.x * smallMap.x
-      val y = i.header.y.toDouble / border.y * smallMap.y
-      humanViewCtx.setFill(Constant.hex2Rgb(i.color))
+//    humanViewCtx.drawImage(myHeaderImg, w + offx * humanCanvasUnit, h + offy * humanCanvasUnit, 10, 10)
+    Snakes.foreach { s =>
+      val x = s.header.x.toDouble / border.x * smallMap.x
+      val y = s.header.y.toDouble / border.y * smallMap.y
+      humanViewCtx.setFill(Constant.hex2Rgb(s.color))
+//      humanViewCtx.fillRect(w + x * humanCanvasUnit, h + y * humanCanvasUnit, 10, 10)
+
+
+      val color = Constant.hex2Rgb(s.color)
+      humanViewCtx.setFill(color)
       humanViewCtx.fillRect(w + x * humanCanvasUnit, h + y * humanCanvasUnit, 10, 10)
+      val lightC = findLightColor(s.color)
+      val darkC = findDarkColor(s.color)
+      humanViewCtx.setFill(Constant.hex2Rgb(lightC))
+      humanViewCtx.fillRect(w + x * humanCanvasUnit, h + y * humanCanvasUnit, 10, 10)
+      humanViewCtx.setFill(Constant.hex2Rgb(darkC))
+      humanViewCtx.fillRect(w + x * humanCanvasUnit, h + 10 + y * humanCanvasUnit, 10, 0.1 * 10)
+      if (s.id == championId)
+        humanViewCtx.drawImage(championHeaderImg, w + x * humanCanvasUnit, h + y * humanCanvasUnit, 10, 10) //头部图片绘制在名字上方
     }
   }
   
@@ -369,8 +382,13 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
 
 
-  def drawHumanView(currentRank: List[Score],uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int]): Unit = { //头所在的点是屏幕的正中心
+  def drawHumanView(currentRank: List[Score],uid: String, data: FrontProtocol.Data4Draw,
+                    offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int],
+                    championId: String,personalScoreOp: Option[Score],
+                    personalRankOp: Option[Byte], currentNum: Byte): Unit = { //头所在的点是屏幕的正中心
 
+    val personalScore = if (personalScoreOp.isDefined) personalScoreOp.get else currentRank.filter(_.id == uid).head
+    val personalRank = if (personalRankOp.isDefined) personalRankOp.get else currentRank.indexOf(personalScore) + 1
     val snakes = data.snakes
 
     humanViewCtx.clearRect(0, 0, humanWindowBoundary.x, humanWindowBoundary.y)
@@ -400,11 +418,22 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
       val off = direction * offsetTime.toFloat / frameRate
       humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
-//      if (s.id == championId)
-//        humanViewCtx.drawImage(championHeaderImg, (s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y - 1) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      humanViewCtx.drawImage(img, (s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+      if (s.id == championId)
+        humanViewCtx.drawImage(championHeaderImg, (s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y - 1) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+//      val otherHeaderImg = imgMap(s.img)
+//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+//      humanViewCtx.drawImage(img, (s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+
+      val color = Constant.hex2Rgb(s.color)
+      humanViewCtx.setFill(color)
+      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+      val lightC = findLightColor(s.color)
+      val darkC = findDarkColor(s.color)
+      humanViewCtx.setFill(Constant.hex2Rgb(lightC))
+      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+      humanViewCtx.setFill(Constant.hex2Rgb(darkC))
+      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y + 1) * humanCanvasUnit, humanCanvasUnit, 0.1 * humanCanvasUnit)
+
       humanViewCtx.setFont(Font.font(16))
       humanViewCtx.setFill(Color.rgb(0, 0, 0))
       val t = new Text(s"${s.name}")
@@ -427,25 +456,25 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     humanViewCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
 
-    currentRank.filter(_.id == uid).foreach { score =>
+    if (personalScore.id == uid) {
       val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       humanViewCtx.setGlobalAlpha(0.6)
       humanViewCtx.setFill(color)
       humanViewCtx.save()
-      humanViewCtx.fillRect(leftBegin, (myRankBaseLineH - 1) * textLineHeight, fillWidth + humanWindowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
+      humanViewCtx.fillRect(leftBegin, (myRankBaseLineH - 1) * textLineHeight, fillWidth + humanWindowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), textLineHeight + 10)
       humanViewCtx.restore()
 
       humanViewCtx.setGlobalAlpha(1)
       humanViewCtx.setFont(Font.font(20))
       humanViewCtx.setFill(Color.rgb(0,0,0))
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLineH)
+      drawTextLine(f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLineH)
     }
 
     val currentRankBaseLine = 2
     var index = 0
     humanViewCtx.setFont(Font.font(14))
 
-    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+    drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {
       humanViewCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
       humanViewCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
@@ -474,6 +503,11 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
       drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
+
+    drawTextLine(s"[$personalRank]: ${personalScore.n.+("   ").take(3)}", rightBegin.toInt, index + 2, currentRankBaseLine)
+    drawTextLine(s"area=" + f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index + 2, currentRankBaseLine)
+    drawTextLine(s"kill=${personalScore.k}", rightBegin.toInt + 160, index + 2 , currentRankBaseLine)
+
     humanViewCtx.restore()
 
     humanViewCtx.clearRect(0, 400, 800 , 210)
@@ -507,7 +541,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
   
-  def drawSelfView(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawSelfView(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int, championId: String): Unit = { //头所在的点是屏幕的正中心
     
     val snakes = data.snakes
 
@@ -520,13 +554,13 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
     drawForField(fieldInWindow, selfViewCanvas, snakes, offx, offy)
 
-    drawForHeader(snakeWithOff, selfViewCanvas, uid, offsetTime, grid, frameRate)
+    drawForHeader(snakeWithOff, selfViewCanvas, uid, offsetTime, grid, frameRate,championId)
 
 //    drawCache(offx , offy)
 
   }
 
-  def drawSelf(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = { //头所在的点是屏幕的正中心
+  def drawSelf(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int, championId: String): Unit = { //头所在的点是屏幕的正中心
     val snakes = data.snakes
 
     val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
@@ -540,7 +574,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
     drawForField(fieldInWindow.filter(_.uid == uid), selfCanvas, snakes, offx, offy)
 
-    drawForHeader(snakeWithOff.filter(_.id == uid), selfCanvas, uid, offsetTime, grid, frameRate)
+    drawForHeader(snakeWithOff.filter(_.id == uid), selfCanvas, uid, offsetTime, grid, frameRate,championId)
 
 //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 //    selfCtx.setFill(Color.rgb(105,105,105))
@@ -553,7 +587,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
   }
   
-  def drawHeader(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int): Unit = {
+  def drawHeader(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int, championId: String): Unit = {
     val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
       findOffset(headerCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int)
 
@@ -562,11 +596,11 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
     //    setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
-    drawForHeader(snakeWithOff, headerCanvas, uid, offsetTime, grid, frameRate)
+    drawForHeader(snakeWithOff, headerCanvas, uid, offsetTime, grid, frameRate, championId)
 
   }
 
-  def drawBody(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int):Unit ={
+  def drawBody(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int, championId: String):Unit ={
     val snakes = data.snakes
     val (snakeWithOff, fieldInWindow, bodyInWindow, offx, offy) =
       findOffset(viewCanvas, uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int)
@@ -579,7 +613,7 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
     drawForField(fieldInWindow, viewCanvas, snakes, offx, offy)
 
-    drawForHeader(snakeWithOff, viewCanvas, uid, offsetTime, grid, frameRate)
+    drawForHeader(snakeWithOff, viewCanvas, uid, offsetTime, grid, frameRate, championId)
 
   }
 
@@ -769,20 +803,45 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 //    }
   }
 
-  def drawForHeader(snakeWithOff: List[SkDt], canvas: Canvas, uid: String, offsetTime: Long, grid: Grid, frameRate: Int, canvasUnit: Double = canvasUnit): Unit ={
+  def drawForHeader(snakeWithOff: List[SkDt], canvas: Canvas, uid: String, offsetTime: Long, grid: Grid, frameRate: Int, championId: String, canvasUnit: Double = canvasUnit): Unit ={
     val ctx = canvas.getGraphicsContext2D
     ctx.setGlobalAlpha(1)
     snakeWithOff.foreach { s =>
-      ctx.setFill(Constant.hex2Rgb(s.color))
+      
 
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
       val off = direction * offsetTime.toFloat / frameRate
+      
+      val color = Constant.hex2Rgb(s.color)
+      ctx.setFill(color)
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
-      val otherHeaderImg = imgMap(s.img)
-      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
-      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      //      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
+      //      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+
+      if (s.id == championId)
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+      //      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+
+      val lightC = findLightColor(s.color)
+      val darkC = findDarkColor(s.color)
+      //      println(s"color-${s.color},lightC-$lightC,darkC-$darkC")
+      ctx.setFill(Constant.hex2Rgb(lightC))
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.setFill(Constant.hex2Rgb(darkC))
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.1 * canvasUnit)
+
+//      ctx.setFill(Constant.hex2Rgb(s.color))
+//
+//      val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
+//      val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
+//      val off = direction * offsetTime.toFloat / frameRate
+//      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+//
+//      val otherHeaderImg = imgMap(s.img)
+//      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
+//      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
 
       //      ctx.setFont(Font.font(16))
       //      ctx.setFill(Color.rgb(0, 0, 0))
@@ -790,6 +849,34 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       //      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
     }
     ctx.restore()
+  }
+
+  def findLightColor(str: String) = {
+    val (r, g, b) = hex2Rgb(str)
+    val newR = decToHex(r+20)
+    val newG = decToHex(g+20)
+    val newB = decToHex(b+20)
+    s"#$newR$newG$newB".toUpperCase
+  }
+
+  def findDarkColor(str: String) = {
+    val (r, g, b) = hex2Rgb(str)
+    val newR = decToHex(r-20)
+    val newG = decToHex(g-20)
+    val newB = decToHex(b-20)
+    s"#$newR$newG$newB".toUpperCase
+  }
+
+  def hex2Rgb(hex: String):(Int, Int, Int) = {
+    val red = Constant.hexToDec(hex.slice(1, 3))
+    val green = Constant.hexToDec(hex.slice(3, 5))
+    val blue = Constant.hexToDec(hex.takeRight(2))
+    (red, green, blue)
+  }
+
+
+  def decToHex(num: Int) = {
+    Integer.toHexString(num)
   }
 
 }

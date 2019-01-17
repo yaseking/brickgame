@@ -116,16 +116,18 @@ class LayeredGameScene (img: Int, frameRate: Int) {
   val getScene: Scene = new Scene(group)
 
 
-  def draw(currentRank:List[Score],uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, championId: String, myActions: Map[Int,Int]): Unit = {
+  def draw(currentRank:List[Score],uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long,
+           grid: Grid, championId: String, myActions: Map[Int,Int],
+           personalScore: Option[Score], personalRank: Option[Byte], currentNum: Byte): Unit = {
     layered.drawPosition(data.snakes.filter(_.id == uid).map(_.header).head,data.snakes.find(_.id == championId).map(_.header),uid == championId)
     layered.drawBorder(uid, data, offsetTime, grid, frameRate)
-    layered.drawSelfView(uid, data, offsetTime, grid,  frameRate)
-    layered.drawSelf(uid, data, offsetTime, grid, frameRate)
+    layered.drawSelfView(uid, data, offsetTime, grid,  frameRate, championId)
+    layered.drawSelf(uid, data, offsetTime, grid, frameRate, championId)
 //    layered.drawRank(uid, data.snakes, currentRank)
-    layered.drawBody(uid, data, offsetTime, grid, frameRate)
-    layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate,myActions)
-    layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
-    layered.drawHeader(uid, data, offsetTime, grid, frameRate)
+    layered.drawBody(uid, data, offsetTime, grid, frameRate, championId)
+    layered.drawHumanView(currentRank,uid, data, offsetTime, grid, frameRate, myActions, championId,personalScore, personalRank, currentNum)
+    layered.drawHumanMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes, championId)
+    layered.drawHeader(uid, data, offsetTime, grid, frameRate, championId)
   }
 
 
