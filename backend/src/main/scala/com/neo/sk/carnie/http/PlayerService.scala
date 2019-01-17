@@ -317,6 +317,7 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
   var win :Double = 0
   var other :Double = 0
   var updateTime = 0l
+  var newData: Double = 0
 
   def webSocketChatFlow(playedId: String, sender: String, mode: Int, img: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
@@ -358,6 +359,12 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             case SnakeAction(_, _, _, _) =>
               snakeAction = snakeAction + a.length
 
+            case OtherAction(_,_,_) =>
+              snakeAction = snakeAction + a.length
+
+            case NewData(_,_,_) =>
+              newData = newData + a.length
+
             case NewFieldInfo(_, _) =>
               newField = newField + a.length
 
@@ -376,14 +383,12 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
             case WinData(_, _, _) =>
               win = win + a.length
 
-            case OtherAction(_, _, _) =>
-              snakeAction = snakeAction + a.length
             case _ =>
               other = other + a.length
           }
           if(System.currentTimeMillis() - updateTime > 30*1000){
             updateTime = System.currentTimeMillis()
-            log.debug(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo, dead$dead, win:$win,other:$other")
+            log.debug(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newData:$newData,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo, dead$dead, win:$win,other:$other")
             snakeAction = 0
             ping = 0
             newField = 0

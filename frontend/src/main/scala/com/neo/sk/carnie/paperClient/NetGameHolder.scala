@@ -32,6 +32,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var historyRank = List.empty[Score]
   private var myId = ""
   var myTrueId = ""
+  var myTrueName = ""
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -42,8 +43,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   //  var justSynced = false
   var isWin = false
   var isPlay = true
+  var isFirstTotalData = true
   //  var winnerName = "unknown"
-  var killInfo: scala.Option[(String, String, String)] = None
+  var killInfo: scala.Option[(String, String, String, String)] = None
   var barrageDuration = 0
 
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
@@ -199,7 +201,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.initSyncGridData(syncGridData.get)
         addBackendInfo4Sync(grid.frameCount)
         syncGridData = None
-      } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
+      } else if (syncFrame.nonEmpty && syncFrame.get.frameCount % 10 ==0) { //局部数据仅同步帧号
+        println(s"========checkFrame:${syncFrame.get.frameCount}!")
         val frontend = grid.frameCount
         val backend = syncFrame.get.frameCount
         val advancedFrame = backend - frontend
@@ -304,7 +307,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
-          if (killBaseInfo._3 == myId) audioKill.play()
+          if (killBaseInfo._4 == myTrueId && barrageDuration == 100) audioKill.play()
           drawGame.drawBarrage(killBaseInfo._2, killBaseInfo._3)
           barrageDuration -= 1
           if (barrageDuration == 0) killInfo = None
@@ -593,6 +596,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
 
         println(s"===========recv total data")
+        if (isFirstTotalData) {
+          val nameOp = data.snakes.filter(_.id == myTrueName)
+          myTrueName = if (nameOp.nonEmpty) nameOp.head.name else ""
+        }
         syncGridData = Some(data)
         isSynced = true
 
@@ -654,8 +661,9 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           if (idOp.nonEmpty) {
             val id = idOp.get
             val name = grid.snakes.get(id).map(_.name).getOrElse("unknown")
-            val killerName = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, "")).map(_.name).getOrElse("unknown")
-            killInfo = Some(id, name, killerName)
+            val killerId = grid.carnieMap.getOrElse(i.killerId.get, "")
+            val killerName = grid.snakes.get(killerId).map(_.name).getOrElse("unknown")
+            killInfo = Some(id, name, killerName, killerId)
             barrageDuration = 100
           }
         }
