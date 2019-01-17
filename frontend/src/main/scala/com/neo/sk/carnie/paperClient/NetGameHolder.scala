@@ -203,15 +203,16 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         val frontend = grid.frameCount
         val backend = syncFrame.get.frameCount
         val advancedFrame = backend - frontend
-        if (advancedFrame == 1) {
+        if (advancedFrame == 1 || advancedFrame == 0) {
 //          println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           grid.updateOnClient()
           addBackendInfo(grid.frameCount)
+          if (advancedFrame == 0) println(s"frontend equal to backend,frontend$frontend,backend:$backend")
         } else if (advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty) {
           println(s"frontend advanced backend,frontend$frontend,backend:$backend")
           grid.setGridInGivenFrame(backend)
-        } else if (advancedFrame == 0) {
-          println(s"frontend equal to backend,frontend$frontend,backend:$backend")
+//        } else if (advancedFrame == 0) {
+//          println(s"frontend equal to backend,frontend$frontend,backend:$backend")
         } else if (advancedFrame > 0 && advancedFrame < (grid.maxDelayed - 1)) {
           println(s"backend advanced frontend,frontend$frontend,backend:$backend")
           val endFrame = grid.historyDieSnake.filter { d => d._2.contains(myId) && d._1 > frontend }.keys.headOption match {
