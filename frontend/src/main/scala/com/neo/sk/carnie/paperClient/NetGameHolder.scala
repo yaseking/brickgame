@@ -306,7 +306,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         drawGameImage(myId, data, offsetTime)
         if (killInfo.nonEmpty) {
           val killBaseInfo = killInfo.get
-          if (killBaseInfo._4 == myTrueId) audioKill.play()
+          if (killBaseInfo._4 == myTrueId && barrageDuration == 100) audioKill.play()
           drawGame.drawBarrage(killBaseInfo._2, killBaseInfo._3)
           barrageDuration -= 1
           if (barrageDuration == 0) killInfo = None
