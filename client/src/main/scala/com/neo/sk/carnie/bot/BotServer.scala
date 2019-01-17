@@ -150,7 +150,7 @@ class BotServer(botActor: ActorRef[BotActor.Command], botController: BotControll
 
           } else { //killed
             state = State.killed
-            ObservationWithInfoRsp(errCode = 10004, state = state, msg = s"not in_game state")
+            ObservationWithInfoRsp(frameIndex = rst._4, errCode = 10004, state = state, msg = s"not in_game state")
           }
         }.recover {
           case e: Exception =>
