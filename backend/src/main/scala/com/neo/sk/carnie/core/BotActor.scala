@@ -131,6 +131,7 @@ object BotActor {
           var actionCode: Byte = 32
           var stateForMini = stateForMA
           var isRe = isRefrain
+          var currentDirection = a
           if (state == stateForA - 1) {
             val nextState = state + 1
             timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),nextState,isRe),  frameRate.millis)
@@ -140,6 +141,7 @@ object BotActor {
             if(grid.snakes.exists(_._1 == botId)){
               val header = grid.snakes.find(_._1 == botId).get._2.header
               val direction = grid.snakes.find(_._1 == botId).get._2.direction
+              currentDirection = direction
               val rightDirection = directionToRight(direction)
               val leftDirection = actionToPoints(pointsToAvoid(direction))
               //            log.info(s"=====bot direction:$direction")
@@ -218,6 +220,7 @@ object BotActor {
 
             }
             timer.startSingleTimer(MakeMiniActionKey, MakeMiniAction(a + actionToPoints(actionCode),state,isRe),  frameRate.millis)
+            if(actionCode != pointsToAction(currentDirection))
             roomActor ! UserActionOnServer(botId, Key(actionCode, grid.frameCount, -1))
           }
 

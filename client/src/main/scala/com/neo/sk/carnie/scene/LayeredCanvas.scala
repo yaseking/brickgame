@@ -456,25 +456,25 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     humanViewCtx.drawImage(killImg, leftBegin + 55, textLineHeight, textLineHeight * 1.4, textLineHeight * 1.4)
     drawTextLine(s" x ${mySnake.kill}", leftBegin + 55 + (textLineHeight * 1.4).toInt, 0, baseLine)
 
-    currentRank.filter(_.id == uid).foreach { score =>
+    if (personalScore.id == uid) {
       val color = snakes.find(_.id == uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       humanViewCtx.setGlobalAlpha(0.6)
       humanViewCtx.setFill(color)
       humanViewCtx.save()
-      humanViewCtx.fillRect(leftBegin, (myRankBaseLineH - 1) * textLineHeight, fillWidth + humanWindowBoundary.x / 8 * (score.area.toDouble / canvasSize), textLineHeight + 10)
+      humanViewCtx.fillRect(leftBegin, (myRankBaseLineH - 1) * textLineHeight, fillWidth + humanWindowBoundary.x / 8 * (personalScore.area.toDouble / canvasSize), textLineHeight + 10)
       humanViewCtx.restore()
 
       humanViewCtx.setGlobalAlpha(1)
       humanViewCtx.setFont(Font.font(20))
       humanViewCtx.setFill(Color.rgb(0,0,0))
-      drawTextLine(f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLineH)
+      drawTextLine(f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", leftBegin, 0, myRankBaseLineH)
     }
 
     val currentRankBaseLine = 2
     var index = 0
     humanViewCtx.setFont(Font.font(14))
 
-    drawTextLine(s" --- Current Rank --- ", rightBegin.toInt, index, currentRankBaseLine)
+    drawTextLine(s" --- Current Rank ---   players:$currentNum", rightBegin.toInt, index, currentRankBaseLine)
     if (currentRank.lengthCompare(3) >= 0) {
       humanViewCtx.drawImage(goldImg, rightBegin - 5 - textLineHeight, textLineHeight * 2, textLineHeight, textLineHeight)
       humanViewCtx.drawImage(silverImg, rightBegin - 5 - textLineHeight, textLineHeight * 3, textLineHeight, textLineHeight)
@@ -504,9 +504,9 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
 
-    drawTextLine(s"[$personalRank]: ${personalScore.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
-    drawTextLine(s"area=" + f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
-    drawTextLine(s"kill=${personalScore.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
+    drawTextLine(s"[$personalRank]: ${personalScore.n.+("   ").take(3)}", rightBegin.toInt, index + 2, currentRankBaseLine)
+    drawTextLine(s"area=" + f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index + 2, currentRankBaseLine)
+    drawTextLine(s"kill=${personalScore.k}", rightBegin.toInt + 160, index + 2 , currentRankBaseLine)
 
     humanViewCtx.restore()
 

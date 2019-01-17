@@ -153,6 +153,10 @@ class BotController(player: PlayerInfoInClient,
         layeredGameScene.draw(currentRank, player.id, gridData, offsetTime, grid,
           currentRank.headOption.map(_.id).getOrElse(player.id),myActions,
           rankInfo.get.personalScore, rankInfo.get.personalRank, rankInfo.get.currentNum)
+//        else {
+//          layeredGameScene.drawGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
+//          layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
+//        }
         drawFunction = FrontProtocol.DrawBaseGame(gridData)
 
 //      case None =>
