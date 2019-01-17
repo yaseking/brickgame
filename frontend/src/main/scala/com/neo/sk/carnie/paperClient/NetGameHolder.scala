@@ -561,7 +561,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           if (fields.exists(_.uid == myTrueId)) {
             audioFinish.play()
             val myField = fields.filter(_.uid == myTrueId)
-            println(s"fieldDetail: $myField")
+//            println(s"fieldDetail: $myField")
           }
           grid.historyFieldInfo += frameCount -> fields
           if(frameCount == grid.frameCount){
