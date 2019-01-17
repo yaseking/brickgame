@@ -77,6 +77,7 @@ class WebSocketClient (
       var win :Double = 0
       var other :Double = 0
       var updateTime = 0l
+      var newData: Double = 0
 
       gameStream.onmessage = { event: MessageEvent =>
         event.data match {
@@ -94,6 +95,12 @@ class WebSocketClient (
 
                     case SnakeAction(_, _, _, _) =>
                       snakeAction = snakeAction + blobMsg.size
+
+                    case OtherAction(_,_,_) =>
+                      snakeAction = snakeAction + blobMsg.size
+
+                    case NewData(_, newSnakes, newField) =>
+                      newData = newData + blobMsg.size
 
                     case NewFieldInfo(_, _) =>
                       newField = newField + blobMsg.size
@@ -124,7 +131,7 @@ class WebSocketClient (
                   }
                   if(System.currentTimeMillis() - updateTime > 30*1000) {
                     updateTime = System.currentTimeMillis()
-                    println(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo, dead$dead, win:$win,other:$other")
+                    println(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newData:$newData,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo, dead$dead, win:$win,other:$other")
                     snakeAction = 0
                     ping = 0
                     newField = 0

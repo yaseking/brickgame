@@ -317,6 +317,7 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
   var win :Double = 0
   var other :Double = 0
   var updateTime = 0l
+  var newData: Double = 0
 
   def webSocketChatFlow(playedId: String, sender: String, mode: Int, img: Int): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
@@ -357,6 +358,12 @@ trait PlayerService extends ServiceUtils with CirceSupport with SessionSupport w
 
             case SnakeAction(_, _, _, _) =>
               snakeAction = snakeAction + a.length
+
+            case OtherAction(_,_,_) =>
+              snakeAction = snakeAction + a.length
+
+            case NewData(_,_,_) =>
+              newData = newData + a.length
 
             case NewFieldInfo(_, _) =>
               newField = newField + a.length
