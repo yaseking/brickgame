@@ -115,7 +115,7 @@ class BotController(player: PlayerInfoInClient,
       val backend = syncFrame.get.frameCount
       val advancedFrame = backend - frontend
       if (advancedFrame == 1) {
-        println(s"backend advanced frontend,frontend$frontend,backend:$backend")
+//        println(s"backend advanced frontend,frontend$frontend,backend:$backend")
         grid.updateOnClient()
         addBackendInfo(grid.frameCount)
       } else if (advancedFrame < 0 && grid.historyStateMap.get(backend).nonEmpty) {
