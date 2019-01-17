@@ -117,47 +117,44 @@ class BotServer(botActor: ActorRef[BotActor.Command], botController: BotControll
   }
 
   override def observation(request: Credit): Future[ObservationRsp] = {
-//    println(s"observation Called by [$request")
+    //    println(s"observation Called by [$request")
     if (request.apiToken == BotAppSetting.apiToken) {
-      if (state == State.in_game) {
-        val rstF: Future[(Option[ImgData], Option[LayeredObservation], Int, Boolean)]  = botActor ? BotActor.ReturnObservation
-        rstF.map {rst =>
-          if (rst._4) {//in game
-            state = State.in_game
-            ObservationRsp(rst._2, rst._1, rst._3, state = state, msg = "ok")
+      val rstF: Future[(Option[ImgData], Option[LayeredObservation], Int, Boolean)] = botActor ? BotActor.ReturnObservation
+      rstF.map { rst =>
+        if (rst._4) {
+          //in game
+          state = State.in_game
+          ObservationRsp(rst._2, rst._1, rst._3, state = state, msg = "ok")
 
-          } else { //killed
-            state = State.killed
-            ObservationRsp(errCode = 10004, state = state, msg = s"not in_game state")
-          }
-        }.recover {
-          case e: Exception =>
-            ObservationRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+        } else { //killed
+          state = State.killed
+          ObservationRsp(errCode = 10004, state = state, msg = s"not in_game state")
         }
-      } else Future.successful(ObservationRsp(errCode = 10004, state = state, msg = s"not in_game state"))
+      }.recover {
+        case e: Exception =>
+          ObservationRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+      }
 
     } else Future.successful(ObservationRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
   override def observationWithInfo(request: Credit): Future[ObservationWithInfoRsp] = {
     if (request.apiToken == BotAppSetting.apiToken) {
-      if (state == State.in_game) {
-        val rstF: Future[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)]  = botActor ? BotActor.ReturnObservationWithInfo
-        rstF.map {rst =>
-          if (rst._5) {//in game
-            state = State.in_game
-            ObservationWithInfoRsp(rst._2, rst._1, rst._3.area, rst._3.k, frameIndex = rst._4, state = state, msg = "ok")
+      val rstF: Future[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)] = botActor ? BotActor.ReturnObservationWithInfo
+      rstF.map { rst =>
+        if (rst._5) {
+          //in game
+          state = State.in_game
+          ObservationWithInfoRsp(rst._2, rst._1, rst._3.area, rst._3.k, frameIndex = rst._4, state = state, msg = "ok")
 
-          } else { //killed
-            state = State.killed
-            ObservationWithInfoRsp(frameIndex = rst._4, errCode = 10004, state = state, msg = s"not in_game state")
-          }
-        }.recover {
-          case e: Exception =>
-            ObservationWithInfoRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+        } else { //killed
+          state = State.killed
+          ObservationWithInfoRsp(frameIndex = rst._4, errCode = 10004, state = state, msg = s"not in_game state")
         }
-      } else Future.successful(ObservationWithInfoRsp(errCode = 10004, state = state, msg = s"not in_game state"))
-
+      }.recover {
+        case e: Exception =>
+          ObservationWithInfoRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+      }
     } else Future.successful(ObservationWithInfoRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
