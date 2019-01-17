@@ -172,7 +172,7 @@ object BotActor {
               }
               if (!isInField) {
                 var flag = true
-                if (!isRefrain){
+//                if (!isRefrain){
                   isRe = true
                   val newHeaderRight = (1 to 4).toList.reverse.map(header + rightDirection * _)
                   newHeaderRight.foreach{ h =>
@@ -201,7 +201,7 @@ object BotActor {
                       case _ =>
                     }
                   }
-                }
+//                }
                 flag = true
                 newHeader.foreach { h =>
                   grid.grid.get(h) match {

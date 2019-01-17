@@ -382,8 +382,13 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
 
 
-  def drawHumanView(currentRank: List[Score],uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int], championId: String): Unit = { //头所在的点是屏幕的正中心
+  def drawHumanView(currentRank: List[Score],uid: String, data: FrontProtocol.Data4Draw,
+                    offsetTime: Long, grid: Grid, frameRate: Int,myActions: Map[Int,Int],
+                    championId: String,personalScoreOp: Option[Score],
+                    personalRankOp: Option[Byte], currentNum: Byte): Unit = { //头所在的点是屏幕的正中心
 
+    val personalScore = if (personalScoreOp.isDefined) personalScoreOp.get else currentRank.filter(_.id == uid).head
+    val personalRank = if (personalRankOp.isDefined) personalRankOp.get else currentRank.indexOf(personalScore) + 1
     val snakes = data.snakes
 
     humanViewCtx.clearRect(0, 0, humanWindowBoundary.x, humanWindowBoundary.y)
@@ -498,6 +503,11 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       drawTextLine(s"area=" + f"${score.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
       drawTextLine(s"kill=${score.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
     }
+
+    drawTextLine(s"[$personalRank]: ${personalScore.n.+("   ").take(3)}", rightBegin.toInt, index, currentRankBaseLine)
+    drawTextLine(s"area=" + f"${personalScore.area.toDouble / canvasSize * 100}%.2f" + s"%", rightBegin.toInt + 70, index, currentRankBaseLine)
+    drawTextLine(s"kill=${personalScore.k}", rightBegin.toInt + 160, index, currentRankBaseLine)
+
     humanViewCtx.restore()
 
     humanViewCtx.clearRect(0, 400, 800 , 210)
