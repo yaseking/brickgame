@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.frontendAdmin.util
+package org.seekloud.carnie.frontendAdmin.util
 
 import io.circe.{Decoder, Error}
 import org.scalajs.dom

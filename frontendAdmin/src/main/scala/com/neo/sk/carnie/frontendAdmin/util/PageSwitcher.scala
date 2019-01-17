@@ -1,6 +1,6 @@
-package com.neo.sk.carnie.frontendAdmin.util
+package org.seekloud.carnie.frontendAdmin.util
 
-import com.neo.sk.carnie.frontendAdmin.MainEnter.getCurrentHash
+import org.seekloud.carnie.frontendAdmin.MainEnter.getCurrentHash
 import mhtml.{Rx, Var}
 import org.scalajs.dom
 import org.scalajs.dom.raw.Event

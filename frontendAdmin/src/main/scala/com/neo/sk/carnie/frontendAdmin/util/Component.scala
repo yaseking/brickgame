@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.frontendAdmin.util
+package org.seekloud.carnie.frontendAdmin.util
 
 /**
   * Created by dry on 2018/10/12.

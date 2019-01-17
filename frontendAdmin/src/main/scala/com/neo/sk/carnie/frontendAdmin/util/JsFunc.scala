@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.frontendAdmin.util
+package org.seekloud.carnie.frontendAdmin.util
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._

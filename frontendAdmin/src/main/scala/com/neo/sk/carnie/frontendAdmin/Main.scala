@@ -1,12 +1,12 @@
-package com.neo.sk.carnie.frontendAdmin
+package org.seekloud.carnie.frontendAdmin
 
 import mhtml.{Cancelable, Rx, mount}
 import org.scalajs.dom
 import scala.xml.Elem
-import com.neo.sk.carnie.frontendAdmin.util.PageSwitcher
-import com.neo.sk.carnie.frontendAdmin.pages._
-import com.neo.sk.carnie.frontendAdmin.components.Header
-import com.neo.sk.carnie.frontendAdmin.styles._
+import org.seekloud.carnie.frontendAdmin.util.PageSwitcher
+import org.seekloud.carnie.frontendAdmin.pages._
+import org.seekloud.carnie.frontendAdmin.components.Header
+import org.seekloud.carnie.frontendAdmin.styles._
 
 /**
   * User: Jason

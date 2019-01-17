@@ -1,14 +1,14 @@
-package com.neo.sk.carnie.frontendAdmin.components
+package org.seekloud.carnie.frontendAdmin.components
 
 /**
   * User: Jason
   * Date: 2018/12/19
   * Time: 9:51
   */
-import com.neo.sk.carnie.frontendAdmin.Routes.Admin
-import com.neo.sk.carnie.frontendAdmin.pages._
-import com.neo.sk.carnie.frontendAdmin.util.{Component, Http}
-import com.neo.sk.carnie.frontendAdmin.styles.Demo2Styles.menuHorizontalLink
+import org.seekloud.carnie.frontendAdmin.Routes.Admin
+import org.seekloud.carnie.frontendAdmin.pages._
+import org.seekloud.carnie.frontendAdmin.util.{Component, Http}
+import org.seekloud.carnie.frontendAdmin.styles.Demo2Styles.menuHorizontalLink
 
 import scala.xml.Elem
 

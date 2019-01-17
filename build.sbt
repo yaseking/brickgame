@@ -11,7 +11,7 @@ val scalaV = "2.12.6"
 val projectName = "carnie"
 val projectVersion = "2019.01.17c"
 
-val projectMainClass = "com.neo.sk.carnie.Boot"
+val projectMainClass = "org.seekloud.carnie.Boot"
 
 def commonSettings = Seq(
   version := projectVersion,
@@ -50,7 +50,6 @@ lazy val frontend = (project in file("frontend"))
   .settings(skip in packageJSDependencies := false)
   .settings(
     scalaJSUseMainModuleInitializer := false,
-    //mainClass := Some("com.neo.sk.virgour.front.Main"),
     libraryDependencies ++=     Seq(
       "io.circe" %%% "circe-core" % Dependencies.circeVersion,
       "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
@@ -68,12 +67,12 @@ lazy val frontend = (project in file("frontend"))
 lazy val client = (project in file("client")).enablePlugins(PackPlugin)
   .settings(commonSettings: _*)
   .settings(
-    mainClass in reStart := Some("com.neo.sk.carnie.Boot"),
+    mainClass in reStart := Some("org.seekloud.carnie.Boot"),
     javaOptions in reStart += "-Xmx2g"
   )
   .settings(name := "carnie")
   .settings(
-    packMain := Map("carnie" -> "com.neo.sk.carnie.Boot"),
+    packMain := Map("carnie" -> "org.seekloud.carnie.Boot"),
     packJvmOpts := Map("carnie" -> Seq("-Xmx256m", "-Xms64m")),
     packExtraClasspath := Map("carnie" -> Seq("."))
   )

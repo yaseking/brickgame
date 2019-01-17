@@ -1,4 +1,4 @@
-package com.neo.sk.carnie.frontendAdmin.styles
+package org.seekloud.carnie.frontendAdmin.styles
 
 /**
   * User: Jason

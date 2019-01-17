@@ -1,9 +1,9 @@
-package com.neo.sk.carnie.frontendAdmin.pages
+package org.seekloud.carnie.frontendAdmin.pages
 
-import com.neo.sk.carnie.frontendAdmin.Routes
-import com.neo.sk.carnie.frontendAdmin.util.{Http, JsFunc, Page}
-import com.neo.sk.carnie.ptcl.AdminPtcl._
-import com.neo.sk.carnie.frontendAdmin.util.TimeTool
+import org.seekloud.carnie.frontendAdmin.Routes
+import org.seekloud.carnie.frontendAdmin.util.{Http, JsFunc, Page}
+import org.seekloud.carnie.ptcl.AdminPtcl._
+import org.seekloud.carnie.frontendAdmin.util.TimeTool
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.html.Input
