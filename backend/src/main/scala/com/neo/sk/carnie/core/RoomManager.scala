@@ -100,7 +100,7 @@ object RoomManager {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case m@CreateRoom(id, name, mode, img, pwd, subscriber) =>
-          log.info(s"got $m")//todo 可以在游戏页面显示房间号
+          log.info(s"got $m")
           val roomId = roomIdGenerator.getAndIncrement()
           roomMap += roomId -> (mode , pwd, mutable.HashSet((id, name)))
           println(roomMap)
@@ -197,6 +197,12 @@ object RoomManager {
             val roomId = roomMap.filter(r => r._2._3.exists(u => u._1 == id)).head._1
             roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2, roomMap(roomId)._3 -((id, name))))
             val mode = roomMap(roomId)._1
+            val humanPlayers = roomMap(roomId)._3.filter(!_._1.contains("bot"))
+            if(humanPlayers.isEmpty) {
+              val childName = s"room_$roomId-mode_$mode"
+              val actor = getRoomActor(ctx, roomId, mode)
+              ctx.self ! ChildDead(roomId, childName, actor)
+            }
             getRoomActor(ctx, roomId, mode) ! RoomActor.LeftRoom(id, name)
           } catch {
             case e: Exception =>
@@ -288,7 +294,7 @@ object RoomManager {
           reply ! roomMap.keySet.toList
           Behaviors.same
 
-        case FindAllRoom4Client(reply) => //或许可以用个计时器，定时请求房间列表，清除无人的房间
+        case FindAllRoom4Client(reply) =>
           log.debug(s"got all room")
           log.info(s"roomIds: ${roomMap.keys}")
           reply ! roomMap.map{i => s"${i._1}-${i._2._1}-${i._2._2.nonEmpty}"}.toList //roomId-mode-pwd(t/f)
@@ -462,7 +468,7 @@ object RoomManager {
     val childName = s"room_$roomId-mode_$mode"
     ctx.child(childName).getOrElse {
       val actor = ctx.spawn(RoomActor.create(roomId, mode), childName)
-      ctx.watchWith(actor, ChildDead(roomId, childName, actor))
+//      ctx.watchWith(actor, ChildDead(roomId, childName, actor))
       actor
 
     }.upcast[RoomActor.Command]
