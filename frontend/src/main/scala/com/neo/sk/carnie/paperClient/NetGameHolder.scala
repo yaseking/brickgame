@@ -201,7 +201,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         grid.initSyncGridData(syncGridData.get)
         addBackendInfo4Sync(grid.frameCount)
         syncGridData = None
-      } else if (syncFrame.nonEmpty) { //局部数据仅同步帧号
+      } else if (syncFrame.nonEmpty && syncFrame.get.frameCount % 10 ==0) { //局部数据仅同步帧号
+        println(s"========checkFrame:${syncFrame.get.frameCount}!")
         val frontend = grid.frameCount
         val backend = syncFrame.get.frameCount
         val advancedFrame = backend - frontend
