@@ -98,7 +98,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   private var logicFrameTime = System.currentTimeMillis()
 
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas, img)
-  private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectError)
+  private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectClose)
 
   def init(): Unit = {
     val para = webSocketPara.asInstanceOf[PlayGamePara]
@@ -451,6 +451,14 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
   private def connectError(e: Event) = {
     drawGame.drawGameOff(firstCome, None, false, false)
+    e
+  }
+
+  private def connectClose(e: Event, s: Boolean) = {
+    if(s)
+      drawGame.drawGameOff(firstCome, None, false, false)
+    else
+      drawGame.drawServerShutDown()
     e
   }
 

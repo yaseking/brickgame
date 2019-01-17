@@ -41,6 +41,7 @@ object RoomActor {
 //  private val maxWaitingTime4Restart = 3000
 
   private val waitingTime4CloseWs = 15.minutes
+//  private val waitingTime4CloseWs = 5.seconds
 
 
   //  private val classify = 5

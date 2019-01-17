@@ -132,8 +132,17 @@ class DrawGame(
         rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
         ctx.font = "36px Helvetica"
         ctx.fillText("Ops, connection lost.", 150, 180)
+        ctx.fillText("Press Space Key To Restart!", 150, 250)
       }
     }
+  }
+
+  def drawServerShutDown(): Unit = {
+    ctx.fillStyle = ColorsSetting.backgroundColor2
+    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
+    ctx.fillStyle = ColorsSetting.fontColor
+    ctx.font = "36px Helvetica"
+    ctx.fillText("Sorry, Some errs happened in our server.", 150, 180)
   }
 
   def drawGameDie4Replay(): Unit = {

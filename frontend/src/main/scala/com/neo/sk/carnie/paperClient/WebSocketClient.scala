@@ -20,10 +20,11 @@ class WebSocketClient (
                         connectOpenSuccess: (Event, String) => Unit,
                         connectError: Event => Unit,
                         messageHandler: GameMessage => Unit,
-                        close:Event => Unit
+                        close:(Event, Boolean) => Unit
                       ) {
 
   private var wsSetup = false
+  private var serverState = true
   private var gameStreamOpt: Option[WebSocket] = None
 
   def setUp(order: String, setupInfo: WebSocketPara): Unit = {
@@ -36,16 +37,7 @@ class WebSocketClient (
         case p: joinRoomByIdPara => getWebSocketUri4JoinRoomById(p.playerId, p.playerName, p.pwd, p.mode, p.img,p.roomId)
         case p: CreateRoomPara => getWebSocketUri4CreateRoom(p.playerId, p.playerName, p.pwd, p.mode, p.img)
       }
-//      val url = order match {
-//        case "playGame" =>
-//          getWebSocketUri(playId, name)
-//        case "watchGame" =>
-//          println("set up watchGame webSocket!")
-//          getWebSocketUri4WatchGame(playId, name)
-//        case "watchRecord" =>
-//          val info = replayInfo.getOrElse(ReplayInfo("1000001", "1000001", "1000", "abcd1000"))
-//          getWebSocketUri4WatchRecord(info)
-//      }
+
       val gameStream = new WebSocket(url)
       gameStreamOpt = Some(gameStream)
 
@@ -56,6 +48,7 @@ class WebSocketClient (
 
       gameStream.onerror = { event: Event =>
         wsSetup = false
+        serverState = false
         gameStreamOpt = None
         connectError(event)
       }
@@ -64,7 +57,7 @@ class WebSocketClient (
         println(s"ws close========$event")
         wsSetup = false
         gameStreamOpt = None
-        close(event)
+        close(event, serverState)
       }
 
       var snakeAction : Double = 0
@@ -117,7 +110,7 @@ class WebSocketClient (
                       gameStream.close()
                       wsSetup = false
                       gameStreamOpt = None
-                      close(event)
+                      close(event, serverState)
 
                     case _ =>
                       other = other + blobMsg.size
