@@ -112,6 +112,7 @@ class GameController(player: PlayerInfoInClient,
 
   def startGameLoop(): Unit = { //渲染帧
     BGM = bgmList(getRandom(bgmAmount))
+    BGM.play()
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
     val keyFrame = new KeyFrame(Duration.millis(frameRate), { _ =>
@@ -289,6 +290,10 @@ class GameController(player: PlayerInfoInClient,
 
         if (grid.killInfo.nonEmpty) {
           val killBaseInfo = grid.killInfo.get
+          if (killBaseInfo._4 == player.id &&  grid.barrageDuration == 100) {
+//            println("I killed someone")
+            audioKill.play()
+          }
           gameScene.drawBarrage(killBaseInfo._2, killBaseInfo._3)
           grid.barrageDuration -= 1
           if (grid.barrageDuration == 0) grid.killInfo = None
@@ -298,7 +303,7 @@ class GameController(player: PlayerInfoInClient,
         if(BGM.isPlaying){
           BGM.stop()
         }
-//        if (isContinue) audioDie.play()
+        if (isContinue) audioDie.play()
 
         gameScene.drawGameDie(killerName, myScore, maxArea)
 //        layeredGameScene.drawGameDie(killerName, myScore, maxArea)
@@ -383,9 +388,10 @@ class GameController(player: PlayerInfoInClient,
               if(grid.carnieMap.get(f.uid).isEmpty) println(s"!!!!!!!error:::can not find id: ${f.uid} from carnieMap")
               FieldByColumn(grid.carnieMap.getOrElse(f.uid, ""), f.scanField)}
             if (fields.exists(_.uid == player.id)) {
+//              println("myfield")
               audioFinish.play()
-              val myField = fields.filter(_.uid == player.id)
-              println(s"fieldDetail: $myField")
+//              val myField = fields.filter(_.uid == player.id)
+//              println(s"fieldDetail: $myField")
             }
             grid.historyFieldInfo += frameCount -> fields
             if(frameCount == grid.frameCount){
@@ -483,7 +489,7 @@ class GameController(player: PlayerInfoInClient,
               killerInfo = None
           }
           val deadList = deadInfo.map(baseInfo => grid.carnieMap.getOrElse(baseInfo.carnieId, ""))
-          println(s"==============deadList: $deadList")
+//          println(s"==============deadList: $deadList")
           grid.historyDieSnake += frame -> deadList
           deadInfo.filter(_.killerId.nonEmpty).foreach { i =>
             val idOp = grid.carnieMap.get(i.carnieId)
@@ -491,7 +497,8 @@ class GameController(player: PlayerInfoInClient,
               val id = idOp.get
               val name = grid.snakes.get(id).map(_.name).getOrElse("unknown")
               val killerName = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, "")).map(_.name).getOrElse("unknown")
-              grid.killInfo = Some(id, name, killerName)
+              val killerId = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, "")).map(_.id).getOrElse("unknown")
+              grid.killInfo = Some(id, name, killerName, killerId)
               grid.barrageDuration = 100
             }
           }

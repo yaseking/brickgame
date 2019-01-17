@@ -19,7 +19,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
   var myActionHistory : Map[Int, (Int, Int)] = Map[Int, (Int, Int)]() //(actionId, (keyCode, frameCount))
 
   //击杀弹幕
-  var killInfo: scala.Option[(String, String, String)] = None
+  var killInfo: scala.Option[(String, String, String, String)] = None
   var barrageDuration = 0
 
   var carnieMap = Map.empty[Byte, String]

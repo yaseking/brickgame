@@ -237,7 +237,8 @@ class BotController(player: PlayerInfoInClient,
               val id = idOp.get
               val name = grid.snakes.get(id).map(_.name).getOrElse("unknown")
               val killerName = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, "")).map(_.name).getOrElse("unknown")
-              grid.killInfo = Some(id, name, killerName)
+              val killerId = grid.snakes.get(grid.carnieMap.getOrElse(i.killerId.get, "")).map(_.id).getOrElse("unknown")
+              grid.killInfo = Some(id, name, killerName, killerId)
               grid.barrageDuration = 100
             }
           }
