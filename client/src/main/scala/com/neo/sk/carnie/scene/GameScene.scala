@@ -64,8 +64,8 @@ class GameScene(img: Int, frameRate: Int) {
 //    val rankWidth = 1200//1800
 //    val rankHeight = 250//300
 
-    rank.resetRankView(rankWidth, rankHeight)
     view.resetScreen(viewWidth, viewHeight, rankWidth, rankHeight)
+    rank.resetRankView(rankWidth, rankHeight)
 
 //    viewCanvas.setWidth(viewWidth)
 //    viewCanvas.setHeight(viewHeight)

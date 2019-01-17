@@ -38,6 +38,7 @@ class GameController(player: PlayerInfoInClient,
   var isGetKiller = false
   var killerInfo: scala.Option[String] = None
   var currentRank = List.empty[Score]
+  var rankInfo: scala.Option[Ranks] = None
   val bounds = Point(Boundary.w, Boundary.h)
   var grid = new GridOnClient(bounds)
   var firstCome = true
@@ -124,6 +125,9 @@ class GameController(player: PlayerInfoInClient,
   private def logicLoop(): Unit = { //逻辑帧
     if(!stageCtx.getStage.isFullScreen && !exitFullScreen) {
       gameScene.resetScreen(Constant.CanvasWidth,Constant.CanvasHeight,Constant.CanvasWidth,Constant.CanvasHeight)
+      if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin && rankInfo.isDefined){
+        gameScene.drawRank(player.id, grid.getGridData.snakes, rankInfo.get.currentRank, rankInfo.get.personalScore, rankInfo.get.personalRank, rankInfo.get.currentNum)
+      }
       stageCtx.getStage.setWidth(Constant.CanvasWidth)
       stageCtx.getStage.setHeight(Constant.CanvasHeight)
       stageCtx.getStage.setX(200)
@@ -134,6 +138,9 @@ class GameController(player: PlayerInfoInClient,
       stageWidth = stageCtx.getStage.getWidth.toInt
       stageHeight = stageCtx.getStage.getHeight.toInt
       gameScene.resetScreen(stageWidth,stageHeight,stageWidth,stageHeight)
+      if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin && rankInfo.isDefined){
+        gameScene.drawRank(player.id, grid.getGridData.snakes, rankInfo.get.currentRank, rankInfo.get.personalScore, rankInfo.get.personalRank, rankInfo.get.currentNum)
+      }
       stageCtx.getStage.setWidth(stageWidth)
       stageCtx.getStage.setHeight(stageHeight)
       if (!isContinue) {
@@ -425,9 +432,10 @@ class GameController(player: PlayerInfoInClient,
         }
 
 
-      case Protocol.Ranks(current, score, rank, currentNum) =>
+      case m@Protocol.Ranks(current, score, rank, currentNum) =>
         Boot.addToPlatform {
           currentRank = current
+          rankInfo = Some(m)
 //          maxArea = Math.max(maxArea, score.area)
 //          if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin && isSynced){
           if (grid.getGridData.snakes.exists(_.id == player.id) && !isWin){
