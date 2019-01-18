@@ -288,11 +288,27 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
 //    println(s"=====get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
 
+    var field = Map.empty[String, Map[Short, List[Short]]]
+
+    grid.foreach {
+      case (p, Field(id)) =>
+        val map = field.getOrElse(id, Map.empty)
+        field += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
+
+      case _ => //doNothing
+    }
+
+    val fieldDetailsByX = field.map { f =>
+      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
+        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
+      }.toList)
+    }.toList
+
     FrontProtocol.Data4Draw(
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      fieldDetails
+      fieldDetailsByX
     )
 
   }
@@ -331,27 +347,13 @@ class GridOnClient(override val boundary: Point) extends Grid {
     //    val t4 = System.currentTimeMillis()
     //    println(s"=====get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
 
-    var field = Map.empty[String, Map[Short, List[Short]]]
 
-    grid.foreach {
-      case (p, Field(id)) =>
-        val map = field.getOrElse(id, Map.empty)
-        field += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
-
-      case _ => //doNothing
-    }
-
-    val fieldDetailsByX = field.map { f =>
-      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
-        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
-      }.toList)
-    }.toList
 
     FrontProtocol.Data4Draw(
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      fieldDetailsByX
+      fieldDetails
     )
 
   }
