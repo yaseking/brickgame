@@ -331,17 +331,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
     //    val t4 = System.currentTimeMillis()
     //    println(s"=====get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
 
-    FrontProtocol.Data4Draw(
-      frameCount,
-      snakes.values.toList,
-      bodyDetails,
-      fieldDetails
-    )
-
-  }
-
-  def getWinData4Draw: FrontProtocol.WinData4Draw = {
-    import scala.collection.mutable
     var field = Map.empty[String, Map[Short, List[Short]]]
 
     grid.foreach {
@@ -357,6 +346,19 @@ class GridOnClient(override val boundary: Point) extends Grid {
         FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
       }.toList)
     }.toList
+
+    FrontProtocol.Data4Draw(
+      frameCount,
+      snakes.values.toList,
+      bodyDetails,
+      fieldDetailsByX
+    )
+
+  }
+
+  def getWinData4Draw: FrontProtocol.WinData4Draw = {
+    import scala.collection.mutable
+
 
     val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
 
@@ -383,7 +385,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     FrontProtocol.WinData4Draw(
       frameCount,
       snakes.values.toList,
-      fieldDetailsByX
+      fieldDetails
     )
 
   }
