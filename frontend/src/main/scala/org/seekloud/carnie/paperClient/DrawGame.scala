@@ -142,7 +142,7 @@ class DrawGame(
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.font = "36px Helvetica"
-    ctx.fillText("Sorry, Some errs happened in our server.", 150, 180)
+    ctx.fillText("Sorry, Some errors happened.", 150, 180)
   }
 
   def drawGameDie4Replay(): Unit = {
