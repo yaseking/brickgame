@@ -1,10 +1,7 @@
 package org.seekloud.carnie
 
-import java.io.File
-
 import akka.actor.{ActorSystem, Scheduler}
 import akka.stream.ActorMaterializer
-
 import scala.language.postfixOps
 import akka.dispatch.MessageDispatcher
 import akka.util.Timeout
@@ -12,7 +9,6 @@ import org.seekloud.carnie.common.{AppSetting, Context}
 import org.seekloud.carnie.controller._
 import org.seekloud.carnie.paperClient.ClientProtocol.PlayerInfoInClient
 import org.seekloud.carnie.scene._
-import com.typesafe.config.ConfigFactory
 import javafx.application.Platform
 import javafx.stage.Stage
 import org.seekloud.carnie.utils.Api4GameAgent._

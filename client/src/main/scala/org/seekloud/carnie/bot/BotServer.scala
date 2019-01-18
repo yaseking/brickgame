@@ -5,7 +5,7 @@ import io.grpc.{Server, ServerBuilder}
 import org.seekloud.esheepapi.pb.api._
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc
 import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgent
-import org.seekloud.carnie.actor.BotActor
+import org.seekloud.carnie.actor.{BotActor, GrpcStreamSender}
 import org.seekloud.esheepapi.pb.actions.Move
 import akka.actor.typed.scaladsl.AskPattern._
 import org.seekloud.carnie.paperClient.{Protocol, Score}
@@ -15,8 +15,9 @@ import org.seekloud.carnie.Boot.{executor, scheduler, timeout}
 import org.seekloud.carnie.actor.BotActor.{GetFrame, Reincarnation}
 import org.seekloud.carnie.controller.BotController
 import io.grpc.stub.StreamObserver
-
+import org.seekloud.carnie.Boot.system
 import scala.concurrent.{ExecutionContext, Future}
+import akka.actor.typed.scaladsl.adapter._
 
 /**
   * Created by dry on 2018/11/29.
@@ -24,6 +25,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object BotServer {
+
+  var state: State = State.unknown
+
+  var streamSender: Option[ActorRef[GrpcStreamSender.Command]] = None
 
   def build(port: Int, executionContext: ExecutionContext, botActor:  ActorRef[BotActor.Command],
             botName: String, botController: BotController): Server = {
@@ -38,8 +43,7 @@ object BotServer {
 }
 
 class BotServer(botActor: ActorRef[BotActor.Command], botController: BotController) extends EsheepAgent {
-
-  private var state: State = State.unknown
+  import BotServer._
 
   override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
     println(s"!!!!!createRoom Called by [$request")
@@ -138,24 +142,15 @@ class BotServer(botActor: ActorRef[BotActor.Command], botController: BotControll
     } else Future.successful(ObservationRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
   }
 
-  override def observationWithInfo(request: Credit): Future[ObservationWithInfoRsp] = {
+  override def observationWithInfo(request: Credit, responseObserver: StreamObserver[ObservationWithInfoRsp]): Unit = {
     if (request.apiToken == BotAppSetting.apiToken) {
-      val rstF: Future[(Option[ImgData], Option[LayeredObservation], Score, Int, Boolean)] = botActor ? BotActor.ReturnObservationWithInfo
-      rstF.map { rst =>
-        if (rst._5) {
-          //in game
-          state = State.in_game
-          ObservationWithInfoRsp(rst._2, rst._1, rst._3.area, rst._3.k, frameIndex = rst._4, state = state, msg = "ok")
-
-        } else { //killed
-          state = State.killed
-          ObservationWithInfoRsp(frameIndex = rst._4, errCode = 10004, state = state, msg = s"not in_game state")
-        }
-      }.recover {
-        case e: Exception =>
-          ObservationWithInfoRsp(errCode = 10001, state = state, msg = s"internal error:$e")
+      if (BotServer.streamSender.isDefined) {
+        BotServer.streamSender.get ! GrpcStreamSender.ObservationObserver(responseObserver)
+      } else {
+        BotServer.streamSender = Some(system.spawn(GrpcStreamSender.create(botController), "GrpcStreamSender"))
+        BotServer.streamSender.get ! GrpcStreamSender.ObservationObserver(responseObserver)
       }
-    } else Future.successful(ObservationWithInfoRsp(errCode = 10003, state = State.unknown, msg = "apiToken error"))
+    } else responseObserver.onCompleted()
   }
 
   override def inform(request: Credit): Future[InformRsp] = {
@@ -194,10 +189,6 @@ class BotServer(botActor: ActorRef[BotActor.Command], botController: BotControll
 
   override def currentFrame(request: Credit, responseObserver: StreamObserver[CurrentFrameRsp]): Unit = {
     if (request.apiToken == BotAppSetting.apiToken) {
-//      val rstF: Future[Int] = botActor ? GetFrame
-//      rstF.map { rsp =>
-//        CurrentFrameRsp(frame = rsp, state = state)
-//      }
       var lastFrameCount = -1L
       while(true) {
         if (botController.grid.frameCount != lastFrameCount) {

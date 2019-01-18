@@ -101,6 +101,8 @@ class BotController(player: PlayerInfoInClient,
         None
       )
       botActor ! Observation(humanObservation, Some(layeredObservation), grid.frameCount, true)
+    } else {
+      botActor ! Observation(None, None, grid.frameCount, false)
     }
 
     if (syncGridData.nonEmpty) { //全量数据

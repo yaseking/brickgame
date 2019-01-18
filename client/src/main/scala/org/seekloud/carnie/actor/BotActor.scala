@@ -104,20 +104,16 @@ object BotActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Work =>
-//          val executor = concurrent.ExecutionContext.Implicits.global
           val port = 5322//todo config
 
           val server = BotServer.build(port, executor, ctx.self, playerInfo.name, botController)
           server.start()
           log.debug(s"Server started at $port")
-//          println(s"--------------")
           sys.addShutdownHook {
             log.debug("JVM SHUT DOWN.")
             server.shutdown()
             log.debug("SHUT DOWN.")
           }
-//          println("=================")
-//          server.awaitTermination()
           log.debug("DONE.")
           waitingGame(botController, playerInfo, domain)
 
@@ -164,7 +160,6 @@ object BotActor {
             //
           } //ws断开
           connected.onComplete(i => log.info(i.toString))
-//          gaming(stream, botController, playerId)
           switchBehavior(ctx, "busy", busy())
 
         case JoinRoom(roomId, apiToken, replyTo) =>
@@ -221,13 +216,9 @@ object BotActor {
 
         case ReturnObservation(replyTo) =>
           replyTo ! observation
-//          botController.getAllImage
-//          waitingForObservation(actor, botController, playerInfo, replyTo)
           Behaviors.same
 
         case ReturnObservationWithInfo(replyTo) =>
-//          botController.getAllImage
-//          waitingForObservationWithInfo(actor, botController, playerInfo, replyTo)
           replyTo ! (observation._1, observation._2, botController.myCurrentRank, observation._3, observation._4)
           Behaviors.same
 
@@ -237,6 +228,9 @@ object BotActor {
 
         case Observation(obs) =>
           observation = obs
+          if(BotServer.streamSender.nonEmpty){
+            BotServer.streamSender.get ! GrpcStreamSender.NewObservation(observation._1, observation._2, botController.myCurrentRank, observation._3, observation._4)
+          }
           Behaviors.same
 
         case Dead =>
@@ -329,6 +323,12 @@ object BotActor {
 
         case Action(move, replyTo) =>
           replyTo ! -2L
+          Behaviors.same
+
+        case Observation(obs) =>
+          if(BotServer.streamSender.nonEmpty){
+            BotServer.streamSender.get ! GrpcStreamSender.NewObservation(obs._1, obs._2, botController.myCurrentRank, obs._3, obs._4)
+          }
           Behaviors.same
 
         case ReturnObservation(replyTo) =>
