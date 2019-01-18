@@ -146,7 +146,8 @@ object RoomActor {
           }
           idle(roomId, mode, grid, userMap, userDeadList, watcherMap, subscribersMap, tickCount, gameEvent, winStandard, id :: firstComeList, botMap, carnieMap)
 
-        case JoinRoom4Bot(id, name, botActor, img) =>
+        case m@JoinRoom4Bot(id, name, botActor, img) =>
+          log.info(s"got: $m")
           carnieMap.put(id, grid.generateCarnieId(carnieIdGenerator, carnieMap.values))
           userMap.put(id, UserInfo(name, System.currentTimeMillis(), -1L, img))
           botMap.put(id, botActor)
@@ -249,6 +250,7 @@ object RoomActor {
               if (!AppSettings.botMap.forall(b => botMap.keys.toList.contains("bot_" + roomId + b._1))) {
                 val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
                 getBotActor(ctx, "bot_" + roomId + newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
+                roomManager ! RoomManager.BotsJoinRoom(roomId, List(newBot))
               }
               Behaviors.same
             }
