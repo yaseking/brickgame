@@ -730,8 +730,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       if (snakes.exists(_.id == user.uid)) {
         var userScanField: List[FrontProtocol.Scan4Draw] = Nil
         user.scanField.foreach { field =>
-          if (field.y < maxPoint.y && field.y > minPoint.y) {
-            userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
+          if (field.x < maxPoint.y && field.x > minPoint.y) {
+            userScanField = FrontProtocol.Scan4Draw(field.x, field.y.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
           }
         }
         fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
@@ -784,8 +784,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
       ctx.setFill(color)
       field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.1)
+        point.y.foreach { x =>
+          ctx.fillRect((x._1 + offx) * canvasUnit, (point.x + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.1)
         }
       }
     }

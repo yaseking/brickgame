@@ -190,7 +190,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
               var num = 0
               data.fieldDetails.find(_.uid == myId).get.scanField.foreach {
                 row =>
-                  row.x.foreach {
+                  row.y.foreach {
                     x => num += (x._2 - x._1)
                   }
               }

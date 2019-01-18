@@ -43,7 +43,7 @@ object FrontProtocol {
                           )
 
   case class Scan4Draw(
-                       y: Short,
-                       x: List[(Short, Short)]
+                        x: Short,
+                        y: List[(Short, Short)]
                        )
 }

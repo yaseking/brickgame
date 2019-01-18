@@ -268,8 +268,8 @@ class DrawGame(
         val color = snakes.find(_.id == field.uid).map(_.color).get
         ctx.fillStyle = color
         field.scanField.foreach { point =>
-          point.x.foreach { x =>
-            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.y * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          point.y.foreach { y =>
+            ctx.fillRect(point.x * canvasUnit + 1.5 * width - canvasUnit, y._1 * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * 1.05, canvasUnit * (y._2 - y._1 + 1))
           }
         }
       }
@@ -363,22 +363,7 @@ class DrawGame(
 
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 
-    var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
     var fieldByXInWindow: List[FrontProtocol.Field4Draw] = Nil
-    data.fieldDetails.foreach { user =>
-//      if (snakes.exists(_.id == user.uid)) {
-      if (!snakes.exists(_.id == user.uid)) {
-        println(s"snakes don't exist fieldId-${user.uid}")
-      }
-      var userScanField: List[FrontProtocol.Scan4Draw] = Nil
-      user.scanField.foreach { field =>
-        if (field.y < maxPoint.y + 10 && field.y > minPoint.y - 5) {
-          userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
-        }
-      }
-      fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
-//      }
-    }
 
     data.fieldDetails.foreach { user =>
       //      if (snakes.exists(_.id == user.uid)) {
@@ -387,8 +372,8 @@ class DrawGame(
       }
       var userScanField: List[FrontProtocol.Scan4Draw] = Nil
       user.scanField.foreach { field =>
-        if (field.y < maxPoint.x + 10 && field.y > minPoint.x - 5) {
-          userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.y || x._2 > minPoint.y)) :: userScanField
+        if (field.x < maxPoint.x + 10 && field.x > minPoint.x - 5) {
+          userScanField = FrontProtocol.Scan4Draw(field.x, field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y)) :: userScanField
         }
       }
       fieldByXInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldByXInWindow
@@ -402,7 +387,7 @@ class DrawGame(
       b.turn.exists(p => isPointInWindow(p, maxPoint, minPoint))
     }
 
-    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
+    scale = Math.max(1 - grid.getMyFieldCount(uid, fieldByXInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
 
@@ -458,32 +443,17 @@ class DrawGame(
 
 
     ctx.globalAlpha = 1.0
-//    fieldInWindow.foreach { field => //按行渲染
-//      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-//      val darkC = findDarkColor(color)
-//
-//      field.scanField.foreach { point =>
-//        point.x.foreach { x =>
-//          ctx.fillStyle = color
-//          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-////          ctx.fillStyle = darkC
-////          ctx.fillRect((x._2 + offx + 1) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * 0.3, canvasUnit * 1.2)
-////          ctx.fillStyle = color
-////          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-//        }
-//      }
-//    }
 
     fieldByXInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
       val darkC = findDarkColor(color)
 
       field.scanField.foreach { point =>
-        point.x.foreach { x =>
+        point.y.foreach { y =>
           ctx.fillStyle = color
-          ctx.fillRect((point.y + offx) * canvasUnit, (x._1 + offy) * canvasUnit, canvasUnit * 1.05 , canvasUnit * (x._2 - x._1 + 1))
+          ctx.fillRect((point.x + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * 1.05 , canvasUnit * (y._2 - y._1 + 1))
           ctx.fillStyle = darkC
-          ctx.fillRect((point.y + offx) * canvasUnit, (x._2 + offy + 1) * canvasUnit, canvasUnit * 1.02 , canvasUnit * 0.3)
+          ctx.fillRect((point.x + offx) * canvasUnit, (y._2 + offy + 1) * canvasUnit, canvasUnit * 1.02 , canvasUnit * 0.3)
         }
       }
     }

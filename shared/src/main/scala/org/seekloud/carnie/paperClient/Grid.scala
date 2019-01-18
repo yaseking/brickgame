@@ -505,7 +505,7 @@ trait Grid {
   def getMyFieldCount(uid: String, myFieldInfo: List[FrontProtocol.Scan4Draw]): Int = {
     var fieldCount = 0
     myFieldInfo.foreach { f =>
-      f.x.foreach { xs =>
+      f.y.foreach { xs =>
         fieldCount += (xs._2 - xs._1 + 1)
       }
     }

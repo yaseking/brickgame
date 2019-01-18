@@ -367,12 +367,12 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid.foreach {
       case (p, Field(id)) =>
         val map = fields.getOrElse(id, mutable.Map.empty)
-        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+        map.update(p.x.toShort, p.y.toShort :: map.getOrElse(p.x.toShort, Nil))
         fields.update(id, map)
 
       case (p, Body(_, Some(fid))) =>
         val map = fields.getOrElse(fid, mutable.Map.empty)
-        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+        map.update(p.x.toShort, p.y.toShort :: map.getOrElse(p.x.toShort, Nil))
         fields.update(fid, map)
 
       case _ => //doNothing
