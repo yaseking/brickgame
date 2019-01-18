@@ -179,7 +179,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           println(s"before recall...frame:${grid.frameCount}")
           grid.historyDieSnake.filter { d => d._2.contains(myId) && d._1 > frame }.keys.headOption match {
             case Some(dieFrame) =>
-              println(s"!!!dieFrame:$dieFrame")
               if (dieFrame - 2 > frame) grid.recallGrid(frame, dieFrame - 2)
               else grid.setGridInGivenFrame(frame)
 
