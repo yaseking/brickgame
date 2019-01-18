@@ -100,6 +100,7 @@ class WebSocketClient (
                       newField = newField + blobMsg.size
 
                     case Data4TotalSync(_, _, _, _) =>
+                      println(s"====recv: total data!!!!")
                       data4TotalSync = data4TotalSync + blobMsg.size
                       println(s"====finish: total data!!!!")
 
