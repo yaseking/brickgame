@@ -32,7 +32,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var historyRank = List.empty[Score]
   private var myId = ""
   var myTrueId = ""
-  var myTrueName = ""
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -43,7 +42,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   //  var justSynced = false
   var isWin = false
   var isPlay = true
-  var isFirstTotalData = true
   //  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String, String)] = None
   var barrageDuration = 0
@@ -194,11 +192,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       secondPart = System.currentTimeMillis() - logicFrameTime - firstPart
 
       if (syncGridData.nonEmpty) { //全量数据
+        println(s"!!!!!!!!data sync:grid.frame${grid.frameCount}, syncFrame: ${syncGridData.get.frameCount}")
         if (grid.snakes.nonEmpty) {
           println("total syncGridData")
           grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
         }
         grid.initSyncGridData(syncGridData.get)
+        println(s"init finish: ${grid.frameCount}")
         addBackendInfo4Sync(grid.frameCount)
         syncGridData = None
       } else if (syncFrame.nonEmpty && syncFrame.get.frameCount % 10 ==0) { //局部数据仅同步帧号
@@ -596,10 +596,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
 
         println(s"===========recv total data")
-        if (isFirstTotalData) {
-          val nameOp = data.snakes.filter(_.id == myTrueName)
-          myTrueName = if (nameOp.nonEmpty) nameOp.head.name else ""
-        }
         syncGridData = Some(data)
         isSynced = true
 
