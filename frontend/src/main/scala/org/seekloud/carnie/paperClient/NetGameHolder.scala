@@ -509,7 +509,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
         }
 
-      case OtherAction(carnieId, keyCode, frame) =>
+      case m@OtherAction(carnieId, keyCode, frame) =>
+        println(s"!!recv $m")
 //        if (frame >= frameTemp) frameTemp =  frame
 //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:$frame, frameTemp: $frameTemp,msg:$data")
 
