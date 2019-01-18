@@ -456,7 +456,7 @@ class DrawGame(
           ctx.fillStyle = color
           ctx.fillRect((point.x + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * 1.05 , canvasUnit * (y._2 - y._1 + 1))
           ctx.fillStyle = darkC
-          ctx.fillRect((point.x + offx) * canvasUnit, (y._2 + offy + 1) * canvasUnit, canvasUnit * 1.02 , canvasUnit * 0.3)
+          ctx.fillRect((point.x + offx) * canvasUnit, (y._2 + offy + 1 - 0.3) * canvasUnit, canvasUnit * 1.02 , canvasUnit * 0.3)
         }
       }
     }
@@ -495,7 +495,7 @@ class DrawGame(
       ctx.fillStyle = lightC
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 0.3) * canvasUnit, canvasUnit, canvasUnit)
       ctx.fillStyle = darkC
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1 - 0.3) * canvasUnit, canvasUnit, 0.2 * canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1 - 0.3) * canvasUnit, canvasUnit, 0.3 * canvasUnit)
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
