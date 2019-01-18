@@ -32,7 +32,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   var historyRank = List.empty[Score]
   private var myId = ""
   var myTrueId = ""
-  var myTrueName = ""
 
   var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
 
@@ -43,7 +42,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
   //  var justSynced = false
   var isWin = false
   var isPlay = true
-  var isFirstTotalData = true
   //  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String, String)] = None
   var barrageDuration = 0
@@ -596,10 +594,6 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 //        else println(s"!!!!!!!error: frame of front: ${grid.frameCount},frame from msg:${data.frameCount}, frameTemp: $frameTemp,msg:$data")
 
         println(s"===========recv total data")
-        if (isFirstTotalData) {
-          val nameOp = data.snakes.filter(_.id == myTrueName)
-          myTrueName = if (nameOp.nonEmpty) nameOp.head.name else ""
-        }
         syncGridData = Some(data)
         isSynced = true
 
