@@ -348,22 +348,22 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
       val nextDirection = grid.nextDirection(s.id).getOrElse(s.direction)
       val direction = if (s.direction + nextDirection != Point(0, 0)) nextDirection else s.direction
       val off = direction * offsetTime.toFloat / frameRate
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 0.3) * canvasUnit, canvasUnit, canvasUnit)
 
       //      val otherHeaderImg = dom.document.getElementById(imgMap(s.img)).asInstanceOf[Image]
       //      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
 
       if (s.id == championId)
-        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1 - 0.3) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
       //      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
 
       val lightC = findLightColor(s.color)
       val darkC = findDarkColor(s.color)
       //      println(s"color-${s.color},lightC-$lightC,darkC-$darkC")
       ctx.setFill(Constant.hex2Rgb(lightC))
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 0.3) * canvasUnit, canvasUnit, canvasUnit)
       ctx.setFill(Constant.hex2Rgb(darkC))
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.2 * canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1 - 0.3) * canvasUnit, canvasUnit, 0.3 * canvasUnit)
 //      ctx.setFill(Constant.hex2Rgb(s.color))
 
 
@@ -380,7 +380,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
       ctx.setFont(Font.font(16))
       ctx.setFill(Color.rgb(0, 0, 0))
       val t = new Text(s"${s.name}")
-      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1) * canvasUnit - 3)
+      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - t.getLayoutBounds.getWidth / 2, (s.header.y + off.y - 1 - 0.3) * canvasUnit - 3)
     }
 
     ctx.restore()
