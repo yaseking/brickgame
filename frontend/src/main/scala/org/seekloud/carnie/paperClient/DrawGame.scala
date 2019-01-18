@@ -380,7 +380,7 @@ class DrawGame(
 //      }
     }
 
-    fieldByX.foreach { user =>
+    data.fieldDetails.foreach { user =>
       //      if (snakes.exists(_.id == user.uid)) {
       if (!snakes.exists(_.id == user.uid)) {
         println(s"snakes don't exist fieldId-${user.uid}")
@@ -458,21 +458,21 @@ class DrawGame(
 
 
     ctx.globalAlpha = 1.0
-    fieldInWindow.foreach { field => //按行渲染
-      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      val darkC = findDarkColor(color)
-
-      field.scanField.foreach { point =>
-        point.x.foreach { x =>
-          ctx.fillStyle = color
-          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-//          ctx.fillStyle = darkC
-//          ctx.fillRect((x._2 + offx + 1) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * 0.3, canvasUnit * 1.2)
+//    fieldInWindow.foreach { field => //按行渲染
+//      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+//      val darkC = findDarkColor(color)
+//
+//      field.scanField.foreach { point =>
+//        point.x.foreach { x =>
 //          ctx.fillStyle = color
 //          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
-        }
-      }
-    }
+////          ctx.fillStyle = darkC
+////          ctx.fillRect((x._2 + offx + 1) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * 0.3, canvasUnit * 1.2)
+////          ctx.fillStyle = color
+////          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//        }
+//      }
+//    }
 
     fieldByXInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
@@ -480,7 +480,8 @@ class DrawGame(
 
       field.scanField.foreach { point =>
         point.x.foreach { x =>
-          val w = if (point.y == field.scanField.map(_.y).max) 1 else 1.05
+          ctx.fillStyle = color
+          ctx.fillRect((point.y + offx) * canvasUnit, (x._2 + offy) * canvasUnit, canvasUnit * 1.05 , canvasUnit * (x._2 - x._1 + 1))
           ctx.fillStyle = darkC
           ctx.fillRect((point.y + offx) * canvasUnit, (x._2 + offy + 1) * canvasUnit, canvasUnit * 1.02 , canvasUnit * 0.3)
         }
