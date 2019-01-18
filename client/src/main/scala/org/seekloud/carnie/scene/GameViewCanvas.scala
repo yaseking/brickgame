@@ -89,10 +89,13 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     snakesFields.foreach { field =>
       if (field.uid == myId || field.uid == winnerId) {
         val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).get
-        ctx.setFill(color)
+        val darkC = findDarkColor(color)
         field.scanField.foreach { point =>
-          point.y.foreach { x =>
-            ctx.fillRect(x._1 * canvasUnit + 1.5 * width - canvasUnit, point.x * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+          point.y.foreach { y =>
+            ctx.setFill(color)
+            ctx.fillRect(point.x * canvasUnit + 1.5 * width - canvasUnit, y._1 * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * 1.1, canvasUnit * (y._2 - y._1 + 1))
+            ctx.setFill(Constant.hex2Rgb(darkC))
+            ctx.fillRect(point.x * canvasUnit + 1.5 * width - canvasUnit, y._2 * canvasUnit + 1.5 * height - canvasUnit, canvasUnit * 1.05, canvasUnit * 0.3)
           }
         }
 //        field.scanField.foreach { point =>
@@ -207,9 +210,9 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.restore()
   }
 
-  def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
-    val offx = myHeader.x.toDouble / border.x * smallMap.x
-    val offy = myHeader.y.toDouble / border.y * smallMap.y
+  def drawSmallMap(myHeader: Point, snakes: List[SkDt]): Unit = {
+//    val offx = myHeader.x.toDouble / border.x * smallMap.x
+//    val offy = myHeader.y.toDouble / border.y * smallMap.y
     ctx.setFill(ColorsSetting.mapColor)
     val w = windowBoundary.x * 0.99 - littleMap.w * canvasUnit //* 1.100
     val h = windowBoundary.y - littleMap.h * canvasUnitY //* 1.170
@@ -217,12 +220,15 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.setGlobalAlpha(0.5)
     ctx.fillRect(w.toInt, h.toInt, littleMap.w * canvasUnit + 5, littleMap.h * canvasUnit + 5)
     ctx.restore()
-    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
-    otherSnakes.foreach { i =>
+//    ctx.drawImage(myHeaderImg, (w + offx * canvasUnit).toInt, (h + offy * canvasUnit).toInt, 10, 10)
+    snakes.foreach { i =>
       val x = i.header.x.toDouble / border.x * smallMap.x
       val y = i.header.y.toDouble / border.y * smallMap.y
+      val darkC = findDarkColor(i.color)
       ctx.setFill(Constant.hex2Rgb(i.color))
       ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit, 10, 10)
+      ctx.setFill(Constant.hex2Rgb(darkC))
+      ctx.fillRect(w + x * canvasUnit, h + y * canvasUnit + 9, 10, 1)
     }
   }
 
@@ -265,8 +271,8 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
       if (snakes.exists(_.id == user.uid)) {
         var userScanField: List[FrontProtocol.Scan4Draw] = Nil
         user.scanField.foreach { field =>
-          if (field.x < maxPoint.y && field.x > minPoint.y) {
-            userScanField = FrontProtocol.Scan4Draw(field.x, field.y.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
+          if (field.x < maxPoint.x && field.x > minPoint.x) {
+            userScanField = FrontProtocol.Scan4Draw(field.x, field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y)) :: userScanField
           }
         }
         fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
@@ -323,10 +329,13 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     ctx.setGlobalAlpha(1)
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      ctx.setFill(color)
+      val darkC = findDarkColor(color)
       field.scanField.foreach { point =>
-        point.y.foreach { x =>
-          ctx.fillRect((x._1 + offx) * canvasUnit, (point.x + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+        point.y.foreach { y =>
+          ctx.setFill(color)
+          ctx.fillRect((point.x + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * 1.05, canvasUnit * (y._2 - y._1 + 1))
+          ctx.setFill(Constant.hex2Rgb(darkC))
+          ctx.fillRect((point.x + offx) * canvasUnit, (y._2 + offy + 0.7) * canvasUnit, canvasUnit * 1.03, canvasUnit * 0.3)
         }
       }
     }
@@ -354,7 +363,7 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
       ctx.setFill(Constant.hex2Rgb(lightC))
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
       ctx.setFill(Constant.hex2Rgb(darkC))
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.1 * canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.2 * canvasUnit)
 //      ctx.setFill(Constant.hex2Rgb(s.color))
 
 
@@ -400,6 +409,14 @@ class GameViewCanvas(canvas: Canvas,rankCanvas: Canvas, img: Int) {//,background
     val newR = decToHex(r-20)
     val newG = decToHex(g-20)
     val newB = decToHex(b-20)
+    s"#$newR$newG$newB".toUpperCase
+  }
+
+  def findDarkColor(color: Color) = {
+    val (r, g, b) = (color.getRed * 255,color.getGreen * 255,color.getBlue * 255)
+    val newR = decToHex(r.toInt-20)
+    val newG = decToHex(g.toInt-20)
+    val newB = decToHex(b.toInt-20)
     s"#$newR$newG$newB".toUpperCase
   }
 

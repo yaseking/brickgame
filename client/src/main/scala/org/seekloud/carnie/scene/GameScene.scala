@@ -76,7 +76,7 @@ class GameScene(img: Int, frameRate: Int) {
 
   def draw(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, championId: String): Unit = {
     view.drawGrid(uid, data, offsetTime, grid, championId, frameRate)
-    view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+    view.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes)
   }
 
   def drawGameWait(): Unit = {

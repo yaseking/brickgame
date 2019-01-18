@@ -261,7 +261,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid.foreach {
       case (p, Field(id)) =>
         val map = fields.getOrElse(id, Map.empty)
-        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+        fields += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
 
       case _ => //doNothing
     }
@@ -279,25 +279,6 @@ class GridOnClient(override val boundary: Point) extends Grid {
       fieldDetails
     )
   }
-  def getFieldByX = {
-    var field = Map.empty[String, Map[Short, List[Short]]]
-
-    grid.foreach {
-      case (p, Field(id)) =>
-        val map = field.getOrElse(id, Map.empty)
-        field += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
-
-      case _ => //doNothing
-    }
-
-    val fieldDetailsByX = field.map { f =>
-      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
-        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
-      }.toList)
-    }.toList
-
-    fieldDetailsByX
-  }
 
   def getWinData4Draw: FrontProtocol.WinData4Draw = {
     var fields = Map.empty[String, Map[Short, List[Short]]]
@@ -307,11 +288,11 @@ class GridOnClient(override val boundary: Point) extends Grid {
     grid.foreach {
       case (p, Field(id)) =>
         val map = fields.getOrElse(id, Map.empty)
-        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+        fields += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
 
       case (p, Body(_, Some(id))) =>
         val map = fields.getOrElse(id, Map.empty)
-        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+        fields += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
 
       case _ => //doNothing
     }
