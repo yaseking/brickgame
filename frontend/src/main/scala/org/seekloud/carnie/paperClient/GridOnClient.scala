@@ -371,6 +371,27 @@ class GridOnClient(override val boundary: Point) extends Grid {
     )
 
   }
+
+  def getFieldByX = {
+    var field = Map.empty[String, Map[Short, List[Short]]]
+
+    grid.foreach {
+      case (p, Field(id)) =>
+        val map = field.getOrElse(id, Map.empty)
+        field += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
+
+      case _ => //doNothing
+    }
+
+    val fieldDetailsByX = field.map { f =>
+      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
+        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
+      }.toList)
+    }.toList
+
+    fieldDetailsByX
+  }
+
   def getMyTurnPoint(sid:String, header: Point): List[Protocol.Point4Trans] = {
     val turnPoint = snakeTurnPoints.getOrElse(sid, Nil)
     if (turnPoint.nonEmpty) {

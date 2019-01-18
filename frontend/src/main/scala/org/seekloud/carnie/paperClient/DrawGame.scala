@@ -335,7 +335,9 @@ class DrawGame(
 //      println("many small rect" + (d - c))
 //  }
 
-  def drawGrid(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid, championId: String, isReplay: Boolean = false, frameRate: Int = 150,newFieldInfo: Option[List[FieldByColumn]] = None): Unit = { //头所在的点是屏幕的正中心
+  def drawGrid(uid: String, data: FrontProtocol.Data4Draw, offsetTime: Long, grid: Grid,
+               championId: String, isReplay: Boolean = false, frameRate: Int = 150,
+               newFieldInfo: Option[List[FieldByColumn]] = None,fieldByX:List[FrontProtocol.Field4Draw] = List.empty): Unit = { //头所在的点是屏幕的正中心
     //    println(s"drawGrid-frameRate: $frameRate")
     val startTime = System.currentTimeMillis()
     val snakes = data.snakes
@@ -362,6 +364,7 @@ class DrawGame(
     val snakeWithOff = data.snakes.map(i => i.copy(header = Point(i.header.x + offx, y = i.header.y + offy)))
 
     var fieldInWindow: List[FrontProtocol.Field4Draw] = Nil
+    var fieldByXInWindow: List[FrontProtocol.Field4Draw] = Nil
     data.fieldDetails.foreach { user =>
 //      if (snakes.exists(_.id == user.uid)) {
       if (!snakes.exists(_.id == user.uid)) {
@@ -375,6 +378,21 @@ class DrawGame(
       }
       fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
 //      }
+    }
+
+    fieldByX.foreach { user =>
+      //      if (snakes.exists(_.id == user.uid)) {
+      if (!snakes.exists(_.id == user.uid)) {
+        println(s"snakes don't exist fieldId-${user.uid}")
+      }
+      var userScanField: List[FrontProtocol.Scan4Draw] = Nil
+      user.scanField.foreach { field =>
+        if (field.y < maxPoint.x + 10 && field.y > minPoint.x - 5) {
+          userScanField = FrontProtocol.Scan4Draw(field.y, field.x.filter(x => x._1 < maxPoint.y || x._2 > minPoint.y)) :: userScanField
+        }
+      }
+      fieldByXInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldByXInWindow
+      //      }
     }
 
     val bodyInWindow = data.bodyDetails.filter{b =>
@@ -442,10 +460,29 @@ class DrawGame(
     ctx.globalAlpha = 1.0
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
-      ctx.fillStyle = color
+      val darkC = findDarkColor(color)
+
       field.scanField.foreach { point =>
         point.x.foreach { x =>
+          ctx.fillStyle = color
           ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+//          ctx.fillStyle = darkC
+//          ctx.fillRect((x._2 + offx + 1) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * 0.3, canvasUnit * 1.2)
+//          ctx.fillStyle = color
+//          ctx.fillRect((x._1 + offx) * canvasUnit, (point.y + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.05)
+        }
+      }
+    }
+
+    fieldByXInWindow.foreach { field => //按行渲染
+      val color = snakes.find(_.id == field.uid).map(_.color).getOrElse(ColorsSetting.defaultColor)
+      val darkC = findDarkColor(color)
+
+      field.scanField.foreach { point =>
+        point.x.foreach { x =>
+          val w = if (point.y == field.scanField.map(_.y).max) 1 else 1.05
+          ctx.fillStyle = darkC
+          ctx.fillRect((point.y + offx) * canvasUnit, (x._2 + offy + 1) * canvasUnit, canvasUnit * 1.02 , canvasUnit * 0.3)
         }
       }
     }
@@ -484,7 +521,7 @@ class DrawGame(
       ctx.fillStyle = lightC
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
       ctx.fillStyle = darkC
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.1 * canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.2 * canvasUnit)
 
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
