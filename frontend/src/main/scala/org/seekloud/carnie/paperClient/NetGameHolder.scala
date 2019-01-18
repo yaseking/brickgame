@@ -192,11 +192,13 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       secondPart = System.currentTimeMillis() - logicFrameTime - firstPart
 
       if (syncGridData.nonEmpty) { //全量数据
+        println(s"!!!!!!!!data sync:grid.frame${grid.frameCount}, syncFrame: ${syncGridData.get.frameCount}")
         if (grid.snakes.nonEmpty) {
           println("total syncGridData")
           grid.historyStateMap += grid.frameCount -> (grid.snakes, grid.grid, grid.snakeTurnPoints)
         }
         grid.initSyncGridData(syncGridData.get)
+        println(s"init finish: ${grid.frameCount}")
         addBackendInfo4Sync(grid.frameCount)
         syncGridData = None
       } else if (syncFrame.nonEmpty && syncFrame.get.frameCount % 10 ==0) { //局部数据仅同步帧号
