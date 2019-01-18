@@ -481,7 +481,7 @@ class DrawGame(
       field.scanField.foreach { point =>
         point.x.foreach { x =>
           ctx.fillStyle = color
-          ctx.fillRect((point.y + offx) * canvasUnit, (x._2 + offy) * canvasUnit, canvasUnit * 1.05 , canvasUnit * (x._2 - x._1 + 1))
+          ctx.fillRect((point.y + offx) * canvasUnit, (x._1 + offy) * canvasUnit, canvasUnit * 1.05 , canvasUnit * (x._2 - x._1 + 1))
           ctx.fillStyle = darkC
           ctx.fillRect((point.y + offx) * canvasUnit, (x._2 + offy + 1) * canvasUnit, canvasUnit * 1.02 , canvasUnit * 0.3)
         }

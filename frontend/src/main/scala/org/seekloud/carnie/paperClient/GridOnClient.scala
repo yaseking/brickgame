@@ -264,26 +264,26 @@ class GridOnClient(override val boundary: Point) extends Grid {
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
 
 //    val t2 = System.currentTimeMillis()
-    grid.foreach {
-      case (p, Field(id)) =>
-//        val tx = System.currentTimeMillis()
-        val map = fields.getOrElse(id, mutable.Map.empty[Short, List[Short]])
-//        val tx2 = System.currentTimeMillis()
-//        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
-        map.update(p.x.toShort, p.y.toShort :: map.getOrElse(p.x.toShort, Nil))
-        fields.update(id, map)
-//        val tx3 = System.currentTimeMillis()
-//        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
-
-      case _ => //doNothing
-    }
-//    val t3 = System.currentTimeMillis()
-
-    val fieldDetails = fields.map { f =>
-      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
-        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
-      }.toList)
-    }.toList
+//    grid.foreach {
+//      case (p, Field(id)) =>
+////        val tx = System.currentTimeMillis()
+//        val map = fields.getOrElse(id, mutable.Map.empty[Short, List[Short]])
+////        val tx2 = System.currentTimeMillis()
+////        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+//        map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+//        fields.update(id, map)
+////        val tx3 = System.currentTimeMillis()
+////        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
+//
+//      case _ => //doNothing
+//    }
+////    val t3 = System.currentTimeMillis()
+//
+//    val fieldDetails = fields.map { f =>
+//      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
+//        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
+//      }.toList)
+//    }.toList
 //    val t4 = System.currentTimeMillis()
 
 //    println(s"=====get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
@@ -308,7 +308,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      fieldDetails
+      getFieldByX
     )
 
   }
