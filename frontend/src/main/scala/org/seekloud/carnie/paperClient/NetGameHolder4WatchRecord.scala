@@ -167,7 +167,7 @@ class NetGameHolder4WatchRecord(webSocketPara: WatchRecordPara) extends Componen
       } else if (loading) {
         drawGame.drawGameOff(firstCome, Some(false), true, false)
       } else {
-        val data = grid.getGridData4Draw
+        val data = grid.getGridData4Draw(myId)
         if (isWin) {
           ctx.clearRect(0, 0, dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
           drawGame.drawGameWin(myId, winnerName, winData,winningData)
