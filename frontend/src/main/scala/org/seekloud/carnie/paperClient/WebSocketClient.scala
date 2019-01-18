@@ -101,6 +101,10 @@ class WebSocketClient (
 
                     case Data4TotalSync(_, _, _, _) =>
                       data4TotalSync = data4TotalSync + blobMsg.size
+                      println(s"====finish: total data!!!!")
+
+                    case InitActions(_) =>
+                      println(s"====finish: init actions data!!!!")
 
                     case Ranks(_, _, _, _) =>
                       rank = rank + blobMsg.size
