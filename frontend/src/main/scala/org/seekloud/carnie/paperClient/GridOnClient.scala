@@ -257,10 +257,10 @@ class GridOnClient(override val boundary: Point) extends Grid {
     snakes = updatedSnakes.map(s => (s.data.id, s.data)).toMap
   }
 
-  def getGridData4Draw: FrontProtocol.Data4Draw = {
+  def getGridData4Draw(myId: String): FrontProtocol.Data4Draw = {
     import scala.collection.mutable
 //    val t1 = System.currentTimeMillis()
-    val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
+//    val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
     val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header)) }.toList
 
 //    val t2 = System.currentTimeMillis()
@@ -308,7 +308,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      getFieldByX
+      getFieldByX(myId)
     )
 
   }
@@ -392,15 +392,27 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   }
 
-  def getFieldByX = {
+  def getFieldByX(myId: String) = {
     var field = Map.empty[String, Map[Short, List[Short]]]
 
-    grid.foreach {
-      case (p, Field(id)) =>
-        val map = field.getOrElse(id, Map.empty)
-        field += (id -> (map + (p.x.toShort -> (p.y.toShort :: map.getOrElse(p.x.toShort, Nil)))))
+    val header = snakes.find(_._1 == myId) match {
+      case Some(s) =>
+        s._2.header
+      case None =>
+        Point(BorderSize.w / 2, BorderSize.h / 2)
+    }
+    val (minPoint, maxPoint) = (header - Point(33, 17), header + Point(33, 17))
 
-      case _ => //doNothing
+    (minPoint.x.toInt to maxPoint.x.toInt by 1).foreach {x =>
+      (minPoint.y.toInt to maxPoint.y.toInt by 1).foreach {y =>
+        grid.get(Point(x,y)) match {
+          case Some(Field(id)) =>
+            val map = field.getOrElse(id, Map.empty)
+            field += (id -> (map + (x.toShort -> (y.toShort :: map.getOrElse(x.toShort, Nil)))))
+
+          case _ => //doNothing
+        }
+      }
     }
 
     val fieldDetailsByX = field.map { f =>

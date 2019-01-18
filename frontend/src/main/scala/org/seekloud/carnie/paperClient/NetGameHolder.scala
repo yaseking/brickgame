@@ -239,7 +239,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       if (!isWin) {
         val startTime = System.currentTimeMillis()
-        val gridData = grid.getGridData4Draw
+        val gridData = grid.getGridData4Draw(myId)
         detailPart = System.currentTimeMillis() - startTime
         drawFunction = gridData.snakes.find(_.id == myId) match {
           case Some(_) =>
@@ -272,7 +272,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       drawFunction = FrontProtocol.DrawGameOff
     }
     val dealTime = System.currentTimeMillis() - logicFrameTime
-    if (dealTime > 50)
+//    if (dealTime > 50)
       println(s"logicFrame deal time:$dealTime;first:$firstPart;second:$secondPart;third:$thirdPart;forthpart:$forthPart;detailPart:$detailPart")
   }
 
