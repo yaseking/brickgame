@@ -348,6 +348,12 @@ object RoomActor {
           }
 
           dispatch(subscribersMap.filter(s => firstComeList.contains(s._1)), newData)
+          val initActions = grid.actionMap.filter(_._1 >= grid.frameCount).map{m =>
+            m._2.map {a =>
+              Protocol.OtherAction(grid.snakes(a._1).carnieId, a._2.toByte, m._1)
+            }.toList
+          }.toList.flatten
+          dispatch(subscribersMap.filter(s => firstComeList.contains(s._1)), InitActions(initActions))
 
           //错峰发送
           for ((u, i) <- userMap) {

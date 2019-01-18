@@ -159,6 +159,8 @@ object Protocol {
                      newField: Option[List[FieldByColumnCondensed]]
                     ) extends GameEvent
 
+  case class InitActions(actions: List[OtherAction]) extends GameEvent
+
 
   case class JoinEvent(id: String, name: String) extends GameEvent
 

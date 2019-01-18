@@ -523,6 +523,10 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
           }
         }
 
+      case m@InitActions(actions) =>
+        println(s"recv $m")
+        actions.foreach(messageHandler(_))
+
       case UserLeft(id) =>
         println(s"user $id left:::")
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
