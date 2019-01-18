@@ -250,7 +250,7 @@ object RoomActor {
               if (!AppSettings.botMap.forall(b => botMap.keys.toList.contains("bot_" + roomId + b._1))) {
                 val newBot = AppSettings.botMap.filterNot(b => botMap.keys.toList.contains("bot_" + roomId + b._1)).head
                 getBotActor(ctx, "bot_" + roomId + newBot._1) ! BotActor.InitInfo(newBot._2, mode, grid, ctx.self)
-                roomManager ! RoomManager.BotsJoinRoom(roomId, List(newBot))
+                roomManager ! RoomManager.BotsJoinRoom(roomId, List(("bot_" + roomId + newBot._1, newBot._2)))
               }
               Behaviors.same
             }
