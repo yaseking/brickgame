@@ -74,13 +74,7 @@ object RoomManager {
 
   private case class ChildDead[U](roomId: Int, name: String, childRef: ActorRef[U]) extends Command
 
-  case class LeftRoom(uid: String, tankId: Int, name: String, userOpt: Option[Long]) extends Command
-
-  case class UserLeft(id: String) extends Command
-
   case class BotsJoinRoom(roomId: Int, bots: List[(String, String)]) extends Command
-
-  case class BotKilled(roomId: Int, botId: String) extends Command
 
   case class PreWatchGame(roomId: Int, playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
 
@@ -123,7 +117,6 @@ object RoomManager {
           if (roomMap.nonEmpty && roomMap.exists(r => r._2._1 == mode && r._2._3.size < limitNum && r._2._2.isEmpty)) {
             val rooms = roomMap.filter(r => r._2._1 == mode && r._2._3.size < limitNum && r._2._2.isEmpty).map(
               r => (r._1, r._2._3.size))
-//            val roomId = roomMap.filter(r => r._2._1 == mode && r._2._3.size < limitNum && r._2._2.isEmpty).head._1
             val maxUsersNum = rooms.values.max
             val roomId = rooms.filter(_._2 == maxUsersNum).head._1
             roomMap.put(roomId, (mode, roomMap(roomId)._2, roomMap(roomId)._3 + ((id, name))))
@@ -251,18 +244,6 @@ object RoomManager {
           roomMap.remove(roomId)
           Behaviors.same
 
-        case UserLeft(id) =>
-          log.debug(s"got Terminated id = $id")
-          val roomInfoOpt = roomMap.find(r => r._2._3.exists(u => u._1 == id))
-          if (roomInfoOpt.nonEmpty) {
-            val roomId = roomInfoOpt.get._1
-            val filterUserInfo = roomMap(roomId)._3.find(_._1 == id)
-            if (filterUserInfo.nonEmpty) {
-              roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2, roomMap(roomId)._3 - filterUserInfo.get))
-            }
-          }
-          Behaviors.same
-
         case FindRoomId(pid, reply) =>
           log.debug(s"got playerId = $pid")
           reply ! roomMap.find(r => r._2._3.exists(i => i._1 == pid)).map(_._1)
@@ -306,15 +287,6 @@ object RoomManager {
             roomMap += roomId -> roomMap(roomId).copy(_3 = userInRoom ++ bots)
           }
           Behaviors.same
-
-        case BotKilled(roomId, botId) =>
-          if (roomMap.get(roomId).nonEmpty) {
-            val filterUserInfo = roomMap(roomId)._3.find(_._1 == botId)
-            if (filterUserInfo.nonEmpty)
-              roomMap.update(roomId, (roomMap(roomId)._1, roomMap(roomId)._2, roomMap(roomId)._3 - filterUserInfo.get))
-          }
-          Behaviors.same
-
 
         case unknown =>
           log.debug(s"${ctx.self.path} receive a msg unknown:$unknown")

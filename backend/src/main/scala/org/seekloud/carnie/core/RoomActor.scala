@@ -68,8 +68,6 @@ object RoomActor {
 
   case class WatcherLeftRoom(userId: String) extends Command
 
-  final case class UserLeft[U](actorRef: ActorRef[U]) extends Command
-
   case class CloseWs(userId: String) extends Command
 
   private case object Sync extends Command
@@ -267,30 +265,10 @@ object RoomActor {
           }
           Behaviors.same
 
-        case UserLeft(actor) =>
-          //          ctx.unwatch(actor)
-          log.debug(s"UserLeft:::")
-          val subscribersOpt = subscribersMap.find(_._2.equals(actor))
-          if (subscribersOpt.nonEmpty) {
-            val (id, _) = subscribersOpt.get
-            if (userDeadList.contains(id)) timer.cancel(UserDeadTimerKey + id)
-            log.debug(s"got Terminated id = $id")
-            val name = userMap.get(id).head.name
-            carnieMap.-=(id)
-            subscribersMap.remove(id)
-            userMap.remove(id)
-            grid.cleanSnakeTurnPoint(id)
-            roomManager ! RoomManager.UserLeft(id)
-            gameEvent += ((grid.frameCount, LeftEvent(id, name)))
-            if (!userDeadList.contains(id)) gameEvent += ((grid.frameCount, LeftEvent(id, name))) else userDeadList -= id
-          }
-          if (userMap.isEmpty) Behaviors.stopped else Behaviors.same
-
         case CloseWs(id) =>
           log.info(s"close ws")
           dispatchTo(subscribersMap, id, Protocol.CloseWs)
           Behaviors.same
-
 
         case UserActionOnServer(id, action) =>
           action match {

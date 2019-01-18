@@ -3,6 +3,7 @@ package org.seekloud.carnie.paperClient
 import java.awt.event.KeyEvent
 
 import org.seekloud.carnie.paperClient.Protocol.{NewFieldInfo, Point4Trans}
+import scala.collection.mutable
 
 /**
   * User: Taoz
@@ -16,6 +17,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
   override def info(msg: String): Unit = println(msg)
 
   var carnieMap = Map.empty[Byte, String]
+  var fieldDrawMap = mutable.Map.empty[Int, mutable.Map[String, mutable.Map[Short, List[Short]]]] //(frameCount, List[Field4Draw])
 
   def initSyncGridData(data: Protocol.Data4TotalSync): Unit = {
     println("back frame:" + data.frameCount)
@@ -285,6 +287,49 @@ class GridOnClient(override val boundary: Point) extends Grid {
 //    val t4 = System.currentTimeMillis()
 
 //    println(s"=====get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
+
+    FrontProtocol.Data4Draw(
+      frameCount,
+      snakes.values.toList,
+      bodyDetails,
+      fieldDetails
+    )
+
+  }
+
+  def getGridData4DrawIncremental: FrontProtocol.Data4Draw = {
+    import scala.collection.mutable
+    val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
+    val bodyDetails = snakes.values.map { s => FrontProtocol.BodyInfo4Draw(s.id, getMyTurnPoint(s.id, s.header))}.toList
+
+    fieldDrawMap.get(frameCount - 1) match {
+      case Some(drawData) =>
+
+
+      case None =>
+        grid.foreach {
+          case (p, Field(id)) =>
+            //        val tx = System.currentTimeMillis()
+            val map = fields.getOrElse(id, mutable.Map.empty[Short, List[Short]])
+            //        val tx2 = System.currentTimeMillis()
+            //        fields += (id -> (map + (p.y.toShort -> (p.x.toShort :: map.getOrElse(p.y.toShort, Nil)))))
+            map.update(p.y.toShort, p.x.toShort :: map.getOrElse(p.y.toShort, Nil))
+            fields.update(id, map)
+          //        val tx3 = System.currentTimeMillis()
+          //        println(s"deal field info: ${tx3 - tx}, ${tx3 -tx2}")
+
+          case _ => //doNothing
+        }
+    }
+    fieldDrawMap.update(frameCount, fields)
+
+    val fieldDetails = fields.map { f =>
+      FrontProtocol.Field4Draw(f._1, f._2.map { p =>
+        FrontProtocol.Scan4Draw(p._1, Tool.findContinuous(p._2.sorted))
+      }.toList)
+    }.toList
+    //    val t4 = System.currentTimeMillis()
+    //    println(s"=====get detail time: body:${t2-t1}, field: ${t3-t2}, field format:${t4-t3}")
 
     FrontProtocol.Data4Draw(
       frameCount,
