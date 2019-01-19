@@ -79,11 +79,11 @@ class WebSocketClient (
       gameStream.onmessage = { event: MessageEvent =>
         event.data match {
           case blobMsg: Blob =>
+            val messageId = messageIdGenerator.getAndIncrement()
+            messageMap += messageId -> (None, false)
             val fr = new FileReader()
             fr.readAsArrayBuffer(blobMsg)
             fr.onloadend = { _: Event =>
-              val messageId = messageIdGenerator.getAndIncrement()
-              messageMap += messageId -> (None, false)
               val middleDataInJs = new MiddleBufferInJs(fr.result.asInstanceOf[ArrayBuffer]) //put data into MiddleBuffer
             val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] = bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
               encodedData match {
