@@ -23,6 +23,7 @@ class DrawGame(
   private var canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
   private val smallMap = Point(littleMap.w, littleMap.h)
   private val canvasSize = (border.x - 1) * (border.y - 1)
+  var fieldScale = 1.0
 
   private val textLineHeight = 15
   private val fillWidth = 33
@@ -56,7 +57,7 @@ class DrawGame(
 
   def resetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-//    canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
+    canvasUnit = (dom.window.innerWidth.toInt / window.x).toInt
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
     borderCanvas.width = canvasUnit * Boundary.w

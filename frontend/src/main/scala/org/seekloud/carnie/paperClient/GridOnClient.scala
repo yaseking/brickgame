@@ -258,7 +258,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     snakes = updatedSnakes.map(s => (s.data.id, s.data)).toMap
   }
 
-  def getGridData4Draw(myId: String): FrontProtocol.Data4Draw = {
+  def getGridData4Draw(myId: String, scale: Int): FrontProtocol.Data4Draw = {
     import scala.collection.mutable
 //    val t1 = System.currentTimeMillis()
 //    val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
@@ -309,7 +309,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      getFieldByX(myId)
+      getFieldByX(myId, scale)
     )
 
   }
@@ -393,7 +393,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   }
 
-  def getFieldByX(myId: String) = {
+  def getFieldByX(myId: String, scale: Int) = {
     var field = Map.empty[String, Map[Short, List[Short]]]
 
     val header = snakes.find(_._1 == myId) match {
