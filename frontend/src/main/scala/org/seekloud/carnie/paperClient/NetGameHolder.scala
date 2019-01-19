@@ -573,7 +573,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
         if (!isFirstTotalDataSync) {
-          grid.initSyncGridData(syncGridData.get) //立刻执行，不再等到逻辑帧
+          grid.initSyncGridData(data) //立刻执行，不再等到逻辑帧
           isFirstTotalDataSync = true
         } else {
           syncGridData = Some(data)
