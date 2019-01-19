@@ -258,7 +258,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
     snakes = updatedSnakes.map(s => (s.data.id, s.data)).toMap
   }
 
-  def getGridData4Draw(myId: String): FrontProtocol.Data4Draw = {
+  def getGridData4Draw(myId: String, scale: Double): FrontProtocol.Data4Draw = {
     import scala.collection.mutable
 //    val t1 = System.currentTimeMillis()
 //    val fields = mutable.Map.empty[String, mutable.Map[Short, List[Short]]]
@@ -309,7 +309,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
       frameCount,
       snakes.values.toList,
       bodyDetails,
-      getFieldByX(myId)
+      getFieldByX(myId, scale.toFloat)
     )
 
   }
@@ -393,7 +393,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
 
   }
 
-  def getFieldByX(myId: String) = {
+  def getFieldByX(myId: String, scale: Float) = {
     var field = Map.empty[String, Map[Short, List[Short]]]
 
     val header = snakes.find(_._1 == myId) match {
@@ -402,7 +402,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
       case None =>
         Point(BorderSize.w / 2, BorderSize.h / 2)
     }
-    val (minPoint, maxPoint) = (header - Point(33, 17), header + Point(33, 22))
+    val (minPoint, maxPoint) = (header - Point(31, 16), header + Point(31, 15 * scale))
 
     (minPoint.x.toInt to maxPoint.x.toInt by 1).foreach {x =>
       (minPoint.y.toInt to maxPoint.y.toInt by 1).foreach {y =>
