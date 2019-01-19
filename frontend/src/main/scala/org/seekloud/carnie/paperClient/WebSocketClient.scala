@@ -13,6 +13,7 @@ import org.seekloud.byteobject.MiddleBufferInJs
 
 import scala.scalajs.js.typedarray.ArrayBuffer
 import org.seekloud.byteobject.ByteObject._
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
   * Created by dry on 2018/9/3.
@@ -72,6 +73,8 @@ class WebSocketClient (
       var other :Double = 0
       var updateTime = 0l
       var newData: Double = 0
+      val messageIdGenerator = new AtomicInteger(0)
+      val messageMap = scala.collection.mutable.Map[Int, (Option[Protocol.GameMessage], Boolean)]() //(消息编号，是否解码完成）
 
       gameStream.onmessage = { event: MessageEvent =>
         event.data match {
@@ -79,6 +82,8 @@ class WebSocketClient (
             val fr = new FileReader()
             fr.readAsArrayBuffer(blobMsg)
             fr.onloadend = { _: Event =>
+              val messageId = messageIdGenerator.getAndIncrement()
+              messageMap += messageId -> (None, false)
               val middleDataInJs = new MiddleBufferInJs(fr.result.asInstanceOf[ArrayBuffer]) //put data into MiddleBuffer
             val encodedData: Either[decoder.DecoderFailure, Protocol.GameMessage] = bytesDecode[Protocol.GameMessage](middleDataInJs) // get encoded data.
               encodedData match {
@@ -128,6 +133,22 @@ class WebSocketClient (
                     case _ =>
                       other = other + blobMsg.size
                   }
+                  if (!messageMap.exists(m => m._1 < messageId)) { //此前消息都已处理完毕
+                    messageHandler(data)
+                    messageMap -= messageId
+                    var isContinue = true
+                    while (isContinue && messageMap.nonEmpty) {
+                      val msgMin = messageMap.keys.min
+                      if (messageMap(msgMin)._2) {
+                        messageHandler(messageMap(msgMin)._1)
+                        messageMap -= msgMin
+                      } else isContinue = false
+                    }
+                  } else { //存在未处理解码消息
+                    messageMap.update(messageId, (Some(data), true))
+                  }
+
+
                   if(System.currentTimeMillis() - updateTime > 30*1000) {
                     updateTime = System.currentTimeMillis()
                     println(s"statistics!!!!!ping:$ping,snakeAction:$snakeAction,newData:$newData,newField:$newField,data4TotalSync$data4TotalSync,rank:$rank,newSnakeInfo:$newSnakeInfo, dead$dead, win:$win,other:$other")
@@ -141,7 +162,7 @@ class WebSocketClient (
                     win = 0
                     other = 0
                   }
-                  messageHandler(data)
+
 
                 case Left(e) =>
                   println(s"got error: ${e.message}")
