@@ -140,7 +140,7 @@ class WebSocketClient (
                     while (isContinue && messageMap.nonEmpty) {
                       val msgMin = messageMap.keys.min
                       if (messageMap(msgMin)._2) {
-                        messageHandler(messageMap(msgMin)._1)
+                        messageHandler(messageMap(msgMin)._1.get)
                         messageMap -= msgMin
                       } else isContinue = false
                     }
