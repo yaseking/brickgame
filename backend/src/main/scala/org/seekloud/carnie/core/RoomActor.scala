@@ -234,7 +234,7 @@ object RoomActor {
           }
 
           grid.removeSnake(id)
-          grid.cleanSnakeTurnPoint(id)
+          grid.cleanDiedSnakeInfo(List(id))
           subscribersMap.get(id).foreach(r => ctx.unwatch(r))
           userMap.remove(id)
           subscribersMap.remove(id)
