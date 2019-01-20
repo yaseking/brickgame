@@ -527,6 +527,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
         println(s"user $id left:::")
         grid.carnieMap = grid.carnieMap.filterNot(_._2 == id)
         grid.cleanDiedSnakeInfo(List(id))
+        val field = grid.searchMyField(id)
+        println(s"the left userId: $field")
 
       case Protocol.NewData(frameCount, newSnakes, newField) =>
         if (newSnakes.isDefined) {
