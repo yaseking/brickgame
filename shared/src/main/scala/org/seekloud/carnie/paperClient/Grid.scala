@@ -533,17 +533,5 @@ trait Grid {
     snakes --= dieSnakes
   }
 
-  def searchMyField(uid: String) = {
-    val map = mutable.Map.empty[String, List[Point]]
-    grid.foreach { g =>
-      g._2 match {
-        case Field(fid) if fid == uid =>
-          map += fid -> (g._1 :: map.getOrElse(fid, List.empty[Point]))
-        case _ =>
-      }
-    }
-    map
-  }
-
 }
 
