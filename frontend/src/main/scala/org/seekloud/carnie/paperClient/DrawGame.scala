@@ -64,7 +64,7 @@ class DrawGame(
     borderCanvas.height = canvasUnit * Boundary.h
     rankCanvas.width = dom.window.innerWidth.toInt
     rankCanvas.height = dom.window.innerHeight.toInt
-    fieldScale = (-0.21)*canvasUnit + 7.5
+    fieldScale = (-0.21)*canvasUnit + 7.6
     drawCache()
   }
 
