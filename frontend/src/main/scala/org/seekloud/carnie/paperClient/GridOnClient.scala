@@ -402,7 +402,7 @@ class GridOnClient(override val boundary: Point) extends Grid {
       case None =>
         Point(BorderSize.w / 2, BorderSize.h / 2)
     }
-    val (minPoint, maxPoint) = (header - Point(32, 16), header + Point(33, 15 * scale))
+    val (minPoint, maxPoint) = (header - Point(32, 16), header + Point(34, 16 * scale))
 
     (minPoint.x.toInt to maxPoint.x.toInt by 1).foreach {x =>
       (minPoint.y.toInt to maxPoint.y.toInt by 1).foreach {y =>
