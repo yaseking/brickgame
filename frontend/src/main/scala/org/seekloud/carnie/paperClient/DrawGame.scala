@@ -402,7 +402,7 @@ class DrawGame(
 
     radialGradient1.addColorStop(0, "#FFFFFF")
 
-    radialGradient1.addColorStop(1, "#B4DCFF")
+    radialGradient1.addColorStop(1, "#87CEFA")
 
     ctx.fillStyle = radialGradient1
 
