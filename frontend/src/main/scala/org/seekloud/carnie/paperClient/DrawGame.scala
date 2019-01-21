@@ -524,10 +524,10 @@ class DrawGame(
 
 
     //    //排行榜
-    if (!isReplay) {
-      rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width / 4, textLineHeight * 2) //* 5, * 2
-      PerformanceTool.renderFps(rankCtx, 20, textLineHeight, startTime)
-    }
+//    if (!isReplay) {
+//      rankCtx.clearRect(20, textLineHeight * 5, rankCanvas.width / 4, textLineHeight * 2) //* 5, * 2
+//      PerformanceTool.renderFps(rankCtx, 20, textLineHeight, startTime)
+//    }
   }
 
   def drawSmallMap(myHeader: Point, otherSnakes: List[SkDt]): Unit = {
