@@ -337,7 +337,7 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
     if (data.snakes.filter(_.id == uid).map(_.header).nonEmpty) {
       drawGame.drawGrid(uid, data, offsetTime, grid, currentRank.headOption.map(_.id).getOrElse(myId),
         frameRate = frameRate, newFieldInfo = grid.historyFieldInfo.get(grid.frameCount + 1))
-//      drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
+      drawGame.drawSmallMap(data.snakes.filter(_.id == uid).map(_.header).head, data.snakes.filterNot(_.id == uid))
     }
 
   }
@@ -569,8 +569,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
-//        if (grid.snakes.exists(_._1 == myId) && !isWin && isContinue)
-//          drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
+        if (grid.snakes.exists(_._1 == myId) && !isWin && isContinue)
+          drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
