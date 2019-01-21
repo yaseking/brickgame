@@ -395,10 +395,10 @@ class DrawGame(
     scale = Math.max(1 - grid.getMyFieldCount(uid, fieldByXInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-    ctx.globalAlpha = 0.8
+    ctx.globalAlpha = 1.0
     val w = windowBoundary.x / 2
     val h = windowBoundary.y / 2
-    val radialGradient1 = ctx.createRadialGradient(w, h, 200, w, h,1000)
+    val radialGradient1 = ctx.createRadialGradient(w, h, 100, w, h,1000)
 
     radialGradient1.addColorStop(0, "#FFFFFF")
 
