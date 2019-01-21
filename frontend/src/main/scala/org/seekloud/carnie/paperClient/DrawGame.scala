@@ -406,7 +406,7 @@ class DrawGame(
 
     ctx.fillStyle = radialGradient1
 
-    ctx.fillRect(10, 10, 200, 200)
+    ctx.fillRect(0, 0, w * 2, h * 2)
 //    ctx.fillStyle = "#B4DCFF"
 //    ctx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
 
