@@ -9,7 +9,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "carnie"
-val projectVersion = "2019.01.19a"
+val projectVersion = "2019.01.21"
 
 val projectMainClass = "org.seekloud.carnie.Boot"
 
