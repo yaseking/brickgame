@@ -569,8 +569,8 @@ class NetGameHolder(order: String, webSocketPara: WebSocketPara, mode: Int, img:
 
       case Protocol.Ranks(ranks, personalScore, personalRank, currentNum) =>
         currentRank = ranks
-        if (grid.snakes.exists(_._1 == myId) && !isWin && isContinue)
-          drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
+//        if (grid.snakes.exists(_._1 == myId) && !isWin && isContinue)
+//          drawGame.drawRank(myId, grid.snakes.values.toList, currentRank, personalScore, personalRank, currentNum)
 
       case data: Protocol.Data4TotalSync =>
         println(s"===========recv total data")
