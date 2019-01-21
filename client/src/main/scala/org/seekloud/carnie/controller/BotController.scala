@@ -45,6 +45,7 @@ class BotController(player: PlayerInfoInClient,
   private var logicFrameTime = System.currentTimeMillis()
   var syncFrame: scala.Option[Protocol.SyncFrame] = None
   var isDead = false
+  var isFirstTotalDataSync = false
 
   def startGameLoop(): Unit = { //渲染帧
     layeredGameScene.cleanGameWait(stageCtx.getStage.getWidth.toInt, stageCtx.getStage.getHeight.toInt)
@@ -219,6 +220,13 @@ class BotController(player: PlayerInfoInClient,
           }
         }
 
+      case m@InitActions(actions) =>
+        Boot.addToPlatform {
+          println(s"recv $m")
+          actions.foreach(gameMessageReceiver(_))
+        }
+
+
 //      case data: Protocol.SyncFrame =>
 //        syncFrame = Some(data)
 
@@ -295,7 +303,12 @@ class BotController(player: PlayerInfoInClient,
       case data: Protocol.Data4TotalSync =>
 //        println("data!!!")
         Boot.addToPlatform{
-          syncGridData = Some(data)
+          if (!isFirstTotalDataSync) {
+            grid.initSyncGridData(data) //立刻执行，不再等到逻辑帧
+            isFirstTotalDataSync = true
+          } else {
+            syncGridData = Some(data)
+          }
         }
 
       case Protocol.NewData(frameCount, newSnakes, newField) =>

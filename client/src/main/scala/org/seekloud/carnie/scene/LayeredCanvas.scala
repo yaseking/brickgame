@@ -426,13 +426,13 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
 
       val color = Constant.hex2Rgb(s.color)
       humanViewCtx.setFill(color)
-      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y - 0.3) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
       val lightC = findLightColor(s.color)
       val darkC = findDarkColor(s.color)
       humanViewCtx.setFill(Constant.hex2Rgb(lightC))
-      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
+      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y - 0.3) * humanCanvasUnit, humanCanvasUnit, humanCanvasUnit)
       humanViewCtx.setFill(Constant.hex2Rgb(darkC))
-      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y + 1) * humanCanvasUnit, humanCanvasUnit, 0.1 * humanCanvasUnit)
+      humanViewCtx.fillRect((s.header.x + off.x) * humanCanvasUnit, (s.header.y + off.y + 1 - 0.3) * humanCanvasUnit, humanCanvasUnit, 0.3 * humanCanvasUnit)
 
       humanViewCtx.setFont(Font.font(16))
       humanViewCtx.setFill(Color.rgb(0, 0, 0))
@@ -824,16 +824,16 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       //      val img = if (s.id == uid) myHeaderImg else otherHeaderImg
 
       if (s.id == championId)
-        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
+        ctx.drawImage(championHeaderImg, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 1 - 0.3) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
       //      ctx.drawImage(img, (s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit) //头部图片绘制在名字上方
 
       val lightC = findLightColor(s.color)
       val darkC = findDarkColor(s.color)
       //      println(s"color-${s.color},lightC-$lightC,darkC-$darkC")
       ctx.setFill(Constant.hex2Rgb(lightC))
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y) * canvasUnit, canvasUnit, canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y - 0.3) * canvasUnit, canvasUnit, canvasUnit)
       ctx.setFill(Constant.hex2Rgb(darkC))
-      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1) * canvasUnit, canvasUnit, 0.1 * canvasUnit)
+      ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1 - 0.3) * canvasUnit, canvasUnit, 0.3 * canvasUnit)
 
 //      ctx.setFill(Constant.hex2Rgb(s.color))
 //

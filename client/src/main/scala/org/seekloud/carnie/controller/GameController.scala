@@ -46,6 +46,7 @@ class GameController(player: PlayerInfoInClient,
   var playBgm = true
 //  var isSynced = false
   var isWin = false
+  var isFirstTotalDataSync = false
   var exitFullScreen = false
   var winnerName = "unknown"
   var isContinues = true
@@ -354,6 +355,11 @@ class GameController(player: PlayerInfoInClient,
           }
         }
 
+      case m@InitActions(actions) =>
+        Boot.addToPlatform {
+          println(s"recv $m")
+          actions.foreach(gameMessageReceiver(_))
+        }
 
 //      case data: Protocol.NewFieldInfo =>
 //        println(s"！！！当前帧号：${grid.frameCount}, 领地帧号：${data.frameCount}")
@@ -453,7 +459,12 @@ class GameController(player: PlayerInfoInClient,
 
       case data: Protocol.Data4TotalSync =>
         Boot.addToPlatform{
-          syncGridData = Some(data)
+          if (!isFirstTotalDataSync) {
+            grid.initSyncGridData(data) //立刻执行，不再等到逻辑帧
+            isFirstTotalDataSync = true
+          } else {
+            syncGridData = Some(data)
+          }
 //          isSynced = true
         }
 
