@@ -730,8 +730,8 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
       if (snakes.exists(_.id == user.uid)) {
         var userScanField: List[FrontProtocol.Scan4Draw] = Nil
         user.scanField.foreach { field =>
-          if (field.x < maxPoint.y && field.x > minPoint.y) {
-            userScanField = FrontProtocol.Scan4Draw(field.x, field.y.filter(x => x._1 < maxPoint.x || x._2 > minPoint.x)) :: userScanField
+          if (field.x < maxPoint.x && field.x > minPoint.x) {
+            userScanField = FrontProtocol.Scan4Draw(field.x, field.y.filter(y => y._1 < maxPoint.y || y._2 > minPoint.y)) :: userScanField
           }
         }
         fieldInWindow = FrontProtocol.Field4Draw(user.uid, userScanField) :: fieldInWindow
@@ -782,10 +782,13 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     ctx.setGlobalAlpha(1)
     fieldInWindow.foreach { field => //按行渲染
       val color = snakes.find(_.id == field.uid).map(s => Constant.hex2Rgb(s.color)).getOrElse(ColorsSetting.defaultColor)
-      ctx.setFill(color)
+      val darkC = findDarkColor(color)
       field.scanField.foreach { point =>
-        point.y.foreach { x =>
-          ctx.fillRect((x._1 + offx) * canvasUnit, (point.x + offy) * canvasUnit, canvasUnit * (x._2 - x._1 + 1), canvasUnit * 1.1)
+        point.y.foreach { y =>
+          ctx.setFill(color)
+          ctx.fillRect((point.x + offx) * canvasUnit, (y._1 + offy) * canvasUnit, canvasUnit * 1.05, canvasUnit * (y._2 - y._1 + 1))
+          ctx.setFill(Constant.hex2Rgb(darkC))
+          ctx.fillRect((point.x + offx) * canvasUnit, (y._2 + offy + 0.7) * canvasUnit, canvasUnit * 1.03, canvasUnit * 0.3)
         }
       }
     }
@@ -864,6 +867,14 @@ class LayeredCanvas(viewCanvas: Canvas,rankCanvas: Canvas,positionCanvas: Canvas
     val newR = decToHex(r-20)
     val newG = decToHex(g-20)
     val newB = decToHex(b-20)
+    s"#$newR$newG$newB".toUpperCase
+  }
+
+  def findDarkColor(color: Color) = {
+    val (r, g, b) = (color.getRed * 255,color.getGreen * 255,color.getBlue * 255)
+    val newR = decToHex(r.toInt-20)
+    val newG = decToHex(g.toInt-20)
+    val newB = decToHex(b.toInt-20)
     s"#$newR$newG$newB".toUpperCase
   }
 
