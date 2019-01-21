@@ -406,9 +406,12 @@ class DrawGame(
 
     ctx.fillStyle = radialGradient1
 
-    ctx.fillRect(0, 0, w * 2, h * 2)
+    ctx.fillRect(0, 0, w * 2 + 50, h * + 50)
 //    ctx.fillStyle = "#B4DCFF"
 //    ctx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
+    //边界
+    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
+    ctx.restore()
 
     ctx.globalAlpha = 0.6
     bodyInWindow.foreach { bds =>
@@ -518,9 +521,7 @@ class DrawGame(
       ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y - 1 - 0.3) * canvasUnit - 3) //-10
     }
 
-    //边界
-    ctx.drawImage(borderCanvas, offx * canvasUnit, offy * canvasUnit)
-    ctx.restore()
+
 
     //    //排行榜
     if (!isReplay) {
