@@ -395,7 +395,7 @@ class DrawGame(
     scale = Math.max(1 - grid.getMyFieldCount(uid, fieldByXInWindow.filter(_.uid==uid).flatMap(_.scanField)) * 0.00002, 0.94)
     ctx.save()
     setScale(scale, windowBoundary.x / 2, windowBoundary.y / 2)
-    ctx.fillStyle = "#87CEFA"
+    ctx.fillStyle = "#B4DCFF"
     ctx.fillRect(0,0,windowBoundary.x,windowBoundary.y)
 
     ctx.globalAlpha = 0.6
