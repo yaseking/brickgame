@@ -516,9 +516,15 @@ class DrawGame(
       ctx.fillStyle = darkC
       ctx.fillRect((s.header.x + off.x) * canvasUnit, (s.header.y + off.y + 1 - 0.3) * canvasUnit, canvasUnit, 0.3 * canvasUnit)
 
+      ctx.save()
+      ctx.globalAlpha= 0.3
+      ctx.fillStyle = ColorsSetting.backgroundColor
+      ctx.fillRect((s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 3 * 2, (s.header.y + off.y - 2.1) * canvasUnit - 3, ctx.measureText(s.name).width * 1.35, canvasUnit + 3)
+      ctx.restore()
+
       ctx.font = "16px Helvetica"
       ctx.fillStyle = "#000000"
-      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y - 1 - 0.3) * canvasUnit - 3) //-10
+      ctx.fillText(s.name, (s.header.x + off.x) * canvasUnit + canvasUnit / 2 - ctx.measureText(s.name).width / 2, (s.header.y + off.y - 1.3) * canvasUnit - 3)
     }
 
 
@@ -719,9 +725,9 @@ class DrawGame(
 
   def findLightColor(str: String) = {
     val (r, g, b) = hex2Rgb(str)
-    val newR = decToHex(r+20)
-    val newG = decToHex(g+20)
-    val newB = decToHex(b+20)
+    val newR = decToHex(r+40)
+    val newG = decToHex(g+40)
+    val newB = decToHex(b+40)
     s"#$newR$newG$newB"
   }
 
