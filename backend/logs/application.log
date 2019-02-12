@@ -1,0 +1,174 @@
+18-08-07 09:09:42 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-07 09:09:42 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-07 09:09:43 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:40110
+18-08-07 09:09:43 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-07 09:31:25 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-07 09:31:25 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-07 09:31:26 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-07 09:31:26 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-07 09:31:45 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-12-2-actorRefSource#214031094])
+18-08-07 09:32:25 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-13 11:18:53 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-13 11:18:53 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-13 11:18:54 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-13 11:18:54 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-13 11:19:05 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-8-2-actorRefSource#118331616])
+18-08-13 11:20:09 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-13 11:21:26 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-261-2-actorRefSource#-1784799496])
+18-08-13 11:22:05 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000001,1)
+18-08-13 11:55:40 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-13 11:55:40 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-13 11:55:41 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-13 11:55:41 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-13 11:56:48 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-5-2-actorRefSource#-2144900600])
+18-08-13 11:57:33 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-14 10:12:20 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 10:12:20 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 10:12:21 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 10:12:21 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 10:16:20 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 10:16:20 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 10:16:20 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 10:16:20 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 10:19:36 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-18-2-actorRefSource#1832064848])
+18-08-14 10:20:03 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-14 10:34:48 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 10:34:48 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 10:34:49 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 10:34:49 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 10:35:20 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-4-2-actorRefSource#509494959])
+18-08-14 10:36:34 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-14 10:38:00 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-296-2-actorRefSource#1028822313])
+18-08-14 10:42:00 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 10:42:00 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 10:42:00 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 10:42:00 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 10:42:41 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-10-2-actorRefSource#-49329852])
+18-08-14 10:42:48 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-14 10:42:52 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-35-2-actorRefSource#-120607085])
+18-08-14 10:44:12 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000001,123)
+18-08-14 10:46:25 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 10:46:26 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 10:46:26 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 10:46:26 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 10:46:45 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-4-2-actorRefSource#1835955382])
+18-08-14 10:46:54 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-14 10:47:03 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-37-2-actorRefSource#1524362989])
+18-08-14 10:47:28 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000001,1)
+18-08-14 10:47:48 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 10:47:49 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 10:47:49 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 10:47:49 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 10:48:05 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,,Actor[akka://hiStream/system/StreamSupervisor-0/flow-2-2-actorRefSource#1418935930])
+18-08-14 10:48:12 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,)
+18-08-14 10:48:16 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-29-2-actorRefSource#5366585])
+18-08-14 10:48:47 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000001,123)
+18-08-14 10:48:52 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000002,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-158-2-actorRefSource#1198476283])
+18-08-14 10:49:26 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000002,1)
+18-08-14 10:50:01 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 10:50:01 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 10:50:01 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 10:50:01 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 10:50:10 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-2-2-actorRefSource#1454281878])
+18-08-14 10:51:09 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-14 11:01:22 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 11:01:22 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 11:01:23 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 11:01:23 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 11:01:46 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-4-2-actorRefSource#766070546])
+18-08-14 11:02:22 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-14 11:02:25 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,3,Actor[akka://hiStream/system/StreamSupervisor-0/flow-156-2-actorRefSource#654905629])
+18-08-14 11:03:26 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 11:03:26 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 11:03:27 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 11:03:27 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 11:03:39 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 11:03:39 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 11:03:40 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 11:03:40 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 11:03:50 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-15-2-actorRefSource#193389520])
+18-08-14 11:04:11 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-14 11:04:30 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-121-2-actorRefSource#1947077027])
+18-08-14 11:07:40 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 11:07:40 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 11:07:41 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 11:07:41 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 11:07:50 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,111,Actor[akka://hiStream/system/StreamSupervisor-0/flow-11-2-actorRefSource#647147242])
+18-08-14 15:01:34 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 15:01:34 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 15:01:35 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 15:01:35 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 15:02:02 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-4-2-actorRefSource#-1797074571])
+18-08-14 15:02:10 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-14 15:02:14 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-50-2-actorRefSource#437693638])
+18-08-14 15:03:36 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-14 15:03:37 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-14 15:03:37 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-14 15:03:37 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-14 15:03:44 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,`1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-10-2-actorRefSource#-171163806])
+18-08-15 09:02:58 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 09:02:58 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 09:02:58 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 09:02:58 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 09:03:08 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-4-2-actorRefSource#-1717805048])
+18-08-15 09:03:31 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,1)
+18-08-15 09:03:34 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-128-2-actorRefSource#1115566758])
+18-08-15 09:04:30 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000001,1)
+18-08-15 09:05:08 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 09:05:08 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 09:05:08 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 09:05:08 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 09:05:29 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 09:05:29 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 09:05:30 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 09:05:30 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 09:05:40 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-12-2-actorRefSource#-793404205])
+18-08-15 09:06:25 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-15 09:08:28 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 09:08:29 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 09:08:29 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 09:08:29 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 09:08:39 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-5-2-actorRefSource#1632313561])
+18-08-15 09:08:56 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-15 09:08:59 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-121-2-actorRefSource#128610045])
+18-08-15 09:09:38 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000001,123)
+18-08-15 09:48:18 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 09:48:18 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 09:48:19 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 09:48:19 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 09:48:30 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-5-2-actorRefSource#352971677])
+18-08-15 09:48:47 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-15 09:48:59 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-85-2-actorRefSource#1992961176])
+18-08-15 09:50:04 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 09:50:04 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 09:50:05 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 09:50:05 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 09:50:11 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-10-2-actorRefSource#-808290142])
+18-08-15 10:22:45 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 10:22:45 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 10:22:46 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 10:22:46 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 10:23:24 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-5-2-actorRefSource#2109351723])
+18-08-15 10:23:32 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-15 10:23:59 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-47-2-actorRefSource#798469619])
+18-08-15 10:24:34 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000001,123)
+18-08-15 10:25:24 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 10:25:24 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 10:25:25 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 10:25:25 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 10:25:32 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,,Actor[akka://hiStream/system/StreamSupervisor-0/flow-2-2-actorRefSource#-649385323])
+18-08-15 10:25:39 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,)
+18-08-15 10:25:42 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,1,Actor[akka://hiStream/system/StreamSupervisor-0/flow-40-2-actorRefSource#629672424])
+18-08-15 12:26:22 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 12:26:22 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 12:26:23 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 12:26:23 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 12:26:39 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-11-2-actorRefSource#-1185462427])
+18-08-15 12:27:20 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-15 12:40:26 INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+18-08-15 12:40:26 INFO com.neo.sk.carnie.Boot$ - Starting.
+18-08-15 12:40:27 INFO com.neo.sk.carnie.Boot$ - Listen to the 0.0.0.0:30368
+18-08-15 12:40:27 INFO com.neo.sk.carnie.Boot$ - Done.
+18-08-15 12:42:57 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000000,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-4-2-actorRefSource#1957530928])
+18-08-15 12:43:10 INFO com.neo.sk.carnie.paper.PlayGround$ - got Left(1000000,123)
+18-08-15 12:43:12 INFO com.neo.sk.carnie.paper.PlayGround$ - got Join(1000001,123,Actor[akka://hiStream/system/StreamSupervisor-0/flow-70-2-actorRefSource#-525918413])
