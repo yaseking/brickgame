@@ -80,17 +80,7 @@ object Protocol {
 
   case class RoomId(roomId: String) extends GameMessage
 
-  case class Id4Watcher(id: String, watcher: String) extends GameMessage
-
-  case class StartWatching(mode: Int, img: Int) extends GameMessage
-
-  case class Mode(mode: Int) extends GameMessage
-
-  case class StartLoading(frame: Int) extends GameMessage
-
-  case class StartReplay(firstSnapshotFrame: Int, firstReplayFrame: Int) extends GameMessage
-
-  case class DeadPage(kill: Short, area: Short, playTime: Short) extends GameMessage
+  case object DeadPage extends GameMessage
 
   case class UserDeadMsg(frame: Int, deadInfo: List[BaseDeadInfo]) extends GameMessage
 
@@ -144,7 +134,7 @@ object Protocol {
 
   case object PressSpace extends UserAction
 
-  case class InitAction(id: Int) extends UserAction
+  case object InitAction extends UserAction
 
   //essf
   sealed trait GameEvent extends GameMessage

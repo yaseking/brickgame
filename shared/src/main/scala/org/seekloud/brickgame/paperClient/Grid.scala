@@ -15,7 +15,7 @@ import scala.collection.mutable
   */
 trait Grid {
 
-  val boundary: Point
+//  val boundary: Point
 
   def debug(msg: String): Unit
 
@@ -90,7 +90,7 @@ trait Grid {
 //    }
 //  }
 
-  def updateBalls = {
+  def updateBalls: List[Int] = { //该为向后台返回死亡名单
 
     var deadPlayers:List[Int] = List.empty[Int]
 
@@ -215,14 +215,17 @@ trait Grid {
     players.values.foreach(updateAPlayer(_, acts))
 
     players --= deadPlayers
+
+    deadPlayers
   }
 
-  def update: Unit = {
-    updateBalls
+  def update: List[Int] = {
+    val deadList = updateBalls
     val limitFrameCount = frameCount - (maxDelayed + 1)
     actionMap = actionMap.filter(_._1 > limitFrameCount)
     historyStateMap = historyStateMap.filter(_._1 > limitFrameCount)
     frameCount += 1
+    deadList
   }
 
   def getPointBelong(id: String, point: Point): Boolean = {

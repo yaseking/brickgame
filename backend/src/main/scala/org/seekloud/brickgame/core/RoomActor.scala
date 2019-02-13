@@ -20,7 +20,7 @@ import concurrent.duration._
 object RoomActor {
 
   private val log = LoggerFactory.getLogger(this.getClass)
-  val border = Point(BorderSize.w, BorderSize.h)
+//  val border = Point(BorderSize.w, BorderSize.h)
 
   //  private val classify = 5
 
@@ -62,7 +62,7 @@ object RoomActor {
     Behaviors.setup[Command] { ctx =>
       Behaviors.withTimers[Command] {
         implicit timer =>
-          val grid = new GridOnServer(border)
+          val grid = new GridOnServer()
           timer.startPeriodicTimer(SyncKey, Sync, 100 millis)
           idle(roomId, grid, tickCount = 0l)
       }
@@ -83,7 +83,7 @@ object RoomActor {
           subscribersMap.put(id, subscriber)
           log.debug(s"subscribersMap: $subscribersMap")
           //          ctx.watchWith(subscriber, UserLeft(subscriber))
-          grid.addPlayer(id, name)
+          grid.addPlayer(id, name) //waitingList
           dispatchTo(subscribersMap, id, Protocol.Id(id))
 
           idle(roomId, grid, userMap, subscribersMap, tickCount)
@@ -111,7 +111,7 @@ object RoomActor {
 //                  Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息，合并
               }
 
-            case InitAction(id) =>
+            case InitAction =>
               grid.initAction(id)
               dispatchTo(subscribersMap, id, StartGame)
 
@@ -127,9 +127,16 @@ object RoomActor {
           Behaviors.same
 
         case Sync =>
-          val shouldNewSnake = if (grid.waitingListState) true else false
+          val shouldNewSnake = if (grid.waitingListState) true else false //玩家匹配，当玩家数为2的时候才产生蛇
           val shouldSync = if (tickCount % 50 == 1) true else false//5s发送一次全量数据
-          grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
+          val dealList = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
+          if(dealList.nonEmpty) {
+            println(s"deadList: $dealList")
+
+          }
+//          dealList.foreach {id =>
+//            dispatchTo(subscribersMap, id, )
+//          }
           if(shouldSync) {
             val data = Data4TotalSync2(grid.frameCount, grid.players)
             dispatch(subscribersMap, data)
@@ -139,7 +146,7 @@ object RoomActor {
 
         case ChildDead(child, childRef) =>
           log.debug(s"roomActor 不再监管 gameRecorder:$child,$childRef")
-          ctx.unwatch(childRef)
+//          ctx.unwatch(childRef)
           Behaviors.same
 
         case _ =>

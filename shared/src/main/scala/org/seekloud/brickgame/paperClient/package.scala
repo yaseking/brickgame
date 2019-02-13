@@ -100,30 +100,14 @@ package object paperClient {
     val h = 3
   }
 
-  object Boundary {
-    val w = 24
-    val h = 45
-  }
+  val plankLen = 8
 
-//  object Boundary {
-//    val w = 200
-//    val h = 100
-//  }
+  val plankOri = 7
 
-  object BorderSize {
-    val w = 170
-    val h = 85
-  }
+  val topBorderLen = 22
 
-  object Window {
-    val w = 60
-    val h = 30
-  }
+  val sideBorderLen = 3
 
-  object littleMap {
-    val w = 12
-    val h = 7
-  }
 
 
 }

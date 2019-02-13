@@ -13,7 +13,7 @@ import org.seekloud.brickgame.protocol.EsheepProtocol.PlayerInfo
   * Date: 9/3/2016
   * Time: 9:55 PM
   */
-class GridOnServer(override val boundary: Point) extends Grid {
+class GridOnServer() extends Grid {
 
 
   private[this] val log = LoggerFactory.getLogger(this.getClass)
@@ -22,7 +22,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   override def info(msg: String): Unit = log.info(msg)
 
-  private[this] var waitingJoin = Map.empty[String, (String, String, Int, Byte)]
+//  private[this] var waitingJoin = Map.empty[String, (String, String, Int, Byte)]
 
   private[this] var waitingList = Map.empty[Int, String]
 
@@ -40,6 +40,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
   }
 
   def waitingListState: Boolean = waitingList.nonEmpty
+//  def waitingListState: Boolean = if(waitingList.size == 2) true else false
 
   def genPlayer: Unit = {
     waitingList.foreach {p =>
@@ -55,25 +56,30 @@ class GridOnServer(override val boundary: Point) extends Grid {
   def initField = { //todo change
     var field = Map.empty[Point, Spot]
     //TopBorder
-    (0 to 21).foreach{x =>
+    (0 until topBorderLen).foreach{x =>
       field += Point(x, 0) -> TopBorder
     }
 
     //SideBorder
-    (1 to 31).foreach{y =>
+    (1 to sideBorderLen).foreach{y =>
       field += Point(0, y) -> SideBorder
       field += Point(21, y) -> SideBorder
     }
 
-    (8 to 12).foreach{x => //8 to 12，长度需要增加8 7 to 14，这些参数之后用常量表示
-      field += Point(x, 30) ->Plank
+    (plankOri until plankOri+plankLen).foreach{x =>
+      field += Point(x, 30) -> Plank
     }
 
-    (1 to 20).foreach {x =>
-      (1 to 3).foreach {y =>
+    (1 to OriginField.w).foreach {x =>
+      (1 to OriginField.h).foreach {y =>
         field += Point(x, y) -> Brick
       }
     }
+
+    (1 to OriginField.w).foreach{x =>
+      field += Point(x, 31) -> DeadLine
+    }
+
     field
   }
 
@@ -91,16 +97,16 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
   }
 
-  def randomColor(): String = {
-    var color = randomHex()
-    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
-    val similarityDegree = 2000
-    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_ < similarityDegree) > 0) {
-      color = randomHex()
-    }
-    //    log.debug(s"color : $color exceptColor : $exceptColor")
-    "#" + color
-  }
+//  def randomColor(): String = {
+//    var color = randomHex()
+//    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
+//    val similarityDegree = 2000
+//    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_ < similarityDegree) > 0) {
+//      color = randomHex()
+//    }
+//    //    log.debug(s"color : $color exceptColor : $exceptColor")
+//    "#" + color
+//  }
 
   def randomHex(): String = {
     val h = getRandom(94).toHexString + getRandom(94).toHexString + getRandom(94).toHexString
@@ -137,9 +143,10 @@ class GridOnServer(override val boundary: Point) extends Grid {
     target
   }
 
-  def updateInService(newSnake: Boolean): Unit = {
-    super.update
+  def updateInService(newSnake: Boolean): List[Int] = {
+    val dealList = super.update
     if (newSnake) genPlayer
+    dealList
   }
 
   def generateCarnieId(carnieIdGenerator: AtomicInteger, existsId: Iterable[Byte]): Byte = {

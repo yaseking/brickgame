@@ -160,7 +160,7 @@ object RoomManager {
         case action@Protocol.SendPingPacket(_) => UserActionOnServer(userId, action)
         case action@Protocol.NeedToSync => UserActionOnServer(userId, action)
         case action@Protocol.PressSpace => UserActionOnServer(userId, action)
-        case action@Protocol.InitAction(_) => UserActionOnServer(userId, action)
+        case action@Protocol.InitAction => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
       .to(sink(actor, userId, name))

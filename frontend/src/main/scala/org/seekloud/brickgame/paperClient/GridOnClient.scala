@@ -10,7 +10,7 @@ import scala.collection.mutable
   * Date: 9/3/2016
   * Time: 10:13 PM
   */
-class GridOnClient(override val boundary: Point) extends Grid {
+class GridOnClient() extends Grid {
 
   override def debug(msg: String): Unit = println(msg)
 

@@ -28,7 +28,7 @@ class NetGameHolder(nickname: String) {
 
   private var myId = 0
 
-  var grid = new GridOnClient(Point(BorderSize.w, BorderSize.h))
+  var grid = new GridOnClient()
 
   var isGetKiller = false
   var killerInfo: scala.Option[String] = None
@@ -37,6 +37,7 @@ class NetGameHolder(nickname: String) {
   //  var justSynced = false
   var isWin = false
   var isPlay = true
+  var hasStarted = false
   //  var winnerName = "unknown"
   var killInfo: scala.Option[(String, String, String, String)] = None
   var barrageDuration = 0
@@ -62,7 +63,6 @@ class NetGameHolder(nickname: String) {
   var renderId = 0
 
   private var myScore = BaseScore(0, 0, 0)
-  private var maxArea: Short = 0
 
   private var recallFrame: scala.Option[Int] = None
 
@@ -117,12 +117,6 @@ class NetGameHolder(nickname: String) {
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     }
 
-    val firstPart = System.currentTimeMillis() - logicFrameTime
-    var secondPart = 0l
-    var thirdPart = 0l
-    var forthPart = 0l
-    var detailPart = 0l
-
 //    var isAlreadySendSync = false
 
     if (webSocketClient.getWsState) {
@@ -140,7 +134,6 @@ class NetGameHolder(nickname: String) {
         case None =>
       }
 
-      secondPart = System.currentTimeMillis() - logicFrameTime - firstPart
 
       if (syncGridData.nonEmpty) { //全量数据
         println(s"!!!!!!!!data sync:grid.frame${grid.frameCount}, syncFrame: ${syncGridData.get.frameCount}")
@@ -151,12 +144,9 @@ class NetGameHolder(nickname: String) {
         grid.update
       }
 
-      thirdPart = System.currentTimeMillis() - logicFrameTime - secondPart
 
       if (!isWin) {
-        val startTime = System.currentTimeMillis()
         val gridData = grid.players //data直接用players就可以了
-        detailPart = System.currentTimeMillis() - startTime
         drawFunction = gridData.find(_._1 == myId) match {
           case Some(_) =>
             if (firstCome) firstCome = false
@@ -170,13 +160,9 @@ class NetGameHolder(nickname: String) {
             FrontProtocol.DrawGameWait
         }
       }
-      forthPart = System.currentTimeMillis() - logicFrameTime - thirdPart
     } else {
       drawFunction = FrontProtocol.DrawGameOff//断开连接
     }
-    val dealTime = System.currentTimeMillis() - logicFrameTime
-    if (dealTime > 50)
-      println(s"logicFrame deal time:$dealTime;first:$firstPart;second:$secondPart;third:$thirdPart;forthpart:$forthPart;detailPart:$detailPart")
   }
 
   def draw(offsetTime: Long): Unit = {
@@ -191,11 +177,9 @@ class NetGameHolder(nickname: String) {
         //        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
         drawGameImage(myId, offsetTime)
 
-      case FrontProtocol.DrawGameDie(killerName, data) => //
+      case FrontProtocol.DrawGameDie(_, data) => //
         if (data.nonEmpty) drawGameImage(myId, offsetTime)
-        drawGame.drawGameDie(killerName, myScore, maxArea)
-        killInfo = None
-//        isContinue = false
+        drawGame.drawGameDie
 
       case _ =>
     }
@@ -218,8 +202,11 @@ class NetGameHolder(nickname: String) {
           case KeyCode.Space =>
             drawFunction match {
               case FrontProtocol.DrawBaseGame =>
-                val msg: Protocol.UserAction = InitAction(myId)
-                webSocketClient.sendMessage(msg)
+                if(!hasStarted) {
+                  val msg: Protocol.UserAction = InitAction
+                  webSocketClient.sendMessage(msg)
+                  hasStarted = true
+                }
               case FrontProtocol.DrawGameDie(_, _) =>
                 println("onkeydown:Space")
                 isGetKiller = false
@@ -297,10 +284,11 @@ class NetGameHolder(nickname: String) {
           isSynced = true
         }
 
-      case x@Protocol.DeadPage(kill, area, playTime) =>
-        println(s"recv userDead $x")
-        myScore = BaseScore(kill, area, playTime)
-        maxArea = Constant.shortMax(maxArea, area)
+      case Protocol.DeadPage=>
+        println("recv userDead")
+
+//        myScore = BaseScore(kill, area, playTime)
+//        maxArea = Constant.shortMax(maxArea, area)
 
 
       case x@Protocol.ReceivePingPacket(recvPingId) =>
