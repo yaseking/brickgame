@@ -55,6 +55,7 @@ package object paperClient {
 
     def %(other: Point) = Point(x % other.x, y % other.y)
 
+    def toInt = Point(x.toInt, y.toInt)
   }
 
 
