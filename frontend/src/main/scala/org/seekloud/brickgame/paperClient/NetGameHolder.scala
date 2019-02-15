@@ -1,7 +1,5 @@
 package org.seekloud.brickgame.paperClient
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.seekloud.brickgame.Routes
 import org.seekloud.brickgame.common.Constant
 import org.scalajs.dom.html.Canvas
@@ -30,19 +28,11 @@ class NetGameHolder(nickname: String) {
 
   var grid = new GridOnClient()
 
-  var isGetKiller = false
-  var killerInfo: scala.Option[String] = None
   var firstCome = true
-  var isSynced = false
-  //  var justSynced = false
   var isWin = false
-  var isPlay = true
   var hasStarted = false
-  //  var winnerName = "unknown"
-  var killInfo: scala.Option[(String, String, String, String)] = None
-  var barrageDuration = 0
+//  var barrageDuration = 0
 
-  var syncFrame: scala.Option[Protocol.SyncFrame] = None
   var syncGridData: scala.Option[Protocol.Data4TotalSync2] = None
   var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -52,17 +42,16 @@ class NetGameHolder(nickname: String) {
   var pingMap = Map.empty[Short, Long] // id, 时间戳
   var isFirstTotalDataSync = false
 
-  var pingId: Short = 0
+//  var pingId: Short = 0
 
-  var frameTemp = 0
+//  var frameTemp = 0
 
-  var pingTimer = -1
+//  var pingTimer = -1
 
   var gameLoopTimer = -1
 
   var renderId = 0
 
-  private var myScore = BaseScore(0, 0, 0)
 
   private var recallFrame: scala.Option[Int] = None
 
@@ -145,20 +134,18 @@ class NetGameHolder(nickname: String) {
       }
 
 
-      if (!isWin) {
-        val gridData = grid.players //data直接用players就可以了
-        drawFunction = gridData.find(_._1 == myId) match {
-          case Some(_) =>
-            if (firstCome) firstCome = false
-            FrontProtocol.DrawBaseGame
+      val gridData = grid.players //data直接用players就可以了
+      drawFunction = gridData.find(_._1 == myId) match {
+        case Some(_) =>
+          if (firstCome) firstCome = false
+          FrontProtocol.DrawBaseGame
 
-          case None =>
-            //gameOver，胜利消息从后台传送
-            FrontProtocol.DrawGameDie(killerInfo)
+        case None if isWin =>
+          //gameOver，胜利消息从后台传送
+          FrontProtocol.DrawGameDie
 
-          case _ =>
-            FrontProtocol.DrawGameWait
-        }
+        case _ => //多余
+          FrontProtocol.DrawGameWait //匹配中
       }
     } else {
       drawFunction = FrontProtocol.DrawGameOff//断开连接
@@ -171,14 +158,14 @@ class NetGameHolder(nickname: String) {
         drawGame.drawGameWait()
 
       case FrontProtocol.DrawGameOff =>
-        drawGame.drawGameOff(firstCome, None, false, false)//断开连接
+        drawGame.drawGameOff(firstCome)//断开连接
 
       case FrontProtocol.DrawBaseGame =>
         //        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
         drawGameImage(myId, offsetTime)
 
-      case FrontProtocol.DrawGameDie(_, data) => //
-        if (data.nonEmpty) drawGameImage(myId, offsetTime)
+      case FrontProtocol.DrawGameDie => //
+//        if (data.nonEmpty) drawGameImage(myId, offsetTime)
         drawGame.drawGameDie
 
       case _ =>
@@ -207,10 +194,8 @@ class NetGameHolder(nickname: String) {
                   webSocketClient.sendMessage(msg)
                   hasStarted = true
                 }
-              case FrontProtocol.DrawGameDie(_, _) =>
+              case FrontProtocol.DrawGameDie =>
                 println("onkeydown:Space")
-                isGetKiller = false
-                killerInfo = None
                 val msg: Protocol.UserAction = PressSpace
                 webSocketClient.sendMessage(msg)
               case FrontProtocol.DrawGameWin(_, _) =>
@@ -242,13 +227,13 @@ class NetGameHolder(nickname: String) {
   }
 
   private def connectError(e: Event) = {
-    drawGame.drawGameOff(firstCome, None, false, false)
+    drawGame.drawGameOff(firstCome)
     e
   }
 
-  private def connectClose(e: Event, s: Boolean) = {
-    if(s)
-      drawGame.drawGameOff(firstCome, None, false, false)
+  private def connectClose(e: Event, serverState: Boolean) = {
+    if(serverState)
+      drawGame.drawGameOff(firstCome)
     else
       drawGame.drawServerShutDown()
     e
@@ -273,6 +258,9 @@ class NetGameHolder(nickname: String) {
           }
         }
 
+      case ReStartGame =>
+        println("got msg: ReStartGame.")
+        spaceKey()
 
       case data: Protocol.Data4TotalSync2 =>
         println(s"===========recv total data")
@@ -281,11 +269,11 @@ class NetGameHolder(nickname: String) {
           isFirstTotalDataSync = true
         } else {
           syncGridData = Some(data)
-          isSynced = true
         }
 
       case Protocol.DeadPage=>
         println("recv userDead")
+        isWin=true
 
 //        myScore = BaseScore(kill, area, playTime)
 //        maxArea = Constant.shortMax(maxArea, area)
@@ -304,21 +292,13 @@ class NetGameHolder(nickname: String) {
   }
 
   def spaceKey(): Unit = {
-    killInfo = None
-    grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
-    drawFunction = FrontProtocol.DrawGameWait
-    //    audio1.pause()
-    //    audio1.currentTime = 0
+//    grid.actionMap = grid.actionMap.filterNot(_._2.contains(myId))
+//    drawFunction = FrontProtocol.DrawGameWait
+    hasStarted = false
     firstCome = true
-    isSynced = false
-    isGetKiller = false
-    killerInfo = None
     if (isWin) isWin = false
-    myScore = BaseScore(0, 0, 0)
     isContinue = true
-    //                  backBtn.style.display="none"
-    //                  rankCanvas.addEventListener("",null)
-    dom.window.requestAnimationFrame(gameRender())
+//    dom.window.requestAnimationFrame(gameRender())
   }
 
   def addSession(id: String) = {

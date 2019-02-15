@@ -71,7 +71,7 @@ object RoomActor {
 
   def idle(roomId: Int,
            grid: GridOnServer,
-           userMap: mutable.HashMap[String, UserInfo] = mutable.HashMap[String, UserInfo](),
+           userMap: mutable.HashMap[Int, String] = mutable.HashMap[Int, String](),
            subscribersMap: mutable.HashMap[Int, ActorRef[WsSourceProtocol.WsMsgSource]] = mutable.HashMap[Int, ActorRef[WsSourceProtocol.WsMsgSource]](),
            tickCount: Long
           )(implicit timer: TimerScheduler[Command]): Behavior[Command] = {
@@ -79,7 +79,7 @@ object RoomActor {
       msg match {
         case m@JoinRoom(id, name, subscriber) =>
           log.info(s"got JoinRoom $m")
-//          userMap.put(id, UserInfo(name, System.currentTimeMillis(), tickCount, img))
+          userMap.put(id, name)
           subscribersMap.put(id, subscriber)
           log.debug(s"subscribersMap: $subscribersMap")
           //          ctx.watchWith(subscriber, UserLeft(subscriber))
@@ -107,8 +107,14 @@ object RoomActor {
 
                 dispatch(subscribersMap, Protocol.SnakeAction(id, keyCode, realFrame)) //发送自己的action改为给所有的人发送
 
-//                dispatch(subscribersMap.filterNot(_._1 == id),
-//                  Protocol.OtherAction(grid.snakes(id).carnieId, keyCode, realFrame)) //给其他人发送消息，合并
+              }
+
+            case PressSpace =>
+              //name从userMap中获取
+              if(userMap.get(id).nonEmpty) {
+                val name = userMap(id)
+                grid.addPlayer(id, name)
+                dispatchTo(subscribersMap, id, ReStartGame)
               }
 
             case InitAction =>
@@ -129,14 +135,18 @@ object RoomActor {
         case Sync =>
           val shouldNewSnake = if (grid.waitingListState) true else false //玩家匹配，当玩家数为2的时候才产生蛇
           val shouldSync = if (tickCount % 50 == 1) true else false//5s发送一次全量数据
+          val newPlayers = grid.getNewPlayers
           val dealList = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
-          if(dealList.nonEmpty) {
-            println(s"deadList: $dealList")
 
+          newPlayers.foreach {id =>
+            val data = Data4TotalSync2(grid.frameCount, grid.players)
+            dispatchTo(subscribersMap, id, data)
           }
-//          dealList.foreach {id =>
-//            dispatchTo(subscribersMap, id, )
-//          }
+
+          dealList.foreach {id =>
+            dispatchTo(subscribersMap, id, DeadPage)
+          }
+
           if(shouldSync) {
             val data = Data4TotalSync2(grid.frameCount, grid.players)
             dispatch(subscribersMap, data)

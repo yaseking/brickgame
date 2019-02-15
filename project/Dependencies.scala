@@ -62,10 +62,12 @@ object Dependencies {
 
   val byteObject = "org.seekloud" %% "byteobject" % "0.1.1"
 
-  val grpcSeq = Seq(
-    "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
-    "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
-  )
+//  val grpcSeq = Seq(
+//    "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+//    "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
+//  )
+
+  val h2Database = "com.h2database" % "h2" % "1.4.197"
 
   val backendDependencies: Seq[ModuleID] =
     Dependencies.akkaSeq ++
@@ -86,9 +88,10 @@ object Dependencies {
         Dependencies.asynchttpclient,
         Dependencies.ehcache,
 //        Dependencies.essf,
-        Dependencies.byteObject
+        Dependencies.byteObject,
+        Dependencies.h2Database
         // "com.lihaoyi" %% "upickle" % "0.6.6"
-      ) ++ Dependencies.grpcSeq
+      )// ++ Dependencies.grpcSeq
 
 
 }

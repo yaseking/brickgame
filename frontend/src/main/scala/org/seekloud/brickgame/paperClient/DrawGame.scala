@@ -17,10 +17,11 @@ class DrawGame(
 ) {
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-  val defaultLength = 20 //canvasUnit
+  val mainLength = 20 //canvasUnit
+  val sideLength = 15
 
-  private val textLineHeight = 15
-  private val fillWidth = 33
+  val offX = windowBoundary.x/4
+  val offX2 = windowBoundary.x/4*3
 
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   //  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
@@ -52,35 +53,16 @@ class DrawGame(
   }
 
 
-  def drawGameOff(firstCome: Boolean, replayFinish: Option[Boolean], loading: Boolean, readFileError: Boolean): Unit = {
+  def drawGameOff(firstCome: Boolean): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
-    if (readFileError) {
-      println("==============read file error")
-      ctx.fillStyle = ColorsSetting.backgroundColor2
-      canvas.width = 800
-      canvas.height = 400
-      ctx.fillRect(0, 0, 800.0, 400.0)
-      ctx.fillStyle = ColorsSetting.fontColor
-      //      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
+    if (firstCome) {
       ctx.font = "36px Helvetica"
-      ctx.fillText("文件不存在或文件已损坏...", 150, 180)
-    } else if (replayFinish.nonEmpty && replayFinish.get) {
-      ctx.font = "36px Helvetica"
-      ctx.fillText("Replay ends.", 150, 180)
-    } else if (loading) {
-      ctx.font = "36px Helvetica"
-      ctx.fillText("Loading......", 150, 180)
+      ctx.fillText("Welcome.", 150, 180)
     } else {
-      if (firstCome) {
-        ctx.font = "36px Helvetica"
-        ctx.fillText("Welcome.", 150, 180)
-      } else {
-        ctx.font = "36px Helvetica"
-        ctx.fillText("Ops, connection lost.", 150, 180)
-        ctx.fillText("Press Space Key To Restart!", 150, 250)
-      }
+      ctx.font = "36px Helvetica"
+      ctx.fillText("Ops, connection lost.", 150, 180)
     }
   }
 
@@ -111,7 +93,8 @@ class DrawGame(
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
     ctx.fillStyle = ColorsSetting.fontColor
     ctx.font = "36px Helvetica"
-    ctx.fillText("Please wait.", 150, 180)
+//    ctx.fillText("Please wait.", 150, 180)
+    ctx.fillText("匹配中...", 150, 180)
   }
 
 
@@ -168,25 +151,25 @@ class DrawGame(
               val x = f._1.x
               val y = f._1.y
               ctx.fillStyle = ColorsSetting.backgroundColor2
-              ctx.fillRect(x * defaultLength, y * defaultLength, defaultLength, defaultLength)
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength)
 
             case SideBorder =>
               val x = f._1.x
               val y = f._1.y
               ctx.fillStyle = ColorsSetting.backgroundColor2
-              ctx.fillRect(x * defaultLength, y * defaultLength, defaultLength, defaultLength)
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength)
 
             case Brick =>
               val x = f._1.x
               val y = f._1.y
               ctx.fillStyle = ColorsSetting.greenColor
-              ctx.fillRect(x * defaultLength, y * defaultLength, defaultLength - 1, defaultLength - 1)
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength - 1, mainLength - 1)
 
             case Plank =>
               val x = f._1.x
               val y = f._1.y
               ctx.fillStyle = ColorsSetting.fontColor3
-              ctx.fillRect(x * defaultLength, y * defaultLength, defaultLength, defaultLength)
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength)
 
             case _ =>
               //空白领地不做处理
@@ -198,7 +181,47 @@ class DrawGame(
         val x = ball.x
         val y = ball.y
         ctx.fillStyle = ColorsSetting.darkYellowColor
-        ctx.fillRect(x * defaultLength, y * defaultLength, defaultLength, defaultLength)
+        ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength) //球的形状改成圆形,offTime逐步绘制
+      } else {
+        //绘制对手的部分
+        val totalField = d._2.field
+        totalField.foreach {f =>
+          f._2 match {
+            case TopBorder =>
+              val x = f._1.x
+              val y = f._1.y
+              ctx.fillStyle = ColorsSetting.backgroundColor2
+              ctx.fillRect(offX2 + x * sideLength, y * sideLength, sideLength, sideLength)
+
+            case SideBorder =>
+              val x = f._1.x
+              val y = f._1.y
+              ctx.fillStyle = ColorsSetting.backgroundColor2
+              ctx.fillRect(offX2 + x * sideLength, y * sideLength, sideLength, sideLength)
+
+            case Brick =>
+              val x = f._1.x
+              val y = f._1.y
+              ctx.fillStyle = ColorsSetting.greenColor
+              ctx.fillRect(offX2 + x * sideLength, y * sideLength, sideLength - 1, sideLength - 1)
+
+            case Plank =>
+              val x = f._1.x
+              val y = f._1.y
+              ctx.fillStyle = ColorsSetting.fontColor3
+              ctx.fillRect(offX2 + x * sideLength, y * sideLength, sideLength, sideLength)
+
+            case _ =>
+            //空白领地不做处理
+          }
+
+        }
+
+        val ball = d._2.ballLocation
+        val x = ball.x
+        val y = ball.y
+        ctx.fillStyle = ColorsSetting.darkYellowColor
+        ctx.fillRect(offX2 + x * sideLength, y * sideLength, sideLength, sideLength)
       }
     }
   }

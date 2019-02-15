@@ -3,13 +3,13 @@
   <component name="ScalaCompilerConfiguration">
     <option name="incrementalityType" value="SBT" />
     <profile name="sbt 1" modules="brickgame_2392" />
-    <profile name="sbt 2" modules="frontend,frontendAdmin,.js-shared">
+    <profile name="sbt 2" modules="frontendAdmin,.js-shared,frontend">
       <option name="featureWarnings" value="true" />
       <plugins>
         <plugin path="$USER_HOME$/.ivy2/cache/org.scala-js/scalajs-compiler_2.12.6/jars/scalajs-compiler_2.12.6-0.6.24.jar" />
       </plugins>
     </profile>
-    <profile name="sbt 3" modules="brickgame-carnie,client-carnie,brickgame,shared,carnie">
+    <profile name="sbt 3" modules="brickgame-carnie,client-carnie,carnie,brickgame,shared">
       <option name="featureWarnings" value="true" />
     </profile>
   </component>

@@ -101,32 +101,32 @@ object Short {
     res
   }
 
-  def findRandomPoint(snakeBoundary: List[Point], originSnakeBoundary: List[Point]): Option[Point] = {
-    if (snakeBoundary.nonEmpty) {
-      val findPoint = snakeBoundary(random.nextInt(snakeBoundary.length))
-      if (findPoint.x == 0 || findPoint.y == 0 || findPoint.x == Boundary.w || findPoint.y == Boundary.h) { //剔除边界点
-        findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
-      } else {
-        if (originSnakeBoundary.contains(findPoint + baseDirection("left")) && originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
-          !originSnakeBoundary.contains(findPoint + baseDirection("up")) && !originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //横线上的点
-          findInsidePoint(Point(findPoint.x, findPoint.y + 1), Point(findPoint.x, findPoint.y - 1), originSnakeBoundary) match {
-            case Right(p) => Some(p)
-            case Left(_) => findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
-          }
-        } else if (!originSnakeBoundary.contains(findPoint + baseDirection("left")) && !originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
-          originSnakeBoundary.contains(findPoint + baseDirection("up")) && originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //竖线上的点
-          findInsidePoint(Point(findPoint.x + 1, findPoint.y), Point(findPoint.x - 1, findPoint.y), originSnakeBoundary) match {
-            case Right(p) => Some(p)
-            case Left(_) => findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
-          }
-        } else { //转折点-重新找点
-          findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
-        }
-      }
-    } else {
-      None
-    }
-  }
+//  def findRandomPoint(snakeBoundary: List[Point], originSnakeBoundary: List[Point]): Option[Point] = {
+//    if (snakeBoundary.nonEmpty) {
+//      val findPoint = snakeBoundary(random.nextInt(snakeBoundary.length))
+//      if (findPoint.x == 0 || findPoint.y == 0 || findPoint.x == Boundary.w || findPoint.y == Boundary.h) { //剔除边界点
+//        findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
+//      } else {
+//        if (originSnakeBoundary.contains(findPoint + baseDirection("left")) && originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
+//          !originSnakeBoundary.contains(findPoint + baseDirection("up")) && !originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //横线上的点
+//          findInsidePoint(Point(findPoint.x, findPoint.y + 1), Point(findPoint.x, findPoint.y - 1), originSnakeBoundary) match {
+//            case Right(p) => Some(p)
+//            case Left(_) => findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
+//          }
+//        } else if (!originSnakeBoundary.contains(findPoint + baseDirection("left")) && !originSnakeBoundary.contains(findPoint + baseDirection("right")) &&
+//          originSnakeBoundary.contains(findPoint + baseDirection("up")) && originSnakeBoundary.contains(findPoint + baseDirection("down"))) { //竖线上的点
+//          findInsidePoint(Point(findPoint.x + 1, findPoint.y), Point(findPoint.x - 1, findPoint.y), originSnakeBoundary) match {
+//            case Right(p) => Some(p)
+//            case Left(_) => findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
+//          }
+//        } else { //转折点-重新找点
+//          findRandomPoint(snakeBoundary.filterNot(_ == findPoint), originSnakeBoundary)
+//        }
+//      }
+//    } else {
+//      None
+//    }
+//  }
 
   def findInsidePoint(point1: Point, point2: Point, boundary: List[Point]) = {
     if (boundary.count(p => p.x == point1.x && p.y > point1.y) % 2 == 1 &&

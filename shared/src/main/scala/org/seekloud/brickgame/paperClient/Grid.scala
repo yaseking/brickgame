@@ -104,12 +104,12 @@ trait Grid {
       var newVelocityY = p.velocityY
       field.get(newBallLocation.toInt) match {
         case Some(Brick) =>
-          newField -= newBallLocation
+          newField -= newBallLocation.toInt
           newVelocityY = - p.velocityY
           newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
           newField.get(newBallLocation.toInt) match { //该方法可以另用一个
             case Some(Brick) =>
-              newField -= newBallLocation
+              newField -= newBallLocation.toInt
               newVelocityX = -p.velocityX
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -128,7 +128,7 @@ trait Grid {
           newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
           newField.get(newBallLocation.toInt) match {
             case Some(Brick) =>
-              newField -= newBallLocation
+              newField -= newBallLocation.toInt
               newVelocityX = -p.velocityX
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -147,7 +147,7 @@ trait Grid {
           newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
           newField.get(newBallLocation.toInt) match {
             case Some(Brick) =>
-              newField -= newBallLocation
+              newField -= newBallLocation.toInt
               newVelocityX = -p.velocityX
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -166,7 +166,7 @@ trait Grid {
           newBallLocation = Point(p.ballLocation.x + newVelocityX, p.ballLocation.y + p.velocityY)
           newField.get(newBallLocation.toInt) match {
             case Some(Brick) =>
-              newField -= newBallLocation
+              newField -= newBallLocation.toInt
               newVelocityY = -p.velocityY
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -188,16 +188,16 @@ trait Grid {
       }
 
       //Plank信息修改，field信息需要加上board和plank，dealLine的信息
-      if(direction == 1 && p.location < 16) {
+      if(direction == 1 && p.location+plankLen < OriginField.w+1) {
         newLocation += 1
         newField -= Point(p.location, 30)
-        newField += Point(newLocation+4, 30) -> Plank
+        newField += Point(newLocation+plankLen-1, 30) -> Plank
         if(p.velocityX == 0 && p.velocityY ==0) {
           newBallLocation = Point(p.ballLocation.x+1, p.ballLocation.y)
         }
       } else if(direction == -1 && p.location > 1) {
         newLocation -= 1
-        newField -= Point(p.location+4, 30)
+        newField -= Point(p.location+plankLen-1, 30)
         newField += Point(newLocation, 30) -> Plank
         if(p.velocityX == 0 && p.velocityY ==0) {
           newBallLocation = Point(p.ballLocation.x-1, p.ballLocation.y)

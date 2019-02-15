@@ -100,13 +100,13 @@ package object paperClient {
     val h = 3
   }
 
-  val plankLen = 8
+  val plankLen = 7
 
   val plankOri = 7
 
   val topBorderLen = 22
 
-  val sideBorderLen = 3
+  val sideBorderLen = 31
 
 
 

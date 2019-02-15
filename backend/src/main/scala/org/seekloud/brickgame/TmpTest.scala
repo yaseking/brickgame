@@ -9,7 +9,7 @@ import org.seekloud.brickgame.paperClient._
   */
 object TmpTest extends Grid{
 
-  val boundary: Point = Point(BorderSize.w, BorderSize.h)
+//  val boundary: Point = Point(BorderSize.w, BorderSize.h)
 
   override def debug(msg: String): Unit = println(msg)
 

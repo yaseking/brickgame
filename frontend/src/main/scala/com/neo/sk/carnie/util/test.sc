@@ -11,5 +11,4 @@ import scala.util.Random
 //println(str)
 //println(str1)
 
-val rn = Random.nextInt(6)
-println(rn)
+val rn = 4/4*3
