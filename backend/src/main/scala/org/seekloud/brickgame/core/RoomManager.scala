@@ -101,19 +101,15 @@ object RoomManager {
           }
           Behaviors.same
 
-        case msg@Left(id, name) =>
+        case msg@Left(id, _) =>
           log.info(s"got $msg")
           try {
             val roomId = roomMap.filter(r => r._2.contains(id)).head._1
             roomMap.update(roomId, roomMap(roomId) - id)
-//            val mode = roomMap(roomId)._1
-//            val humanPlayers = roomMap(roomId)._3.filter(!_._1.contains("bot"))
-//            if(humanPlayers.isEmpty) {
-//              val childName = s"room_$roomId-mode_$mode"
-//              val actor = getRoomActor(ctx, roomId, mode)
-//              ctx.self ! ChildDead(roomId, childName, actor)
-//            }
             getRoomActor(ctx, roomId) ! RoomActor.LeftRoom(id)
+            if(roomMap.get(roomId).isEmpty) {
+              roomMap.remove(roomId)
+            }
           } catch {
             case e: Exception =>
               log.error(s"$msg got error: $e")
@@ -131,7 +127,7 @@ object RoomManager {
 
         case ChildDead(roomId, child, childRef) =>
           log.debug(s"roomManager 不再监管room:$child,$childRef")
-          ctx.unwatch(childRef)
+//          ctx.unwatch(childRef)
           roomMap.remove(roomId)
           Behaviors.same
 
@@ -194,7 +190,7 @@ object RoomManager {
     val childName = s"room_$roomId"
     ctx.child(childName).getOrElse {
       val actor = ctx.spawn(RoomActor.create(roomId), childName)
-      ctx.watchWith(actor, ChildDead(roomId, childName, actor))
+//      ctx.watchWith(actor, ChildDead(roomId, childName, actor))
       actor
 
     }.upcast[RoomActor.Command]

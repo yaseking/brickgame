@@ -90,8 +90,16 @@ object RoomActor {
 
         case LeftRoom(id) =>
           log.debug(s"LeftRoom:::$id")
-          dispatch(subscribersMap, Protocol.UserLeft(id))
+          //todo
+//          dispatch(subscribersMap, Protocol.UserLeft(id)) 发送其他死亡信息
           subscribersMap.remove(id)
+          userMap.remove(id)
+          grid.players -= id
+          if(userMap.nonEmpty) {
+            val winnerId = userMap.keys.head
+            grid.players = Map.empty[Int, PlayerDt]
+            dispatch(subscribersMap, WinPage(winnerId))
+          }
           if(subscribersMap.isEmpty) {
             Behaviors.stopped
           } else {
@@ -133,18 +141,32 @@ object RoomActor {
           Behaviors.same
 
         case Sync =>
-          val shouldNewSnake = if (grid.waitingListState) true else false //玩家匹配，当玩家数为2的时候才产生蛇
-          val shouldSync = if (tickCount % 50 == 1) true else false//5s发送一次全量数据
+          val shouldNewSnake = if (grid.waitingListState) true else false //玩家匹配，当玩家数为2的时候才产生
+          val shouldSync = if (tickCount % 100 == 1) true else false//10s发送一次全量数据
           val newPlayers = grid.getNewPlayers
           val dealList = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
+          if(shouldNewSnake) grid.gameDuration=0
+          if(tickCount % 10 == 5 && grid.gameDuration < 5) {
+            grid.gameDuration += 1
+            dispatch(subscribersMap, GameDuration(grid.gameDuration.toShort))
+          } else if(grid.gameDuration == 5 && grid.players.nonEmpty) {
+            //游戏结束，清算
+            val winnerId = grid.players.maxBy(_._2.score)._1
+            grid.players = Map.empty[Int, PlayerDt]
+            dispatch(subscribersMap, WinPage(winnerId))
+          }
 
           newPlayers.foreach {id =>
             val data = Data4TotalSync2(grid.frameCount, grid.players)
             dispatchTo(subscribersMap, id, data)
           }
 
-          dealList.foreach {id =>
-            dispatchTo(subscribersMap, id, DeadPage)
+          dealList.foreach {id => //复活
+//            dispatchTo(subscribersMap, id, DeadPage)
+            val playerInfo = grid.players(id)
+            val newField = grid.reBornPlank(id)
+            grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField)
+            dispatchTo(subscribersMap, id, Reborn)
           }
 
           if(shouldSync) {

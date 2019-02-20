@@ -95,6 +95,14 @@ trait AdminService extends ServiceUtils
     }
   }
 
+  private val forbidPlayer = path("forbidPlayer") {
+    adminAuth {
+      _ =>
+        //todo
+        complete()
+    }
+  }
+
   val adminRoutes: Route = pathPrefix("admin"){
     pathEndOrSingleSlash {
       getFromResource("html/admin.html")

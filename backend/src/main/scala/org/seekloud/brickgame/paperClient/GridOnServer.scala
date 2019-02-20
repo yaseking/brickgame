@@ -57,6 +57,10 @@ class GridOnServer() extends Grid {
     waitingList = Map.empty[Int, String]
   }
 
+//  def addPlayer(playerInfo: PlayerInfo): Unit = {
+//    players += playerInfo
+//  }
+
   def initField = { //todo change
     var field = Map.empty[Point, Spot]
     //TopBorder

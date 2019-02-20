@@ -16,12 +16,14 @@ class DrawGame(
   canvas: Canvas
 ) {
 
+  //todo 所有的大小均需适配浏览器
+
   private var windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
-  val mainLength = 20 //canvasUnit
-  val sideLength = 15
+  val mainLength = 20
+  val sideLength = 10
 
   val offX = windowBoundary.x/4
-  val offX2 = windowBoundary.x/4*3
+  val offX2 = windowBoundary.x/4*3-20
 
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   //  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
@@ -52,6 +54,16 @@ class DrawGame(
     ctx.fillText(s"It failed to verify the player's info!", 150, 180)
   }
 
+  def drawGameDuration(time: Int): Unit = {
+    val off = offX + 500
+    ctx.save()
+    ctx.fillStyle = ColorsSetting.fontColor2
+    ctx.font = "24px Helvetica"
+    ctx.fillText("剩余时间：", off-10, 40)
+    ctx.fillText(s"${60-time}s", off+25, 70)
+    ctx.restore()
+  }
+
 
   def drawGameOff(firstCome: Boolean): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
@@ -74,20 +86,6 @@ class DrawGame(
     ctx.fillText("Sorry, Some errors happened.", 150, 180)
   }
 
-  def drawGameDie4Replay(): Unit = {
-    ctx.fillStyle = ColorsSetting.backgroundColor2
-    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-    ctx.fillStyle = ColorsSetting.fontColor
-    ctx.fillStyle = ColorsSetting.backgroundColor2
-    canvas.width = 800
-    canvas.height = 400
-    ctx.fillRect(0, 0, 800.0, 400.0)
-    ctx.fillStyle = ColorsSetting.fontColor
-    //      rankCtx.clearRect(0, 0, dom.window.innerWidth.toInt, dom.window.innerHeight.toInt)
-    ctx.font = "36px Helvetica"
-    ctx.fillText("您观看的玩家已死亡...", 150, 180)
-  }
-
   def drawGameWait(): Unit = {
     ctx.fillStyle = ColorsSetting.backgroundColor2
     ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
@@ -98,20 +96,14 @@ class DrawGame(
   }
 
 
-  def drawGameDie: Unit = {
-    //    backBtn.style.display="block"
-//    ctx.fillStyle = ColorsSetting.backgroundColor2
-    //    ctx.fillStyle = ColorsSetting.backgroundColor
-//    ctx.fillRect(0, 0, windowBoundary.x, windowBoundary.y)
-//    ctx.fillStyle = ColorsSetting.gameNameColor
-
+  def drawGameWin(name: String): Unit = {
     ctx.save()
     ctx.fillStyle = ColorsSetting.fontColor3
 
     ctx.font = "24px Helvetica"
-    ctx.scale(1, 1)
+//    ctx.scale(1, 1)
 
-    val text = "Ops, Press Space Key To Restart!"
+    val text = s"Winner is $name, Press Space Key To Restart!"
 
     val length = ctx.measureText(text).width
     val offx = length / 2
@@ -151,13 +143,13 @@ class DrawGame(
               val x = f._1.x
               val y = f._1.y
               ctx.fillStyle = ColorsSetting.backgroundColor2
-              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength)
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength+1, mainLength)
 
             case SideBorder =>
               val x = f._1.x
               val y = f._1.y
               ctx.fillStyle = ColorsSetting.backgroundColor2
-              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength)
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength+1)
 
             case Brick =>
               val x = f._1.x
@@ -169,7 +161,7 @@ class DrawGame(
               val x = f._1.x
               val y = f._1.y
               ctx.fillStyle = ColorsSetting.fontColor3
-              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength)
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength+1, mainLength)
 
             case _ =>
               //空白领地不做处理
@@ -180,8 +172,18 @@ class DrawGame(
         val ball = d._2.ballLocation
         val x = ball.x
         val y = ball.y
+        val off = (offTime/100).toFloat
         ctx.fillStyle = ColorsSetting.darkYellowColor
-        ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength, mainLength) //球的形状改成圆形,offTime逐步绘制
+        ctx.fillRect(offX + x * mainLength + off * mainLength, y * mainLength - off * mainLength, mainLength, mainLength) //球的形状改成圆形,offTime逐步绘制
+//        ctx.arc(offX + x * mainLength, y * mainLength, 0.5*mainLength, 0, 2*Math.PI)
+//        ctx.fill()
+        //绘制分数
+        val score = d._2.score
+        val offX4Score = offX + 190
+        val offY4Score = 660
+        ctx.fillStyle = ColorsSetting.fontColor2
+        ctx.font = "20px Helvetica"
+        ctx.fillText(s"Score:${score}", offX4Score, offY4Score)
       } else {
         //绘制对手的部分
         val totalField = d._2.field
@@ -222,6 +224,12 @@ class DrawGame(
         val y = ball.y
         ctx.fillStyle = ColorsSetting.darkYellowColor
         ctx.fillRect(offX2 + x * sideLength, y * sideLength, sideLength, sideLength)
+        val score = d._2.score
+        val offX4Score = offX2 + 85
+        val offY4Score = 325
+        ctx.fillStyle = ColorsSetting.fontColor2
+        ctx.font = "20px Helvetica"
+        ctx.fillText(s"Score:${score}", offX4Score, offY4Score)
       }
     }
   }

@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.LoggerFactory
 import slick.jdbc.H2Profile
 import org.seekloud.brickgame.common.AppSettings._
+import org.h2.jdbcx.JdbcDataSource
 
 /**
   * Created by dry on 2018/10/24.
@@ -16,7 +17,7 @@ object DBUtil {
 
   private def createDataSource() = {
 
-    val dataSource = new org.h2.jdbcx.JdbcDataSource
+    val dataSource = new JdbcDataSource
     dataSource.setURL(slickUrl)
     dataSource.setUser(slickUser)
     dataSource.setPassword(slickPassword)

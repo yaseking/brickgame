@@ -35,9 +35,9 @@ trait HttpService extends PlayerService
 
   implicit val timeout: Timeout
 
-  private val home = get {
-    redirect(Uri(s"$httpUrl"),StatusCodes.SeeOther)
-  }
+//  private val home = get {
+//    redirect(Uri(s"$httpUrl"),StatusCodes.SeeOther)
+//  }
 
   val routes = ignoreTrailingSlash{
     pathPrefix("carnie") {
@@ -46,6 +46,6 @@ trait HttpService extends PlayerService
         esheepRoute ~
         roomApiRoutes ~
         adminRoutes
-    } ~ home
+    }// ~ home
   }
 }

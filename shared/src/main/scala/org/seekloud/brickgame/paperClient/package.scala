@@ -80,7 +80,8 @@ package object paperClient {
                    velocityY: Float,
                    ballLocation: Point = Point(0 ,0),
                    field: Map[Point, Spot],
-                   direction: Int = 0
+                   direction: Int = 0,
+                   score: Int = 0
                  )
 
   case class SkDt4Sync(

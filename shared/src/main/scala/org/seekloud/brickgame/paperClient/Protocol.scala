@@ -30,6 +30,9 @@ object Protocol {
                               players: Map[Int, PlayerDt]
                             ) extends GameMessage
 
+  case class GameDuration(
+                         time: Short
+                         ) extends GameMessage
 
   case class KilledSkData(
                            killedSkInfo: List[KilledSkDt]
@@ -81,6 +84,10 @@ object Protocol {
   case class RoomId(roomId: String) extends GameMessage
 
   case object DeadPage extends GameMessage
+
+  case object Reborn extends GameMessage
+
+  case class WinPage(id: Int) extends GameMessage
 
   case class UserDeadMsg(frame: Int, deadInfo: List[BaseDeadInfo]) extends GameMessage
 

@@ -35,7 +35,6 @@ object Main extends js.JSApp {
         println(s"not playGame ${info(0)}")
         currentPage = new CanvasPage().render
         show()
-//        newGameHolder(playerMsgMap, info)
     }
   }
 

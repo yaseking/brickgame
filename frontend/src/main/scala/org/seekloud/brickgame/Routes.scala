@@ -13,4 +13,8 @@ object Routes {
     val getRoomList4Front = baseUrl + "/getRoomList4Front"
     val addSession = baseUrl + "/addSession"
   }
+
+  object Player {
+    val login = baseUrl + "login"
+  }
 }

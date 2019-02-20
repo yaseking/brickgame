@@ -17,5 +17,6 @@ object Routes {
     val getPlayerRecordByTime = baseUrl + "/getPlayerRecordByTime"
     val getPlayerRecordAmount = baseUrl + "/getPlayerRecordAmount"
     val getPlayerByTimeAmount = baseUrl + "/getPlayerByTimeAmount"
+    val forbidPlayer = baseUrl + "forbidPlayer"
   }
 }

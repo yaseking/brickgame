@@ -26,6 +26,7 @@ trait Grid {
   val maxDelayed = 11 //最大接收10帧以内的延时
   val historyRankLength = 5
   var frameCount = 0
+  var gameDuration = 0 //游戏时间
   var grid: Map[Point, Spot] = Map[Point, Spot]()
   var players = Map.empty[Int, PlayerDt] //(id, PlayerDt)
   var snakes = Map.empty[String, SkDt]
@@ -90,6 +91,18 @@ trait Grid {
 //    }
 //  }
 
+  def reBornPlank(id: Int): Map[Point, Spot] = {
+    var field = players(id).field
+    val location = players(id).location
+    (location until location+plankLen).foreach{x =>
+      field -= Point(x, 30)
+    }
+    (plankOri until plankOri+plankLen).foreach{x =>
+      field += Point(x, 30) -> Plank
+    }
+    field
+  }
+
   def updateBalls: List[Int] = { //该为向后台返回死亡名单
 
     var deadPlayers:List[Int] = List.empty[Int]
@@ -100,16 +113,19 @@ trait Grid {
       var newBallLocation = Point(p.velocityX + p.ballLocation.x, p.velocityY + p.ballLocation.y)
       val field = p.field
       var newField = p.field
+      var newScore = p.score
       var newVelocityX = p.velocityX
       var newVelocityY = p.velocityY
       field.get(newBallLocation.toInt) match {
         case Some(Brick) =>
           newField -= newBallLocation.toInt
+          newScore += 1
           newVelocityY = - p.velocityY
           newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
           newField.get(newBallLocation.toInt) match { //该方法可以另用一个
             case Some(Brick) =>
               newField -= newBallLocation.toInt
+              newScore += 1
               newVelocityX = -p.velocityX
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -129,6 +145,7 @@ trait Grid {
           newField.get(newBallLocation.toInt) match {
             case Some(Brick) =>
               newField -= newBallLocation.toInt
+              newScore += 1
               newVelocityX = -p.velocityX
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -148,6 +165,7 @@ trait Grid {
           newField.get(newBallLocation.toInt) match {
             case Some(Brick) =>
               newField -= newBallLocation.toInt
+              newScore += 1
               newVelocityX = -p.velocityX
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -167,6 +185,7 @@ trait Grid {
           newField.get(newBallLocation.toInt) match {
             case Some(Brick) =>
               newField -= newBallLocation.toInt
+              newScore += 1
               newVelocityY = -p.velocityY
               newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
 
@@ -204,7 +223,7 @@ trait Grid {
         }
       }
 
-      players += p.id -> p.copy(location = newLocation, velocityX = newVelocityX, velocityY = newVelocityY, ballLocation = newBallLocation, field = newField)
+      players += p.id -> p.copy(location = newLocation, velocityX = newVelocityX, velocityY = newVelocityY, ballLocation = newBallLocation, field = newField, score = newScore)
 
     }
 
@@ -214,7 +233,7 @@ trait Grid {
 
     players.values.foreach(updateAPlayer(_, acts))
 
-    players --= deadPlayers
+//    players --= deadPlayers
 
     deadPlayers
   }

@@ -106,14 +106,12 @@ class NetGameHolder(nickname: String) {
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     }
 
-//    var isAlreadySendSync = false
 
     if (webSocketClient.getWsState) {
       recallFrame match {
         case Some(-1) => //无法回溯，请求全局变量
           println("!!!!!!!!:NeedToSync")
           webSocketClient.sendMessage(NeedToSync.asInstanceOf[UserAction])
-//          isAlreadySendSync = true
           recallFrame = None
 
         case Some(frame) =>
@@ -134,15 +132,15 @@ class NetGameHolder(nickname: String) {
       }
 
 
-      val gridData = grid.players //data直接用players就可以了
-      drawFunction = gridData.find(_._1 == myId) match {
+      val gridData = grid.players
+      gridData.find(_._1 == myId) match {
         case Some(_) =>
           if (firstCome) firstCome = false
-          FrontProtocol.DrawBaseGame
+          drawFunction = FrontProtocol.DrawBaseGame
 
         case None if isWin =>
           //gameOver，胜利消息从后台传送
-          FrontProtocol.DrawGameDie
+//          FrontProtocol.DrawGameWin("")
 
         case _ => //多余
           FrontProtocol.DrawGameWait //匹配中
@@ -161,12 +159,12 @@ class NetGameHolder(nickname: String) {
         drawGame.drawGameOff(firstCome)//断开连接
 
       case FrontProtocol.DrawBaseGame =>
-        //        println(s"draw---DrawBaseGame!! snakes:${data.snakes.map(_.id)}")
         drawGameImage(myId, offsetTime)
+        drawGame.drawGameDuration(grid.gameDuration)
 
-      case FrontProtocol.DrawGameDie => //
+      case FrontProtocol.DrawGameWin(name) => //
 //        if (data.nonEmpty) drawGameImage(myId, offsetTime)
-        drawGame.drawGameDie
+        drawGame.drawGameWin(name)
 
       case _ =>
     }
@@ -194,14 +192,11 @@ class NetGameHolder(nickname: String) {
                   webSocketClient.sendMessage(msg)
                   hasStarted = true
                 }
-              case FrontProtocol.DrawGameDie =>
+              case FrontProtocol.DrawGameWin(_) =>
                 println("onkeydown:Space")
                 val msg: Protocol.UserAction = PressSpace
                 webSocketClient.sendMessage(msg)
-              case FrontProtocol.DrawGameWin(_, _) =>
-                println("onkeydown:Space")
-                val msg: Protocol.UserAction = PressSpace
-                webSocketClient.sendMessage(msg)
+                drawFunction = FrontProtocol.DrawGameWait
 
               case _ =>
             }
@@ -262,6 +257,18 @@ class NetGameHolder(nickname: String) {
         println("got msg: ReStartGame.")
         spaceKey()
 
+      case WinPage(id) =>
+        val winnerName = grid.players(id).name
+        grid.players = Map.empty[Int, PlayerDt]
+        isWin = true
+        drawFunction = FrontProtocol.DrawGameWin(winnerName)
+
+      case Reborn =>
+        hasStarted = false
+        val playerInfo = grid.players(myId)
+        val newField = grid.reBornPlank(myId)
+        grid.players += myId -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField)
+
       case data: Protocol.Data4TotalSync2 =>
         println(s"===========recv total data")
         if (!isFirstTotalDataSync) {
@@ -275,9 +282,10 @@ class NetGameHolder(nickname: String) {
         println("recv userDead")
         isWin=true
 
-//        myScore = BaseScore(kill, area, playTime)
-//        maxArea = Constant.shortMax(maxArea, area)
 
+      case Protocol.GameDuration(time) =>
+        grid.gameDuration = time
+//        drawGame.drawGameDuration(time)
 
       case x@Protocol.ReceivePingPacket(recvPingId) =>
         val currentTime = System.currentTimeMillis()
