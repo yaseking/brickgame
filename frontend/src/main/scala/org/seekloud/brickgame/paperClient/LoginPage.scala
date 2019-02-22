@@ -6,11 +6,11 @@ import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.html.{Button, Input}
 import org.scalajs.dom.raw.KeyboardEvent
-import org.seekloud.brickgame.Routes
+import org.seekloud.brickgame.{Main, Routes}
 import org.seekloud.brickgame.ptcl.AdminPtcl._
-import org.seekloud.brickgame.util.{Http, JsFunc, Page}
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.seekloud.brickgame.util.{Component, Http, JsFunc, Page}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.{Elem, Node}
 
 /**
@@ -18,8 +18,8 @@ import scala.xml.{Elem, Node}
   * Date: 2018/12/18
   * Time: 9:54
   */
-object LoginPage extends Page{
-  override val locationHashString: String = "#/LoginPage"
+object LoginPage extends Component{
+//  override val locationHashString: String = "#/LoginPage"
 
   def login():Unit = {
     val name = dom.window.document.getElementById("username").asInstanceOf[Input].value
@@ -30,7 +30,9 @@ object LoginPage extends Page{
       case Right(rsp) =>
         try {
           if (rsp.errCode == 0) {
-            dom.window.location.href="#/CurrentDataPage"
+            //refreshPage
+//            dom.window.location.href="#/CurrentDataPage"
+
           }
           else {
             println("error======" + rsp.msg)
@@ -48,11 +50,17 @@ object LoginPage extends Page{
     }
   }
 
+  def switch: Unit = {
+    dom.document.getElementById("loginPage").setAttribute("display","none")
+    dom.document.getElementById("loginPage").setAttribute("hidden","hidden")
+    Main.refreshPage(RegisterPage.render)
+  }
+
   val Email:Var[Node] =Var(
     <div class="row" style="padding: 1rem 1rem 1rem 1rem;">
       <label class="col-md-3" style="text-align:right">用户名</label>
       <div class="col-md-6">
-        <input type="text" id="username" placeholder="用户名" class="form-control" autofocus="true"></input>
+        <input type="text" id="username4login" placeholder="用户名" class="form-control" autofocus="true"></input>
       </div>
     </div>
   )
@@ -61,7 +69,16 @@ object LoginPage extends Page{
     <div class="row" style="padding: 1rem 1rem 1rem 1rem">
       <label class="col-md-3" style="text-align:right;">密码</label>
       <div class="col-md-6">
-        <input type="password" id="password" placeholder="密码" class="form-control" onkeydown={e:KeyboardEvent => loginByEnter(e)}></input>
+        <input type="password" id="password4login" placeholder="密码" class="form-control"></input>
+      </div>
+    </div>
+  )
+
+  val Nickname:Var[Node] =Var(
+    <div class="row" style="padding: 1rem 1rem 1rem 1rem">
+      <label class="col-md-3" style="text-align:right;">昵称</label>
+      <div class="col-md-6">
+        <input type="text" id="nickname4login" placeholder="昵称" class="form-control" onkeydown={e:KeyboardEvent => loginByEnter(e)}></input>
       </div>
     </div>
   )
@@ -74,15 +91,27 @@ object LoginPage extends Page{
   val Title:Var[Node]=Var(
     <div class="row" style="margin-top: 15rem;margin-bottom: 4rem;">
       <div style="text-align: center;font-size: 4rem;">
-        Carnie数据查看
+        Brickgame登录页
       </div>
     </div>
+
   )
 
   val Btn:Var[Node]=Var(
     <div class="row" style="padding: 1rem 1rem 1rem 1rem;text-align:center;">
       <button id="logIn" class="btn btn-info" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>login() } >
-        登陆
+        登录
+      </button>
+      <button id="logIn" class="btn btn-successful" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>switch } >
+        注册
+      </button>
+    </div>
+  )
+
+  val Btn2:Var[Node]=Var(
+    <div class="row" style="padding: 1rem 1rem 1rem 1rem;text-align:center;">
+      <button id="logIn" class="btn btn-successful" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>login() } >
+        注册
       </button>
     </div>
   )
@@ -91,11 +120,12 @@ object LoginPage extends Page{
     <form class="col-md-8 col-md-offset-2" style="border: 1px solid #dfdbdb;border-radius: 6px;padding:2rem 1rem 2rem 1rem;">
       {Email}
       {PassWord}
+      {Nickname}
     </form>
   )
 
   override def render: Elem =
-      <div>
+      <div id="loginPage">
         <div class="container">
           {Title}
           {Form}

@@ -1,12 +1,11 @@
-package org.seekloud.brickgame.frontendAdmin
+package brickgame.frontendAdmin
 
 import mhtml.{Cancelable, Rx, mount}
 import org.scalajs.dom
 import scala.xml.Elem
-import org.seekloud.brickgame.frontendAdmin.util.PageSwitcher
-import org.seekloud.brickgame.frontendAdmin.pages._
-import org.seekloud.brickgame.frontendAdmin.components.Header
-import org.seekloud.brickgame.frontendAdmin.styles._
+import brickgame.frontendAdmin.util.PageSwitcher
+import brickgame.frontendAdmin.pages._
+import brickgame.frontendAdmin.components.Header
 
 /**
   * User: Jason

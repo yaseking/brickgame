@@ -1,4 +1,4 @@
-package org.seekloud.brickgame.frontendAdmin.util
+package brickgame.frontendAdmin.util
 
 import org.scalajs.dom
 

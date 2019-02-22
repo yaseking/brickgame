@@ -1,4 +1,4 @@
-package org.seekloud.brickgame.frontendAdmin.util
+package brickgame.frontendAdmin.util
 
 import io.circe.{Decoder, Error}
 import org.scalajs.dom

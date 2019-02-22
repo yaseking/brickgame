@@ -1,4 +1,4 @@
-package org.seekloud.brickgame.frontendAdmin
+package brickgame.frontendAdmin
 
 /**
   * User: Jason

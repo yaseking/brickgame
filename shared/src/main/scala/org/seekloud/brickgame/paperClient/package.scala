@@ -20,6 +20,12 @@ package object paperClient {
 
   case object Brick extends Spot
 
+  case object RedBrick extends Spot
+
+  case object HotBall extends Spot
+
+  case object Reverse extends Spot
+
   case object DeadLine extends Spot
 
   case class Score(id: String, n: String, k: Short, area: Short = 0)
@@ -56,6 +62,12 @@ package object paperClient {
     def %(other: Point) = Point(x % other.x, y % other.y)
 
     def toInt = Point(x.toInt, y.toInt)
+//    def toInt = {
+//      if(x<15)
+//        Point(x.toInt, y.toInt)
+//      else
+//        Point(x.toInt+1, y.toInt)
+//    }
   }
 
 
@@ -81,7 +93,8 @@ package object paperClient {
                    ballLocation: Point = Point(0 ,0),
                    field: Map[Point, Spot],
                    direction: Int = 0,
-                   score: Int = 0
+                   score: Int = 0,
+                   state: Int = 0 //0-正常，1-火球，2-反转
                  )
 
   case class SkDt4Sync(
@@ -98,7 +111,7 @@ package object paperClient {
 
   object OriginField {
     val w = 20
-    val h = 3
+    val h = 5
   }
 
   val plankLen = 7

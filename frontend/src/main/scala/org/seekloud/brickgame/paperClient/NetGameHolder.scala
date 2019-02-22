@@ -58,12 +58,12 @@ class NetGameHolder(nickname: String) {
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-//  dom.document.addEventListener("visibilitychange", { e: Event =>
-//    if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
-//      println("has Synced")
-//      updateListener()
-//    }
-//  })
+  dom.document.addEventListener("visibilitychange", { e: Event =>
+    if (dom.document.visibilityState.asInstanceOf[VisibilityState] != VisibilityState.hidden) {
+      println("has Synced")
+      updateListener()
+    }
+  })
 
   private var logicFrameTime = System.currentTimeMillis()
 
@@ -257,17 +257,24 @@ class NetGameHolder(nickname: String) {
         println("got msg: ReStartGame.")
         spaceKey()
 
-      case WinPage(id) =>
+      case m@WinPage(id) =>
+        println(s"got msg: $m")
         val winnerName = grid.players(id).name
         grid.players = Map.empty[Int, PlayerDt]
         isWin = true
         drawFunction = FrontProtocol.DrawGameWin(winnerName)
 
-      case Reborn =>
-        hasStarted = false
-        val playerInfo = grid.players(myId)
-        val newField = grid.reBornPlank(myId)
-        grid.players += myId -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField)
+      case Reborn(id) =>
+        if(myId == id)
+          hasStarted = false
+        val playerInfo = grid.players(id)
+        val newField = grid.reBornPlank(id)
+        grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField)
+
+      case m@ChangeState(id, newState) =>
+        println(s"got msg: $m")
+        val playerInfo = grid.players(id)
+        grid.players += id -> playerInfo.copy(state = newState)
 
       case data: Protocol.Data4TotalSync2 =>
         println(s"===========recv total data")

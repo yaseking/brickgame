@@ -2,8 +2,9 @@ package org.seekloud.brickgame
 
 import org.seekloud.brickgame.paperClient.WebSocketProtocol._
 import org.seekloud.brickgame.paperClient._
-import mhtml.{Cancelable, mount}
+import mhtml.{Cancelable, Rx, mount}
 import org.scalajs.dom
+//import org.seekloud.brickgame.util.PageSwitcher
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
@@ -27,27 +28,37 @@ object Main extends js.JSApp {
     info match {
       case "playGame" =>
         println("playGame ...")
-        currentPage = new CanvasPage().render
+//        currentPage = JoinPage.render
+        currentPage = CanvasPage.render
         show()
         new NetGameHolder("test").init()
 
       case _ =>
         println(s"not playGame ${info(0)}")
-        currentPage = new CanvasPage().render
+        currentPage = CanvasPage.render
         show()
     }
   }
 
-  def login(nickname: String): Unit = {
-    println("111111")
-    currentPage = new CanvasPage().render
-    println("222222")
-    show()
-    println("333333")
-    new NetGameHolder(nickname).init()
-    println("444444")
+//  def join(nickname: String): Unit = {
+//    currentPage = new CanvasPage().render
+//    show()
+//    new NetGameHolder(nickname).init()
+//  }
 
+  def refreshPage(newPage: Elem): Cancelable = {
+    println("refreshPage!!!")
+    currentPage = newPage
+    show()
   }
+
+//  def switchToLogin(): Unit = {
+//    dom.document.getElementById("joinPage").setAttribute("display","none")
+//    dom.document.getElementById("joinPage").setAttribute("hidden","hidden")
+//    currentPage = new LoginPage(switchToR).render
+//    show()
+//  }
+
 
 //  def refreshPage(newPage: Elem): Cancelable = {
 //    println("refreshPage!!!")
@@ -60,3 +71,47 @@ object Main extends js.JSApp {
   }
 
 }
+
+//object Main {
+//
+//
+//  def main(args: Array[String]): Unit ={
+//    println("11111")
+//    MainEnter.show()
+//  }
+//
+//}
+//
+//object MainEnter extends PageSwitcher {
+////  var nickname = ""
+//
+//  val currentPage: Rx[Elem] = currentHashVar.map {
+//    case Nil => println("lala");new JoinPage().render
+//    case "JoinPage" :: Nil => new JoinPage().render
+//    case "CanvasPage" :: Nil => new CanvasPage().render
+//    case _ => <div>Error Page</div>
+//  }
+//
+////  def join(name: String): Unit = {
+////    nickname = name
+////  }
+//
+////  val header: Rx[Elem] = currentHashVar.map {
+////    //    case Nil => Header.render
+////    case "LoginPage" :: Nil => <div></div>
+////    //    case "GPUOrder" :: Nil => Header.render
+////    //    case "rentRecord" :: Nil => Header.render
+////    //    case "rulePage" :: Nil => Header.render
+////    case _ => Header.render
+////  }
+//
+//  def show(): Cancelable = {
+//    val page =
+//      <div>
+//        {currentPage}
+//      </div>
+//    switchPageByHash()
+//    mount(dom.document.body, page)
+//  }
+//
+//}

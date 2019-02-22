@@ -85,7 +85,9 @@ object Protocol {
 
   case object DeadPage extends GameMessage
 
-  case object Reborn extends GameMessage
+  case class Reborn(id: Int) extends GameMessage
+
+  case class ChangeState(id: Int, state: Int) extends GameMessage
 
   case class WinPage(id: Int) extends GameMessage
 

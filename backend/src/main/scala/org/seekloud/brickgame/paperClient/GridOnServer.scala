@@ -7,6 +7,8 @@ import org.seekloud.brickgame.Boot.roomManager
 import org.seekloud.brickgame.core.RoomActor
 import org.seekloud.brickgame.protocol.EsheepProtocol.PlayerInfo
 
+import scala.util.Random
+
 
 /**
   * User: Taoz
@@ -43,8 +45,8 @@ class GridOnServer() extends Grid {
     waitingList.keys.toList
   }
 
-//  def waitingListState: Boolean = waitingList.nonEmpty
-  def waitingListState: Boolean = if(waitingList.size == 2) true else false //双人对战模式
+  def waitingListState: Boolean = waitingList.nonEmpty
+//  def waitingListState: Boolean = if(waitingList.size == 2) true else false //双人对战模式
 
   def genPlayer: Unit = {
     waitingList.foreach {p =>
@@ -61,7 +63,7 @@ class GridOnServer() extends Grid {
 //    players += playerInfo
 //  }
 
-  def initField = { //todo change
+  def initField = {
     var field = Map.empty[Point, Spot]
     //TopBorder
     (0 until topBorderLen).foreach{x =>
@@ -78,10 +80,29 @@ class GridOnServer() extends Grid {
       field += Point(x, 30) -> Plank
     }
 
-    (1 to OriginField.w).foreach {x =>
-      (1 to OriginField.h).foreach {y =>
-        field += Point(x, y) -> Brick
+//    (1 to OriginField.w).foreach {x =>
+//      (1 to OriginField.h).foreach {y =>
+//        if(y==2||y==4){
+//          field += Point(x, y) -> RedBrick
+//        } else {
+//          field += Point(x, y) -> Brick
+//        }
+//      }
+//    }
+
+    (3 to 18).foreach {x=>
+      (3 to 7).foreach {y=>
+        if(y==4||y==6)
+          field += Point(x, y) -> RedBrick
+        else
+          field += Point(x, y) -> Brick
       }
+    }
+
+    (1 to 2).foreach { _ =>
+      val c = Random.nextInt(16)+3
+      val d = Random.nextInt(5)+3
+      field += Point(c,d) -> HotBall
     }
 
     (1 to OriginField.w).foreach{x =>
@@ -91,19 +112,6 @@ class GridOnServer() extends Grid {
     field
   }
 
-  private[this] def updateRanks(): Unit = {
-    val areaMap = grid.filter { case (p, spot) =>
-      spot match {
-        case Field(id) if snakes.contains(id) => true
-        case _ => false
-      }
-    }.map {
-      case (p, f@Field(_)) => (p, f)
-      case _ => (Point(-1, -1), Field((-1L).toString))
-    }.filter(_._2.id != -1L).values.groupBy(_.id).map(p => (p._1, p._2.size))
-    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, areaMap.getOrElse(s.id, 0).toShort)).toList.sortBy(_.area).reverse
-
-  }
 
 //  def randomColor(): String = {
 //    var color = randomHex()
@@ -151,10 +159,10 @@ class GridOnServer() extends Grid {
     target
   }
 
-  def updateInService(newSnake: Boolean): List[Int] = {
-    val dealList = super.update
+  def updateInService(newSnake: Boolean): (List[Int], List[Int]) = {
+    val result = super.update
     if (newSnake) genPlayer
-    dealList
+    result
   }
 
   def generateCarnieId(carnieIdGenerator: AtomicInteger, existsId: Iterable[Byte]): Byte = {

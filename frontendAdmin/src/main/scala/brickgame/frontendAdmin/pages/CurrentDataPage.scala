@@ -1,7 +1,7 @@
-package org.seekloud.brickgame.frontendAdmin.pages
+package brickgame.frontendAdmin.pages
 
-import org.seekloud.brickgame.frontendAdmin.Routes
-import org.seekloud.brickgame.frontendAdmin.util.{Http, JsFunc, Page}
+import brickgame.frontendAdmin.Routes
+import brickgame.frontendAdmin.util.{Http, JsFunc, Page}
 import org.seekloud.brickgame.ptcl.AdminPtcl._
 import org.seekloud.brickgame.ptcl.RoomApiProtocol._
 import mhtml.Var

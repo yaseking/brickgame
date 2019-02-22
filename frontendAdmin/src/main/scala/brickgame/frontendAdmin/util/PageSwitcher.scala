@@ -1,6 +1,6 @@
-package org.seekloud.brickgame.frontendAdmin.util
+package brickgame.frontendAdmin.util
 
-import org.seekloud.brickgame.frontendAdmin.MainEnter.getCurrentHash
+import brickgame.frontendAdmin.MainEnter.getCurrentHash
 import mhtml.{Rx, Var}
 import org.scalajs.dom
 import org.scalajs.dom.raw.Event

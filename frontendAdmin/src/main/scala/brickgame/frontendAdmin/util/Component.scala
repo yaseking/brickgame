@@ -1,4 +1,4 @@
-package org.seekloud.brickgame.frontendAdmin.util
+package brickgame.frontendAdmin.util
 
 /**
   * Created by dry on 2018/10/12.

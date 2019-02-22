@@ -9,7 +9,7 @@
         <plugin path="$USER_HOME$/.ivy2/cache/org.scala-js/scalajs-compiler_2.12.6/jars/scalajs-compiler_2.12.6-0.6.24.jar" />
       </plugins>
     </profile>
-    <profile name="sbt 3" modules="brickgame-carnie,client-carnie,carnie,brickgame,shared">
+    <profile name="sbt 3" modules="brickgame-carnie,client-carnie,shared,carnie,brickgame">
       <option name="featureWarnings" value="true" />
     </profile>
   </component>

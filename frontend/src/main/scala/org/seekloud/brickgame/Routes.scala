@@ -15,6 +15,7 @@ object Routes {
   }
 
   object Player {
-    val login = baseUrl + "login"
+    val login = baseUrl + "/login"
+    val register = baseUrl + "/register"
   }
 }

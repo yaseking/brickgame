@@ -1,14 +1,14 @@
-package org.seekloud.brickgame.frontendAdmin.components
+package brickgame.frontendAdmin.components
 
 /**
   * User: Jason
   * Date: 2018/12/19
   * Time: 9:51
   */
-import org.seekloud.brickgame.frontendAdmin.Routes.Admin
-import org.seekloud.brickgame.frontendAdmin.pages._
-import org.seekloud.brickgame.frontendAdmin.util.{Component, Http}
-import org.seekloud.brickgame.frontendAdmin.styles.Demo2Styles.menuHorizontalLink
+import brickgame.frontendAdmin.Routes.Admin
+import brickgame.frontendAdmin.pages._
+import brickgame.frontendAdmin.util.{Component, Http}
+import brickgame.frontendAdmin.styles.Demo2Styles.menuHorizontalLink
 
 import scala.xml.Elem
 

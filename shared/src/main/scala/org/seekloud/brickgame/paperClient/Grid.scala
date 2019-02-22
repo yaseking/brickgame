@@ -29,11 +29,11 @@ trait Grid {
   var gameDuration = 0 //游戏时间
   var grid: Map[Point, Spot] = Map[Point, Spot]()
   var players = Map.empty[Int, PlayerDt] //(id, PlayerDt)
-  var snakes = Map.empty[String, SkDt]
   var actionMap = Map.empty[Int, Map[Int, Int]] //Map[frameCount,Map[id, keyCode]]
   var mayBeDieSnake = Map.empty[String, String] //可能死亡的蛇 killedId,killerId
   var mayBeSuccess = Map.empty[String, Map[Point, Spot]] //圈地成功后的被圈点 userId,points
   var historyStateMap = Map.empty[Int, Map[Int, PlayerDt]]
+  var gameStateMap = Map.empty[Int, Long]
 
 //  val defaultHeight = 3
 //  (0 until 20).foreach {x =>
@@ -58,7 +58,7 @@ trait Grid {
     val player = players.get(id)
     if(player.nonEmpty) {
       val newVelocityX = 0.5f
-      val newVelocityY = -1
+      val newVelocityY = -1f
       players += id -> player.get.copy(velocityX = newVelocityX, velocityY = newVelocityY)
     }
   }
@@ -103,9 +103,10 @@ trait Grid {
     field
   }
 
-  def updateBalls: List[Int] = { //该为向后台返回死亡名单
+  def updateBalls: (List[Int], List[Int]) = { //该为向后台返回死亡名单
 
     var deadPlayers:List[Int] = List.empty[Int]
+    var stateChangePlayers:List[Int] = List.empty[Int]
 
     def updateAPlayer(p: PlayerDt, acts: Map[Int, Int]): Unit = {
       val direction = acts.getOrElse(p.id, 0)
@@ -116,97 +117,292 @@ trait Grid {
       var newScore = p.score
       var newVelocityX = p.velocityX
       var newVelocityY = p.velocityY
-      field.get(newBallLocation.toInt) match {
+      var newState = p.state
+      val newBallX = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y).toInt
+      val newBallY = Point(p.ballLocation.x, p.velocityY + p.ballLocation.y).toInt
+
+      //X方向检测
+      field.get(newBallX) match {
         case Some(Brick) =>
-          newField -= newBallLocation.toInt
-          newScore += 1
-          newVelocityY = - p.velocityY
-          newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-          newField.get(newBallLocation.toInt) match { //该方法可以另用一个
-            case Some(Brick) =>
-              newField -= newBallLocation.toInt
-              newScore += 1
-              newVelocityX = -p.velocityX
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+          newField -= newBallX
+          newScore+=1
+          newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
 
-            case Some(DeadLine) =>
-              //不做处理，正常死亡
+        case Some(RedBrick) =>
+          newField -= newBallX
+          newScore+=2
+          newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
 
-            case Some(_) =>
-              newVelocityX = -p.velocityX
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-
-            case _ =>
-          }
-
-        case Some(Plank) =>
-          newVelocityY = - p.velocityY
-          newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-          newField.get(newBallLocation.toInt) match {
-            case Some(Brick) =>
-              newField -= newBallLocation.toInt
-              newScore += 1
-              newVelocityX = -p.velocityX
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-
-            case Some(DeadLine) =>
-            //不做处理，正常死亡
-
-            case Some(_) =>
-              newVelocityX = -p.velocityX
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-
-            case _ =>
-          }
-
-        case Some(TopBorder) =>
-          newVelocityY = - p.velocityY
-          newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-          newField.get(newBallLocation.toInt) match {
-            case Some(Brick) =>
-              newField -= newBallLocation.toInt
-              newScore += 1
-              newVelocityX = -p.velocityX
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-
-            case Some(DeadLine) =>
-            //不做处理，正常死亡
-
-            case Some(_) =>
-              newVelocityX = -p.velocityX
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
-
-            case _ =>
-          }
+        case Some(HotBall) =>
+          newField -= newBallX
+          newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+          newState = 1
+          gameStateMap += p.id -> frameCount
+          stateChangePlayers = p.id :: stateChangePlayers
 
         case Some(SideBorder) =>
-          newVelocityX = - p.velocityX
-          newBallLocation = Point(p.ballLocation.x + newVelocityX, p.ballLocation.y + p.velocityY)
-          newField.get(newBallLocation.toInt) match {
-            case Some(Brick) =>
-              newField -= newBallLocation.toInt
-              newScore += 1
-              newVelocityY = -p.velocityY
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+          newVelocityX = -p.velocityX
 
-            case Some(DeadLine) =>
-            //不做处理，正常死亡
+        case _ =>
 
-            case Some(_) =>
-              newVelocityY = -p.velocityY
-              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+      }
 
-            case _ =>
-          }
+      //Y方向检测
+      field.get(newBallY) match {
+        case Some(Brick) =>
+          newField -= newBallY
+          newScore+=1
+          newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+
+        case Some(RedBrick) =>
+          newField -= newBallY
+          newScore+=2
+          newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+
+        case Some(HotBall) =>
+          newField -= newBallY
+          newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+          newState = 1
+          gameStateMap += p.id -> frameCount
+          stateChangePlayers = p.id :: stateChangePlayers
+
+        case Some(TopBorder) =>
+          newVelocityY = -p.velocityY
+
+        case Some(Plank) =>
+          newVelocityY = -p.velocityY
 
         case Some(DeadLine) =>
           deadPlayers =  p.id :: deadPlayers
-          //清除死亡次的蛇
+                  //清除死亡次的蛇
 
         case _ =>
       }
 
+      newBallLocation = Point(newVelocityX + p.ballLocation.x, newVelocityY + p.ballLocation.y)
+
+      //碰撞检测
+//      field.get(newBallLocation.toInt) match {
+//        case Some(Brick) =>
+//          newField -= newBallLocation.toInt
+//          newScore += 1
+//          newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+//          newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//          newField.get(newBallLocation.toInt) match {
+//            case Some(Brick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 1
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(RedBrick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 2
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(HotBall) =>
+//              newField -= newBallLocation.toInt
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newState = 1
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(DeadLine) =>
+//              //不做处理，正常死亡
+//
+//            case Some(_) =>
+//              newVelocityX = -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case _ =>
+//          }
+//
+//        case Some(RedBrick) =>
+//          newField -= newBallLocation.toInt
+//          newScore += 2
+//          newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+//          newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//          newField.get(newBallLocation.toInt) match {
+//            case Some(Brick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 1
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(RedBrick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 2
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(HotBall) =>
+//              newField -= newBallLocation.toInt
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              //更改球的状态
+//              newState = 1
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(DeadLine) =>
+//            //不做处理，正常死亡
+//
+//            case Some(_) =>
+//              newVelocityX = -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case _ =>
+//          }
+//
+//        case Some(HotBall) => //火球道具
+//          newField -= newBallLocation.toInt
+//          newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+//          newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//          newField.get(newBallLocation.toInt) match {
+//            case Some(Brick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 1
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(RedBrick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 2
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(HotBall) =>
+//              newField -= newBallLocation.toInt
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              //更改球的状态
+//              newState=1
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(DeadLine) =>
+//            //不做处理，正常死亡
+//
+//            case Some(_) =>
+//              newVelocityX = -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case _ =>
+//          }
+//
+//        case Some(Plank) =>
+//          newVelocityY = - p.velocityY
+//          if(direction==1){
+//            if(newVelocityX<=0.5) {
+//              newVelocityX += 0.1f
+//            }
+//          } else if(direction == -1) {
+//            if(newVelocityX >= -0.5) {
+//              newVelocityX -= 0.1f
+//            }
+//          }
+//          newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//          newField.get(newBallLocation.toInt) match {
+//            case Some(Brick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 1
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(RedBrick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 2
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(HotBall) =>
+//              newField -= newBallLocation.toInt
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              //更改球的状态
+//              newState=1
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(DeadLine) =>
+//            //不做处理，正常死亡
+//
+//            case Some(_) =>
+//              newVelocityX = -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case _ =>
+//          }
+//
+//        case Some(TopBorder) =>
+//          newVelocityY = - p.velocityY
+//          newBallLocation = Point(p.velocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//          newField.get(newBallLocation.toInt) match {
+//            case Some(Brick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 1
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(RedBrick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 2
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(HotBall) =>
+//              newField -= newBallLocation.toInt
+//              newVelocityX = if(p.state==1) p.velocityX else -p.velocityX
+//              //更改球的状态
+//              newState=1
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(DeadLine) =>
+//            //不做处理，正常死亡
+//
+//            case Some(_) =>
+//              newVelocityX = -p.velocityX
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case _ =>
+//          }
+//
+//        case Some(SideBorder) =>
+//          newVelocityX = - p.velocityX
+//          newBallLocation = Point(p.ballLocation.x + newVelocityX, p.ballLocation.y + p.velocityY)
+//          newField.get(newBallLocation.toInt) match {
+//            case Some(Brick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 1
+//              newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(RedBrick) =>
+//              newField -= newBallLocation.toInt
+//              newScore += 2
+//              newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(HotBall) =>
+//              newField -= newBallLocation.toInt
+//              newVelocityY = if(p.state==1) p.velocityY else -p.velocityY
+//              //更改球的状态
+//              newState=1
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case Some(DeadLine) =>
+//            //不做处理，正常死亡
+//
+//            case Some(_) =>
+//              newVelocityY = -p.velocityY
+//              newBallLocation = Point(newVelocityX + p.ballLocation.x, p.ballLocation.y + newVelocityY)
+//
+//            case _ =>
+//          }
+//
+//        case Some(DeadLine) =>
+//          deadPlayers =  p.id :: deadPlayers
+//          //清除死亡次的蛇
+//
+//        case _ =>
+//      }
+
       //Plank信息修改，field信息需要加上board和plank，dealLine的信息
+
       if(direction == 1 && p.location+plankLen < OriginField.w+1) {
         newLocation += 1
         newField -= Point(p.location, 30)
@@ -223,7 +419,7 @@ trait Grid {
         }
       }
 
-      players += p.id -> p.copy(location = newLocation, velocityX = newVelocityX, velocityY = newVelocityY, ballLocation = newBallLocation, field = newField, score = newScore)
+      players += p.id -> p.copy(location = newLocation, velocityX = newVelocityX, velocityY = newVelocityY, ballLocation = newBallLocation, field = newField, score = newScore, state = newState)
 
     }
 
@@ -235,16 +431,16 @@ trait Grid {
 
 //    players --= deadPlayers
 
-    deadPlayers
+    (deadPlayers, stateChangePlayers)
   }
 
-  def update: List[Int] = {
-    val deadList = updateBalls
+  def update: (List[Int], List[Int]) = {
+    val result = updateBalls
     val limitFrameCount = frameCount - (maxDelayed + 1)
     actionMap = actionMap.filter(_._1 > limitFrameCount)
     historyStateMap = historyStateMap.filter(_._1 > limitFrameCount)
     frameCount += 1
-    deadList
+    result
   }
 
   def getPointBelong(id: String, point: Point): Boolean = {

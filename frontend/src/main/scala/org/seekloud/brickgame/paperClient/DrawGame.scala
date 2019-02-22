@@ -27,7 +27,7 @@ class DrawGame(
 
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   //  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
-  private var scale = 1.0
+//  private var scale = 1.0
 
   def resetScreen(): Unit = {
     windowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
@@ -40,7 +40,6 @@ class DrawGame(
 
     canvas.width = windowBoundary.x.toInt
     canvas.height = windowBoundary.y.toInt
-
 
   }
 
@@ -157,6 +156,18 @@ class DrawGame(
               ctx.fillStyle = ColorsSetting.greenColor
               ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength - 1, mainLength - 1)
 
+            case RedBrick =>
+              val x = f._1.x
+              val y = f._1.y
+              ctx.fillStyle = ColorsSetting.redColor
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength - 1, mainLength - 1)
+
+            case HotBall =>
+              val x = f._1.x
+              val y = f._1.y
+              ctx.fillStyle = ColorsSetting.borderColor
+              ctx.fillRect(offX + x * mainLength, y * mainLength, mainLength - 1, mainLength - 1)
+
             case Plank =>
               val x = f._1.x
               val y = f._1.y
@@ -173,8 +184,12 @@ class DrawGame(
         val x = ball.x
         val y = ball.y
         val off = (offTime/100).toFloat
-        ctx.fillStyle = ColorsSetting.darkYellowColor
-        ctx.fillRect(offX + x * mainLength + off * mainLength, y * mainLength - off * mainLength, mainLength, mainLength) //球的形状改成圆形,offTime逐步绘制
+        if(d._2.state==1){
+          ctx.fillStyle = ColorsSetting.fontColor3
+        } else {
+          ctx.fillStyle = ColorsSetting.darkYellowColor
+        }
+        ctx.fillRect(offX + x * mainLength + off * d._2.velocityX * mainLength, y * mainLength + off * d._2.velocityY * mainLength, mainLength, mainLength) //球的形状改成圆形,offTime逐步绘制
 //        ctx.arc(offX + x * mainLength, y * mainLength, 0.5*mainLength, 0, 2*Math.PI)
 //        ctx.fill()
         //绘制分数

@@ -1,10 +1,11 @@
 package org.seekloud.brickgame.paperClient
 
-import org.seekloud.brickgame.util.Component
+import org.seekloud.brickgame.util.{Component, Page}
 
 import scala.xml.Elem
 
-class CanvasPage extends Component{
+object CanvasPage extends Page{
+  override val locationHashString: String = "#/CanvasPage"
 
   override def render: Elem = {
     <div>

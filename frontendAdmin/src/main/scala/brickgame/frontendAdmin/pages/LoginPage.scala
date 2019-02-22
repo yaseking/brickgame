@@ -1,8 +1,8 @@
-package org.seekloud.brickgame.frontendAdmin.pages
+package brickgame.frontendAdmin.pages
 
-import org.seekloud.brickgame.frontendAdmin.Routes
-import org.seekloud.brickgame.frontendAdmin.util.Page
-import org.seekloud.brickgame.frontendAdmin.util.{Http, JsFunc}
+import brickgame.frontendAdmin.Routes
+import brickgame.frontendAdmin.util.Page
+import brickgame.frontendAdmin.util.{Http, JsFunc}
 import org.seekloud.brickgame.ptcl.AdminPtcl._
 import mhtml.Var
 import org.scalajs.dom
@@ -75,7 +75,7 @@ object LoginPage extends Page{
   val Title:Var[Node]=Var(
     <div class="row" style="margin-top: 15rem;margin-bottom: 4rem;">
       <div style="text-align: center;font-size: 4rem;">
-        Carnie数据查看
+        Brickgame数据查看
       </div>
     </div>
   )

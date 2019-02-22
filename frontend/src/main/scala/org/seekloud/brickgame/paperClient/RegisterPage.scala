@@ -8,14 +8,14 @@ import org.scalajs.dom.html.{Button, Input}
 import org.scalajs.dom.raw.KeyboardEvent
 import org.seekloud.brickgame.Routes
 import org.seekloud.brickgame.ptcl.AdminPtcl._
-import org.seekloud.brickgame.util.{Http, JsFunc, Page}
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.seekloud.brickgame.util.{Component, Http, JsFunc, Page}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.{Elem, Node}
 
 
-object RegisterPage extends Page{
-  override val locationHashString: String = "#/LoginPage"
+object RegisterPage extends Component{
+//  override val locationHashString: String = "#/LoginPage"
 
   def login():Unit = {
     val name = dom.window.document.getElementById("username").asInstanceOf[Input].value
