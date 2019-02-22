@@ -1,13 +1,15 @@
 package org.seekloud.brickgame.core
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import org.seekloud.brickgame.paperClient.Protocol._
 import org.slf4j.LoggerFactory
-import org.seekloud.brickgame.paperClient._
+import org.seekloud.brickgame.paperClient.{Protocol, _}
 import org.seekloud.brickgame.Boot.roomManager
 import org.seekloud.brickgame.common.AppSettings
+
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
@@ -142,7 +144,7 @@ object RoomActor {
 
         case Sync =>
           val shouldNewSnake = if (grid.waitingListState) true else false //玩家匹配，当玩家数为2的时候才产生
-          val shouldSync = if (tickCount % 100 == 1) true else false//10s发送一次全量数据
+          val shouldSync = if (tickCount % 200 == 1) true else false//10s发送一次全量数据
           val newPlayers = grid.getNewPlayers
           val result = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val deadList = result._1
@@ -165,17 +167,18 @@ object RoomActor {
 
           if(grid.gameStateMap.nonEmpty) {
             grid.gameStateMap.foreach {p=>
-              if(grid.frameCount-50==p._2) {//火球效果持续10s
+              if(grid.frameCount-100==p._2) {//火球效果持续10s
                 grid.gameStateMap -= p._1
                 val playerInfo = grid.players(p._1)
                 grid.players += p._1 -> playerInfo.copy(state = 0)
-                dispatch(subscribersMap, ChangeState(p._1, 0))
+                dispatch(subscribersMap, Protocol.UpdatePlayerInfo(grid.players(p._1)))
               }
             }
           }
 
           deadList.foreach {id => //复活
 //            dispatchTo(subscribersMap, id, DeadPage)
+            grid.gameStateMap -= id
             val playerInfo = grid.players(id)
             val newField = grid.reBornPlank(id)
             grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField, state = 0)
@@ -183,8 +186,10 @@ object RoomActor {
           }
 
           stateChangeList.foreach {id=>
-            val newState = grid.players(id).state
-            dispatch(subscribersMap, ChangeState(id, newState))
+//            val newState = grid.players(id).state
+//            dispatch(subscribersMap, ChangeState(id, newState))
+//            val data = Data4TotalSync2(grid.frameCount, grid.players)
+            dispatch(subscribersMap, Protocol.UpdatePlayerInfo(grid.players(id)))
           }
 
           if(shouldSync) {

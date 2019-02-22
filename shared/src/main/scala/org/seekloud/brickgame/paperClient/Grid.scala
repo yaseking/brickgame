@@ -50,7 +50,7 @@ trait Grid {
     val map = actionMap.getOrElse(frame, Map.empty)
     val direction = if(keyCode == 37) -1 else if(keyCode == 39) 1 else 0
     val tmp = map + (id -> direction)
-    println(s"addedAction: $tmp")
+//    println(s"addedAction: $tmp")
     actionMap += (frame -> tmp)
   }
 

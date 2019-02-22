@@ -7,7 +7,8 @@ import akka.http.scaladsl.server.Route
 import org.seekloud.utils.{CirceSupport, SessionSupport}
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
-import org.seekloud.brickgame.ptcl.AdminPtcl.{PageReq,PageTimeReq}
+import org.seekloud.brickgame.models.PlayerInfoRepo
+import org.seekloud.brickgame.ptcl.AdminPtcl.{PageReq, PageTimeReq}
 import org.seekloud.brickgame.ptcl.RoomApiProtocol._
 
 import scala.collection.mutable
@@ -95,11 +96,29 @@ trait AdminService extends ServiceUtils
     }
   }
 
-  private val forbidPlayer = path("forbidPlayer") {
+  private val forbidPlayer = (path("forbidPlayer") & post & pathEndOrSingleSlash) {
     adminAuth {
       _ =>
-        //todo
-        complete()
+        entity(as[Either[Error, AdminPtcl.PlayerReq]]) {
+          case Right(req) =>
+            PlayerInfoRepo.forbidPlayer(req.name)
+            complete(SuccessRsp())
+          case Left(e) =>
+            complete(ErrorRsp(140020, s"Some errors:$e happened in forbidPlayer."))
+        }
+    }
+  }
+
+  private val enablePlayer = (path("enablePlayer") & post & pathEndOrSingleSlash) {
+    adminAuth {
+      _ =>
+        entity(as[Either[Error, AdminPtcl.PlayerReq]]) {
+          case Right(req) =>
+            PlayerInfoRepo.enablePlayer(req.name)
+            complete(SuccessRsp())
+          case Left(e) =>
+            complete(ErrorRsp(140020, s"Some errors:$e happened in enablePlayer."))
+        }
     }
   }
 
@@ -107,6 +126,6 @@ trait AdminService extends ServiceUtils
     pathEndOrSingleSlash {
       getFromResource("html/admin.html")
     } ~
-    login ~ logout ~ getRoomPlayerList
+    login ~ logout ~ getRoomPlayerList ~ forbidPlayer ~ enablePlayer
   }
 }

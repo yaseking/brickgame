@@ -89,6 +89,8 @@ object Protocol {
 
   case class ChangeState(id: Int, state: Int) extends GameMessage
 
+  case class UpdatePlayerInfo(info: PlayerDt) extends GameMessage
+
   case class WinPage(id: Int) extends GameMessage
 
   case class UserDeadMsg(frame: Int, deadInfo: List[BaseDeadInfo]) extends GameMessage

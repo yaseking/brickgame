@@ -4,7 +4,15 @@ import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Route}
 import akka.http.scaladsl.model.headers.{CacheDirective, `Cache-Control`}
+import io.circe.Error
+import org.seekloud.brickgame.common.AppSettings
+import org.seekloud.brickgame.http.SessionBase.{AdminInfo, AdminSession}
+import org.seekloud.brickgame.ptcl.AdminPtcl
+import io.circe.generic.auto._
+import org.seekloud.brickgame.models.{PlayerInfo, PlayerInfoRepo}
+import org.seekloud.brickgame.ptcl.RoomApiProtocol.{ErrorRsp, SuccessRsp}
 import org.seekloud.utils.{CirceSupport, SessionSupport}
+import org.seekloud.brickgame.Boot.{executor, scheduler}
 
 import scala.concurrent.Future
 trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
@@ -46,6 +54,47 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
 //    }
 //  }
 
+  private val login = (path("login") & post & pathEndOrSingleSlash) { //todo
+    entity(as[Either[Error, AdminPtcl.LoginReq]]) {
+      case Right(req) =>
+        dealFutureResult(
+          PlayerInfoRepo.getPlayerByName(req.id).map {
+            case Some(user) =>
+              if(user.password==req.passWord) {
+                complete(SuccessRsp())
+              } else {
+                complete(ErrorRsp(140005, "Wrong password."))
+              }
+
+            case None =>
+              complete(ErrorRsp(140005, "Wrong username."))
+          }
+        )
+
+      case Left(e) =>
+        complete(ErrorRsp(140001, s"Some errors happened in userLogin：$e"))
+    }
+  }
+
+  private val register = (path("register") & post & pathEndOrSingleSlash) {
+    entity(as[Either[Error, AdminPtcl.LoginReq]]) {
+      case Right(req) =>
+        dealFutureResult(
+          PlayerInfoRepo.getPlayerByName(req.id).map {
+            case Some(_) =>
+              complete(ErrorRsp(140010, "username has existed."))
+
+            case None =>
+              PlayerInfoRepo.updatePlayerInfo(PlayerInfo(-1, req.id, req.passWord, true))
+              complete(SuccessRsp())
+          }
+        )
+
+      case Left(e) =>
+        complete(ErrorRsp(140001, s"Some errors happened in userRegister：$e"))
+    }
+  }
+
   //fixme: for test
   private val playGame = (path("playGame") & get & pathEndOrSingleSlash) {
     getFromResource("html/index.html")
@@ -54,19 +103,6 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
   private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
     log.info("success to render watchGame page.")
     getFromResource("html/index.html")
-  }
-
-  private val watchRecord = (path("watchRecord") & get & pathEndOrSingleSlash) {
-    parameter(
-      'recordId.as[Long],
-      'playerId.as[String], //
-      'frame.as[Int],
-      'accessCode.as[String]
-    ) {
-      case (recordId, playerId, frame, accessCode) =>
-        log.info("success to render watchRecord page.")
-        getFromResource("html/index.html")
-    }
   }
 
 //  private val getBotList = (path("getBotList") & post & pathEndOrSingleSlash) {
@@ -99,6 +135,6 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
     }
   }
 
-  val esheepRoute: Route = playGame ~ watchRecord ~ watchGame
+  val esheepRoute: Route = playGame ~ watchGame ~ login ~ register
 
 }

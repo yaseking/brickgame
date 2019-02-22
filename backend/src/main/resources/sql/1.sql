@@ -26,3 +26,17 @@ CREATE TABLE public.player_record (
   start_time   BIGINT NOT NULL,
   end_time     BIGINT NOT NULL
 );
+
+CREATE TABLE public.player_info (
+  id SERIAL8 PRIMARY KEY NOT NULL,
+  username varchar(255) NOT NULL,
+  password varchar(255) NOT NULL,
+  state bit default 1 NOT NULL
+);
+
+CREATE TABLE public.player_info (
+  id int PRIMARY KEY auto_increment,
+  username varchar(255) NOT NULL,
+  password varchar(255) NOT NULL,
+  state boolean NOT NULL default true
+);

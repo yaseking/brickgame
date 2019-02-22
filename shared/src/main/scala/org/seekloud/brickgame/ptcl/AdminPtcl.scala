@@ -27,6 +27,10 @@ object AdminPtcl {
     passWord: String
   )
 
+  case class PlayerReq(
+                      name: String
+                      )
+
   case class PlayerRecord(
     id: Long,
     playerId: String,

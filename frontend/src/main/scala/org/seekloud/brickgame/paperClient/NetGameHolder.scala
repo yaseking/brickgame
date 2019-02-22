@@ -206,7 +206,7 @@ class NetGameHolder(nickname: String) {
             drawFunction match {
               case FrontProtocol.DrawBaseGame => //前端发送命令
                 val newKeyCode = e.keyCode.toByte
-                grid.addActionWithFrame(myId, newKeyCode, frame)
+//                grid.addActionWithFrame(myId, newKeyCode, frame)
                 val msg: Protocol.UserAction = Key(newKeyCode, frame)
                 webSocketClient.sendMessage(msg)
               case _ =>
@@ -244,7 +244,7 @@ class NetGameHolder(nickname: String) {
         grid.initAction(myId)
 
       case r@Protocol.SnakeAction(id, keyCode, frame) =>
-        println(s"got msg: $r")
+//        println(s"got msg: $r")
         if(grid.players.contains(id)) {
           grid.addActionWithFrame(id, keyCode, frame)
           if(frame < grid.frameCount) {
@@ -264,12 +264,16 @@ class NetGameHolder(nickname: String) {
         isWin = true
         drawFunction = FrontProtocol.DrawGameWin(winnerName)
 
-      case Reborn(id) =>
+      case m@Protocol.UpdatePlayerInfo(info) =>
+        grid.players += info.id -> info
+
+      case m@Reborn(id) =>
+        println(s"got msg: $m")
         if(myId == id)
           hasStarted = false
         val playerInfo = grid.players(id)
         val newField = grid.reBornPlank(id)
-        grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField)
+        grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField, state = 0)
 
       case m@ChangeState(id, newState) =>
         println(s"got msg: $m")
