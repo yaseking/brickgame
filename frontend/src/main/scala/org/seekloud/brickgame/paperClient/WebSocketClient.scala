@@ -1,7 +1,7 @@
 package org.seekloud.brickgame.paperClient
 
 //import org.scalajs.dom.raw.CloseEvent
-//import org.seekloud.carnie.model.ReplayInfo
+//import org.seekloud.brickgame.model.ReplayInfo
 import org.seekloud.brickgame.paperClient.WebSocketProtocol._
 import org.seekloud.brickgame.paperClient.Protocol._
 import org.seekloud.byteobject.ByteObject.bytesDecode
@@ -203,7 +203,7 @@ class WebSocketClient (
 
   def getWebSocketUri(name: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/carnie/join?name=$name"
+    s"$wsProtocol://${dom.document.location.host}/brickgame/join?name=$name"
   }
 
   def getWsState:Boolean = wsSetup

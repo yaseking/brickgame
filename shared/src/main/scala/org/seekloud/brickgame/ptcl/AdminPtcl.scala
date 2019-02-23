@@ -27,6 +27,10 @@ object AdminPtcl {
     passWord: String
   )
 
+  case class SendExpressionReq(
+                              num: Int
+                              )
+
   case class PlayerReq(
                       name: String
                       )

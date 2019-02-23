@@ -3,10 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/.js-shared.iml" filepath="$PROJECT_DIR$/.idea/modules/.js-shared.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/backend-brickgame.iml" filepath="$PROJECT_DIR$/.idea/modules/backend-brickgame.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/backend-build.iml" filepath="$PROJECT_DIR$/.idea/modules/backend-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/brickgame.iml" filepath="$PROJECT_DIR$/.idea/modules/brickgame.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/brickgame-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/brickgame-sources.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/carnie.iml" filepath="$PROJECT_DIR$/.idea/modules/carnie.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/frontend.iml" filepath="$PROJECT_DIR$/.idea/modules/frontend.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/frontend-build.iml" filepath="$PROJECT_DIR$/.idea/modules/frontend-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/frontendAdmin.iml" filepath="$PROJECT_DIR$/.idea/modules/frontendAdmin.iml" />

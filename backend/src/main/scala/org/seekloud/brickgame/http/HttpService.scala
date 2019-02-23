@@ -40,7 +40,7 @@ trait HttpService extends PlayerService
 //  }
 
   val routes = ignoreTrailingSlash{
-    pathPrefix("carnie") {
+    pathPrefix("brickgame") {
       netSnakeRoute ~
         resourceRoutes ~
         esheepRoute ~

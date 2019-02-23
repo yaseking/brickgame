@@ -6,7 +6,7 @@ package brickgame.frontendAdmin
   * Time: 17:27
   */
 object Routes {
-  val baseUrl = "/carnie/admin"
+  val baseUrl = "/brickgame/admin"
 
   object Admin {
     val login = baseUrl + "/login"

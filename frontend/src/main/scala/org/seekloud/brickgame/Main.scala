@@ -22,7 +22,7 @@ object Main extends js.JSApp {
   }
 
   def selectPage():Unit = {
-    val info = dom.window.location.href.split("carnie/")(1)
+    val info = dom.window.location.href.split("brickgame/")(1)
 //    println(s"hello ${info(0)}....")
     println(s"info: $info")
     info match {
@@ -31,7 +31,7 @@ object Main extends js.JSApp {
 //        currentPage = JoinPage.render
         currentPage = CanvasPage.render
         show()
-        new NetGameHolder("test").init()
+        NetGameHolder.init("test")
 
       case _ =>
         println(s"not playGame ${info(0)}")

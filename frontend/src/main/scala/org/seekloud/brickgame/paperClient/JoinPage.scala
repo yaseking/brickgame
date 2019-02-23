@@ -18,7 +18,7 @@ object JoinPage extends Page{
     dom.document.getElementById("joinPage").setAttribute("display","none")
     dom.document.getElementById("joinPage").setAttribute("hidden","hidden")
     Main.refreshPage(CanvasPage.render)
-    new NetGameHolder(nickname).init()
+    NetGameHolder.init(nickname)
   }
 
   def switch: Unit = {

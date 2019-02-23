@@ -118,7 +118,7 @@ object RoomManager {
           Behaviors.same
 
         case m@UserActionOnServer(id, action) =>
-          log.info(s"got msg: $m")
+//          log.info(s"got msg: $m")
           if (roomMap.exists(r => r._2.contains(id))) {
             val roomId = roomMap.filter(r => r._2.contains(id)).head._1
             getRoomActor(ctx, roomId) ! RoomActor.UserActionOnServer(id, action)
@@ -157,6 +157,7 @@ object RoomManager {
         case action@Protocol.NeedToSync => UserActionOnServer(userId, action)
         case action@Protocol.PressSpace => UserActionOnServer(userId, action)
         case action@Protocol.InitAction => UserActionOnServer(userId, action)
+        case action@Protocol.SendExpression(_) => UserActionOnServer(userId, action)
         case _ => UnKnowAction
       }
       .to(sink(actor, userId, name))

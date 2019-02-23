@@ -138,6 +138,9 @@ object RoomActor {
               val data = Data4TotalSync2(grid.frameCount, grid.players)
               dispatchTo(subscribersMap, id, data)
 
+            case Protocol.SendExpression(num) =>
+              dispatch(subscribersMap, ReceiveExpression(id, num))
+
             case _ =>
           }
           Behaviors.same

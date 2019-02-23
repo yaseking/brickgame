@@ -100,10 +100,10 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
     getFromResource("html/index.html")
   }
 
-  private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
-    log.info("success to render watchGame page.")
-    getFromResource("html/index.html")
-  }
+//  private val watchGame = (path("watchGame") & get & pathEndOrSingleSlash) {
+//    log.info("success to render watchGame page.")
+//    getFromResource("html/index.html")
+//  }
 
 //  private val getBotList = (path("getBotList") & post & pathEndOrSingleSlash) {
 //    entity(as[Either[Error,BotListReq]]) {
@@ -135,6 +135,6 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
     }
   }
 
-  val esheepRoute: Route = playGame ~ watchGame ~ login ~ register
+  val esheepRoute: Route = playGame ~ login ~ register
 
 }

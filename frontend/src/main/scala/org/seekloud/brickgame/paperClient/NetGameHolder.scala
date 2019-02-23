@@ -22,7 +22,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * Time: 12:45 PM
   */
 
-class NetGameHolder(nickname: String) {
+object NetGameHolder {
 
   private var myId = 0
 
@@ -31,10 +31,9 @@ class NetGameHolder(nickname: String) {
   var firstCome = true
   var isWin = false
   var hasStarted = false
-//  var barrageDuration = 0
 
   var syncGridData: scala.Option[Protocol.Data4TotalSync2] = None
-  var isContinue = true
+//  var isContinue = true
   var oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
   var drawFunction: FrontProtocol.DrawFunction = FrontProtocol.DrawGameWait
   val delay: Int = 1
@@ -42,16 +41,8 @@ class NetGameHolder(nickname: String) {
   var pingMap = Map.empty[Short, Long] // id, 时间戳
   var isFirstTotalDataSync = false
 
-//  var pingId: Short = 0
-
-//  var frameTemp = 0
-
-//  var pingTimer = -1
-
-  var gameLoopTimer = -1
-
-  var renderId = 0
-
+  var myExpression: scala.Option[(Short,Long)] = None
+  var otherExpression: scala.Option[(Short,Long)] = None
 
   private var recallFrame: scala.Option[Int] = None
 
@@ -70,7 +61,7 @@ class NetGameHolder(nickname: String) {
   private[this] val drawGame: DrawGame = new DrawGame(ctx, canvas)
   private[this] val webSocketClient: WebSocketClient = new WebSocketClient(connectOpenSuccess, connectError, messageHandler, connectClose)
 
-  def init(): Unit = {
+  def init(nickname: String): Unit = {
     webSocketClient.setUp(nickname)
   }
 
@@ -85,17 +76,21 @@ class NetGameHolder(nickname: String) {
 
   def startGame(): Unit = {
     drawGame.drawGameOn()
-    gameLoopTimer = dom.window.setInterval(() => gameLoop(), 100) //frameRate=100
+    dom.window.setInterval(() => gameLoop(), 100) //frameRate=100
     dom.window.requestAnimationFrame(gameRender())
   }
 
+  def sendExpression(num: Int) = {
+    val msg: Protocol.UserAction = SendExpression(num.toShort)
+    webSocketClient.sendMessage(msg)
+  }
 
   def gameRender(): Double => Unit = { _ =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
     draw(offsetTime)
-    if (isContinue)
-      renderId = dom.window.requestAnimationFrame(gameRender())
+//    if (isContinue)
+    dom.window.requestAnimationFrame(gameRender())
   }
 
 
@@ -106,6 +101,17 @@ class NetGameHolder(nickname: String) {
       oldWindowBoundary = Point(dom.window.innerWidth.toFloat, dom.window.innerHeight.toFloat)
     }
 
+    if(myExpression.nonEmpty) {
+      if(myExpression.get._2+50==grid.frameCount) {
+        myExpression = None
+      }
+    }
+
+    if(otherExpression.nonEmpty) {
+      if(otherExpression.get._2+50==grid.frameCount) {
+        otherExpression = None
+      }
+    }
 
     if (webSocketClient.getWsState) {
       recallFrame match {
@@ -161,6 +167,8 @@ class NetGameHolder(nickname: String) {
       case FrontProtocol.DrawBaseGame =>
         drawGameImage(myId, offsetTime)
         drawGame.drawGameDuration(grid.gameDuration)
+        if(myExpression.nonEmpty) drawGame.drawMyExpression(myExpression.get._1)
+        if(otherExpression.nonEmpty) drawGame.drawOtherExpression(otherExpression.get._1)
 
       case FrontProtocol.DrawGameWin(name) => //
 //        if (data.nonEmpty) drawGameImage(myId, offsetTime)
@@ -293,6 +301,13 @@ class NetGameHolder(nickname: String) {
         println("recv userDead")
         isWin=true
 
+      case m@Protocol.ReceiveExpression(id, expression) =>
+        println(s"got msg: $m")
+        if(id==myId) {
+          myExpression = Some(expression, grid.frameCount)
+        } else {
+          otherExpression = Some(expression, grid.frameCount)
+        }
 
       case Protocol.GameDuration(time) =>
         grid.gameDuration = time
@@ -316,7 +331,7 @@ class NetGameHolder(nickname: String) {
     hasStarted = false
     firstCome = true
     if (isWin) isWin = false
-    isContinue = true
+//    isContinue = true
 //    dom.window.requestAnimationFrame(gameRender())
   }
 

@@ -99,15 +99,15 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     mainClass in reStart := Some(projectMainClass),
     javaOptions in reStart += "-Xmx2g"
   )
-  .settings(name := "carnie")
+  .settings(name := "brickgame")
   .settings(
     //pack
     // If you need to specify main classes manually, use packSettings and packMain
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
-    packMain := Map("carnie" -> projectMainClass),
-    packJvmOpts := Map("carnie" -> Seq("-Xmx512m", "-Xms128m")),
-    packExtraClasspath := Map("carnie" -> Seq("."))
+    packMain := Map("brickgame" -> projectMainClass),
+    packJvmOpts := Map("brickgame" -> Seq("-Xmx512m", "-Xms128m")),
+    packExtraClasspath := Map("brickgame" -> Seq("."))
   )
   .settings(
     libraryDependencies ++= Dependencies.backendDependencies  //++ Dependencies.grpcSeq

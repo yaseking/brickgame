@@ -31,7 +31,8 @@ import scala.util.{Failure, Success}
   **/
 trait RoomApiService extends ServiceUtils with CirceSupport with PlayerService with EsheepService {
 
-  private val log = LoggerFactory.getLogger("org.seekloud.carnie.http.RoomApiService")
+//  private val log = LoggerFactory.getLogger("org.seekloud.brickgame.http.RoomApiService")
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   val roomManager: akka.actor.typed.ActorRef[RoomManager.Command]
 

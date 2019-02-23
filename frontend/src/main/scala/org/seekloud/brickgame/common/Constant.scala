@@ -1,6 +1,8 @@
 package org.seekloud.brickgame.common
 
+import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.html.Image
 
 /**
   * Created by dry on 2018/9/3.
@@ -34,6 +36,10 @@ object Constant {
     if(a > b) a else b
   }
 
+  val img0 = dom.document.getElementById("luffyImg").asInstanceOf[Image]
 
 
+  val imgMap = Map(
+    0 -> img0
+  )
 }

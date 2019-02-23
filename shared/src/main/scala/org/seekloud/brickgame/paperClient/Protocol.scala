@@ -116,7 +116,7 @@ object Protocol {
 
   case class WinData(winnerScore: Short, yourScore: Option[Short], winnerName: String) extends GameMessage with GameEvent
 
-  //  case class SomeWin(winnerName: String,finalData:Data4TotalSync) extends GameMessage with GameEvent
+  case class ReceiveExpression(id: Int, expression: Short) extends GameMessage
 
   case class ReceivePingPacket(pingId: Short) extends GameMessage
 
@@ -142,6 +142,8 @@ object Protocol {
   case object NeedToSync extends UserAction
 
   case object PressSpace extends UserAction
+
+  case class SendExpression(num: Short) extends UserAction
 
   case object InitAction extends UserAction
 

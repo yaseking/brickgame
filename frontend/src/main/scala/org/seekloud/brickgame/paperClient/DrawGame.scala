@@ -1,6 +1,6 @@
 package org.seekloud.brickgame.paperClient
 
-import org.seekloud.brickgame.common.Constant.ColorsSetting
+import org.seekloud.brickgame.common.Constant._
 import org.seekloud.brickgame.paperClient.Protocol._
 import org.seekloud.brickgame.util.TimeTool
 import javafx.scene.paint.Color
@@ -22,8 +22,8 @@ class DrawGame(
   val mainLength = 20
   val sideLength = 10
 
-  val offX = windowBoundary.x/4
-  val offX2 = windowBoundary.x/4*3-20
+  val offX = 0
+  val offX2 = windowBoundary.x/2-20
 
   private val bodyAttribute = dom.document.getElementById("body").asInstanceOf[org.scalajs.dom.html.Body]
   //  private val backBtn = dom.document.getElementById("backBtn").asInstanceOf[Button]
@@ -62,6 +62,13 @@ class DrawGame(
     ctx.fillText(s"${60-time}s", off+25, 70)
     ctx.restore()
   }
+
+  def drawMyExpression(expression: Int): Unit = {
+    val img = imgMap(expression)
+    ctx.drawImage(img, 100, 700, 30, 30)
+  }
+
+  def drawOtherExpression(expression: Int): Unit = {}
 
 
   def drawGameOff(firstCome: Boolean): Unit = {
@@ -113,22 +120,6 @@ class DrawGame(
     ctx.fillText(text, dom.window.innerWidth / 2 - offx, y) //(500,180)
     ctx.restore()
   }
-
-  def drawBarrage(killedName: String, killerName: String) = {
-    ctx.save()
-    ctx.globalAlpha = 0.6
-    ctx.restore()
-    ctx.save()
-    if (dom.window.innerWidth > 1200) ctx.font = "bold 20px Microsoft YaHei"
-    else ctx.font = "bold 15px Microsoft YaHei"
-    ctx.fillStyle = "#FF5809"
-    val txt = s"$killedName is killed by $killerName"
-    val length = ctx.measureText(txt).width
-    val offx = length / 2
-    ctx.fillText(s"$killedName is killed by $killerName", dom.window.innerWidth / 2 - offx, (dom.window.innerHeight / 9).toInt)
-    ctx.restore()
-  }
-
 
   def draw(uid: Int, data: Map[Int, PlayerDt], offTime: Long): Unit = {
     //drawBorder..
