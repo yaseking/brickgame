@@ -14,7 +14,14 @@ object CanvasPage extends Page{
   override def render: Elem = {
     <div  class="row">
       <div id="div1" class="col-md-2">
-        <img src="/brickgame/static/img/luffy.png" style="width:30px;height:30px;display: inline-block;" onclick={()=>sendExpression(0)}></img>
+        <img src="/brickgame/static/img/666.png" style="margin-left:5%;width:40%;display:inline;" onclick={()=>sendExpression(0)}></img>
+        <img src="/brickgame/static/img/cute.png" style="margin-left:5%;width:40%;display:inline;" onclick={()=>sendExpression(1)}></img>
+        <br></br>
+        <img src="/brickgame/static/img/happy.png" style="margin-left:5%;width:40%;display:inline;" onclick={()=>sendExpression(2)}></img>
+        <img src="/brickgame/static/img/hello.png" style="margin-left:5%;width:40%;display:inline;" onclick={()=>sendExpression(3)}></img>
+        <br></br>
+        <img src="/brickgame/static/img/poor.png" style="margin-left:5%;width:40%;display:inline;" onclick={()=>sendExpression(4)}></img>
+        <img src="/brickgame/static/img/sick.png" style="margin-left:5%;width:40%;display:inline;" onclick={()=>sendExpression(5)}></img>
       </div>
 
       <div class="col-md-10">
@@ -28,5 +35,5 @@ object CanvasPage extends Page{
 //    <img id="BobImg" src="/brickgame/static/img/Bob.png" style="width: 30px;height: 30px;display: inline-block;"></img>
 //    <img id="yangImg" src="/brickgame/static/img/yang.png" style="width: 30px;height: 30px;display: inline-block;"></img>
 //    <img id="smileImg" src="/brickgame/static/img/smile.png" style="width: 30px;height: 30px;display: inline-block;"></img>
-//    <img id="pigImg" src="/brickgame/static/img/pig.png" style="width:30px;height:30px;display: inline-block;"></img>
+//    <img id="pigImg" src="/brickgame/static/img/pig.png" style="margin-left:15%;width:40%;display:block;"></img>
 }

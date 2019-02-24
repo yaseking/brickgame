@@ -36,8 +36,6 @@ object RoomActor {
 
   case class LeftRoom(id: Int) extends Command
 
-  case class UserDead(roomId: Int, mode: Int, users: List[(String, Short, Short)]) extends Command with RoomManager.Command // (id, kill, area)
-
   private case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   case class WatchGame(playerId: String, userId: String, subscriber: ActorRef[WsSourceProtocol.WsMsgSource]) extends Command
@@ -158,9 +156,9 @@ object RoomActor {
             dispatch(subscribersMap, GameDuration(grid.gameDuration.toShort))
           } else if(grid.gameDuration == 60 && grid.players.nonEmpty) {
             //游戏结束，清算
-//            val winnerId = grid.players.maxBy(_._2.score)._1
-//            grid.players = Map.empty[Int, PlayerDt]
-//            dispatch(subscribersMap, WinPage(winnerId))
+            val winnerId = grid.players.maxBy(_._2.score)._1
+            grid.players = Map.empty[Int, PlayerDt]
+            dispatch(subscribersMap, WinPage(winnerId))
           }
 
           newPlayers.foreach {id =>
@@ -184,7 +182,7 @@ object RoomActor {
             grid.gameStateMap -= id
             val playerInfo = grid.players(id)
             val newField = grid.reBornPlank(id)
-            grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField, state = 0)
+            grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 28), field = newField, state = 0)
             dispatch(subscribersMap, Reborn(id))
           }
 

@@ -11,11 +11,10 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import org.seekloud.brickgame.paperClient.Protocol
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
-import org.seekloud.brickgame.core.RoomActor.UserDead
-import org.seekloud.brickgame.paperClient.Protocol.SendPingPacket
 import org.seekloud.brickgame.paperClient.WsSourceProtocol
 import org.seekloud.brickgame.ptcl.RoomApiProtocol.{CommonRsp, PlayerIdName, RecordFrameInfo}
 import org.seekloud.brickgame.common.AppSettings
+import org.seekloud.brickgame.models.{ActiveUser, ActiveUserRepo}
 
 
 /**
@@ -43,7 +42,7 @@ object RoomManager {
 
   case class FindPlayerList(roomId: Int, reply: ActorRef[List[PlayerIdName]]) extends Command
 
-  case class ReturnRoomMap(reply: ActorRef[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]]) extends Command
+  case class ReturnRoomMap(reply: ActorRef[(Int, Int)]) extends Command
 
   case class FindAllRoom(reply: ActorRef[List[Int]]) extends Command
 
@@ -60,8 +59,6 @@ object RoomManager {
   private case class TimeOut(msg: String) extends Command
 
   private case class ChildDead[U](roomId: Int, name: String, childRef: ActorRef[U]) extends Command
-
-  case class BotsJoinRoom(roomId: Int, bots: List[(String, String)]) extends Command
 
   private case object UnKnowAction extends Command
 
@@ -92,17 +89,9 @@ object RoomManager {
           }
           Behaviors.same
 
-        case UserDead(roomId, mode, users) =>
-          try {
-            getRoomActor(ctx, roomId) ! RoomActor.UserDead(roomId, mode, users)
-          } catch {
-            case e: Exception =>
-              log.error(s"user dead error:$e")
-          }
-          Behaviors.same
-
-        case msg@Left(id, _) =>
+        case msg@Left(id, name) =>
           log.info(s"got $msg")
+          ActiveUserRepo.updatePlayerInfo(ActiveUser(-1, name, System.currentTimeMillis()))
           try {
             val roomId = roomMap.filter(r => r._2.contains(id)).head._1
             roomMap.update(roomId, roomMap(roomId) - id)
@@ -134,6 +123,14 @@ object RoomManager {
         case FindAllRoom(reply) =>
           log.info(s"got all room")
           reply ! roomMap.keySet.toList
+          Behaviors.same
+
+        case ReturnRoomMap(reply) =>
+          var playerNum = 0
+          roomMap.foreach {r=>
+            playerNum += r._2.size
+          }
+          reply ! (roomMap.size, playerNum)
           Behaviors.same
 
         case unknown =>

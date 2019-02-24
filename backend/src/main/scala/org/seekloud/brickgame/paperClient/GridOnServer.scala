@@ -45,15 +45,15 @@ class GridOnServer() extends Grid {
     waitingList.keys.toList
   }
 
-  def waitingListState: Boolean = waitingList.nonEmpty
-//  def waitingListState: Boolean = if(waitingList.size == 2) true else false //双人对战模式
+//  def waitingListState: Boolean = waitingList.nonEmpty
+  def waitingListState: Boolean = if(waitingList.size == 2) true else false //双人对战模式
 
   def genPlayer: Unit = {
     waitingList.foreach {p =>
       val id = p._1
       val name = p._2
       val originField = initField
-      val playerInfo = PlayerDt(id, name, plankOri, 0, 0, Point(10, 29), originField)
+      val playerInfo = PlayerDt(id, name, plankOri, 0, 0, Point(10, 28), originField)
       players += id -> playerInfo
     }
     waitingList = Map.empty[Int, String]
@@ -77,7 +77,7 @@ class GridOnServer() extends Grid {
     }
 
     (plankOri until plankOri+plankLen).foreach{x =>
-      field += Point(x, 30) -> Plank
+      field += Point(x, 29) -> Plank
     }
 
 //    (1 to OriginField.w).foreach {x =>
@@ -104,7 +104,7 @@ class GridOnServer() extends Grid {
 //      val d = Random.nextInt(5)+3
 //    }
     field += Point(18,3) -> HotBall
-    field += Point(18,20) -> HotBall
+//    field += Point(18,20) -> HotBall
 
     (1 to OriginField.w).foreach{x =>
       field += Point(x, 31) -> DeadLine

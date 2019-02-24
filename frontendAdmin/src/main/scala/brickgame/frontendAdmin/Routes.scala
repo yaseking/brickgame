@@ -11,12 +11,11 @@ object Routes {
   object Admin {
     val login = baseUrl + "/login"
     val logout = baseUrl + "/logout"
-    val getRoomList = baseUrl + "/getRoomList"
+
+    val forbidPlayer = baseUrl + "/forbidPlayer"
+    val enablePlayer = baseUrl + "/enablePlayer"
+    val showPlayerInfo = baseUrl + "/showPlayerInfo"
+    val getActiveUserInfo = baseUrl + "/getActiveUserInfo"
     val getRoomPlayerList = baseUrl + "/getRoomPlayerList"
-    val getPlayerRecord = baseUrl + "/getPlayerRecord"
-    val getPlayerRecordByTime = baseUrl + "/getPlayerRecordByTime"
-    val getPlayerRecordAmount = baseUrl + "/getPlayerRecordAmount"
-    val getPlayerByTimeAmount = baseUrl + "/getPlayerByTimeAmount"
-    val forbidPlayer = baseUrl + "forbidPlayer"
   }
 }

@@ -4,11 +4,9 @@ import org.seekloud.brickgame.paperClient.WebSocketProtocol._
 import org.seekloud.brickgame.paperClient._
 import mhtml.{Cancelable, Rx, mount}
 import org.scalajs.dom
-//import org.seekloud.brickgame.util.PageSwitcher
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
-import scala.util.Random
 import scala.xml.Elem
 /**
   * Created by haoshuhan on 2018/11/2.
@@ -28,10 +26,10 @@ object Main extends js.JSApp {
     info match {
       case "playGame" =>
         println("playGame ...")
-//        currentPage = JoinPage.render
-        currentPage = CanvasPage.render
+        currentPage = JoinPage.render
+//        currentPage = CanvasPage.render
         show()
-        NetGameHolder.init("test")
+//        NetGameHolder.init("test")
 
       case _ =>
         println(s"not playGame ${info(0)}")

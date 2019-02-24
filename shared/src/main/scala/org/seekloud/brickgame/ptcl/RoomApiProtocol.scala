@@ -128,13 +128,14 @@ object RoomApiProtocol {
                         )
 
   case class RoomMapRsp(
-                          data:RoomMapInfo,
+                          roomNum: Int,
+                          playerNum: Int,
                           errCode: Int = 0,
                           msg: String = "ok"
                         )
 
   case class RoomMapInfo(
-                          roomMap: mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]
+                          roomMap: mutable.HashMap[Int, mutable.HashSet[Int]]
   )
 
   case class RoomListInfo(

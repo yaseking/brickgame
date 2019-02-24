@@ -102,13 +102,13 @@ object NetGameHolder {
     }
 
     if(myExpression.nonEmpty) {
-      if(myExpression.get._2+50==grid.frameCount) {
+      if(myExpression.get._2+50<=grid.frameCount) {
         myExpression = None
       }
     }
 
     if(otherExpression.nonEmpty) {
-      if(otherExpression.get._2+50==grid.frameCount) {
+      if(otherExpression.get._2+50<=grid.frameCount) {
         otherExpression = None
       }
     }
@@ -281,7 +281,7 @@ object NetGameHolder {
           hasStarted = false
         val playerInfo = grid.players(id)
         val newField = grid.reBornPlank(id)
-        grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 29), field = newField, state = 0)
+        grid.players += id -> playerInfo.copy(location = plankOri, velocityX = 0, velocityY = 0, ballLocation = Point(10, 28), field = newField, state = 0)
 
       case m@ChangeState(id, newState) =>
         println(s"got msg: $m")

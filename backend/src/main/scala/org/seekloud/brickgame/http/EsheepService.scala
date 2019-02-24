@@ -5,8 +5,6 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Route}
 import akka.http.scaladsl.model.headers.{CacheDirective, `Cache-Control`}
 import io.circe.Error
-import org.seekloud.brickgame.common.AppSettings
-import org.seekloud.brickgame.http.SessionBase.{AdminInfo, AdminSession}
 import org.seekloud.brickgame.ptcl.AdminPtcl
 import io.circe.generic.auto._
 import org.seekloud.brickgame.models.{PlayerInfo, PlayerInfoRepo}
@@ -61,7 +59,10 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
           PlayerInfoRepo.getPlayerByName(req.id).map {
             case Some(user) =>
               if(user.password==req.passWord) {
-                complete(SuccessRsp())
+                if(user.state)
+                  complete(SuccessRsp())
+                else
+                  complete(ErrorRsp(140010, "Forbidden account."))
               } else {
                 complete(ErrorRsp(140005, "Wrong password."))
               }

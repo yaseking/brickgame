@@ -35,7 +35,7 @@ object PerformanceTool {
 //    ctx.fillText(fpsString, leftBegin, lineHeight)
 
     ctx.font = "15px Helvetica"
-    ctx.fillStyle = ColorsSetting.fontColor2
+    ctx.fillStyle = ColorsSetting.blackColor
     val fpsString = "fps : "
     val pingString = "ping: "
     val drawTimeString = "drawTimeAvg: "

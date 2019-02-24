@@ -95,10 +95,12 @@ trait Grid {
     var field = players(id).field
     val location = players(id).location
     (location until location+plankLen).foreach{x =>
-      field -= Point(x, 30)
+//      field -= Point(x, 30)
+      field -= Point(x, 29)
     }
     (plankOri until plankOri+plankLen).foreach{x =>
-      field += Point(x, 30) -> Plank
+//      field += Point(x, 30) -> Plank
+      field += Point(x, 29) -> Plank
     }
     field
   }
@@ -141,6 +143,9 @@ trait Grid {
           stateChangePlayers = p.id :: stateChangePlayers
 
         case Some(SideBorder) =>
+          newVelocityX = -p.velocityX
+
+        case Some(Plank) =>
           newVelocityX = -p.velocityX
 
         case _ =>
@@ -405,15 +410,15 @@ trait Grid {
 
       if(direction == 1 && p.location+plankLen < OriginField.w+1) {
         newLocation += 1
-        newField -= Point(p.location, 30)
-        newField += Point(newLocation+plankLen-1, 30) -> Plank
+        newField -= Point(p.location, 29)
+        newField += Point(newLocation+plankLen-1, 29) -> Plank
         if(p.velocityX == 0 && p.velocityY ==0) {
           newBallLocation = Point(p.ballLocation.x+1, p.ballLocation.y)
         }
       } else if(direction == -1 && p.location > 1) {
         newLocation -= 1
-        newField -= Point(p.location+plankLen-1, 30)
-        newField += Point(newLocation, 30) -> Plank
+        newField -= Point(p.location+plankLen-1, 29)
+        newField += Point(newLocation, 29) -> Plank
         if(p.velocityX == 0 && p.velocityY ==0) {
           newBallLocation = Point(p.ballLocation.x-1, p.ballLocation.y)
         }

@@ -1,7 +1,7 @@
 package org.seekloud.brickgame
 
 object Routes {
-  val baseUrl = "/carnie"
+  val baseUrl = "/brickgame"
 
   object Esheep {
     val playGame = baseUrl + "/esheep/playGame"

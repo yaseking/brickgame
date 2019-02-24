@@ -2,7 +2,7 @@ package org.seekloud.brickgame.paperClient
 
 import mhtml.Var
 import org.scalajs.dom
-import org.scalajs.dom.html.Input
+import org.scalajs.dom.html.{Button, Input}
 import org.scalajs.dom.raw.KeyboardEvent
 import org.seekloud.brickgame.Main
 import org.seekloud.brickgame.util.{Component, Page}
@@ -27,12 +27,17 @@ object JoinPage extends Page{
     Main.refreshPage(LoginPage.render)
   }
 
+  def loginByEnter(event: KeyboardEvent):Unit = {
+    if(event.keyCode == 13)
+      dom.document.getElementById("login4Join").asInstanceOf[Button].click()
+  }
+
 
   val Email:Var[Node] =Var(
     <div class="row" style="padding: 1rem 1rem 1rem 1rem;">
       <label class="col-md-3" style="text-align:right">昵称</label>
       <div class="col-md-6">
-        <input type="text" id="username" placeholder="昵称" class="form-control" autofocus="true"></input>
+        <input type="text" id="username" placeholder="昵称" class="form-control" autofocus="true" onkeydown={e:KeyboardEvent => loginByEnter(e)}></input>
       </div>
     </div>
   )
@@ -47,15 +52,10 @@ object JoinPage extends Page{
 
   val Btn:Var[Node]=Var(
     <div class="row" style="padding: 1rem 1rem 1rem 1rem;text-align:center;">
-      <button id="logIn" class="btn btn-info" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>getNickname} >
+      <button id="login4Join" class="btn btn-info" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>getNickname} >
         游客登录
       </button>
-    </div>
-  )
-
-  val Btn2:Var[Node]=Var(
-    <div class="row" style="padding: 1rem 1rem 1rem 1rem;text-align:center;">
-      <button id="logIn" class="btn btn-success" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>switch}>
+      <button class="btn btn-success" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>switch}>
         账号登录
       </button>
     </div>
@@ -75,7 +75,6 @@ object JoinPage extends Page{
       </div>
       <div class="container">
         {Btn}
-        {Btn2}
       </div>
     </div>
   }

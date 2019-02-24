@@ -3,12 +3,11 @@ package org.seekloud.brickgame.http
 import java.text.SimpleDateFormat
 
 import akka.http.scaladsl.server.Directives.{getFromResource, path}
-import akka.http.scaladsl.server.Route
 import org.seekloud.utils.{CirceSupport, SessionSupport}
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives._
-import org.seekloud.brickgame.models.PlayerInfoRepo
-import org.seekloud.brickgame.ptcl.AdminPtcl.{PageReq, PageTimeReq}
+import org.seekloud.brickgame.models.{ActiveUserRepo, PlayerInfoRepo}
+import org.seekloud.brickgame.ptcl.AdminPtcl.{UserInfo, UserInfoRsp}
 import org.seekloud.brickgame.ptcl.RoomApiProtocol._
 
 import scala.collection.mutable
@@ -22,7 +21,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 
 import scala.concurrent.Future
 import org.seekloud.brickgame.ptcl.AdminPtcl
-import org.seekloud.brickgame.Boot.{executor, scheduler}
+import org.seekloud.brickgame.Boot.{executor, scheduler, timeout}
 import org.seekloud.brickgame.common.AppSettings
 //import scala.util.{Failure, Success}
 
@@ -35,11 +34,11 @@ trait AdminService extends ServiceUtils
   with CirceSupport
   with SessionBase
   with SessionSupport
-  with RoomApiService
 {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
+  val roomManager: akka.actor.typed.ActorRef[RoomManager.Command]
 
   private val login = (path("login") & post & pathEndOrSingleSlash){
     entity(as[Either[Error, AdminPtcl.LoginReq]]) {
@@ -60,30 +59,32 @@ trait AdminService extends ServiceUtils
     }
   }
 
-//  private val getRoomList = (path("getRoomList") & get & pathEndOrSingleSlash){
-//    adminAuth{ _ =>
-//      dealFutureResult {
-//        val msg: Future[List[String]] = roomManager ? RoomManager.FindAllRoom4Client
-//        msg.map {
-//          allRoom =>
-//            log.info("prepare to return roomList.")
-//            complete(RoomApiProtocol.RoomListRsp4Client(RoomListInfo4Client(allRoom)))
-//        }
-//      }
-//    }
-//  }
-
   private val getRoomPlayerList = (path("getRoomPlayerList") & get & pathEndOrSingleSlash) {
     adminAuth {
       _ =>
-        //    val msg: Future[List[PlayerIdName]] = roomManager ? (RoomManager.FindPlayerList(req.roomId, _))
-        val msg: Future[mutable.HashMap[Int, (Int, Option[String], mutable.HashSet[(String, String)])]] = roomManager ? RoomManager.ReturnRoomMap
+        val msg: Future[(Int, Int)] = roomManager ? RoomManager.ReturnRoomMap
         dealFutureResult {
           msg.map { plist =>
-            //        val plist =r.map(i => i._1 -> i._2._3)
-            complete(RoomMapRsp(RoomMapInfo(plist)))
+            log.info(s"roomInfo: $plist")
+            complete(RoomMapRsp(plist._1, plist._2))
           }
         }
+    }
+  }
+
+  private val getActiveUserInfo = (path("getActiveUserInfo") & get & pathEndOrSingleSlash) {
+    adminAuth {
+      _ =>
+        val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val date = dateFormat.format(System.currentTimeMillis())
+        val start = date.take(11) + "00:00:00"
+        val end = date.take(11) + "23:59:59"
+        dealFutureResult(
+          ActiveUserRepo.getRecords.map { p =>
+            complete(AdminPtcl.PlayerAmountRsp(p.length,
+              p.count(i => dateFormat.format(i.leaveTime) >= start && dateFormat.format(i.leaveTime) <= end)))
+          }
+        )
     }
   }
 
@@ -122,10 +123,23 @@ trait AdminService extends ServiceUtils
     }
   }
 
+  private val showPlayerInfo = (path("showPlayerInfo") & get & pathEndOrSingleSlash) {
+    adminAuth {
+      _ =>
+        dealFutureResult(
+          PlayerInfoRepo.getAllPlayers.map {players =>
+            complete(
+              UserInfoRsp(players.map{p=>UserInfo(p.username, p.state)})
+            )
+          }
+        )
+    }
+  }
+
   val adminRoutes: Route = pathPrefix("admin"){
     pathEndOrSingleSlash {
       getFromResource("html/admin.html")
     } ~
-    login ~ logout ~ getRoomPlayerList ~ forbidPlayer ~ enablePlayer
+    login ~ logout ~ getRoomPlayerList ~ forbidPlayer ~ enablePlayer ~ showPlayerInfo ~ getActiveUserInfo
   }
 }

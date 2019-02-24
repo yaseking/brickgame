@@ -22,20 +22,18 @@ object LoginPage extends Component{
 //  override val locationHashString: String = "#/LoginPage"
 
   def login():Unit = {
-    val name = dom.window.document.getElementById("username").asInstanceOf[Input].value
-    val password = dom.window.document.getElementById("password").asInstanceOf[Input].value
+    val name = dom.window.document.getElementById("username4login").asInstanceOf[Input].value
+    val password = dom.window.document.getElementById("password4login").asInstanceOf[Input].value
     val url = Routes.Player.login
     val data = LoginReq(name, password).asJson.noSpaces
     Http.postJsonAndParse[SuccessRsp](url, data).map {
       case Right(rsp) =>
         try {
           if (rsp.errCode == 0) {
-            //refreshPage
-//            dom.window.location.href="#/CurrentDataPage"
-
-          }
-          else {
-            println("error======" + rsp.msg)
+            Main.refreshPage(CanvasPage.render)
+            NetGameHolder.init(name)
+          } else {
+            println("error======" + rsp.errCode + "==" + rsp.msg)
             JsFunc.alert(rsp.msg)
           }
         }
@@ -69,16 +67,7 @@ object LoginPage extends Component{
     <div class="row" style="padding: 1rem 1rem 1rem 1rem">
       <label class="col-md-3" style="text-align:right;">密码</label>
       <div class="col-md-6">
-        <input type="password" id="password4login" placeholder="密码" class="form-control"></input>
-      </div>
-    </div>
-  )
-
-  val Nickname:Var[Node] =Var(
-    <div class="row" style="padding: 1rem 1rem 1rem 1rem">
-      <label class="col-md-3" style="text-align:right;">昵称</label>
-      <div class="col-md-6">
-        <input type="text" id="nickname4login" placeholder="昵称" class="form-control" onkeydown={e:KeyboardEvent => loginByEnter(e)}></input>
+        <input type="password" id="password4login" placeholder="密码" class="form-control" onkeydown={e:KeyboardEvent => loginByEnter(e)}></input>
       </div>
     </div>
   )
@@ -102,15 +91,7 @@ object LoginPage extends Component{
       <button id="logIn" class="btn btn-info" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>login() } >
         登录
       </button>
-      <button id="logIn" class="btn btn-successful" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>switch } >
-        注册
-      </button>
-    </div>
-  )
-
-  val Btn2:Var[Node]=Var(
-    <div class="row" style="padding: 1rem 1rem 1rem 1rem;text-align:center;">
-      <button id="logIn" class="btn btn-successful" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>login() } >
+      <button id="register" class="btn btn-success" style="margin: 0rem 1rem 0rem 1rem;" onclick={()=>switch } >
         注册
       </button>
     </div>
@@ -120,7 +101,6 @@ object LoginPage extends Component{
     <form class="col-md-8 col-md-offset-2" style="border: 1px solid #dfdbdb;border-radius: 6px;padding:2rem 1rem 2rem 1rem;">
       {Email}
       {PassWord}
-      {Nickname}
     </form>
   )
 

@@ -15,7 +15,7 @@ import scala.xml.Elem
 object Header extends Component{
 
   val ls = List(
-    ("实时查看", CurrentDataPage.locationHashString),
+    ("用户信息", CurrentDataPage.locationHashString),
     ("数据统计", ViewPage.locationHashString),
 //    ("GPU预约情况", GPUOrderPage.locationHashString),
 //    ("GPU使用异常", GPUOnWorkPage.locationHashString),

@@ -79,4 +79,11 @@ object AdminPtcl {
                           time: String
                         )
 
+  case class UserInfoRsp(
+                        data: List[UserInfo],
+                        errCode: Int = 0,
+                        msg: String = "ok"
+                        )
+
+  case class UserInfo(name: String, state:Boolean)
 }
