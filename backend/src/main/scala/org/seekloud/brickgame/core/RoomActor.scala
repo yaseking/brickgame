@@ -145,7 +145,7 @@ object RoomActor {
 
         case Sync =>
           val shouldNewSnake = if (grid.waitingListState) true else false //玩家匹配，当玩家数为2的时候才产生
-          val shouldSync = if (tickCount % 200 == 1) true else false//10s发送一次全量数据
+          val shouldSync = if (tickCount % 200 == 1) true else false//20s发送一次全量数据
           val newPlayers = grid.getNewPlayers
           val result = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val deadList = result._1

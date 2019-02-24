@@ -68,7 +68,7 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
               }
 
             case None =>
-              complete(ErrorRsp(140005, "Wrong username."))
+              complete(ErrorRsp(140015, "Wrong username."))
           }
         )
 
@@ -83,7 +83,7 @@ trait EsheepService extends ServiceUtils with CirceSupport with SessionSupport{
         dealFutureResult(
           PlayerInfoRepo.getPlayerByName(req.id).map {
             case Some(_) =>
-              complete(ErrorRsp(140010, "username has existed."))
+              complete(ErrorRsp(140020, "Username has existed."))
 
             case None =>
               PlayerInfoRepo.updatePlayerInfo(PlayerInfo(-1, req.id, req.passWord, true))

@@ -23,7 +23,6 @@ import scala.concurrent.Future
 import org.seekloud.brickgame.ptcl.AdminPtcl
 import org.seekloud.brickgame.Boot.{executor, scheduler, timeout}
 import org.seekloud.brickgame.common.AppSettings
-//import scala.util.{Failure, Success}
 
 /**
   * User: Jason

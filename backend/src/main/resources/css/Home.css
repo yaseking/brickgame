@@ -1,0 +1,37 @@
+
+.nameDiv{
+    width:20%;
+    margin:0 auto;
+    position:relative;
+}
+
+.nameDiv input{
+    text-align:center;
+    box-shadow:0 0 4px rgba(0,0,0,0.1) inset;
+    padding-right:35px
+}
+
+.nameDiv img{
+    width:30px;
+    cursor:Pointer;
+    top:5px;
+    right:5px;
+    position:absolute;
+    z-index:3
+}
+
+.joinDiv{
+    margin-top: 5%;
+    justify-content: center;
+}
+
+/*.gameItem{*/
+    /*width:11%;*/
+    /*margin:20px 1%;*/
+    /*cursor:pointer*/
+/*}*/
+
+/*.gameItem p{*/
+    /*text-align:center;*/
+    /*margin-top:10px;*/
+/*}*/

@@ -99,12 +99,12 @@ class GridOnServer() extends Grid {
       }
     }
 
-//    (1 to 2).foreach { _ =>
-//      val c = Random.nextInt(16)+3
-//      val d = Random.nextInt(5)+3
-//    }
-    field += Point(18,3) -> HotBall
-//    field += Point(18,20) -> HotBall
+    (1 to 2).foreach { _ =>
+      val a = Random.nextInt(16)+3
+      val b = Random.nextInt(5)+3
+      field += Point(a,b) -> HotBall
+    }
+//    field += Point(18,3) -> HotBall
 
     (1 to OriginField.w).foreach{x =>
       field += Point(x, 31) -> DeadLine
