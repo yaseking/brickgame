@@ -130,7 +130,7 @@ object RoomManager {
           roomMap.foreach {r=>
             playerNum += r._2.size
           }
-          reply ! (roomMap.size, playerNum)
+          reply ! (roomMap.count(_._2.nonEmpty), playerNum)
           Behaviors.same
 
         case unknown =>

@@ -64,66 +64,45 @@ class GridOnServer() extends Grid {
 //  }
 
   def initField = {
-    var field = Map.empty[Point, Spot]
+    var field = Map.empty[Point4Short, Spot]
     //TopBorder
     (0 until topBorderLen).foreach{x =>
-      field += Point(x, 0) -> TopBorder
+      field += Point4Short(x.toShort, 0) -> TopBorder
     }
 
     //SideBorder
     (1 to sideBorderLen).foreach{y =>
-      field += Point(0, y) -> SideBorder
-      field += Point(21, y) -> SideBorder
+      field += Point4Short(0, y.toShort) -> SideBorder
+      field += Point4Short(21, y.toShort) -> SideBorder
     }
 
     (plankOri until plankOri+plankLen).foreach{x =>
-      field += Point(x, 29) -> Plank
+      field += Point4Short(x.toShort, 29) -> Plank
     }
 
-//    (1 to OriginField.w).foreach {x =>
-//      (1 to OriginField.h).foreach {y =>
-//        if(y==2||y==4){
-//          field += Point(x, y) -> RedBrick
-//        } else {
-//          field += Point(x, y) -> Brick
-//        }
-//      }
-//    }
 
     (3 to 18).foreach {x=>
       (3 to 7).foreach {y=>
         if(y==4||y==6)
-          field += Point(x, y) -> RedBrick
+          field += Point4Short(x.toShort, y.toShort) -> RedBrick
         else
-          field += Point(x, y) -> Brick
+          field += Point4Short(x.toShort, y.toShort) -> Brick
       }
     }
 
     (1 to 2).foreach { _ =>
       val a = Random.nextInt(16)+3
       val b = Random.nextInt(5)+3
-      field += Point(a,b) -> HotBall
+      field += Point4Short(a.toShort, b.toShort) -> HotBall
     }
 //    field += Point(18,3) -> HotBall
 
     (1 to OriginField.w).foreach{x =>
-      field += Point(x, 31) -> DeadLine
+      field += Point4Short(x.toShort, 31) -> DeadLine
     }
 
     field
   }
-
-
-//  def randomColor(): String = {
-//    var color = randomHex()
-//    val exceptColor = snakes.map(_._2.color).toList ::: List("#F5F5F5", "#000000", "#000080", "#696969") ::: waitingJoin.map(_._2._2).toList
-//    val similarityDegree = 2000
-//    while (exceptColor.map(c => colorSimilarity(c.split("#").last, color)).count(_ < similarityDegree) > 0) {
-//      color = randomHex()
-//    }
-//    //    log.debug(s"color : $color exceptColor : $exceptColor")
-//    "#" + color
-//  }
 
   def randomHex(): String = {
     val h = getRandom(94).toHexString + getRandom(94).toHexString + getRandom(94).toHexString

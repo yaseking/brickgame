@@ -9,7 +9,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "brickgame"
-val projectVersion = "2019.01.22"
+val projectVersion = "2019.02.26"
 
 val projectMainClass = "org.seekloud.brickgame.Boot"
 

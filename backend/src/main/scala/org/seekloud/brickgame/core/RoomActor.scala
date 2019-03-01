@@ -145,7 +145,7 @@ object RoomActor {
 
         case Sync =>
           val shouldNewSnake = if (grid.waitingListState) true else false //玩家匹配，当玩家数为2的时候才产生
-          val shouldSync = if (tickCount % 200 == 1) true else false//20s发送一次全量数据
+          val shouldSync = if (tickCount % 100 == 1) true else false//20s发送一次全量数据
           val newPlayers = grid.getNewPlayers
           val result = grid.updateInService(shouldNewSnake) //frame帧的数据执行完毕
           val deadList = result._1
@@ -161,18 +161,25 @@ object RoomActor {
             dispatch(subscribersMap, WinPage(winnerId))
           }
 
-          newPlayers.foreach {id =>
-            val data = Data4TotalSync2(grid.frameCount, grid.players)
-            dispatchTo(subscribersMap, id, data)
+          if(newPlayers.length>1) {
+            newPlayers.foreach {id =>
+              val data = Data4TotalSync2(grid.frameCount, grid.players)
+              dispatchTo(subscribersMap, id, data)
+            }
           }
 
           if(grid.gameStateMap.nonEmpty) {
             grid.gameStateMap.foreach {p=>
               if(grid.frameCount-100==p._2) {//火球效果持续10s
-                grid.gameStateMap -= p._1
-                val playerInfo = grid.players(p._1)
-                grid.players += p._1 -> playerInfo.copy(state = 0)
-                dispatch(subscribersMap, Protocol.UpdatePlayerInfo(grid.players(p._1)))
+                try{
+                  grid.gameStateMap -= p._1
+                  val playerInfo = grid.players(p._1)
+                  grid.players += p._1 -> playerInfo.copy(state = 0)
+                  dispatch(subscribersMap, Protocol.UpdatePlayerInfo(grid.players(p._1)))
+                } catch {
+                  case e: Exception =>
+                    log.debug(s"$e")
+                }
               }
             }
           }

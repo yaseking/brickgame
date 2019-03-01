@@ -47,6 +47,7 @@ package object paperClient {
 
   case class BaseScore(kill: Short, area: Short, playTime: Short)
 
+  case class Point4Short(x: Short, y: Short)
 
   case class Point(x: Float, y: Float) {
     def +(other: Point) = Point(x + other.x, y + other.y)
@@ -62,12 +63,8 @@ package object paperClient {
     def %(other: Point) = Point(x % other.x, y % other.y)
 
     def toInt = Point(x.toInt, y.toInt)
-//    def toInt = {
-//      if(x<15)
-//        Point(x.toInt, y.toInt)
-//      else
-//        Point(x.toInt+1, y.toInt)
-//    }
+
+    def toShort = Point4Short(x.toShort, y.toShort)
   }
 
 
@@ -91,7 +88,7 @@ package object paperClient {
                    velocityX: Float,
                    velocityY: Float,
                    ballLocation: Point = Point(0 ,0),
-                   field: Map[Point, Spot],
+                   field: Map[Point4Short, Spot],
                    direction: Int = 0,
                    score: Int = 0,
                    state: Int = 0 //0-正常，1-火球，2-反转

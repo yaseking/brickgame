@@ -18,10 +18,13 @@ class DrawGame(
   //todo 所有的大小均需适配浏览器
 
   private var windowBoundary = Point(dom.window.innerWidth.toFloat/6*5, dom.window.innerHeight.toFloat)
-  val mainLength = 20
-  val sideLength = 20
 
-  val middleLine = windowBoundary.x/2
+  println(s"ScreenWidth: ${windowBoundary.x.toInt}")
+
+  val mainLength = ((windowBoundary.x/2)/30).toInt
+  val sideLength = mainLength
+
+  val middleLine = windowBoundary.x/2-20
   val offX2 = windowBoundary.x/2+50
 
   val ballBlue = dom.document.getElementById("ballBlueImg").asInstanceOf[Image]
@@ -61,15 +64,15 @@ class DrawGame(
   }
 
   def drawMyExpression(expression: Int): Unit = {
-    val offX = 300
-    val offY = 660
+    val offX = mainLength*13
+    val offY = 33*mainLength
     ctx.drawImage(bubble1, offX, offY, 180, 120)
     val img = imgMap(expression)
     ctx.drawImage(img, offX+50, offY+25, 60, 60)
   }
 
   def drawOtherExpression(expression: Int): Unit = {
-    val offY = 660
+    val offY = 33*mainLength
     ctx.drawImage(bubble2, offX2, offY, 180, 130)
     val img = imgMap(expression)
     ctx.drawImage(img, offX2+50, offY+25, 60, 60)
@@ -187,7 +190,7 @@ class DrawGame(
         //绘制分数
         val score = d._2.score
         val offX4Score = 20
-        val offY4Score = 675
+        val offY4Score = 33*mainLength //675
         ctx.fillStyle = ColorsSetting.blackColor
         ctx.font = "20px Helvetica"
         ctx.fillText(s"昵称:${d._2.name}", offX4Score, offY4Score)
@@ -250,8 +253,8 @@ class DrawGame(
 //        ctx.fillStyle = ColorsSetting.darkYellowColor
 //        ctx.fillRect(offX2 + x * sideLength, y * sideLength, sideLength, sideLength)
         val score = d._2.score
-        val offX4Score = offX2 + 300
-        val offY4Score = 675
+        val offX4Score = offX2+15*sideLength
+        val offY4Score = 33*mainLength //675
         ctx.fillStyle = ColorsSetting.blackColor
         ctx.fillText(s"昵称:${d._2.name}", offX4Score, offY4Score)
         ctx.fillText(s"得分:$score", offX4Score, offY4Score+25)
